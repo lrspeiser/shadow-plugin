@@ -6,7 +6,7 @@ import { OpenAI } from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { FileSummary, ModuleSummary, EnhancedProductDocumentation, detectFileRole, groupFilesByModule, detectModuleType, readFileContent } from './fileDocumentation';
 import { CodeAnalysis, FileInfo } from './analyzer';
-import { productPurposeAnalysisSchema, llmInsightsSchema, productDocumentationSchema } from './llmSchemas';
+import { productPurposeAnalysisSchema, llmInsightsSchema, productDocumentationSchema, unitTestPlanSchema } from './llmSchemas';
 import { FileAccessHelper, LLMRequest } from './fileAccessHelper';
 import { SWLogger } from './logger';
 
@@ -2097,28 +2097,34 @@ GOOD EXAMPLE (DO THIS):
             let result: any = null;
 
             if (isClaude) {
-                const response = await (this.claudeClient as any).messages.create({
+                // Use Claude with structured outputs - NO PARSING NEEDED!
+                console.log('[Unit Test Plan] Using Claude with structured outputs...');
+                const response = await (this.claudeClient as any).beta.messages.create({
                     model: 'claude-sonnet-4-5',
                     max_tokens: 40000,
+                    betas: ['structured-outputs-2025-11-13'],
                     system: 'You are an expert test architect who creates comprehensive unit test plans.',
                     messages: [{
                         role: 'user',
                         content: prompt
-                    }]
+                    }],
+                    output_format: {
+                        type: 'json_schema',
+                        schema: unitTestPlanSchema
+                    }
                 });
 
+                // Claude structured outputs return valid JSON directly - no parsing needed!
                 const textContent = response.content[0].text;
                 if (!textContent) {
                     throw new Error('No text content in Claude response');
                 }
+                result = JSON.parse(textContent);
                 
-                // Try to parse as JSON
-                try {
-                    result = JSON.parse(textContent);
-                } catch {
-                    // If not JSON, wrap in object
-                    result = { rawContent: textContent };
-                }
+                console.log('✅ [Unit Test Plan] Claude structured output received (no parsing needed):', {
+                    hasStrategy: !!result.unit_test_strategy,
+                    testSuitesCount: result.test_suites?.length || 0
+                });
             } else {
                 // Use OpenAI with model fallback pattern (same as generateArchitectureInsights)
                 const modelsToTry = ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo'];

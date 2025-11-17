@@ -379,4 +379,96 @@ export const productDocumentationSchema = {
     additionalProperties: false
 };
 
+export const unitTestPlanSchema = {
+    type: "object",
+    properties: {
+        unit_test_strategy: {
+            type: "object",
+            properties: {
+                overall_approach: {
+                    type: "string",
+                    description: "How to approach unit testing for this codebase"
+                },
+                testing_frameworks: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Recommended testing frameworks (e.g., ['pytest', 'unittest'])"
+                },
+                mocking_strategy: {
+                    type: "string",
+                    description: "How to mock dependencies"
+                },
+                isolation_level: {
+                    type: "string",
+                    description: "What can be tested in isolation"
+                }
+            },
+            required: ["overall_approach", "testing_frameworks", "mocking_strategy", "isolation_level"],
+            additionalProperties: false
+        },
+        test_suites: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    id: { type: "string", description: "Unique identifier for the test suite" },
+                    name: { type: "string", description: "Test suite name" },
+                    description: { type: "string", description: "What this suite tests" },
+                    test_file_path: { type: "string", description: "Path to the test file (e.g., 'tests/test_module.py')" },
+                    source_files: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "Source files being tested"
+                    },
+                    test_cases: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string", description: "Unique identifier for the test case" },
+                                name: { type: "string", description: "Test function name" },
+                                description: { type: "string", description: "What this test verifies" },
+                                target_function: { type: "string", description: "Function being tested" },
+                                target_file: { type: "string", description: "Source file path" },
+                                scenarios: {
+                                    type: "array",
+                                    items: { type: "string" },
+                                    description: "Test scenarios"
+                                },
+                                mocks: {
+                                    type: "array",
+                                    items: { type: "string" },
+                                    description: "What to mock"
+                                },
+                                assertions: {
+                                    type: "array",
+                                    items: { type: "string" },
+                                    description: "What to assert"
+                                },
+                                priority: {
+                                    type: "string",
+                                    enum: ["high", "medium", "low"],
+                                    description: "Test priority"
+                                }
+                            },
+                            required: ["id", "name", "description", "target_function", "target_file", "priority"],
+                            additionalProperties: false
+                        },
+                        description: "Individual test cases in this suite"
+                    }
+                },
+                required: ["id", "name", "description", "test_file_path", "source_files", "test_cases"],
+                additionalProperties: false
+            },
+            description: "Test suites to create"
+        },
+        rationale: {
+            type: "string",
+            description: "Why these unit tests matter"
+        }
+    },
+    required: ["unit_test_strategy", "test_suites", "rationale"],
+    additionalProperties: false
+};
+
 
