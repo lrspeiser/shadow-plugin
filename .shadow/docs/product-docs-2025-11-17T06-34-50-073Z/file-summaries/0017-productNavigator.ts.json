@@ -1,0 +1,15 @@
+{
+  "file": "src/productNavigator.ts",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 17,
+    "total": 38,
+    "savedAt": "2025-11-17T06:34:55.498Z"
+  }
+}

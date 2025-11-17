@@ -1,0 +1,15 @@
+{
+  "file": "src/fileWatcher.ts",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 8,
+    "total": 38,
+    "savedAt": "2025-11-17T06:34:52.773Z"
+  }
+}

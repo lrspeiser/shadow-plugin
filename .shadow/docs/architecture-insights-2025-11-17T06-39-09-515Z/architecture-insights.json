@@ -1,0 +1,296 @@
+{
+  "overallAssessment": "Shadow Watch implements a plugin-based architecture for a VSCode extension that performs continuous code analysis and AI-powered insight generation. The architecture follows a clear separation of concerns with distinct layers: (1) Analysis Layer (analyzer.ts, insightGenerator.ts) for code parsing and pattern detection, (2) Presentation Layer (multiple tree view providers) for different UI perspectives, (3) Integration Layer (llmService.ts, llmIntegration.ts) for AI assistant communication, and (4) Infrastructure Layer (cache.ts, fileWatcher.ts) for performance optimization. The single entry point (dist/extension.js) is appropriate for VSCode's extension lifecycle, activating on startup and running persistently in the background.\n\nThe architecture demonstrates strong modularity with well-defined boundaries between static analysis, insight generation, and presentation. The caching strategy with intelligent invalidation enables real-time monitoring without performance degradation. However, the codebase shows signs of rapid growth with insufficient organizational structure - particularly evident in root directory clutter and the presence of two exceptionally large files (llmService.ts at 2262 lines, llmIntegration.ts at 1986 lines) that suggest feature accumulation without refactoring. The multiple tree view providers align well with the product's multi-perspective requirement, though their implementation could benefit from shared abstractions to reduce duplication.",
+  "strengths": [
+    "Clear separation between analysis engine (CodeAnalyzer) and insight generation (InsightGenerator) enables independent evolution of parsing logic and pattern detection rules",
+    "Intelligent caching layer with time-based expiration and incremental analysis keeps updates under 1 second despite analyzing entire workspaces",
+    "Multi-LLM provider abstraction (Claude, OpenAI, Gemini, Ollama) prevents vendor lock-in and maximizes user adoption across different AI assistant preferences",
+    "Non-blocking background processing architecture ensures the extension never interferes with developer typing or editing workflow",
+    "Integration with VSCode's native DiagnosticsProvider publishes issues to the Problems panel where developers already look for errors and warnings",
+    "FileWatcher-triggered incremental analysis provides real-time feedback without requiring manual refresh or batch processing",
+    "Support for 9 programming languages through generic AST parsing approach demonstrates extensible language support architecture",
+    "Severity categorization (Error, Warning, Info) enables effective prioritization of architecture issues without overwhelming developers",
+    "Single entry point design correctly matches VSCode extension lifecycle requirements for persistent background monitoring",
+    "Separation of LLMFormatter from core analysis logic allows output format evolution without touching analysis algorithms"
+  ],
+  "issues": [
+    {
+      "title": "Root Directory Clutter with Documentation Files",
+      "description": "The root directory contains 12 files including 5 markdown documentation files (GET_STARTED.md, IMPLEMENTATION_GUIDE.md, MENU_STRUCTURE.md, PLUGIN_DESIGN.md, QUICK_START.md, README.md), configuration files (package.json, tsconfig.json, webpack.config.js), and build artifacts (shadow-watch-1.0.0.vsix). This makes navigation difficult and obscures the project's structure. **Proposed Fix**: Create a docs/ directory and move all documentation files except README.md into organized subdirectories: docs/guides/ for GET_STARTED.md and QUICK_START.md, docs/architecture/ for PLUGIN_DESIGN.md and MENU_STRUCTURE.md, docs/implementation/ for IMPLEMENTATION_GUIDE.md. Move configuration files to a config/ directory. Move the .vsix build artifact to a dist/ or build/ directory. Update any scripts that reference these paths.",
+      "relevantFiles": [
+        "GET_STARTED.md",
+        "IMPLEMENTATION_GUIDE.md",
+        "MENU_STRUCTURE.md",
+        "PLUGIN_DESIGN.md",
+        "QUICK_START.md",
+        "README.md",
+        "package.json",
+        "tsconfig.json",
+        "webpack.config.js",
+        "shadow-watch-1.0.0.vsix"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Massive LLM Service File Violates Single Responsibility",
+      "description": "src/llmService.ts contains 2262 lines and 117 functions, making it the second-largest file in the codebase. This god object likely handles multiple responsibilities including provider abstraction, request formatting, response parsing, error handling, and possibly caching. Such large files are difficult to test, maintain, and extend. **Proposed Fix**: Split llmService.ts into focused modules: (1) llmProviders/ directory with separate files for each provider (claudeProvider.ts, openAIProvider.ts, geminiProvider.ts, ollamaProvider.ts), (2) llmClient.ts for common HTTP request logic, (3) llmResponseParser.ts for response handling, (4) llmErrorHandler.ts for error management, (5) llmRequestFormatter.ts for request preparation. Create an ILLMProvider interface that each provider implements, then use a factory pattern in llmService.ts to instantiate the appropriate provider. This reduces llmService.ts to a lightweight orchestrator (~200 lines) and improves testability.",
+      "relevantFiles": [
+        "src/llmService.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Large LLM Integration File Indicates Missing Abstractions",
+      "description": "src/llmIntegration.ts contains 1986 lines and 167 functions, suggesting it handles too many concerns. With 167 functions, this file likely mixes integration logic, data transformation, UI coordination, and possibly business logic. This creates tight coupling and makes changes risky. **Proposed Fix**: Analyze llmIntegration.ts to identify distinct responsibilities, then extract them into separate modules. Likely candidates: (1) llmCoordinator.ts for orchestrating multi-step LLM workflows, (2) insightFormatter.ts for formatting analysis results for LLM consumption, (3) llmResponseHandler.ts for processing LLM responses, (4) llmUIAdapter.ts for coordinating between LLM results and UI updates. Use the facade pattern to maintain a simple integration interface while delegating to specialized handlers. Target reducing llmIntegration.ts to under 500 lines focused purely on coordination.",
+      "relevantFiles": [
+        "src/llmIntegration.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Potential Circular Dependency Between Analyzer and Cache",
+      "description": "The import graph shows cache.ts imports analyzer.ts, while analyzer.ts imports cache.ts, creating a circular dependency. Circular dependencies can cause initialization issues, make testing difficult, and indicate unclear architectural boundaries. **Proposed Fix**: Break the circular dependency by introducing a clear dependency direction. Option 1: Make cache.ts depend only on simple data structures, not the analyzer. Extract any analyzer-specific caching logic into a separate analyzerCache.ts that imports both cache.ts and analyzer.ts. Option 2: Use dependency injection - pass cache as a parameter to analyzer functions rather than importing it directly. Option 3: Create a shared types.ts file for common interfaces that both modules depend on, eliminating direct cross-imports.",
+      "relevantFiles": [
+        "src/analyzer.ts",
+        "src/cache.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Extension.ts Size Suggests Missing Command Handlers Abstraction",
+      "description": "src/extension.ts contains 965 lines and 58 functions, making it one of the largest files. As the extension entry point, it should primarily handle VSCode lifecycle and delegate to specialized handlers, but its size suggests it's implementing significant logic directly. **Proposed Fix**: Extract command handlers into a commands/ directory with separate files for each command category: (1) analysisCommands.ts for analysis-related commands, (2) insightCommands.ts for insight generation commands, (3) navigationCommands.ts for tree view navigation, (4) configurationCommands.ts for settings management. Create a CommandRegistry class that registers all commands with VSCode, keeping extension.ts focused on activation, deactivation, and high-level orchestration. Target reducing extension.ts to under 300 lines.",
+      "relevantFiles": [
+        "src/extension.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Missing Tests Directory Despite Unit Test Navigator",
+      "description": "The codebase includes unitTestsNavigator.ts (322 lines) for navigating unit tests, but there is no tests/ or test/ directory in the file structure. This suggests either tests exist elsewhere with non-standard naming, tests are missing entirely, or the feature is incomplete. **Proposed Fix**: Create a standard tests/ directory structure mirroring src/: tests/unit/ for unit tests, tests/integration/ for integration tests, tests/fixtures/ for test data. If tests exist in non-standard locations, consolidate them. If tests are missing, prioritize creating tests for core modules (analyzer.ts, insightGenerator.ts, cache.ts) first. Configure package.json test scripts and ensure unitTestsNavigator.ts correctly discovers tests in the new structure.",
+      "relevantFiles": [
+        "src/unitTestsNavigator.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Build Scripts Organization",
+      "description": "The scripts/ directory contains 6 files mixing test scripts (test_architecture_insights.mjs, test_product_docs.mjs, test-incremental-saving.sh, test-plugin.sh), setup scripts (setup.sh), and build scripts (build-vsix.sh). This mixing of concerns makes it unclear which scripts are for development versus CI/CD versus testing. **Proposed Fix**: Reorganize scripts/ into subdirectories: scripts/build/ for build-vsix.sh, scripts/setup/ for setup.sh, scripts/test/ for all test scripts. Alternatively, consider moving test scripts to a tests/scripts/ directory to colocate them with test code. Add a scripts/README.md documenting the purpose and usage of each script. Update package.json scripts section to reference the new paths.",
+      "relevantFiles": [
+        "scripts/build-vsix.sh",
+        "scripts/setup.sh",
+        "scripts/test_architecture_insights.mjs",
+        "scripts/test_product_docs.mjs",
+        "scripts/test-incremental-saving.sh",
+        "scripts/test-plugin.sh"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Orphaned Extension Entry Point",
+      "description": "src/extension.ts is marked as orphaned (not imported by other files), which is expected for a VSCode extension entry point but indicates missing test coverage. Extension entry points should have integration tests that verify activation, command registration, and lifecycle management. **Proposed Fix**: Create tests/integration/extension.test.ts that verifies extension activation, command registration, and proper disposal. Use VSCode's extension testing framework (@vscode/test-electron) to load the extension in a test VSCode instance. Test key scenarios: extension activates without errors, all commands are registered, tree views are created, file watchers are initialized. This ensures the orchestration logic in extension.ts works correctly.",
+      "relevantFiles": [
+        "src/extension.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Webpack Configuration in Root",
+      "description": "webpack.config.js is in the root directory alongside source code and documentation. Build configuration files should be organized separately from source code to clarify their role in the development process. **Proposed Fix**: Move webpack.config.js to a build/ or config/ directory. If adopting a config/ directory structure, also move tsconfig.json there and update package.json references. Alternatively, keep both in root but create a build/ directory for other build artifacts and configurations if the project grows more complex build requirements.",
+      "relevantFiles": [
+        "webpack.config.js",
+        "tsconfig.json"
+      ],
+      "relevantFunctions": []
+    }
+  ],
+  "organization": "The codebase demonstrates a flat organizational structure that works adequately for a medium-sized VSCode extension but shows signs of strain as the project grows. All source code resides in a single src/ directory with 19 TypeScript files, which provides simplicity but lacks the logical grouping that would aid navigation and understanding. The absence of subdirectories within src/ means developers must scan through nearly 20 files to find specific functionality, and the conceptual boundaries between analysis, presentation, integration, and infrastructure are not reflected in the folder structure.\n\nThe root directory organization is particularly problematic with 12 files creating visual clutter that obscures the project's entry points and key documentation. Five separate markdown files (GET_STARTED.md, IMPLEMENTATION_GUIDE.md, MENU_STRUCTURE.md, PLUGIN_DESIGN.md, QUICK_START.md) plus README.md in the root suggest comprehensive documentation but would be more discoverable in a docs/ structure. Configuration files (package.json, tsconfig.json, webpack.config.js) and build artifacts (shadow-watch-1.0.0.vsix) further contribute to root directory noise. The scripts/ directory shows similar organizational issues by mixing build, setup, and test scripts without subdirectory categorization.\n\nThe presence of two massive files (llmService.ts at 2262 lines, llmIntegration.ts at 1986 lines) indicates missing domain-driven folder organization. These files likely contain multiple cohesive subsets of functionality that could be extracted into focused modules within dedicated subdirectories. The lack of a tests/ directory despite having test-related navigation features suggests either missing test coverage or non-standard test organization. Overall, the flat structure was likely adequate during initial development but now hinders maintainability as the codebase approaches 12,000 lines of code.",
+  "entryPointsAnalysis": "The codebase correctly implements a single entry point architecture appropriate for a VSCode extension: dist/extension.js (referenced in package.json main field) serves as the Node.js main entry point. This single entry point aligns perfectly with VSCode's extension lifecycle model, where extensions activate when VSCode starts (or on demand based on activation events) and must remain running persistently in the background. The extension.ts source file (965 lines, 58 functions) handles activation, command registration, tree view provider initialization, and lifecycle management. While extension.ts is marked as orphaned (not imported by other files), this is expected and correct for an extension entry point - it's loaded directly by VSCode's extension host, not imported by application code. The size of extension.ts (965 lines) suggests it may be handling too much orchestration logic directly rather than delegating to specialized command handlers, but the single entry point architecture itself is sound and should be preserved.",
+  "orphanedFilesAnalysis": "The two orphaned files identified (src/extension.ts and webpack.config.js) represent expected patterns rather than problems. Extension.ts is the VSCode extension entry point, loaded directly by the VSCode extension host rather than imported by application code, so its orphaned status is correct. However, the lack of test files importing extension.ts indicates missing integration test coverage for the extension activation and lifecycle management logic. Webpack.config.js is a build configuration file consumed by the webpack build tool, not imported by application code, so its orphaned status is also expected. These files are not truly orphaned - they're consumed by external systems (VSCode runtime and webpack build process) rather than internal application code. The orphan detection correctly identified files not imported within the codebase, but the analysis should distinguish between problematic orphans (dead code) and architectural orphans (external entry points and configuration).",
+  "folderReorganization": "**Documentation Consolidation**: Create docs/ directory with subdirectories: docs/guides/ for user-facing documentation (GET_STARTED.md, QUICK_START.md), docs/architecture/ for design documentation (PLUGIN_DESIGN.md, MENU_STRUCTURE.md), docs/implementation/ for developer documentation (IMPLEMENTATION_GUIDE.md). Leave README.md in root as the project entry point. This moves 5 files from root to organized locations, improving discoverability and reducing root clutter.\n\n**Source Code Domain Organization**: Restructure src/ into domain-focused subdirectories: (1) src/analysis/ for core analysis functionality (analyzer.ts, insightGenerator.ts, cache.ts, fileWatcher.ts), (2) src/views/ for presentation layer (analysisViewer.ts, insightsTreeView.ts, insightsViewer.ts, staticAnalysisViewer.ts, productNavigator.ts, unitTestsNavigator.ts), (3) src/llm/ for AI integration (llmService.ts, llmIntegration.ts, llmFormatter.ts, llmSchemas.ts), (4) src/infrastructure/ for utilities (fileAccessHelper.ts, fileDocumentation.ts, diagnosticsProvider.ts, logger.ts), (5) src/commands/ for extracted command handlers from extension.ts. Update all import paths accordingly. This transforms the flat 19-file directory into 5 logical domains with 3-6 files each.\n\n**LLM Service Decomposition**: Within src/llm/, further organize the large llmService.ts (2262 lines) into: src/llm/providers/ directory containing claudeProvider.ts, openAIProvider.ts, geminiProvider.ts, ollamaProvider.ts (each ~200-400 lines), src/llm/core/ containing llmClient.ts (HTTP logic), llmResponseParser.ts (response handling), llmErrorHandler.ts (error management). Keep a reduced llmService.ts (~200 lines) as the facade that delegates to providers. Similarly, split llmIntegration.ts (1986 lines) into src/llm/integration/ with focused modules for coordination, formatting, and response handling.\n\n**Configuration Organization**: Create config/ directory and move tsconfig.json and webpack.config.js there. Update package.json scripts to reference config/webpack.config.js. This clarifies that these files are build configuration rather than source code or documentation.\n\n**Build and Test Scripts**: Reorganize scripts/ into scripts/build/ (build-vsix.sh), scripts/setup/ (setup.sh), scripts/test/ (all test scripts). Add scripts/README.md documenting each script's purpose and usage. Alternatively, move test scripts to tests/scripts/ to colocate with test code.\n\n**Test Infrastructure**: Create tests/ directory structure: tests/unit/ mirroring src/ structure for unit tests, tests/integration/ for integration tests (including extension.test.ts), tests/fixtures/ for test data and mock files. Configure package.json test scripts to discover tests in this location.\n\n**Build Artifacts**: Create build/ or dist/ directory for compiled output and move shadow-watch-1.0.0.vsix there (or configure build process to output there). Add build/ to .gitignore to exclude compiled artifacts from version control.\n\n**Impact Assessment**: This reorganization moves approximately 5 documentation files, restructures 19 source files into 5 domain directories, and establishes test and build artifact directories. Total effort: 4-6 hours including import path updates and verification. Benefits: significantly improved navigation, clearer architectural boundaries, reduced cognitive load, better onboarding experience for new contributors.",
+  "recommendations": [
+    {
+      "title": "Maintain Single Entry Point Architecture",
+      "description": "**If you want to preserve VSCode extension compatibility and persistent background monitoring**: Keep the single entry point architecture (dist/extension.js from extension.ts). This is mandated by VSCode's extension model and correctly supports the product's continuous monitoring requirement. The extension must activate on VSCode startup and remain running to provide real-time analysis. Do not attempt to create multiple entry points or split into separate extensions unless creating distinct products. However, extract command handlers from extension.ts into separate modules to reduce its size while maintaining the single activation point.",
+      "relevantFiles": [
+        "src/extension.ts",
+        "package.json"
+      ],
+      "relevantFunctions": [
+        "activate",
+        "deactivate"
+      ]
+    },
+    {
+      "title": "Preserve Multi-View Architecture for Different User Perspectives",
+      "description": "**If you want to continue serving different user workflows (problem-solving, documentation, test navigation)**: Maintain the multiple tree view provider architecture (InsightsTreeView, AnalysisViewerProvider, ProductNavigatorProvider, InsightsViewerProvider, UnitTestsNavigatorProvider). This aligns with the product's goal of providing different perspectives on code quality without requiring users to switch tools or leave VSCode. However, extract shared tree view logic into an abstract base class (BaseTreeProvider) to reduce duplication across the 5 providers. **If you want to simplify the UI**: Consider consolidating to 2-3 core views (Issues, Documentation, Tests) and using nested tree structures within each view to provide detail, but this would reduce workflow optimization for users who benefit from dedicated perspectives.",
+      "relevantFiles": [
+        "src/insightsTreeView.ts",
+        "src/analysisViewer.ts",
+        "src/insightsViewer.ts",
+        "src/productNavigator.ts",
+        "src/unitTestsNavigator.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Evolve LLM Integration Based on Usage Patterns",
+      "description": "**If you want to maximize LLM assistant adoption**: Continue investing in the multi-provider abstraction (Claude, OpenAI, Gemini, Ollama) and format optimization (Cursor, ChatGPT formats). This prevents vendor lock-in and adapts to users' preferred AI assistants. Refactor llmService.ts and llmIntegration.ts into provider-specific modules as recommended in the Issues section to enable independent evolution of each provider's integration. **If you want to simplify maintenance**: Consider focusing on the top 2 most-used providers based on telemetry and deprecating others, but this risks alienating users with different provider preferences and reduces the product's flexibility advantage.",
+      "relevantFiles": [
+        "src/llmService.ts",
+        "src/llmIntegration.ts",
+        "src/llmFormatter.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Optimize Caching Strategy Based on Workspace Size",
+      "description": "**If you want to support large enterprise codebases (>10,000 files)**: Enhance the caching strategy in cache.ts to use persistent disk-based caching with SQLite or similar, not just in-memory caching. Implement cache eviction policies (LRU) to manage memory consumption. Add cache warming on extension activation for frequently accessed files. **If you want to maintain simplicity for small-to-medium projects (<5,000 files)**: Keep the current time-based in-memory caching approach, which provides good performance without storage complexity. The current approach works well for the typical VSCode workspace size and avoids file I/O overhead.",
+      "relevantFiles": [
+        "src/cache.ts",
+        "src/fileWatcher.ts",
+        "src/analyzer.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Introduce Plugin Architecture for Language Support",
+      "description": "**If you want to support more programming languages beyond the current 9**: Refactor the language-specific parsing logic in analyzer.ts into a plugin architecture with a LanguageParser interface. Create separate parser plugins for each language in src/analysis/parsers/ (pythonParser.ts, typescriptParser.ts, etc.). This enables independent evolution of language support and allows community contributions of new language parsers. **If you want to keep language support fixed**: Maintain the current monolithic analyzer.ts approach, which is simpler but makes adding new languages more complex and risky due to potential regressions in existing language support.",
+      "relevantFiles": [
+        "src/analyzer.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Add Telemetry to Guide Architecture Evolution",
+      "description": "**If you want data-driven architecture decisions**: Instrument the extension with privacy-respecting telemetry to understand which features users actually use (which tree views, which LLM providers, which insight types, which commands). Use this data to prioritize refactoring efforts on high-value paths and potentially deprecate low-usage features. Telemetry would reveal whether the multi-view architecture is truly valuable or if users primarily use 1-2 views. **If you want to avoid telemetry complexity**: Continue architecture decisions based on design principles and user feedback, but accept the risk of over-engineering less-used features while under-investing in heavily-used ones.",
+      "relevantFiles": [
+        "src/extension.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Implement Command Handler Pattern",
+      "description": "**If you want to improve testability and reduce extension.ts complexity**: Extract command handlers from extension.ts into a command handler pattern with a CommandRegistry. Each command becomes a class implementing ICommandHandler with an execute() method. This enables unit testing of command logic in isolation and reduces extension.ts to pure orchestration. Commands can be organized by domain (AnalysisCommands, InsightCommands, NavigationCommands). **If you want to maintain simplicity**: Keep commands as functions in extension.ts, accepting the larger file size and reduced testability but avoiding the abstraction overhead of the command pattern.",
+      "relevantFiles": [
+        "src/extension.ts"
+      ],
+      "relevantFunctions": []
+    }
+  ],
+  "priorities": [
+    {
+      "title": "Decompose Large LLM Service Files",
+      "description": "Split llmService.ts (2262 lines, 117 functions) and llmIntegration.ts (1986 lines, 167 functions) into focused modules organized by provider and responsibility. These two files represent over 4,200 lines of code (36% of the codebase) and are the highest-risk files for bugs and maintenance issues. Decomposition will improve testability, reduce merge conflicts if multiple developers work on LLM features, and enable independent evolution of different LLM providers. **High Impact**: Dramatically improves maintainability of core AI features. **Medium Risk**: Requires careful refactoring to avoid breaking existing LLM integrations, but the provider abstraction should enable safe incremental extraction. Start with extracting one provider (e.g., Claude) into a separate file, verify all tests pass, then repeat for other providers.",
+      "relevantFiles": [
+        "src/llmService.ts",
+        "src/llmIntegration.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Organize Documentation Files into Docs Directory",
+      "description": "Move 5 markdown documentation files (GET_STARTED.md, IMPLEMENTATION_GUIDE.md, MENU_STRUCTURE.md, PLUGIN_DESIGN.md, QUICK_START.md) from root into organized docs/ subdirectories (docs/guides/, docs/architecture/, docs/implementation/). This immediately improves project navigability and reduces root directory clutter by 42% (from 12 to 7 root files). **High Impact**: Significantly improves first-impression for new contributors and makes documentation more discoverable. **Low Risk**: Pure file movement with no code changes, though any tooling that references these paths will need updates. Estimated effort: 30 minutes including path updates in README.md links.",
+      "relevantFiles": [
+        "GET_STARTED.md",
+        "IMPLEMENTATION_GUIDE.md",
+        "MENU_STRUCTURE.md",
+        "PLUGIN_DESIGN.md",
+        "QUICK_START.md",
+        "README.md"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Restructure Source Code into Domain Directories",
+      "description": "Reorganize the flat src/ directory (19 files) into domain-focused subdirectories: src/analysis/, src/views/, src/llm/, src/infrastructure/, src/commands/. This creates clear architectural boundaries that are currently only implicit in naming conventions. Developers will be able to navigate directly to the domain they need rather than scanning through 19 files. **High Impact**: Improves code discovery, makes architecture boundaries explicit, reduces cognitive load for new contributors. **Medium Risk**: Requires updating all import paths across the codebase (~100-200 imports), but TypeScript's compiler will catch any broken imports. Use VSCode's rename/move refactoring to automate path updates. Estimated effort: 2-3 hours.",
+      "relevantFiles": [
+        "src/analyzer.ts",
+        "src/insightGenerator.ts",
+        "src/cache.ts",
+        "src/fileWatcher.ts",
+        "src/analysisViewer.ts",
+        "src/insightsTreeView.ts",
+        "src/insightsViewer.ts",
+        "src/staticAnalysisViewer.ts",
+        "src/productNavigator.ts",
+        "src/unitTestsNavigator.ts",
+        "src/llmService.ts",
+        "src/llmIntegration.ts",
+        "src/llmFormatter.ts",
+        "src/llmSchemas.ts",
+        "src/fileAccessHelper.ts",
+        "src/fileDocumentation.ts",
+        "src/diagnosticsProvider.ts",
+        "src/logger.ts",
+        "src/extension.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Extract Command Handlers from Extension.ts",
+      "description": "Reduce extension.ts from 965 lines to ~300 lines by extracting command handler logic into separate command modules in src/commands/ directory. Extension.ts should focus solely on VSCode lifecycle (activate, deactivate) and delegate all command implementations to specialized handlers. This improves testability by allowing command logic to be unit tested independently of VSCode extension activation. **Medium Impact**: Improves maintainability of extension entry point and enables better test coverage. **Low Risk**: Command extraction is straightforward refactoring - each command becomes a function exported from a command module and called from extension.ts. Estimated effort: 3-4 hours.",
+      "relevantFiles": [
+        "src/extension.ts"
+      ],
+      "relevantFunctions": []
+    },
+    {
+      "title": "Create Test Infrastructure and Add Core Module Tests",
+      "description": "Establish tests/ directory with tests/unit/, tests/integration/, and tests/fixtures/ subdirectories. Prioritize adding unit tests for core modules: analyzer.ts (AST parsing logic), insightGenerator.ts (pattern detection), cache.ts (cache invalidation logic). These modules contain critical business logic that should have test coverage to prevent regressions during refactoring. Currently no test directory exists despite the codebase including unitTestsNavigator.ts for test navigation, suggesting either missing tests or non-standard organization. **High Impact**: Enables safe refactoring of large files and prevents regressions in core analysis logic. **Low Risk**: Adding tests doesn't change existing code behavior, only validates it. Estimated effort: 6-8 hours for initial test infrastructure and core module coverage.",
+      "relevantFiles": [
+        "src/analyzer.ts",
+        "src/insightGenerator.ts",
+        "src/cache.ts",
+        "src/unitTestsNavigator.ts"
+      ],
+      "relevantFunctions": []
+    }
+  ],
+  "cursorPrompt": "You are refactoring a VSCode extension codebase that has grown to ~12,000 lines with architectural issues. Follow this priority order:\n\n1. FIRST: Decompose llmService.ts and llmIntegration.ts\n   - Split llmService.ts (2262 lines) into: src/llm/providers/[claudeProvider.ts, openAIProvider.ts, geminiProvider.ts, ollamaProvider.ts], src/llm/core/[llmClient.ts, llmResponseParser.ts, llmErrorHandler.ts]\n   - Split llmIntegration.ts (1986 lines) into: src/llm/integration/[llmCoordinator.ts, insightFormatter.ts, llmResponseHandler.ts, llmUIAdapter.ts]\n   - Create ILLMProvider interface for provider implementations\n   - Reduce llmService.ts to a ~200 line facade using factory pattern\n   - Verify all existing LLM functionality works after each provider extraction\n\n2. SECOND: Organize documentation files\n   - Create docs/ with subdirectories: docs/guides/, docs/architecture/, docs/implementation/\n   - Move GET_STARTED.md and QUICK_START.md to docs/guides/\n   - Move PLUGIN_DESIGN.md and MENU_STRUCTURE.md to docs/architecture/\n   - Move IMPLEMENTATION_GUIDE.md to docs/implementation/\n   - Leave README.md in root\n   - Update any README.md links to point to new paths\n\n3. THIRD: Restructure src/ into domains\n   - Create: src/analysis/, src/views/, src/llm/, src/infrastructure/, src/commands/\n   - Move analysis files: analyzer.ts, insightGenerator.ts, cache.ts, fileWatcher.ts → src/analysis/\n   - Move view files: analysisViewer.ts, insightsTreeView.ts, insightsViewer.ts, staticAnalysisViewer.ts, productNavigator.ts, unitTestsNavigator.ts → src/views/\n   - Move LLM files: (already reorganized in step 1) → src/llm/\n   - Move infrastructure: fileAccessHelper.ts, fileDocumentation.ts, diagnosticsProvider.ts, logger.ts → src/infrastructure/\n   - Keep extension.ts in src/ root\n   - Update all import paths using TypeScript compiler to verify\n\n4. FOURTH: Extract command handlers from extension.ts\n   - Create src/commands/ with: analysisCommands.ts, insightCommands.ts, navigationCommands.ts, configurationCommands.ts\n   - Extract command implementations from extension.ts into appropriate command files\n   - Create CommandRegistry class for registration\n   - Reduce extension.ts to ~300 lines focused on activation/deactivation\n\n5. FIFTH: Create test infrastructure\n   - Create tests/ with: tests/unit/, tests/integration/, tests/fixtures/\n   - Add unit tests for: analyzer.ts, insightGenerator.ts, cache.ts\n   - Add integration test for extension.ts activation\n   - Configure package.json test scripts\n\nKEY CONSTRAINTS:\n- Maintain single entry point (dist/extension.js) for VSCode extension\n- Preserve all existing functionality - this is pure refactoring\n- Do not consolidate tree view providers - they serve different user workflows\n- Use TypeScript's compiler to verify all import updates\n- Test after each major step to ensure no regressions\n- The product is a VSCode extension for continuous code analysis and AI-powered insights\n- Keep non-blocking background processing architecture\n- Maintain multi-LLM provider support (Claude, OpenAI, Gemini, Ollama)\n\nWhen refactoring, preserve all product capabilities: real-time analysis, multi-view UI, LLM integration, caching, language support.",
+  "productPurposeAnalysis": {
+    "productPurpose": "Shadow Watch aims to continuously improve code quality and architecture by automatically detecting issues in real-time, generating AI-optimized insights that enable developers to quickly get intelligent recommendations from LLMs, and producing comprehensive documentation that helps teams understand their codebase without manual effort. Its core mission is to make architecture quality visible and actionable by bridging human developers with AI assistants through optimized formatting and automatic analysis.",
+    "architectureRationale": "The architecture exists to support continuous background monitoring without disrupting developer workflow. There is a single entry point (./dist/extension.js) because Shadow Watch is a VSCode extension that must integrate into the editor's lifecycle - it activates when VSCode starts and runs persistently in the background. The multiple tree view providers exist because users need different perspectives on their code: issue-focused views for fixing problems, documentation views for understanding the system, and test views for quality assurance. The architecture separates analysis from presentation because analysis is computationally expensive (requiring AST parsing and dependency graphing) while UI updates must be instantaneous. The caching layer exists because re-analyzing entire workspaces on every save would be too slow, so incremental analysis of only changed files keeps updates under 1 second. The LLM integration layer exists because the product's core value proposition is preparing insights for AI assistants, requiring formatted outputs optimized for different LLM providers.",
+    "designDecisions": [
+      "Multiple tree view providers (InsightsTreeView, AnalysisViewerProvider, ProductNavigatorProvider, InsightsViewerProvider, UnitTestsNavigatorProvider) - Reason: Users need to switch between problem-solving mode (viewing issues), understanding mode (reading documentation), and testing mode (linking tests to source) without leaving VSCode",
+      "Intelligent caching with time-based expiration - Reason: Developers save files constantly during coding, so re-analyzing the entire workspace every time would create unacceptable lag; caching enables sub-second incremental updates while ensuring analysis stays fresh",
+      "FileWatcher triggering incremental analysis - Reason: Users expect real-time feedback as they code, not batch analysis they must manually trigger; automatic monitoring on save keeps insights current without breaking flow",
+      "LLMFormatter with multiple output formats (Cursor, ChatGPT, generic) - Reason: Different AI assistants have different optimal input formats, and manually reformatting insights for each assistant would waste time and reduce adoption",
+      "Separation of CodeAnalyzer (static analysis) from InsightGenerator (pattern detection) - Reason: Raw code structure parsing is reusable across different types of insights, while anti-pattern detection logic changes as new issues are identified; separation enables independent evolution",
+      "DiagnosticsProvider publishing to VSCode Problems panel - Reason: Developers already use the Problems panel for compiler errors and linter warnings, so integrating architecture issues into the same interface reduces context switching",
+      "Multi-LLM provider support (Claude, OpenAI, Gemini, Ollama) - Reason: Users have different LLM preferences based on cost, privacy, and capability; supporting multiple providers prevents vendor lock-in and maximizes adoption",
+      "Severity categorization (Error, Warning, Info) - Reason: Not all issues are equally urgent; categorization helps developers prioritize fixes and understand which problems block releases versus which are technical debt",
+      "AST parsing for function-level analysis - Reason: Surface-level text analysis cannot detect complex issues like cyclomatic complexity or nested control flow; deep AST parsing enables precise detection of code smells",
+      "Background processing that never blocks editing - Reason: Developers will disable any tool that interferes with typing; non-blocking architecture ensures Shadow Watch remains enabled"
+    ],
+    "userGoals": [
+      "Identify architecture problems in their codebase before they cause production issues or failed code reviews",
+      "Get AI-powered recommendations for fixing detected issues without manually formatting context for LLMs",
+      "Understand unfamiliar codebases quickly through AI-generated documentation rather than reading every file",
+      "Keep documentation synchronized with code without manual writing or updating",
+      "Prevent technical debt accumulation by seeing quality degradation in real-time as they code",
+      "Reduce time spent in code review by catching common issues automatically before pushing commits",
+      "Prioritize which issues to fix first using severity indicators and health scores",
+      "Learn better architecture patterns by seeing examples of anti-patterns in their own code with explanations",
+      "Share architecture context with team members or AI assistants efficiently using one-click copy",
+      "Maintain awareness of codebase health without running separate analysis tools or leaving their editor",
+      "Generate missing unit tests for uncovered code files",
+      "Navigate directly from detected issues to the exact code location that needs fixing"
+    ],
+    "contextualFactors": [
+      "VSCode extension ecosystem constraints requiring single entry point and lifecycle integration",
+      "Real-time monitoring requirements demanding incremental analysis and intelligent caching",
+      "Multi-LLM landscape requiring format flexibility and provider abstraction",
+      "Diverse programming language support (9 languages) requiring generic AST parsing approach",
+      "Developer workflow optimization requiring non-blocking background processing",
+      "AI assistant integration being the core differentiator requiring specialized formatting layer",
+      "Continuous evolution of architecture anti-patterns requiring separation of detection logic from analysis infrastructure",
+      "Workspace-scale codebases requiring performance optimization through caching and incremental updates",
+      "Multiple user modes (problem-solving, documentation-reading, test-navigation) requiring different UI views",
+      "IDE integration standards requiring DiagnosticsProvider for Problems panel compatibility"
+    ]
+  },
+  "_metadata": {
+    "generatedAt": "2025-11-17T06:41:51.382Z",
+    "generatedAtLocal": "11/16/2025, 10:41:51 PM",
+    "runId": "architecture-insights-2025-11-17T06-39-09-515Z"
+  }
+}

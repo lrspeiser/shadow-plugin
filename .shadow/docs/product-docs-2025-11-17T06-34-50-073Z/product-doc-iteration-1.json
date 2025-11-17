@@ -1,0 +1,370 @@
+{
+  "overview": "Shadow Watch is a Visual Studio Code extension that provides intelligent codebase analysis and documentation generation. It helps developers understand complex codebases by automatically analyzing code structure, generating insights, and creating comprehensive documentation. The extension watches your workspace in real-time, providing contextual information about your code through multiple interactive views and navigation tools. It integrates with Large Language Models to generate human-readable documentation, architectural insights, and product documentation from your codebase.",
+  "whatItDoes": [
+    "Analyzes codebases to identify modules, entry points, key files, and architectural patterns",
+    "Generates AI-powered insights about code architecture, design patterns, and system organization",
+    "Creates product documentation that describes what the application does from a user perspective",
+    "Provides interactive tree views showing codebase structure, insights, and navigation options",
+    "Monitors file changes in real-time and updates analysis automatically",
+    "Generates documentation for individual files explaining their purpose and functionality",
+    "Identifies and navigates to unit tests related to specific code files",
+    "Displays diagnostics and problems found during code analysis",
+    "Caches analysis results to improve performance and reduce redundant processing"
+  ],
+  "userPerspective": {
+    "gui": [
+      "Interactive tree view showing codebase insights organized by categories (architecture, patterns, components)",
+      "Analysis viewer displaying comprehensive codebase statistics, module information, and key files",
+      "Static analysis viewer showing code quality metrics and potential issues",
+      "File documentation viewer with AI-generated explanations of code purpose and functionality",
+      "Right-click context menus on files and folders to trigger analysis or view documentation",
+      "Status bar indicators showing analysis progress and cache status",
+      "Webview panels displaying formatted analysis results with navigation and filtering"
+    ],
+    "cli": [],
+    "api": [],
+    "cicd": []
+  },
+  "workflowIntegration": [
+    "Onboarding new developers to unfamiliar codebases by providing automated documentation and insights",
+    "Code review workflows by highlighting architectural patterns and design decisions",
+    "Refactoring projects by understanding existing architecture before making changes",
+    "Documentation maintenance by automatically generating and updating code documentation",
+    "Understanding legacy codebases with unclear or missing documentation",
+    "Navigating large codebases by providing structured views of modules and components",
+    "Test coverage analysis by identifying which files have associated unit tests"
+  ],
+  "problemsSolved": [
+    "Eliminates manual effort required to understand unfamiliar codebases",
+    "Reduces time spent searching for relevant code files and understanding their purpose",
+    "Provides instant access to architectural insights without reading all the code",
+    "Keeps documentation synchronized with code changes automatically",
+    "Helps identify files that lack proper test coverage",
+    "Makes implicit architectural decisions and patterns explicit and documented",
+    "Provides consistent documentation format across the entire codebase"
+  ],
+  "architecture": "Shadow Watch is built as a VSCode extension with a layered architecture. At its core, the Analyzer component examines workspace files to identify code structure, modules, entry points, and key files. It works in conjunction with a File Access Helper that reads and processes different file types. The Insight Generator processes analysis results and creates structured insights about architecture, patterns, and design decisions. The LLM Integration layer connects to various Large Language Model services (Claude, OpenAI, Gemini, Ollama) to generate human-readable documentation and insights. A comprehensive caching system stores analysis results to minimize redundant processing and API calls. The Cache Manager handles both file-level and aggregated analysis data with TTL-based expiration. Multiple viewer components provide different perspectives on the codebase: the Analysis Viewer shows overall statistics and structure, the Insights Tree View organizes findings by category, the Static Analysis Viewer displays code quality metrics, and the File Documentation viewer shows detailed explanations. A File Watcher monitors workspace changes and triggers incremental updates to keep all views synchronized. The Product Navigator generates user-facing product documentation by analyzing code from a product perspective rather than technical implementation. A Diagnostics Provider surfaces problems and issues discovered during analysis directly in the VSCode Problems panel.",
+  "titles": [
+    "Codebase Analysis",
+    "Architecture Insights",
+    "Product Documentation",
+    "File Documentation",
+    "Insights Tree View",
+    "Analysis Viewer",
+    "Static Analysis",
+    "Unit Test Navigator",
+    "File Watcher",
+    "Cache Manager",
+    "LLM Integration",
+    "Diagnostics Provider",
+    "Module Detection",
+    "Entry Point Identification",
+    "Key File Analysis"
+  ],
+  "descriptions": [
+    {
+      "title": "Codebase Analysis",
+      "description": "Comprehensive analysis of workspace files to identify code structure, modules, entry points, and architectural patterns. Provides statistics on file counts, lines of code, and codebase organization.",
+      "category": "feature"
+    },
+    {
+      "title": "Architecture Insights",
+      "description": "AI-generated insights about system architecture, design patterns, component relationships, and architectural decisions. Organizes findings into categories like patterns, components, and design principles.",
+      "category": "feature"
+    },
+    {
+      "title": "Product Documentation",
+      "description": "Generates user-facing product documentation that describes what the application does from an end-user perspective, including features, workflows, and problems solved.",
+      "category": "feature"
+    },
+    {
+      "title": "File Documentation",
+      "description": "Creates detailed explanations for individual code files, describing their purpose, functionality, key components, and role in the overall system.",
+      "category": "feature"
+    },
+    {
+      "title": "Insights Tree View",
+      "description": "Interactive tree structure displaying all generated insights organized hierarchically by category. Allows users to browse, filter, and navigate insights with context menus for additional actions.",
+      "category": "component"
+    },
+    {
+      "title": "Analysis Viewer",
+      "description": "Webview panel showing comprehensive codebase statistics, module breakdowns, entry points, and key files with their roles and capabilities.",
+      "category": "component"
+    },
+    {
+      "title": "Static Analysis",
+      "description": "Code quality analysis identifying potential issues, anti-patterns, and areas for improvement. Displays metrics and recommendations in a dedicated viewer.",
+      "category": "feature"
+    },
+    {
+      "title": "Unit Test Navigator",
+      "description": "Identifies and navigates to unit test files associated with specific source files. Helps developers quickly access tests related to the code they're working on.",
+      "category": "feature"
+    },
+    {
+      "title": "Real-time File Monitoring",
+      "description": "Watches workspace files for changes and automatically updates analysis, insights, and documentation when code is modified, added, or deleted.",
+      "category": "feature"
+    },
+    {
+      "title": "Intelligent Caching",
+      "description": "Stores analysis results with time-based expiration to minimize redundant processing and API calls. Manages both individual file analysis and aggregated insights.",
+      "category": "feature"
+    },
+    {
+      "title": "Multi-Provider LLM Support",
+      "description": "Integrates with multiple Large Language Model services including Claude, OpenAI GPT, Google Gemini, and Ollama for flexible AI-powered documentation generation.",
+      "category": "integration"
+    },
+    {
+      "title": "Incremental Analysis",
+      "description": "Updates only the portions of analysis affected by file changes rather than re-analyzing the entire codebase, improving performance and responsiveness.",
+      "category": "feature"
+    },
+    {
+      "title": "Module Detection",
+      "description": "Automatically identifies logical modules within the codebase based on directory structure, file organization, and code relationships.",
+      "category": "feature"
+    },
+    {
+      "title": "Entry Point Identification",
+      "description": "Locates and identifies application entry points such as main files, CLI entry points, API servers, and other starting points for code execution.",
+      "category": "feature"
+    }
+  ],
+  "relevantFunctions": [
+    {
+      "name": "analyzeCodebase",
+      "description": "Performs comprehensive analysis of the entire workspace, identifying modules, entry points, key files, and generating initial insights",
+      "file": "analyzer.ts",
+      "module": "Core Analysis"
+    },
+    {
+      "name": "generateInsights",
+      "description": "Creates structured insights from analysis results, organizing findings into categories like architecture, patterns, and components",
+      "file": "insightGenerator.ts",
+      "module": "Insight Generation"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "description": "Generates user-facing product documentation describing what the application does from an end-user perspective",
+      "file": "productNavigator.ts",
+      "module": "Documentation"
+    },
+    {
+      "name": "generateFileDocumentation",
+      "description": "Creates detailed documentation for individual files explaining their purpose and functionality",
+      "file": "fileDocumentation.ts",
+      "module": "Documentation"
+    },
+    {
+      "name": "analyzeWithLLM",
+      "description": "Sends code and context to Large Language Model services for AI-powered analysis and documentation generation",
+      "file": "llmService.ts",
+      "module": "LLM Integration"
+    },
+    {
+      "name": "getCachedAnalysis",
+      "description": "Retrieves previously stored analysis results from cache to avoid redundant processing",
+      "file": "cache.ts",
+      "module": "Cache Management"
+    },
+    {
+      "name": "handleFileChange",
+      "description": "Processes file change events and triggers incremental analysis updates for affected files",
+      "file": "fileWatcher.ts",
+      "module": "File Monitoring"
+    },
+    {
+      "name": "findRelatedTests",
+      "description": "Locates unit test files associated with a given source file for quick test navigation",
+      "file": "unitTestsNavigator.ts",
+      "module": "Test Navigation"
+    },
+    {
+      "name": "formatInsightsForDisplay",
+      "description": "Transforms raw insight data into user-friendly formatted text for display in viewers",
+      "file": "llmFormatter.ts",
+      "module": "Formatting"
+    },
+    {
+      "name": "updateDiagnostics",
+      "description": "Updates the VSCode Problems panel with issues and diagnostics found during analysis",
+      "file": "diagnosticsProvider.ts",
+      "module": "Diagnostics"
+    }
+  ],
+  "relevantDataStructures": [
+    {
+      "name": "CodebaseAnalysis",
+      "description": "Complete analysis result containing modules, entry points, key files, statistics, and metadata about the analyzed codebase",
+      "type": "interface",
+      "file": "analyzer.ts"
+    },
+    {
+      "name": "Insight",
+      "description": "Structured insight containing category, title, description, confidence level, and metadata about a finding from code analysis",
+      "type": "interface",
+      "file": "insightGenerator.ts"
+    },
+    {
+      "name": "ModuleInfo",
+      "description": "Information about a detected module including name, type, file paths, capabilities, and dependencies",
+      "type": "interface",
+      "file": "analyzer.ts"
+    },
+    {
+      "name": "KeyFileInfo",
+      "description": "Details about an important file including path, role, description, relationships, and complexity metrics",
+      "type": "interface",
+      "file": "analyzer.ts"
+    },
+    {
+      "name": "ProductDocumentation",
+      "description": "User-facing documentation structure containing overview, features, workflows, architecture, and example data",
+      "type": "interface",
+      "file": "productNavigator.ts"
+    },
+    {
+      "name": "FileDocumentation",
+      "description": "Documentation for a single file including purpose, key functions, data structures, and usage examples",
+      "type": "interface",
+      "file": "fileDocumentation.ts"
+    },
+    {
+      "name": "LLMResponse",
+      "description": "Structured response from Large Language Model services containing generated text, token usage, and metadata",
+      "type": "interface",
+      "file": "llmService.ts"
+    },
+    {
+      "name": "CacheEntry",
+      "description": "Cached analysis data with timestamp, TTL expiration, and the stored analysis result",
+      "type": "interface",
+      "file": "cache.ts"
+    },
+    {
+      "name": "InsightTreeItem",
+      "description": "Tree view item representing an insight with label, description, icon, and command actions",
+      "type": "class",
+      "file": "insightsTreeView.ts"
+    },
+    {
+      "name": "AnalysisStats",
+      "description": "Statistics about the codebase including file counts, line counts, language breakdown, and module counts",
+      "type": "interface",
+      "file": "analyzer.ts"
+    }
+  ],
+  "relevantCodeFiles": [
+    {
+      "path": "src/extension.ts",
+      "description": "Main extension entry point that registers all commands, views, and initializes the extension when VSCode activates it",
+      "purpose": "Coordinates all extension functionality and manages the extension lifecycle",
+      "role": "Entry Point"
+    },
+    {
+      "path": "src/analyzer.ts",
+      "description": "Core analysis engine that examines workspace files to identify structure, modules, and key files",
+      "purpose": "Performs comprehensive codebase analysis and structure detection",
+      "role": "Core Analysis"
+    },
+    {
+      "path": "src/insightGenerator.ts",
+      "description": "Generates structured insights from analysis results, organizing findings into meaningful categories",
+      "purpose": "Transforms raw analysis data into actionable insights for developers",
+      "role": "Insight Processing"
+    },
+    {
+      "path": "src/llmIntegration.ts",
+      "description": "Orchestrates interactions with Large Language Model services for AI-powered documentation generation",
+      "purpose": "Manages LLM requests, prompt construction, and response parsing",
+      "role": "AI Integration"
+    },
+    {
+      "path": "src/llmService.ts",
+      "description": "Implements connections to multiple LLM providers (Claude, OpenAI, Gemini, Ollama) with unified interface",
+      "purpose": "Provides abstracted access to various AI services for documentation generation",
+      "role": "Service Provider"
+    },
+    {
+      "path": "src/productNavigator.ts",
+      "description": "Generates user-facing product documentation describing application functionality from end-user perspective",
+      "purpose": "Creates documentation focused on what the application does rather than how it works",
+      "role": "Documentation Generation"
+    },
+    {
+      "path": "src/fileDocumentation.ts",
+      "description": "Creates detailed documentation for individual files explaining their purpose and key components",
+      "purpose": "Generates file-level documentation to help developers understand specific code files",
+      "role": "Documentation Generation"
+    },
+    {
+      "path": "src/insightsTreeView.ts",
+      "description": "Implements the interactive tree view that displays all insights organized hierarchically",
+      "purpose": "Provides browsable interface for exploring generated insights",
+      "role": "User Interface"
+    },
+    {
+      "path": "src/analysisViewer.ts",
+      "description": "Displays comprehensive analysis results including statistics, modules, and key files in a webview",
+      "purpose": "Shows overview of codebase structure and analysis findings",
+      "role": "User Interface"
+    },
+    {
+      "path": "src/cache.ts",
+      "description": "Manages caching of analysis results with TTL-based expiration to optimize performance",
+      "purpose": "Reduces redundant processing and API calls by storing analysis results",
+      "role": "Performance Optimization"
+    },
+    {
+      "path": "src/fileWatcher.ts",
+      "description": "Monitors workspace for file changes and triggers incremental analysis updates",
+      "purpose": "Keeps analysis synchronized with code changes in real-time",
+      "role": "File Monitoring"
+    },
+    {
+      "path": "src/unitTestsNavigator.ts",
+      "description": "Identifies and navigates to unit tests associated with source files",
+      "purpose": "Helps developers quickly find tests related to the code they're working on",
+      "role": "Test Navigation"
+    },
+    {
+      "path": "src/diagnosticsProvider.ts",
+      "description": "Publishes analysis problems and issues to VSCode's Problems panel",
+      "purpose": "Surfaces code issues discovered during analysis in standard VSCode interface",
+      "role": "Diagnostics"
+    }
+  ],
+  "exampleInput": {
+    "description": "Example configuration for triggering codebase analysis with specific options",
+    "json": "{\"workspacePath\":\"/home/user/projects/myapp\",\"analysisOptions\":{\"includeTests\":true,\"maxDepth\":10,\"filePatterns\":[\"**/*.ts\",\"**/*.js\"],\"excludePatterns\":[\"**/node_modules/**\",\"**/dist/**\"],\"generateInsights\":true,\"llmProvider\":\"claude\",\"cacheEnabled\":true},\"documentationOptions\":{\"generateProductDocs\":true,\"generateFileDocs\":true,\"includeExamples\":true}}"
+  },
+  "exampleOutput": {
+    "description": "Example analysis result showing codebase structure, modules, and generated insights",
+    "json": "{\"stats\":{\"totalFiles\":156,\"totalLines\":45230,\"languages\":{\"TypeScript\":98,\"JavaScript\":42,\"JSON\":16},\"entryPoints\":3,\"modules\":12},\"modules\":[{\"name\":\"Authentication\",\"type\":\"feature\",\"files\":[\"auth/login.ts\",\"auth/session.ts\"],\"capabilities\":[\"User login and logout\",\"Session management\",\"Token validation\"]},{\"name\":\"API Layer\",\"type\":\"api\",\"files\":[\"api/server.ts\",\"api/routes.ts\"],\"capabilities\":[\"REST API endpoints\",\"Request validation\",\"Response formatting\"]}],\"keyFiles\":[{\"path\":\"src/main.ts\",\"role\":\"Entry Point\",\"description\":\"Application entry point that initializes the server and starts listening for requests\",\"importance\":\"critical\"},{\"path\":\"src/database.ts\",\"role\":\"Data Access\",\"description\":\"Database connection manager and query builder for data persistence\",\"importance\":\"high\"}],\"insights\":[{\"category\":\"architecture\",\"title\":\"Layered Architecture\",\"description\":\"Application uses a three-tier architecture separating presentation, business logic, and data access layers\",\"confidence\":0.92},{\"category\":\"patterns\",\"title\":\"Repository Pattern\",\"description\":\"Data access is abstracted through repository interfaces, allowing flexible storage backends\",\"confidence\":0.88}],\"productDocumentation\":{\"overview\":\"This application provides a REST API for managing user accounts and authentication. Users can register, login, and manage their profiles through standard HTTP endpoints.\",\"features\":[\"User registration and authentication\",\"Profile management\",\"Session handling with JWT tokens\",\"Role-based access control\"]}}"
+  },
+  "requests": [
+    {
+      "type": "file",
+      "path": "package.json",
+      "reason": "Need to understand the extension's identity, commands, and configuration to accurately describe user-facing features"
+    },
+    {
+      "type": "file",
+      "path": "README.md",
+      "reason": "Need to see the official description and feature list to ensure accuracy"
+    },
+    {
+      "type": "file",
+      "path": "src/extension.ts",
+      "reason": "Need to see registered commands and activation logic to understand all user-facing features"
+    }
+  ],
+  "_metadata": {
+    "iteration": 1,
+    "maxIterations": 3,
+    "savedAt": "2025-11-17T06:36:17.259Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "file": "src/insightsTreeView.ts",
+  "role": "GUI View",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 10,
+    "total": 38,
+    "savedAt": "2025-11-17T06:34:53.504Z"
+  }
+}
