@@ -992,7 +992,7 @@ ${this.formatFilesByDirectory(context.files)}
 
 ## Your Task
 
-Generate product documentation using EXACTLY these markdown section headers:
+Generate product documentation in MARKDOWN format (NOT HTML) using EXACTLY these markdown section headers. The content will be rendered in VSCode, so use proper markdown syntax:
 
 ## Overview
 [Write a comprehensive overview here - at least 3-4 sentences]
@@ -1020,7 +1020,11 @@ Generate product documentation using EXACTLY these markdown section headers:
 ## User Flows
 [If applicable, describe user flows here]
 
-IMPORTANT: Use the EXACT section headers shown above (## Overview, ## Key Features, etc.). Start each section immediately after the header.`;
+IMPORTANT: 
+- Use MARKDOWN format (NOT HTML) - the content will be rendered in VSCode
+- Use the EXACT section headers shown above (## Overview, ## Key Features, etc.)
+- Start each section immediately after the header
+- Do NOT include HTML tags like <div>, <p>, <br>, etc. - use markdown syntax instead`;
     }
 
     private buildProductPurposePrompt(
@@ -1051,7 +1055,7 @@ ${context.entryPoints.map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join(
 
 ## Your Task
 
-Analyze WHY this architecture exists based on the product's purpose. Provide your analysis using EXACTLY these markdown section headers:
+Analyze WHY this architecture exists based on the product's purpose. Provide your analysis in MARKDOWN format (NOT HTML) using EXACTLY these markdown section headers. The content will be rendered in VSCode:
 
 ## Product Purpose
 [What is this product trying to achieve? What is its core mission?]
@@ -1145,7 +1149,7 @@ You can make up to 5 requests per iteration. If you request files/grep searches,
 
 # Your Task
 
-Provide a comprehensive architectural analysis using EXACTLY these markdown section headers:
+Provide a comprehensive architectural analysis in MARKDOWN format (NOT HTML) using EXACTLY these markdown section headers. The content will be rendered in VSCode, so use proper markdown syntax:
 
 ## Overall Architecture Assessment
 [Describe the architecture style/pattern here - at least 2-3 paragraphs]
@@ -1234,7 +1238,13 @@ Examples:
 
 [Continue with top 3-5 priorities, each with title, description, relevantFiles, and relevantFunctions]
 
-IMPORTANT: Use the EXACT section headers shown above (## Overall Architecture Assessment, ## Strengths, etc.). Start each section immediately after the header. Be specific and actionable. Focus on file organization issues, especially root directory clutter.`;
+IMPORTANT: 
+- Use MARKDOWN format (NOT HTML) - the content will be rendered in VSCode
+- Use the EXACT section headers shown above (## Overall Architecture Assessment, ## Strengths, etc.)
+- Start each section immediately after the header
+- Be specific and actionable
+- Focus on file organization issues, especially root directory clutter
+- Do NOT include HTML tags like <div>, <p>, <br>, etc. - use markdown syntax instead`;
 
         // Add product purpose analysis if available (this is the KEY addition)
         if (productPurposeAnalysis) {
@@ -1846,7 +1856,7 @@ File Content:
 ${contentPreview}
 \`\`\`
 
-Extract the following information in JSON format:
+Extract the following information in JSON format (NOT HTML). The content will be used programmatically in VSCode:
 
 {
   "purpose": "What this file does in one sentence",
@@ -1860,9 +1870,11 @@ Extract the following information in JSON format:
 }
 
 IMPORTANT:
+- Respond in JSON format (NOT HTML) - the content will be used programmatically in VSCode
 - Focus on USER-FACING behavior (what the user sees/experiences)
 - Focus on DEVELOPER-FACING behavior (what the developer does/triggers)
 - Do NOT describe implementation details
+- Do NOT include HTML tags - use plain JSON strings
 - Answer: "When the user does X, what happens?"
 - Answer: "What does the developer see/use?"`;
     }
@@ -1887,7 +1899,7 @@ Generate a summary that:
 5. If CLI module: list commands with descriptions
 6. If Worker module: describe job flows
 
-Use this JSON format:
+Use this JSON format (NOT HTML). The content will be used programmatically in VSCode:
 {
   "capabilities": ["Capability 1", "Capability 2"],
   "summary": "2-3 paragraph summary of what this module does",
@@ -1896,7 +1908,10 @@ Use this JSON format:
   "workers": [{"name": "WorkerName", "description": "What it does", "jobFlow": "How jobs flow"}]
 }
 
-Focus on USER-FACING capabilities, not implementation.`;
+IMPORTANT:
+- Respond in JSON format (NOT HTML) - the content will be used programmatically in VSCode
+- Do NOT include HTML tags - use plain JSON strings
+- Focus on USER-FACING capabilities, not implementation.`;
     }
 
     private buildProductLevelPrompt(
@@ -1932,7 +1947,7 @@ If you need to examine specific files or search for code patterns to provide bet
 
 You can make up to 5 requests per iteration. If you request files/grep searches, the system will provide the results and you can continue analyzing. Maximum 3 iterations total.
 
-You MUST respond with valid JSON matching the required schema. Include these fields:
+You MUST respond with valid JSON (NOT HTML, NOT Markdown code blocks) matching the required schema. The content will be used programmatically in VSCode. Include these fields:
 
 1. **overview**: 2-3 paragraphs describing what THIS SPECIFIC application is from a user perspective
 2. **whatItDoes**: Array of specific user-facing features and capabilities
