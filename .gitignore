@@ -1,0 +1,10 @@
+node_modules/
+out/
+dist/
+*.vsix
+.vscode-test/
+.DS_Store
+*.log
+.shadowwatch-cache/
+package-lock.json
+

@@ -1,0 +1,330 @@
+{
+  "name": "shadow-watch",
+  "displayName": "Shadow Watch - Architecture Monitor",
+  "description": "Continuous code architecture analysis with LLM-ready insights for Cursor, ChatGPT, and other AI assistants",
+  "version": "1.0.0",
+  "publisher": "shadow-watch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lrspeiser/shadow-watch"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "architecture",
+    "code quality",
+    "refactoring",
+    "llm",
+    "cursor",
+    "ai",
+    "analysis"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "shadowWatch.analyze",
+        "title": "Shadow Watch: Analyze Workspace",
+        "icon": "$(search)"
+      },
+      {
+        "command": "shadowWatch.analyzeFile",
+        "title": "Shadow Watch: Analyze Current File"
+      },
+      {
+        "command": "shadowWatch.copyInsights",
+        "title": "Shadow Watch: Copy All Insights for LLM",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "shadowWatch.copyFileInsights",
+        "title": "Shadow Watch: Copy File Insights for LLM"
+      },
+      {
+        "command": "shadowWatch.clearCache",
+        "title": "Shadow Watch: Clear Analysis Cache"
+      },
+      {
+        "command": "shadowWatch.clearAllData",
+        "title": "Shadow Watch: Clear All Data",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "shadowWatch.openSettings",
+        "title": "Shadow Watch: Open Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "shadowWatch.switchProvider",
+        "title": "Shadow Watch: Switch LLM Provider"
+      },
+      {
+        "command": "shadowWatch.copyMenuStructure",
+        "title": "Shadow Watch: Copy Menu Structure",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "shadowWatch.showInsights",
+        "title": "Shadow Watch: Show Insights Panel"
+      },
+      {
+        "command": "shadowWatch.enable",
+        "title": "Shadow Watch: Enable"
+      },
+      {
+        "command": "shadowWatch.disable",
+        "title": "Shadow Watch: Disable"
+      },
+      {
+        "command": "shadowWatch.refreshInsights",
+        "title": "Shadow Watch: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "shadowWatch.copyInsight",
+        "title": "Copy for LLM",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "shadowWatch.generateProductDocs",
+        "title": "Shadow Watch: Generate Product Documentation",
+        "icon": "$(book)"
+      },
+      {
+        "command": "shadowWatch.generateLLMInsights",
+        "title": "Shadow Watch: Generate AI Architecture Insights",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "shadowWatch.generateUnitTests",
+        "title": "Shadow Watch: Generate Unit Tests",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "shadowWatch.setApiKey",
+        "title": "Shadow Watch: Set OpenAI API Key"
+      },
+      {
+        "command": "shadowWatch.showProductDocs",
+        "title": "Shadow Watch: Show Product Documentation"
+      },
+      {
+        "command": "shadowWatch.showProductItemDetails",
+        "title": "Show Product Item Details"
+      },
+      {
+        "command": "shadowWatch.showInsightItemDetails",
+        "title": "Show Insight Details"
+      },
+      {
+        "command": "shadowWatch.copyInsightItem",
+        "title": "Copy Insight Item"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "shadow-watch",
+          "title": "Shadow Watch",
+          "icon": "$(eye)"
+        }
+      ]
+    },
+    "views": {
+      "shadow-watch": [
+        {
+          "id": "shadowWatch.insights",
+          "name": "Menu"
+        },
+        {
+          "id": "shadowWatch.analysisViewer",
+          "name": "Analyze Workspace"
+        },
+        {
+          "id": "shadowWatch.productNavigator",
+          "name": "Product Navigator"
+        },
+        {
+          "id": "shadowWatch.insightsViewer",
+          "name": "AI Architecture Insights"
+        },
+        {
+          "id": "shadowWatch.unitTestsNavigator",
+          "name": "Unit Tests"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "shadowWatch.refreshInsights",
+          "when": "view == shadowWatch.insights",
+          "group": "navigation"
+        },
+        {
+          "command": "shadowWatch.copyInsights",
+          "when": "view == shadowWatch.insights",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "shadowWatch.copyInsight",
+          "when": "view == shadowWatch.insights && viewItem == insight",
+          "group": "inline"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "shadowWatch.analyzeFile",
+          "group": "shadowWatch",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "shadowWatch.copyFileInsights",
+          "group": "shadowWatch",
+          "when": "editorTextFocus"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Shadow Watch",
+      "properties": {
+        "shadowWatch.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Shadow Watch architecture monitoring"
+        },
+        "shadowWatch.analyzeOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically analyze code on file save"
+        },
+        "shadowWatch.analyzeInterval": {
+          "type": "number",
+          "default": 30000,
+          "description": "Minimum time (ms) between automatic analyses"
+        },
+        "shadowWatch.minFilesForAnalysis": {
+          "type": "number",
+          "default": 3,
+          "description": "Minimum number of files required for architecture analysis"
+        },
+        "shadowWatch.maxFileSizeKB": {
+          "type": "number",
+          "default": 500,
+          "description": "Maximum file size (KB) to analyze"
+        },
+        "shadowWatch.excludePatterns": {
+          "type": "array",
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/__pycache__/**",
+            "**/venv/**",
+            "**/.venv/**"
+          ],
+          "description": "Glob patterns for files to exclude from analysis"
+        },
+        "shadowWatch.llmFormat": {
+          "type": "string",
+          "enum": [
+            "cursor",
+            "chatgpt",
+            "generic",
+            "compact"
+          ],
+          "default": "cursor",
+          "description": "Format for LLM prompts"
+        },
+        "shadowWatch.severityThreshold": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "default": "warning",
+          "description": "Minimum severity to show in problems panel"
+        },
+        "shadowWatch.showInlineHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline code hints for issues"
+        },
+        "shadowWatch.llmProvider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "claude"
+          ],
+          "default": "openai",
+          "description": "LLM provider to use for AI-powered analysis. Claude uses structured outputs for more reliable parsing."
+        },
+        "shadowWatch.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key for AI-powered analysis, product documentation, and architecture insights",
+          "markdownDescription": "OpenAI API key for AI-powered analysis, product documentation, and architecture insights. You can also set this via the command palette: `Shadow Watch: Set OpenAI API Key`",
+          "scope": "application"
+        },
+        "shadowWatch.claudeApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Claude API key for AI-powered analysis. Claude uses structured outputs for guaranteed valid JSON responses.",
+          "markdownDescription": "Claude API key for AI-powered analysis. Claude uses structured outputs for guaranteed valid JSON responses. You can also set this via the command palette: `Shadow Watch: Set Claude API Key`",
+          "scope": "application"
+        },
+        "shadowWatch.clearAllData": {
+          "type": "boolean",
+          "default": false,
+          "description": "Clear all Shadow Watch data",
+          "markdownDescription": "Clear all Shadow Watch data including analysis cache, saved documentation, insights, and analysis results. This cannot be undone.\n\n**⚠️ Warning:** Checking this box will immediately clear ALL Shadow Watch data. This action cannot be undone.\n\n**Alternative:** You can also run the command `Shadow Watch: Clear All Data` from the Command Palette (Cmd+Shift+P / Ctrl+Shift+P)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "@vscode/test-electron": "^2.3.4",
+    "eslint": "^8.47.0",
+    "glob": "^10.3.3",
+    "mocha": "^10.2.0",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
+    "ignore": "^5.2.4",
+    "openai": "^4.20.0"
+  }
+}
