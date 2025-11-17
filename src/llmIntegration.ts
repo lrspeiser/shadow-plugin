@@ -11,6 +11,7 @@ import { CodeAnalysis, EntryPoint } from './analyzer';
 import { ProductNavigatorProvider } from './productNavigator';
 import { AnalysisViewerProvider } from './analysisViewer';
 import { InsightsViewerProvider } from './insightsViewer';
+import { UnitTestsNavigatorProvider } from './unitTestsNavigator';
 import { SWLogger } from './logger';
 
 let llmService: LLMService;
@@ -21,6 +22,7 @@ let treeProvider: InsightsTreeProvider | null = null;
 let productNavigator: ProductNavigatorProvider | null = null;
 let insightsViewer: InsightsViewerProvider | null = null;
 let analysisViewer: AnalysisViewerProvider | null = null;
+let unitTestsNavigator: UnitTestsNavigatorProvider | null = null;
 let outputChannel: vscode.OutputChannel | null = null;
 let lastCodeAnalysis: CodeAnalysis | null = null;
 
@@ -168,6 +170,9 @@ export function setProductNavigator(provider: ProductNavigatorProvider) {
     }
 }
 
+export function setUnitTestsNavigator(provider: UnitTestsNavigatorProvider) {
+    unitTestsNavigator = provider;
+}
 
 export function setInsightsViewer(provider: InsightsViewerProvider) {
     insightsViewer = provider;
@@ -1958,10 +1963,43 @@ export async function generateUnitTests(): Promise<void> {
                 fs.mkdirSync(unitTestDir, { recursive: true });
             }
 
+            // Transform LLM response to match navigator's expected structure
+            const transformedPlan = {
+                rationale: unitTestPlan.rationale,
+                aggregated_plan: {
+                    unit_test_plan: unitTestPlan.unit_test_strategy ? {
+                        strategy: unitTestPlan.unit_test_strategy.overall_approach,
+                        testing_framework: Array.isArray(unitTestPlan.unit_test_strategy.testing_frameworks) 
+                            ? unitTestPlan.unit_test_strategy.testing_frameworks[0] 
+                            : unitTestPlan.unit_test_strategy.testing_frameworks,
+                        mocking_approach: unitTestPlan.unit_test_strategy.mocking_strategy,
+                        isolation_strategy: unitTestPlan.unit_test_strategy.isolation_level
+                    } : undefined,
+                    test_suites: unitTestPlan.test_suites || [],
+                    read_write_test_suites: [],
+                    user_workflow_test_suites: []
+                }
+            };
+
             const planFile = path.join(unitTestDir, 'unit_test_plan.json');
-            fs.writeFileSync(planFile, JSON.stringify(unitTestPlan, null, 2), 'utf-8');
+            fs.writeFileSync(planFile, JSON.stringify(transformedPlan, null, 2), 'utf-8');
 
             SWLogger.log(`Unit test plan saved to: ${planFile}`);
+            
+            // Refresh the unit tests navigator to show the new plan
+            if (unitTestsNavigator) {
+                // Load the plan directly into the navigator
+                try {
+                    const content = fs.readFileSync(planFile, 'utf-8');
+                    const plan = JSON.parse(content);
+                    unitTestsNavigator.setUnitTestPlan(plan);
+                } catch (error) {
+                    console.error('Error loading unit test plan into navigator:', error);
+                    // Fall back to file watcher refresh
+                    unitTestsNavigator.refresh();
+                }
+            }
+            
             vscode.window.showInformationMessage(
                 '✅ Unit test plan generated! Check the "Unit Tests" panel to view it.'
             );

@@ -67,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
         
         // Create unit tests navigator
         const unitTestsNavigator = new UnitTestsNavigatorProvider(context);
+        llmIntegration.setUnitTestsNavigator(unitTestsNavigator);
         context.subscriptions.push(unitTestsNavigator); // Ensure proper disposal
         
         // Static analysis is now merged into insights tree view (no separate viewer needed)
