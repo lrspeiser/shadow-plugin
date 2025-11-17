@@ -962,63 +962,81 @@ async function showUnitTestItemDetails(item: any): Promise<void> {
     let title: string;
     let content: string = '';
     let additionalInfo: string = '';
+    let plainTextForCopy: string = '';
 
     // Handle different unit test item types
     if (item.type === 'test-case') {
         const testCase = item.data || {};
         title = testCase.name || testCase.id || 'Test Case';
         content = testCase.description || '';
+        plainTextForCopy = `Test Case: ${title}\n${'='.repeat(60)}\n\nDescription: ${content}\n\n`;
         
         if (testCase.target_function) {
             additionalInfo += `<p><strong>Target Function:</strong> <code>${testCase.target_function}</code></p>`;
+            plainTextForCopy += `Target Function: ${testCase.target_function}\n`;
         }
         if (testCase.target_file) {
             additionalInfo += `<p><strong>Target File:</strong> <code>${testCase.target_file}</code></p>`;
+            plainTextForCopy += `Target File: ${testCase.target_file}\n`;
         }
         if (testCase.priority) {
             additionalInfo += `<p><strong>Priority:</strong> ${testCase.priority}</p>`;
+            plainTextForCopy += `Priority: ${testCase.priority}\n`;
         }
         if (testCase.scenarios && testCase.scenarios.length > 0) {
             additionalInfo += `<h3>Test Scenarios</h3><ul>${testCase.scenarios.map((s: string) => `<li>${s}</li>`).join('')}</ul>`;
+            plainTextForCopy += `\nTest Scenarios:\n${testCase.scenarios.map((s: string) => `  - ${s}`).join('\n')}\n`;
         }
         if (testCase.mocks && testCase.mocks.length > 0) {
             additionalInfo += `<h3>Mocks</h3><ul>${testCase.mocks.map((m: string) => `<li><code>${m}</code></li>`).join('')}</ul>`;
+            plainTextForCopy += `\nMocks:\n${testCase.mocks.map((m: string) => `  - ${m}`).join('\n')}\n`;
         }
         if (testCase.assertions && testCase.assertions.length > 0) {
             additionalInfo += `<h3>Assertions</h3><ul>${testCase.assertions.map((a: string) => `<li>${a}</li>`).join('')}</ul>`;
+            plainTextForCopy += `\nAssertions:\n${testCase.assertions.map((a: string) => `  - ${a}`).join('\n')}\n`;
         }
         if (testCase.test_code) {
             additionalInfo += `<h3>Test Code</h3><pre style="background: #f4f4f4; padding: 15px; border-radius: 4px; overflow-x: auto;"><code>${testCase.test_code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`;
+            plainTextForCopy += `\n${'='.repeat(60)}\nTest Code:\n${'='.repeat(60)}\n${testCase.test_code}\n`;
         }
         if (testCase.run_instructions) {
             additionalInfo += `<h3>Run This Test</h3><p><code style="background: #e8f5e9; padding: 5px 10px; border-radius: 3px;">${testCase.run_instructions.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></p>`;
+            plainTextForCopy += `\n${'='.repeat(60)}\nRun Command:\n${'='.repeat(60)}\n${testCase.run_instructions}\n`;
         }
     } else if (item.type === 'suite') {
         const suite = item.data || {};
         title = suite.name || suite.id || 'Test Suite';
         content = suite.description || '';
+        plainTextForCopy = `Test Suite: ${title}\n${'='.repeat(60)}\n\nDescription: ${content}\n\n`;
         
         if (suite.test_file_path) {
             additionalInfo += `<p><strong>Test File:</strong> <code>${suite.test_file_path}</code></p>`;
+            plainTextForCopy += `Test File: ${suite.test_file_path}\n`;
         }
         if (suite.source_files && suite.source_files.length > 0) {
             additionalInfo += `<h3>Source Files</h3><ul>${suite.source_files.map((f: string) => `<li><code>${f}</code></li>`).join('')}</ul>`;
+            plainTextForCopy += `\nSource Files:\n${suite.source_files.map((f: string) => `  - ${f}`).join('\n')}\n`;
         }
         if (suite.test_cases && suite.test_cases.length > 0) {
             additionalInfo += `<p><strong>Test Cases:</strong> ${suite.test_cases.length}</p>`;
+            plainTextForCopy += `\nTest Cases: ${suite.test_cases.length}\n`;
         }
         if (suite.run_suite_instructions) {
             additionalInfo += `<h3>Run This Test Suite</h3><p><code style="background: #e8f5e9; padding: 5px 10px; border-radius: 3px;">${suite.run_suite_instructions.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></p>`;
+            plainTextForCopy += `\n${'='.repeat(60)}\nRun Command:\n${'='.repeat(60)}\n${suite.run_suite_instructions}\n`;
         }
     } else if (item.type === 'text') {
         title = item.label || 'Details';
         content = item.description || item.label || '';
+        plainTextForCopy = `${title}\n${'='.repeat(60)}\n\n${content}\n`;
     } else if (item.type === 'strategy') {
         title = item.label || 'Test Strategy';
         content = item.description || item.label || '';
+        plainTextForCopy = `Test Strategy: ${title}\n${'='.repeat(60)}\n\n${content}\n`;
     } else {
         title = item.label || 'Unit Test Details';
         content = item.description || item.label || '';
+        plainTextForCopy = `${title}\n${'='.repeat(60)}\n\n${content}\n`;
     }
 
     if (!content && !additionalInfo) {
@@ -1131,7 +1149,7 @@ async function showUnitTestItemDetails(item: any): Promise<void> {
         <h1>${title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h1>
         <div class="content">${htmlContent}</div>
         ${additionalInfo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${(content + '\n\n' + additionalInfo).replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`); alert('Copied to clipboard!')">
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${plainTextForCopy.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`); alert('Copied to clipboard!')">
             📋 Copy to Clipboard
         </button>
     </div>
