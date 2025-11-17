@@ -348,6 +348,15 @@ export class UnitTestItem extends vscode.TreeItem {
                 this.iconPath = new vscode.ThemeIcon('info');
                 break;
         }
+
+        // Set command for items that should show details when clicked
+        if (type === 'suite' || type === 'test-case' || type === 'text' || type === 'strategy') {
+            this.command = {
+                command: 'shadowWatch.showUnitTestItemDetails',
+                title: 'Show Details',
+                arguments: [this]
+            };
+        }
     }
 }
 

@@ -249,6 +249,10 @@ export function activate(context: vscode.ExtensionContext) {
             await showInsightItemDetails(item);
         }),
 
+        vscode.commands.registerCommand('shadowWatch.showUnitTestItemDetails', async (item: any) => {
+            await showUnitTestItemDetails(item);
+        }),
+
         statusBarItem,
         treeView,
         productNavigatorView,
@@ -945,6 +949,180 @@ async function showInsightItemDetails(item: any): Promise<void> {
         ${filesSection}
         ${functionsSection}
         <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${content.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`); alert('Copied to clipboard!')">
+            📋 Copy to Clipboard
+        </button>
+    </div>
+</body>
+</html>`;
+
+    panel.webview.html = html;
+}
+
+async function showUnitTestItemDetails(item: any): Promise<void> {
+    let title: string;
+    let content: string = '';
+    let additionalInfo: string = '';
+
+    // Handle different unit test item types
+    if (item.type === 'test-case') {
+        const testCase = item.data || {};
+        title = testCase.name || testCase.id || 'Test Case';
+        content = testCase.description || '';
+        
+        if (testCase.target_function) {
+            additionalInfo += `<p><strong>Target Function:</strong> <code>${testCase.target_function}</code></p>`;
+        }
+        if (testCase.target_file) {
+            additionalInfo += `<p><strong>Target File:</strong> <code>${testCase.target_file}</code></p>`;
+        }
+        if (testCase.priority) {
+            additionalInfo += `<p><strong>Priority:</strong> ${testCase.priority}</p>`;
+        }
+        if (testCase.scenarios && testCase.scenarios.length > 0) {
+            additionalInfo += `<h3>Test Scenarios</h3><ul>${testCase.scenarios.map((s: string) => `<li>${s}</li>`).join('')}</ul>`;
+        }
+        if (testCase.mocks && testCase.mocks.length > 0) {
+            additionalInfo += `<h3>Mocks</h3><ul>${testCase.mocks.map((m: string) => `<li><code>${m}</code></li>`).join('')}</ul>`;
+        }
+        if (testCase.assertions && testCase.assertions.length > 0) {
+            additionalInfo += `<h3>Assertions</h3><ul>${testCase.assertions.map((a: string) => `<li>${a}</li>`).join('')}</ul>`;
+        }
+    } else if (item.type === 'suite') {
+        const suite = item.data || {};
+        title = suite.name || suite.id || 'Test Suite';
+        content = suite.description || '';
+        
+        if (suite.test_file_path) {
+            additionalInfo += `<p><strong>Test File:</strong> <code>${suite.test_file_path}</code></p>`;
+        }
+        if (suite.source_files && suite.source_files.length > 0) {
+            additionalInfo += `<h3>Source Files</h3><ul>${suite.source_files.map((f: string) => `<li><code>${f}</code></li>`).join('')}</ul>`;
+        }
+        if (suite.test_cases && suite.test_cases.length > 0) {
+            additionalInfo += `<p><strong>Test Cases:</strong> ${suite.test_cases.length}</p>`;
+        }
+    } else if (item.type === 'text') {
+        title = item.label || 'Details';
+        content = item.description || item.label || '';
+    } else if (item.type === 'strategy') {
+        title = item.label || 'Test Strategy';
+        content = item.description || item.label || '';
+    } else {
+        title = item.label || 'Unit Test Details';
+        content = item.description || item.label || '';
+    }
+
+    if (!content && !additionalInfo) {
+        vscode.window.showInformationMessage('No content available for this item');
+        return;
+    }
+
+    // Show in a webview panel
+    const panel = vscode.window.createWebviewPanel(
+        'unitTestItemDetails',
+        title,
+        vscode.ViewColumn.One,
+        {
+            enableScripts: true
+        }
+    );
+
+    // Convert markdown-style formatting to HTML
+    let htmlContent = content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.8;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+            color: #333;
+            background: #fafafa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2c3e50; 
+            border-bottom: 3px solid #3498db; 
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-top: 20px;
+        }
+        .section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        strong { color: #2c3e50; font-weight: 600; }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .copy-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>${title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h1>
+        <div class="content">${htmlContent}</div>
+        ${additionalInfo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${(content + '\n\n' + additionalInfo).replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`); alert('Copied to clipboard!')">
             📋 Copy to Clipboard
         </button>
     </div>
