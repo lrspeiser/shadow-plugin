@@ -2193,12 +2193,63 @@ GOOD EXAMPLE (DO THIS):
         }
     }
 
+    private detectPrimaryLanguage(context: AnalysisContext, codeAnalysis?: CodeAnalysis): string {
+        // Count languages from files
+        const languageCounts = new Map<string, number>();
+        
+        if (codeAnalysis && codeAnalysis.files) {
+            for (const file of codeAnalysis.files) {
+                const lang = file.language || 'unknown';
+                if (lang !== 'unknown') {
+                    languageCounts.set(lang, (languageCounts.get(lang) || 0) + 1);
+                }
+            }
+        }
+        
+        // Also check context files
+        if (context.files) {
+            for (const file of context.files) {
+                const lang = file.language || 'unknown';
+                if (lang !== 'unknown') {
+                    languageCounts.set(lang, (languageCounts.get(lang) || 0) + 1);
+                }
+            }
+        }
+        
+        // Return the most common language, or default to typescript
+        if (languageCounts.size === 0) {
+            return 'typescript'; // Default fallback
+        }
+        
+        const sorted = Array.from(languageCounts.entries()).sort((a, b) => b[1] - a[1]);
+        return sorted[0][0];
+    }
+
+    private getTestingFrameworkForLanguage(language: string): string[] {
+        const frameworkMap: { [key: string]: string[] } = {
+            'python': ['pytest', 'unittest'],
+            'typescript': ['jest', 'mocha', 'vitest'],
+            'javascript': ['jest', 'mocha', 'vitest'],
+            'java': ['junit', 'testng'],
+            'cpp': ['googletest', 'catch2', 'doctest'],
+            'c': ['unity', 'cmocka', 'check'],
+            'go': ['testing', 'testify', 'ginkgo'],
+            'rust': ['cargo test', 'criterion'],
+            'ruby': ['rspec', 'minitest'],
+            'php': ['phpunit', 'pest'],
+        };
+        return frameworkMap[language.toLowerCase()] || ['jest', 'mocha']; // Default to JS/TS frameworks
+    }
+
     private buildUnitTestPlanPrompt(
         context: AnalysisContext,
         codeAnalysis?: CodeAnalysis,
         productDocs?: EnhancedProductDocumentation,
         architectureInsights?: LLMInsights
     ): string {
+        // Detect primary language
+        const primaryLanguage = this.detectPrimaryLanguage(context, codeAnalysis);
+        const testingFrameworks = this.getTestingFrameworkForLanguage(primaryLanguage);
         let prompt = `You are an expert test architect. Generate a comprehensive unit test plan for this codebase.
 
 ## Codebase Statistics
@@ -2244,15 +2295,41 @@ ${architectureInsights.issues?.slice(0, 5).map(i => typeof i === 'string' ? i : 
 `;
         }
 
+        // Determine test file extension based on language
+        const testFileExt = primaryLanguage === 'python' ? '.py' :
+                           primaryLanguage === 'cpp' || primaryLanguage === 'c' ? '.cpp' :
+                           primaryLanguage === 'java' ? '.java' :
+                           primaryLanguage === 'go' ? '.go' :
+                           primaryLanguage === 'rust' ? '.rs' :
+                           primaryLanguage === 'ruby' ? '.rb' :
+                           primaryLanguage === 'php' ? '.php' :
+                           '.ts'; // Default to TypeScript
+
+        const testFileExample = primaryLanguage === 'python' ? 'tests/test_analyzer.py' :
+                               primaryLanguage === 'cpp' ? 'tests/test_analyzer.cpp' :
+                               primaryLanguage === 'java' ? 'src/test/TestAnalyzer.java' :
+                               primaryLanguage === 'go' ? 'analyzer_test.go' :
+                               primaryLanguage === 'rust' ? 'tests/test_analyzer.rs' :
+                               'src/test/analyzer.test.ts';
+
+        const runCommandExample = primaryLanguage === 'python' ? 'pytest tests/test_analyzer.py::test_function_name' :
+                                 primaryLanguage === 'cpp' ? 'make test && ./tests/test_analyzer' :
+                                 primaryLanguage === 'java' ? 'mvn test -Dtest=TestAnalyzer#testFunctionName' :
+                                 primaryLanguage === 'go' ? 'go test -v -run TestFunctionName ./analyzer_test.go' :
+                                 primaryLanguage === 'rust' ? 'cargo test test_function_name' :
+                                 'npm test -- analyzer.test.ts -t test_function_name';
+
         prompt += `\n## Your Task
+
+**IMPORTANT: This codebase is primarily written in ${primaryLanguage.toUpperCase()}. Generate tests in ${primaryLanguage.toUpperCase()}, NOT TypeScript.**
 
 Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the following JSON structure:
 
 {
   "unit_test_strategy": {
-    "overall_approach": "string describing how to approach unit testing",
-    "testing_frameworks": ["jest", "mocha", etc. - use TypeScript-compatible frameworks],
-    "mocking_strategy": "how to mock dependencies",
+    "overall_approach": "string describing how to approach unit testing for ${primaryLanguage} codebase",
+    "testing_frameworks": ${JSON.stringify(testingFrameworks)},
+    "mocking_strategy": "how to mock dependencies in ${primaryLanguage}",
     "isolation_level": "what can be tested in isolation"
   },
   "test_suites": [
@@ -2260,22 +2337,22 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
       "id": "unique-id",
       "name": "Test suite name",
       "description": "what this suite tests",
-      "test_file_path": "src/test/analyzer.test.ts",
-      "source_files": ["src/analyzer.ts"],
-      "run_suite_instructions": "npm test -- analyzer.test.ts",
+      "test_file_path": "${testFileExample}",
+      "source_files": ["src/analyzer${primaryLanguage === 'python' ? '.py' : primaryLanguage === 'cpp' ? '.cpp' : primaryLanguage === 'java' ? '.java' : primaryLanguage === 'go' ? '.go' : primaryLanguage === 'rust' ? '.rs' : '.ts'}"],
+      "run_suite_instructions": "${primaryLanguage === 'python' ? 'pytest tests/test_analyzer.py' : primaryLanguage === 'cpp' ? 'make test' : primaryLanguage === 'java' ? 'mvn test' : primaryLanguage === 'go' ? 'go test ./...' : primaryLanguage === 'rust' ? 'cargo test' : 'npm test -- analyzer.test.ts'}",
       "test_cases": [
         {
           "id": "test-id",
           "name": "test_function_name",
           "description": "what this test verifies",
           "target_function": "function being tested",
-          "target_file": "src/analyzer.ts",
+          "target_file": "src/analyzer${primaryLanguage === 'python' ? '.py' : primaryLanguage === 'cpp' ? '.cpp' : primaryLanguage === 'java' ? '.java' : primaryLanguage === 'go' ? '.go' : primaryLanguage === 'rust' ? '.rs' : '.ts'}",
           "scenarios": ["scenario 1", "scenario 2"],
           "mocks": ["what to mock"],
           "assertions": ["what to assert"],
           "priority": "high|medium|low",
-          "test_code": "Complete TypeScript test code:\nimport { describe, it, expect, beforeEach, jest } from '@jest/globals';\nimport { detectEntryPoints } from '../analyzer';\n\ndescribe('detectEntryPoints', () => {\n  it('should detect package.json main field', () => {\n    // Complete test implementation here\n  });\n});",
-          "run_instructions": "npm test -- analyzer.test.ts -t test_function_name"
+          "test_code": "Complete ${primaryLanguage.toUpperCase()} test code using ${testingFrameworks[0]}. Include all imports, setup, mocks, and assertions. Example format:\n${primaryLanguage === 'python' ? 'import pytest\nfrom analyzer import detect_entry_points\n\ndef test_detect_entry_points():\n    # Complete test implementation\n    assert result == expected' : primaryLanguage === 'cpp' ? '#include <gtest/gtest.h>\n#include \"analyzer.h\"\n\nTEST(AnalyzerTest, DetectEntryPoints) {\n    // Complete test implementation\n    EXPECT_EQ(result, expected);\n}' : '// Complete test code here'}",
+          "run_instructions": "${runCommandExample}"
         }
       ]
     }
@@ -2284,20 +2361,20 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
 }
 
 ## Critical Requirements:
-1. **Test Language**: Write tests in TypeScript (same language as the codebase). Use Jest or Mocha with TypeScript support.
-2. **Executable Code**: Each test_case MUST include complete, copy-paste-ready test_code that:
+1. **Test Language**: Write tests in ${primaryLanguage.toUpperCase()} (same language as the codebase). Use ${testingFrameworks[0]} or ${testingFrameworks[1] || 'appropriate framework'}.
+2. **Executable Code**: Each test_case MUST include complete, copy-paste-ready test_code in ${primaryLanguage.toUpperCase()} that:
    - Includes all necessary imports
-   - Sets up mocks properly
+   - Sets up mocks properly (using ${primaryLanguage} mocking libraries)
    - Has actual test implementation (not just comments)
    - Uses the testing framework from unit_test_strategy
    - Can be immediately run without modification
-3. **Run Instructions**: Provide exact CLI commands for:
+3. **Run Instructions**: Provide exact CLI commands for ${primaryLanguage}:
    - Running individual tests (run_instructions)
    - Running entire test suites (run_suite_instructions)
-4. **Test File Paths**: Use TypeScript test file paths (e.g., 'src/test/analyzer.test.ts', not .py files)
+4. **Test File Paths**: Use ${primaryLanguage.toUpperCase()} test file paths (e.g., '${testFileExample}', with ${testFileExt} extension)
 5. Focus on user-facing functionality
 6. Prioritize high-value functions (entry points, core logic)
-7. Use mocks for external dependencies (VSCode API, file system, HTTP)
+7. Use mocks for external dependencies (file system, HTTP, databases, etc.)
 8. Test edge cases and error handling
 9. Keep tests isolated and fast
 
