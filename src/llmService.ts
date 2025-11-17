@@ -2362,15 +2362,17 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
 
 ## Critical Requirements:
 1. **Test Language**: Write tests in ${primaryLanguage.toUpperCase()} (same language as the codebase). Use ${testingFrameworks[0]} or ${testingFrameworks[1] || 'appropriate framework'}.
-2. **Executable Code**: Each test_case MUST include complete, copy-paste-ready test_code in ${primaryLanguage.toUpperCase()} that:
-   - Includes all necessary imports
-   - Sets up mocks properly (using ${primaryLanguage} mocking libraries)
-   - Has actual test implementation (not just comments)
-   - Uses the testing framework from unit_test_strategy
-   - Can be immediately run without modification
-3. **Run Instructions**: Provide exact CLI commands for ${primaryLanguage}:
-   - Running individual tests (run_instructions)
-   - Running entire test suites (run_suite_instructions)
+2. **MANDATORY: Executable Test Code**: Each test_case MUST include complete, copy-paste-ready test_code in ${primaryLanguage.toUpperCase()}. This field is REQUIRED and cannot be null or empty. The test_code must:
+   - Include all necessary imports and dependencies
+   - Set up mocks properly (using ${primaryLanguage} mocking libraries)
+   - Have actual, complete test implementation (NOT just comments or placeholders)
+   - Use the testing framework from unit_test_strategy (${testingFrameworks[0]})
+   - Be immediately runnable without any modification
+   - Test the scenarios listed in the scenarios array
+   - Include all assertions from the assertions array
+3. **MANDATORY: Run Instructions**: Each test_case MUST include run_instructions with exact CLI commands for ${primaryLanguage}. This field is REQUIRED and cannot be null. Provide:
+   - Exact command to run individual tests (run_instructions) - must be a complete, executable command
+   - Exact command to run entire test suites (run_suite_instructions)
 4. **Test File Paths**: Use ${primaryLanguage.toUpperCase()} test file paths (e.g., '${testFileExample}', with ${testFileExt} extension)
 5. Focus on user-facing functionality
 6. Prioritize high-value functions (entry points, core logic)

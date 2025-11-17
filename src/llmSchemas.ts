@@ -456,14 +456,14 @@ export const unitTestPlanSchema = {
                                 },
                                 test_code: {
                                     type: "string",
-                                    description: "Complete, executable test code in TypeScript using the testing framework specified in unit_test_strategy. Include imports, setup, mocks, and assertions. This should be ready to copy-paste into a test file."
+                                    description: "REQUIRED: Complete, executable test code in the project's language using the testing framework specified in unit_test_strategy. Include all imports, setup, mocks, and assertions. This MUST be ready to copy-paste into a test file and run immediately. Do NOT leave this empty or as a placeholder."
                                 },
                                 run_instructions: {
                                     type: "string",
-                                    description: "CLI command to run this specific test (e.g., 'npm test -- test_detect_entry_points' or 'npx jest analyzer.test.ts -t detect_entry_points')"
+                                    description: "REQUIRED: Exact CLI command to run this specific test (e.g., 'pytest tests/test_analyzer.py::test_detect_entry_points' or 'npm test -- analyzer.test.ts -t detect_entry_points'). This MUST be a complete, runnable command."
                                 }
                             },
-                            required: ["id", "name", "description", "target_function", "target_file", "priority"],
+                            required: ["id", "name", "description", "target_function", "target_file", "priority", "test_code", "run_instructions"],
                             additionalProperties: false
                         },
                         description: "Individual test cases in this suite"
