@@ -414,7 +414,11 @@ export const unitTestPlanSchema = {
                     id: { type: "string", description: "Unique identifier for the test suite" },
                     name: { type: "string", description: "Test suite name" },
                     description: { type: "string", description: "What this suite tests" },
-                    test_file_path: { type: "string", description: "Path to the test file (e.g., 'tests/test_module.py')" },
+                    test_file_path: { type: "string", description: "Path to the test file (e.g., 'src/test/analyzer.test.ts')" },
+                    run_suite_instructions: {
+                        type: "string",
+                        description: "CLI command to run this entire test suite (e.g., 'npm test -- analyzer.test.ts' or 'npx jest analyzer.test.ts')"
+                    },
                     source_files: {
                         type: "array",
                         items: { type: "string" },
@@ -449,6 +453,14 @@ export const unitTestPlanSchema = {
                                     type: "string",
                                     enum: ["high", "medium", "low"],
                                     description: "Test priority"
+                                },
+                                test_code: {
+                                    type: "string",
+                                    description: "Complete, executable test code in TypeScript using the testing framework specified in unit_test_strategy. Include imports, setup, mocks, and assertions. This should be ready to copy-paste into a test file."
+                                },
+                                run_instructions: {
+                                    type: "string",
+                                    description: "CLI command to run this specific test (e.g., 'npm test -- test_detect_entry_points' or 'npx jest analyzer.test.ts -t detect_entry_points')"
                                 }
                             },
                             required: ["id", "name", "description", "target_function", "target_file", "priority"],

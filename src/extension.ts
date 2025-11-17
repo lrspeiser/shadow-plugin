@@ -987,6 +987,12 @@ async function showUnitTestItemDetails(item: any): Promise<void> {
         if (testCase.assertions && testCase.assertions.length > 0) {
             additionalInfo += `<h3>Assertions</h3><ul>${testCase.assertions.map((a: string) => `<li>${a}</li>`).join('')}</ul>`;
         }
+        if (testCase.test_code) {
+            additionalInfo += `<h3>Test Code</h3><pre style="background: #f4f4f4; padding: 15px; border-radius: 4px; overflow-x: auto;"><code>${testCase.test_code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`;
+        }
+        if (testCase.run_instructions) {
+            additionalInfo += `<h3>Run This Test</h3><p><code style="background: #e8f5e9; padding: 5px 10px; border-radius: 3px;">${testCase.run_instructions.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></p>`;
+        }
     } else if (item.type === 'suite') {
         const suite = item.data || {};
         title = suite.name || suite.id || 'Test Suite';
@@ -1000,6 +1006,9 @@ async function showUnitTestItemDetails(item: any): Promise<void> {
         }
         if (suite.test_cases && suite.test_cases.length > 0) {
             additionalInfo += `<p><strong>Test Cases:</strong> ${suite.test_cases.length}</p>`;
+        }
+        if (suite.run_suite_instructions) {
+            additionalInfo += `<h3>Run This Test Suite</h3><p><code style="background: #e8f5e9; padding: 5px 10px; border-radius: 3px;">${suite.run_suite_instructions.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></p>`;
         }
     } else if (item.type === 'text') {
         title = item.label || 'Details';

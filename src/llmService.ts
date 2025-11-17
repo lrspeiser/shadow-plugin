@@ -2246,12 +2246,12 @@ ${architectureInsights.issues?.slice(0, 5).map(i => typeof i === 'string' ? i : 
 
         prompt += `\n## Your Task
 
-Generate a comprehensive unit test plan in the following JSON structure:
+Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the following JSON structure:
 
 {
   "unit_test_strategy": {
     "overall_approach": "string describing how to approach unit testing",
-    "testing_frameworks": ["pytest", "unittest", etc.],
+    "testing_frameworks": ["jest", "mocha", etc. - use TypeScript-compatible frameworks],
     "mocking_strategy": "how to mock dependencies",
     "isolation_level": "what can be tested in isolation"
   },
@@ -2260,19 +2260,22 @@ Generate a comprehensive unit test plan in the following JSON structure:
       "id": "unique-id",
       "name": "Test suite name",
       "description": "what this suite tests",
-      "test_file_path": "path/to/test_file.py",
-      "source_files": ["file1.py", "file2.py"],
+      "test_file_path": "src/test/analyzer.test.ts",
+      "source_files": ["src/analyzer.ts"],
+      "run_suite_instructions": "npm test -- analyzer.test.ts",
       "test_cases": [
         {
           "id": "test-id",
           "name": "test_function_name",
           "description": "what this test verifies",
           "target_function": "function being tested",
-          "target_file": "source file",
+          "target_file": "src/analyzer.ts",
           "scenarios": ["scenario 1", "scenario 2"],
           "mocks": ["what to mock"],
           "assertions": ["what to assert"],
-          "priority": "high|medium|low"
+          "priority": "high|medium|low",
+          "test_code": "Complete TypeScript test code:\nimport { describe, it, expect, beforeEach, jest } from '@jest/globals';\nimport { detectEntryPoints } from '../analyzer';\n\ndescribe('detectEntryPoints', () => {\n  it('should detect package.json main field', () => {\n    // Complete test implementation here\n  });\n});",
+          "run_instructions": "npm test -- analyzer.test.ts -t test_function_name"
         }
       ]
     }
@@ -2280,12 +2283,23 @@ Generate a comprehensive unit test plan in the following JSON structure:
   "rationale": "why these unit tests matter"
 }
 
-## Guidelines
-1. Focus on user-facing functionality
-2. Prioritize high-value functions (entry points, core logic)
-3. Use mocks for external dependencies
-4. Test edge cases and error handling
-5. Keep tests isolated and fast
+## Critical Requirements:
+1. **Test Language**: Write tests in TypeScript (same language as the codebase). Use Jest or Mocha with TypeScript support.
+2. **Executable Code**: Each test_case MUST include complete, copy-paste-ready test_code that:
+   - Includes all necessary imports
+   - Sets up mocks properly
+   - Has actual test implementation (not just comments)
+   - Uses the testing framework from unit_test_strategy
+   - Can be immediately run without modification
+3. **Run Instructions**: Provide exact CLI commands for:
+   - Running individual tests (run_instructions)
+   - Running entire test suites (run_suite_instructions)
+4. **Test File Paths**: Use TypeScript test file paths (e.g., 'src/test/analyzer.test.ts', not .py files)
+5. Focus on user-facing functionality
+6. Prioritize high-value functions (entry points, core logic)
+7. Use mocks for external dependencies (VSCode API, file system, HTTP)
+8. Test edge cases and error handling
+9. Keep tests isolated and fast
 
 Return ONLY the JSON object, no other text.`;
 
