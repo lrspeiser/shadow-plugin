@@ -2120,22 +2120,50 @@ GOOD EXAMPLE (DO THIS):
                     result = { rawContent: textContent };
                 }
             } else {
-                const response = await this.openaiClient!.chat.completions.create({
-                    model: 'gpt-4o',
-                    messages: [{
-                        role: 'system',
-                        content: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON, no other text.'
-                    }, {
-                        role: 'user',
-                        content: prompt
-                    }],
-                    temperature: 0.3,
-                    max_tokens: 8000
-                });
+                // Use OpenAI with model fallback pattern (same as generateArchitectureInsights)
+                const modelsToTry = ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo'];
+                let lastError: any = null;
+                let response: any = null;
 
-                const content = response.choices[0]?.message?.content || '';
-                if (!content) {
-                    throw new Error('Empty response from OpenAI');
+                for (const model of modelsToTry) {
+                    try {
+                        console.log(`[Unit Test Plan] Trying model: ${model}`);
+                        response = await this.openaiClient!.chat.completions.create({
+                            model: model,
+                            messages: [{
+                                role: 'system',
+                                content: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON, no other text.'
+                            }, {
+                                role: 'user',
+                                content: prompt
+                            }],
+                            temperature: 0.3,
+                            max_completion_tokens: 40000
+                        });
+                        console.log(`✅ [Unit Test Plan] Successfully used model: ${model}`);
+                        break;
+                    } catch (modelError: any) {
+                        console.log(`❌ [Unit Test Plan] Model ${model} failed:`, modelError.message);
+                        lastError = modelError;
+                    }
+                }
+
+                if (!response) {
+                    const errorDetails = lastError?.response?.data 
+                        ? JSON.stringify(lastError.response.data, null, 2)
+                        : lastError?.message || 'Unknown error';
+                    throw new Error(`All models failed. Last error: ${errorDetails}`);
+                }
+
+                const firstChoice = response.choices?.[0];
+                const content = firstChoice?.message?.content || '';
+                
+                if (firstChoice?.finish_reason === 'length') {
+                    console.warn('⚠️ [Unit Test Plan] Response was truncated due to token limit.');
+                }
+                
+                if (!content || content.length === 0) {
+                    throw new Error(`LLM API returned empty response. Finish reason: ${firstChoice?.finish_reason}`);
                 }
 
                 // Try to parse as JSON
