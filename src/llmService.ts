@@ -2261,7 +2261,7 @@ GOOD EXAMPLE (DO THIS):
         // Detect primary language
         const primaryLanguage = this.detectPrimaryLanguage(context, codeAnalysis);
         const testingFrameworks = this.getTestingFrameworkForLanguage(primaryLanguage);
-        let prompt = `You are an expert test architect. Generate a comprehensive unit test plan for this codebase.
+        let prompt = `You are an expert test architect. Generate a comprehensive unit test plan that tests ALL functions in this codebase to catch regressions.
 
 ## Codebase Statistics
 - Total Files: ${context.totalFiles}
@@ -2273,12 +2273,32 @@ GOOD EXAMPLE (DO THIS):
 ## Entry Points
 ${context.entryPoints.map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
 
-## Top Files by Size
-${context.files
+## All Files and Their Functions
+${codeAnalysis && codeAnalysis.files ? codeAnalysis.files
     .sort((a, b) => b.lines - a.lines)
-    .slice(0, 20)
+    .map((f, i) => {
+        const fileFunctions = codeAnalysis.functions.filter(func => func.file === f.path);
+        const funcList = fileFunctions.length > 0 
+            ? fileFunctions.map(func => `    - ${func.name} (lines ${func.startLine}-${func.endLine}, ${func.lines} lines)`)
+            : ['    - (no functions detected)'];
+        return `${i + 1}. ${f.path} (${f.language}, ${f.lines} lines, ${f.functions} functions)\n${funcList.join('\n')}`;
+    }).join('\n\n') : context.files
+    .sort((a, b) => b.lines - a.lines)
+    .slice(0, 50)
     .map((f, i) => `${i + 1}. ${f.path} - ${f.lines} lines, ${f.functions} functions`)
     .join('\n')}
+
+## Function Details
+${codeAnalysis && codeAnalysis.functions ? codeAnalysis.functions
+    .slice(0, 100) // Limit to top 100 functions to avoid token limits
+    .map((f, i) => `${i + 1}. ${f.name} in ${f.file} (${f.language}, lines ${f.startLine}-${f.endLine}, ${f.lines} lines)`)
+    .join('\n') : 'No function details available'}
+
+## File Dependencies and Imports
+${codeAnalysis && codeAnalysis.imports ? Object.entries(codeAnalysis.imports)
+    .slice(0, 50) // Limit to avoid token limits
+    .map(([file, imports]) => `${file} imports: ${imports.slice(0, 10).join(', ')}${imports.length > 10 ? '...' : ''}`)
+    .join('\n') : 'No import information available'}
 `;
 
         if (productDocs) {
@@ -2290,6 +2310,27 @@ ${productDocs.whatItDoes?.join('\n- ') || 'N/A'}
 
 ## Architecture Summary
 ${productDocs.architecture || 'N/A'}
+
+## Key Functions and Modules
+${productDocs.relevantFunctions && productDocs.relevantFunctions.length > 0 
+    ? productDocs.relevantFunctions.slice(0, 30).map((f: any) => 
+        `- ${f.name} (${f.file || f.module || 'unknown'}): ${f.description || 'N/A'}`
+      ).join('\n')
+    : 'N/A'}
+
+## Key Data Structures
+${productDocs.relevantDataStructures && productDocs.relevantDataStructures.length > 0
+    ? productDocs.relevantDataStructures.slice(0, 20).map((ds: any) =>
+        `- ${ds.name} (${ds.type || 'unknown'}): ${ds.description || 'N/A'}`
+      ).join('\n')
+    : 'N/A'}
+
+## Important Code Files
+${productDocs.relevantCodeFiles && productDocs.relevantCodeFiles.length > 0
+    ? productDocs.relevantCodeFiles.slice(0, 30).map((cf: any) =>
+        `- ${cf.path}: ${cf.purpose || cf.description || 'N/A'} (role: ${cf.role || 'N/A'})`
+      ).join('\n')
+    : 'N/A'}
 `;
         }
 
@@ -2299,10 +2340,31 @@ ${productDocs.architecture || 'N/A'}
 ${architectureInsights.overallAssessment || 'N/A'}
 
 ### Strengths
-${architectureInsights.strengths?.slice(0, 5).join('\n- ') || 'N/A'}
+${architectureInsights.strengths?.slice(0, 10).join('\n- ') || 'N/A'}
 
-### Issues
-${architectureInsights.issues?.slice(0, 5).map(i => typeof i === 'string' ? i : i.title).join('\n- ') || 'N/A'}
+### Critical Issues (Must Test)
+${architectureInsights.issues?.slice(0, 10).map(i => {
+    if (typeof i === 'string') return `- ${i}`;
+    const files = i.relevantFiles && i.relevantFiles.length > 0 ? ` (files: ${i.relevantFiles.slice(0, 3).join(', ')})` : '';
+    const funcs = i.relevantFunctions && i.relevantFunctions.length > 0 ? ` (functions: ${i.relevantFunctions.slice(0, 3).join(', ')})` : '';
+    return `- ${i.title}: ${i.description}${files}${funcs}`;
+}).join('\n') || 'N/A'}
+
+### Recommendations (Test These Areas)
+${architectureInsights.recommendations?.slice(0, 10).map(r => {
+    if (typeof r === 'string') return `- ${r}`;
+    const files = r.relevantFiles && r.relevantFiles.length > 0 ? ` (files: ${r.relevantFiles.slice(0, 3).join(', ')})` : '';
+    const funcs = r.relevantFunctions && r.relevantFunctions.length > 0 ? ` (functions: ${r.relevantFunctions.slice(0, 3).join(', ')})` : '';
+    return `- ${r.title}: ${r.description}${files}${funcs}`;
+}).join('\n') || 'N/A'}
+
+### High Priority Areas (Focus Testing Here)
+${architectureInsights.priorities?.slice(0, 10).map(p => {
+    if (typeof p === 'string') return `- ${p}`;
+    const files = p.relevantFiles && p.relevantFiles.length > 0 ? ` (files: ${p.relevantFiles.slice(0, 3).join(', ')})` : '';
+    const funcs = p.relevantFunctions && p.relevantFunctions.length > 0 ? ` (functions: ${p.relevantFunctions.slice(0, 3).join(', ')})` : '';
+    return `- ${p.title}: ${p.description}${files}${funcs}`;
+}).join('\n') || 'N/A'}
 `;
         }
 
@@ -2372,8 +2434,18 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
 }
 
 ## Critical Requirements:
-1. **Test Language**: Write tests in ${primaryLanguage.toUpperCase()} (same language as the codebase). Use ${testingFrameworks[0]} or ${testingFrameworks[1] || 'appropriate framework'}.
-2. **MANDATORY: Executable Test Code**: Each test_case MUST include complete, copy-paste-ready test_code in ${primaryLanguage.toUpperCase()}. This field is REQUIRED and cannot be null or empty. The test_code must:
+1. **COMPREHENSIVE COVERAGE**: Create test suites that cover ALL major functions listed above. Every important function should have at least one test case. Focus on:
+   - Entry point functions (${context.entryPoints.length} entry points listed above)
+   - Functions mentioned in architecture insights (issues, recommendations, priorities)
+   - Functions in key files from product documentation
+   - All public/exported functions
+   - Core business logic functions
+
+2. **Test Language**: Write tests in ${primaryLanguage.toUpperCase()} (same language as the codebase). Use ${testingFrameworks[0]} or ${testingFrameworks[1] || 'appropriate framework'}.
+
+3. **MANDATORY: Executable Test Code**: Each test_case MUST include complete, copy-paste-ready test_code in ${primaryLanguage.toUpperCase()}. This field is REQUIRED and cannot be null or empty. The test_code must:
+   - Use the CORRECT import syntax for the actual code structure (check if it's a class, module, or function export)
+   - Match the ACTUAL function signatures and parameter types from the codebase
    - Include all necessary imports and dependencies
    - Set up mocks properly (using ${primaryLanguage} mocking libraries)
    - Have actual, complete test implementation (NOT just comments or placeholders)
@@ -2381,15 +2453,44 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
    - Be immediately runnable without any modification
    - Test the scenarios listed in the scenarios array
    - Include all assertions from the assertions array
-3. **MANDATORY: Run Instructions**: Each test_case MUST include run_instructions with exact CLI commands for ${primaryLanguage}. This field is REQUIRED and cannot be null. Provide:
+   - Use correct property names (e.g., if Insight uses 'file' not 'filePath', 'description' not 'message')
+
+4. **MANDATORY: Run Instructions**: Each test_case MUST include run_instructions with exact CLI commands for ${primaryLanguage}. This field is REQUIRED and cannot be null. Provide:
    - Exact command to run individual tests (run_instructions) - must be a complete, executable command
    - Exact command to run entire test suites (run_suite_instructions)
-4. **Test File Paths**: Use ${primaryLanguage.toUpperCase()} test file paths (e.g., '${testFileExample}', with ${testFileExt} extension)
-5. Focus on user-facing functionality
-6. Prioritize high-value functions (entry points, core logic)
-7. Use mocks for external dependencies (file system, HTTP, databases, etc.)
-8. Test edge cases and error handling
-9. Keep tests isolated and fast
+
+5. **Test File Paths**: Use ${primaryLanguage.toUpperCase()} test file paths (e.g., '${testFileExample}', with ${testFileExt} extension)
+
+6. **Regression Prevention**: Tests should be comprehensive enough that if code changes break functionality, the tests will fail. Include:
+   - Happy path tests
+   - Edge cases (empty inputs, null values, boundary conditions)
+   - Error handling (invalid inputs, missing dependencies)
+   - Integration points (how functions interact)
+
+7. **Use Context**: Leverage the product documentation, architecture insights, and function lists above to:
+   - Understand what each function should do
+   - Identify critical paths that need thorough testing
+   - Focus on areas mentioned in architecture issues/priorities
+   - Test functions that are part of key workflows
+
+8. **Test Organization**: Group related tests into suites by:
+   - Source file (one test suite per major source file)
+   - Functionality area (e.g., "File Analysis", "Dependency Detection", "Entry Point Detection")
+   - Module/component boundaries
+
+9. **Mocking Strategy**: Mock external dependencies like:
+   - File system operations
+   - Network/HTTP calls
+   - Database access
+   - VSCode API (if applicable)
+   - Third-party libraries
+
+10. **Test Quality**: Each test should:
+    - Have a clear, descriptive name
+    - Test one specific behavior
+    - Be independent (can run in any order)
+    - Be fast (no slow I/O unless necessary)
+    - Have clear assertions that verify expected behavior
 
 Return ONLY the JSON object, no other text.`;
 
