@@ -555,7 +555,7 @@ async function switchProvider() {
 
 async function clearAllData() {
     const result = await vscode.window.showWarningMessage(
-        'This will clear ALL Shadow Watch data including analysis cache, saved documentation, insights, and analysis results. This cannot be undone. Continue?',
+        'This will clear ALL Shadow Watch data including analysis cache, saved documentation, insights, analysis results, and unit test data. This cannot be undone. Continue?',
         { modal: true },
         'Clear All Data',
         'Cancel'

@@ -1884,6 +1884,12 @@ export async function clearAllData(): Promise<void> {
         analysisViewer.setAnalysis(null);
     }
 
+    // Clear unit tests navigator
+    if (unitTestsNavigator) {
+        unitTestsNavigator.setUnitTestPlan(null);
+        unitTestsNavigator.refresh();
+    }
+
     // Clear output channel
     if (outputChannel) {
         outputChannel.clear();
