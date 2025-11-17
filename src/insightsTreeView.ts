@@ -10,6 +10,7 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
     private insights: Insight[] = [];
     private productDocsStatus: 'idle' | 'generating' | 'complete' = 'idle';
     private insightsStatus: 'idle' | 'generating' | 'complete' = 'idle';
+    private unitTestStatus: 'idle' | 'generating' | 'complete' = 'idle';
     private analysisStatus: 'idle' | 'complete' = 'idle';
     private llmService: LLMService | null = null;
     private llmInsights: LLMInsights | null = null;
@@ -83,6 +84,15 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             this.savePersistedState();
         }
         this.refresh();
+    }
+
+    setUnitTestStatus(status: 'idle' | 'generating' | 'complete'): void {
+        this.unitTestStatus = status;
+        this.refresh();
+    }
+
+    getUnitTestStatus(): 'idle' | 'generating' | 'complete' {
+        return this.unitTestStatus;
     }
 
     private async loadPersistedState(): Promise<void> {
@@ -502,11 +512,16 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         const genUnitTestsBtn = new TreeItem('🧪 Generate Unit Tests', vscode.TreeItemCollapsibleState.None);
         genUnitTestsBtn.type = 'action';
         
+        // Check if already generating
+        if (this.unitTestStatus === 'generating') {
+            genUnitTestsBtn.iconPath = new vscode.ThemeIcon('sync~spin');
+            genUnitTestsBtn.description = 'Generating... (click Cancel in notification to stop)';
+            genUnitTestsBtn.contextValue = 'disabled';
+            genUnitTestsBtn.command = undefined; // Disabled while generating
+        }
         // Check prerequisites - need analysis and product docs
-        const canRunUnitTests = this.analysisStatus === 'complete' && 
-                                (this.productDocsStatus === 'complete' || this.insightsStatus === 'complete');
-        
-        if (!canRunUnitTests) {
+        else if (this.analysisStatus !== 'complete' || 
+                (this.productDocsStatus !== 'complete' && this.insightsStatus !== 'complete')) {
             if (this.analysisStatus !== 'complete') {
                 genUnitTestsBtn.iconPath = new vscode.ThemeIcon('beaker');
                 genUnitTestsBtn.description = 'Run "Analyze Workspace" first';

@@ -2073,7 +2073,8 @@ GOOD EXAMPLE (DO THIS):
         codeAnalysis?: CodeAnalysis,
         productDocs?: EnhancedProductDocumentation,
         architectureInsights?: LLMInsights,
-        workspaceRoot?: string
+        workspaceRoot?: string,
+        cancellationToken?: vscode.CancellationToken
     ): Promise<any> {
         const isClaude = this.provider === 'claude';
         
@@ -2094,6 +2095,11 @@ GOOD EXAMPLE (DO THIS):
         console.log('Unit test prompt length:', prompt.length);
 
         try {
+            // Check for cancellation before LLM call
+            if (cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
             let result: any = null;
 
             if (isClaude) {
@@ -2132,6 +2138,11 @@ GOOD EXAMPLE (DO THIS):
                 let response: any = null;
 
                 for (const model of modelsToTry) {
+                    // Check for cancellation
+                    if (cancellationToken?.isCancellationRequested) {
+                        throw new Error('Cancelled by user');
+                    }
+
                     try {
                         console.log(`[Unit Test Plan] Trying model: ${model}`);
                         response = await this.openaiClient!.chat.completions.create({

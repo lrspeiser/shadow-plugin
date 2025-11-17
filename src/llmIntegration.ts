@@ -1901,6 +1901,12 @@ export async function clearAllData(): Promise<void> {
  * Generate unit tests using LLM directly (no backend required)
  */
 export async function generateUnitTests(): Promise<void> {
+    // Prevent duplicate calls
+    if (treeProvider && treeProvider.getUnitTestStatus() === 'generating') {
+        vscode.window.showWarningMessage('Unit test generation is already in progress. Please wait or cancel the current operation.');
+        return;
+    }
+
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         vscode.window.showErrorMessage('No workspace folder open');
         return;
@@ -1945,22 +1951,45 @@ export async function generateUnitTests(): Promise<void> {
     SWLogger.section('Generate Unit Tests');
     SWLogger.log(`Workspace: ${workspaceRoot}`);
 
+    // Update UI to show generating status
+    if (treeProvider) {
+        treeProvider.setUnitTestStatus('generating');
+    }
+    SWLogger.section('Generate Unit Tests');
+    SWLogger.log('Status: generating');
+
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'Generating Unit Test Plan with AI...',
-        cancellable: false
-    }, async (progress) => {
+        cancellable: true
+    }, async (progress, cancellationToken) => {
         try {
+            // Check for cancellation
+            if (cancellationToken.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
             progress.report({ message: 'Generating unit test plan...' });
             
+            // Check for cancellation before LLM call
+            if (cancellationToken.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
             // Generate unit test plan using LLM service
             const unitTestPlan = await llmService.generateUnitTestPlan(
                 lastAnalysisContext!,
                 lastCodeAnalysis || undefined,
                 lastEnhancedProductDocs || undefined,
                 lastLLMInsights || undefined,
-                workspaceRoot
+                workspaceRoot,
+                cancellationToken
             );
+
+            // Check for cancellation before saving
+            if (cancellationToken.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
 
             // Save unit test plan
             progress.report({ message: 'Saving unit test plan...' });
