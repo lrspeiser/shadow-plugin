@@ -8,6 +8,7 @@ import * as fs from 'fs';
 interface UnitTestPlan {
     overview?: any;
     file_analyses?: any[];
+    rationale?: string;
     aggregated_plan?: {
         unit_test_plan?: any;
         test_suites?: any[];
@@ -66,7 +67,38 @@ export class UnitTestsNavigatorProvider implements vscode.TreeDataProvider<UnitT
         if (fs.existsSync(unitTestPlanPath)) {
             try {
                 const content = fs.readFileSync(unitTestPlanPath, 'utf-8');
-                this.unitTestPlan = JSON.parse(content);
+                const parsed = JSON.parse(content);
+                
+                // Transform old structure to new structure if needed
+                if (parsed.unit_test_strategy && !parsed.aggregated_plan) {
+                    console.log('[Unit Tests Navigator] Transforming old unit test plan structure...');
+                    this.unitTestPlan = {
+                        rationale: parsed.rationale,
+                        aggregated_plan: {
+                            unit_test_plan: parsed.unit_test_strategy ? {
+                                strategy: parsed.unit_test_strategy.overall_approach,
+                                testing_framework: Array.isArray(parsed.unit_test_strategy.testing_frameworks) 
+                                    ? parsed.unit_test_strategy.testing_frameworks[0] 
+                                    : parsed.unit_test_strategy.testing_frameworks,
+                                mocking_approach: parsed.unit_test_strategy.mocking_strategy,
+                                isolation_strategy: parsed.unit_test_strategy.isolation_level
+                            } : undefined,
+                            test_suites: parsed.test_suites || [],
+                            read_write_test_suites: [],
+                            user_workflow_test_suites: []
+                        }
+                    };
+                    
+                    // Save the transformed structure back to disk
+                    try {
+                        fs.writeFileSync(unitTestPlanPath, JSON.stringify(this.unitTestPlan, null, 2), 'utf-8');
+                        console.log('[Unit Tests Navigator] Saved transformed structure to disk');
+                    } catch (writeError) {
+                        console.error('Error saving transformed unit test plan:', writeError);
+                    }
+                } else {
+                    this.unitTestPlan = parsed;
+                }
             } catch (error) {
                 console.error('Error loading unit test plan:', error);
                 this.unitTestPlan = null;
