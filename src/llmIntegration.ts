@@ -1286,6 +1286,7 @@ async function writeTestFilesFromPlan(
             }
             
             // Combine all test code from all suites for this file
+            // Since we're using structured outputs, test_code should already be clean
             const testCodeParts: string[] = [];
             const seenImports = new Set<string>();
             const seenTestNames = new Set<string>();
@@ -1293,40 +1294,23 @@ async function writeTestFilesFromPlan(
             for (const { suite, testCases } of suites) {
                 if (testCases.length === 0) continue;
                 
-                // Extract imports from first test case (they should be similar across test cases in a suite)
-                const firstTestCase = testCases[0];
-                const testCode = firstTestCase.test_code || '';
-                
-                // Extract imports (lines starting with import/require/using/etc)
-                const lines = testCode.split('\n');
-                const imports: string[] = [];
-                let inCodeBlock = false;
-                
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    // Skip markdown code blocks if any remain
-                    if (trimmed.startsWith('```')) {
-                        inCodeBlock = !inCodeBlock;
-                        continue;
-                    }
-                    if (inCodeBlock) continue;
+                // Extract imports from all test cases
+                for (const testCase of testCases) {
+                    if (!testCase.test_code) continue;
                     
-                    // Collect import statements
-                    if (trimmed.startsWith('import ') || 
-                        trimmed.startsWith('require(') || 
-                        trimmed.startsWith('using ') ||
-                        trimmed.startsWith('#include')) {
-                        if (!seenImports.has(trimmed)) {
-                            imports.push(line);
-                            seenImports.add(trimmed);
+                    const lines = testCase.test_code.split('\n');
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        // Collect import statements (should be clean from structured output)
+                        if (trimmed.startsWith('import ') || 
+                            trimmed.startsWith('require(') || 
+                            trimmed.startsWith('using ') ||
+                            trimmed.startsWith('#include')) {
+                            if (!seenImports.has(trimmed)) {
+                                testCodeParts.push(line);
+                                seenImports.add(trimmed);
+                            }
                         }
-                    }
-                }
-                
-                // Add imports if not already added
-                for (const imp of imports) {
-                    if (!testCodeParts.some(p => p.includes(imp.trim()))) {
-                        testCodeParts.push(imp);
                     }
                 }
                 
@@ -1336,23 +1320,11 @@ async function writeTestFilesFromPlan(
                         continue;
                     }
                     
-                    let code = testCase.test_code;
+                    // Structured outputs should give us clean code, but do minimal safety cleaning
+                    let code = testCase.test_code.trim();
                     
-                    // Remove markdown code blocks if present
-                    code = code.replace(/```[\w]*\n?/g, '').replace(/```/g, '');
-                    
-                    // Remove HTML tags if present
-                    code = code.replace(/<[^>]*>/g, '');
-                    
-                    // Decode HTML entities
-                    code = code.replace(/&lt;/g, '<');
-                    code = code.replace(/&gt;/g, '>');
-                    code = code.replace(/&amp;/g, '&');
-                    code = code.replace(/&quot;/g, '"');
-                    code = code.replace(/&#39;/g, "'");
-                    code = code.replace(/&#039;/g, "'");
-                    
-                    code = code.trim();
+                    // Safety: Remove any markdown code blocks that might have slipped through
+                    code = code.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim();
                     
                     if (code.length > 0) {
                         // Check for duplicate test names and add comment if needed
@@ -1360,7 +1332,6 @@ async function writeTestFilesFromPlan(
                         if (testNameMatch) {
                             const testName = testNameMatch[1];
                             if (seenTestNames.has(testName)) {
-                                // Add a comment to indicate this might be a duplicate
                                 code = `// Note: Test name "${testName}" may be duplicated\n${code}`;
                             } else {
                                 seenTestNames.add(testName);

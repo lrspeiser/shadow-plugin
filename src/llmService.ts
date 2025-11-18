@@ -1517,19 +1517,20 @@ Please proceed with reorganization, moving one file at a time.
                     testSuitesCount: result.test_suites?.length || 0
                 });
             } else {
-                // Use OpenAI with fallback models
+                // Use OpenAI with structured outputs (JSON mode)
+                console.log('[Unit Test Plan] Using OpenAI with structured outputs (JSON mode)...');
                 const openaiProvider = this.providerFactory.getProvider('openai');
-                const response = await this.retryHandler.executeWithRetry(
+                const structuredResponse = await this.retryHandler.executeWithRetry(
                     async () => {
                         // Check for cancellation
                         if (cancellationToken?.isCancellationRequested) {
                             throw new Error('Cancelled by user');
                         }
                         
-                        const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
+                        const response = await openaiProvider.sendStructuredRequest(
                             {
                                 model: 'gpt-5.1',
-                                systemPrompt: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON, no other text.',
+                                systemPrompt: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON matching the schema, no markdown, no code blocks, no other text.',
                                 messages: [{
                                     role: 'user',
                                     content: prompt
@@ -1537,35 +1538,22 @@ Please proceed with reorganization, moving one file at a time.
                                 maxTokens: 40000,
                                 temperature: 0.3
                             },
-                            ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
+                            unitTestPlanSchema
                         );
                         
                         // Record request for rate limiting
                         this.rateLimiter.recordRequest('openai');
                         
-                        return llmResponse;
+                        return response;
                     }
                 );
 
-                if (response.finishReason === 'length') {
-                    console.warn('⚠️ [Unit Test Plan] Response was truncated due to token limit.');
-                }
+                result = structuredResponse.data;
                 
-                if (!response.content || response.content.length === 0) {
-                    throw new Error(`LLM API returned empty response. Finish reason: ${response.finishReason}`);
-                }
-
-                // Try to parse as JSON
-                try {
-                    const jsonMatch = response.content.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        result = JSON.parse(jsonMatch[0]);
-                    } else {
-                        result = { rawContent: response.content };
-                    }
-                } catch {
-                    result = { rawContent: response.content };
-                }
+                console.log('✅ [Unit Test Plan] OpenAI structured output received (no parsing needed):', {
+                    hasStrategy: !!result.unit_test_strategy,
+                    testSuitesCount: result.test_suites?.length || 0
+                });
             }
 
             SWLogger.log('Unit test plan generated successfully');
