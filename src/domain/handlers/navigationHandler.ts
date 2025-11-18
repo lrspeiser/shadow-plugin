@@ -193,42 +193,28 @@ export class NavigationHandler {
             return;
         }
 
-        // Show in a webview panel
-        const panel = vscode.window.createWebviewPanel(
+        const { WebviewTemplateEngine } = await import('../../ui/webview/webviewTemplateEngine');
+        const { BaseWebviewProvider } = await import('../../ui/webview/baseWebviewProvider');
+        
+        const provider = new BaseWebviewProvider();
+        const panel = provider.createOrRevealPanel(
             'productItemDetails',
             item.label || 'Product Details',
-            vscode.ViewColumn.One,
-            {}
+            { viewColumn: vscode.ViewColumn.One }
         );
 
-        const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${item.label}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
-        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
-        p { margin: 15px 0; white-space: pre-wrap; }
-        ul { margin: 10px 0; }
-        li { margin: 5px 0; }
-    </style>
-</head>
-<body>
-    <h1>${item.label}</h1>
-    <p>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
-</body>
-</html>`;
+        const engine = new WebviewTemplateEngine();
+        const htmlContent = `<div class="container">
+            <h1>${WebviewTemplateEngine.escapeHtml(item.label)}</h1>
+            <div class="content">
+                <p style="white-space: pre-wrap;">${WebviewTemplateEngine.escapeHtml(content)}</p>
+            </div>
+        </div>`;
 
-        panel.webview.html = html;
+        provider.setPanelHtml(panel, {
+            title: item.label || 'Product Details',
+            content: htmlContent
+        });
     }
 
     /**
@@ -266,138 +252,60 @@ export class NavigationHandler {
             return;
         }
 
-        // Show in a webview panel
-        const panel = vscode.window.createWebviewPanel(
+        const { WebviewTemplateEngine } = await import('../../ui/webview/webviewTemplateEngine');
+        const { BaseWebviewProvider } = await import('../../ui/webview/baseWebviewProvider');
+        
+        const provider = new BaseWebviewProvider();
+        const panel = provider.createOrRevealPanel(
             'insightItemDetails',
             title,
-            vscode.ViewColumn.One,
-            {
+            { 
+                viewColumn: vscode.ViewColumn.One,
                 enableScripts: true
             }
         );
 
+        const engine = new WebviewTemplateEngine();
+        
         // Convert markdown-style formatting to HTML
-        let htmlContent = content
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/\n/g, '<br>');
-
+        const htmlContent = WebviewTemplateEngine.markdownToHtml(content);
+        
         // Build relevant files section
         let filesSection = '';
         if (relevantFiles && relevantFiles.length > 0) {
-            filesSection = `
-        <div class="section">
-            <h2>📁 Relevant Files</h2>
-            <ul>
-                ${relevantFiles.map((file: string) => `<li><code>${file.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></li>`).join('')}
-            </ul>
-        </div>`;
+            filesSection = engine.renderSection(
+                '📁 Relevant Files',
+                engine.renderList(relevantFiles.map((file: string) => ({ text: file })))
+            );
         }
 
         // Build relevant functions section
         let functionsSection = '';
         if (relevantFunctions && relevantFunctions.length > 0) {
-            functionsSection = `
-        <div class="section">
-            <h2>⚙️ Relevant Functions</h2>
-            <ul>
-                ${relevantFunctions.map((func: string) => `<li><code>${func.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></li>`).join('')}
-            </ul>
+            functionsSection = engine.renderSection(
+                '⚙️ Relevant Functions',
+                engine.renderList(relevantFunctions.map((func: string) => ({ text: func })))
+            );
+        }
+
+        // Escape content for use in JavaScript string
+        const escapedContent = content.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\');
+        
+        const htmlContentFull = `<div class="container">
+            <h1>${WebviewTemplateEngine.escapeHtml(title)}</h1>
+            <div class="content">${htmlContent}</div>
+            ${filesSection}
+            ${functionsSection}
+            <button class="copy-btn" onclick="copyToClipboard(\`${escapedContent}\`)">
+                📋 Copy to Clipboard
+            </button>
         </div>`;
-        }
 
-        const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.8;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px;
-            color: #333;
-            background: #fafafa;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        h1 { 
-            color: #2c3e50; 
-            border-bottom: 3px solid #3498db; 
-            padding-bottom: 15px;
-            margin-top: 0;
-        }
-        h2 {
-            color: #34495e;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        .content {
-            font-size: 16px;
-            line-height: 1.8;
-            margin-top: 20px;
-        }
-        .section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-        }
-        .section ul {
-            margin: 10px 0;
-            padding-left: 25px;
-        }
-        .section li {
-            margin: 8px 0;
-        }
-        strong { color: #2c3e50; font-weight: 600; }
-        code {
-            background: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 14px;
-        }
-        .copy-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .copy-btn:hover {
-            background: #2980b9;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>${title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h1>
-        <div class="content">${htmlContent}</div>
-        ${filesSection}
-        ${functionsSection}
-        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${content.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\')}\`); alert('Copied to clipboard!')">
-            📋 Copy to Clipboard
-        </button>
-    </div>
-</body>
-</html>`;
-
-        panel.webview.html = html;
+        provider.setPanelHtml(panel, {
+            title,
+            content: htmlContentFull,
+            enableScripts: true
+        });
     }
 
     /**
