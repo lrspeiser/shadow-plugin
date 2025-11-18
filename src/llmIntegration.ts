@@ -353,13 +353,13 @@ export async function generateProductDocs() {
             }
             SWLogger.log('Status: complete');
             
-            progress.report({ message: 'Step 2/3: Saving documentation...' });
+            reporter.report('Step 2/3: Saving documentation...');
             
             // Save enhanced docs to .shadow folder
             await analysisResultRepository.saveEnhancedProductDocs(productDocs, workspaceRoot);
             SWLogger.log('Saved docs to .shadow/docs');
             
-            progress.report({ message: 'Step 3/3: Complete' });
+            reporter.report('Step 3/3: Complete');
             
             vscode.window.showInformationMessage('✅ Enhanced product documentation generated! Browse in "Product Navigator" view.');
         } catch (error: any) {
@@ -594,7 +594,7 @@ export async function generateLLMInsights() {
                 }
             }
             
-            progress.report({ message: 'Saving insights...' });
+            reporter.report('Saving insights...');
             
             // Save to .shadow folder in project
             await analysisResultRepository.saveArchitectureInsights(insights);
@@ -1509,7 +1509,7 @@ export async function generateUnitTests(): Promise<void> {
             }
 
             // Save unit test plan
-            reporter.report('Saving unit test plan...');
+            progress.report({ message: 'Saving unit test plan...' });
             const unitTestDir = path.join(workspaceRoot, 'UnitTests');
             if (!fs.existsSync(unitTestDir)) {
                 fs.mkdirSync(unitTestDir, { recursive: true });
