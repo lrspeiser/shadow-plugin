@@ -2495,7 +2495,9 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
    - VSCode API (if applicable)
    - Third-party libraries
 
-10. **Test Quality**: Each test should:
+10. **Test Storage Location**: The unit test plan will be saved to the \`UnitTests/\` folder in the project root. Users can reference this location when asking LLMs to help run or modify the tests.
+
+11. **Test Quality**: Each test should:
     - Have a clear, descriptive name
     - Test one specific behavior
     - Be independent (can run in any order)
