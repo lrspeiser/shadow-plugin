@@ -134,12 +134,10 @@ async function analyzeWorkspace() {
 
     statusBarItem.text = '$(sync~spin) Analyzing...';
     
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Shadow Watch',
-        cancellable: false
-    }, async (progress) => {
-        progress.report({ message: 'Analyzing workspace...' });
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgressNonCancellable('Shadow Watch', async (reporter) => {
+        reporter.report('Analyzing workspace...');
 
         try {
             const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
@@ -166,7 +164,7 @@ async function analyzeWorkspace() {
             statusBarItem.text = `$(eye) ${insights.length} issues`;
             statusBarItem.tooltip = `Shadow Watch: ${insights.length} architecture issues found`;
             
-            progress.report({ message: 'Step 1 complete. Starting comprehensive analysis...' });
+            reporter.report('Step 1 complete. Starting comprehensive analysis...');
             
             // Now run the comprehensive analysis workflow (Product Docs → Architecture Insights → Report)
             await llmIntegration.runComprehensiveAnalysis();
@@ -280,12 +278,10 @@ async function copyMenuStructure() {
         return;
     }
     
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Copying menu structure...',
-        cancellable: false
-    }, async (progress) => {
-        progress.report({ message: 'Collecting menu items...' });
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgressNonCancellable('Copying menu structure...', async (reporter) => {
+        reporter.report('Collecting menu items...');
         
         const menuItems = await treeProvider.getAllMenuItems();
         const menuText = 'Shadow Watch - Architecture Insights Panel\n' +

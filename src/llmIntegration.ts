@@ -288,16 +288,14 @@ export async function generateProductDocs() {
 
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Generating Enhanced Product Documentation with AI...',
-        cancellable: false
-    }, async (progress) => {
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgressNonCancellable('Generating Enhanced Product Documentation with AI...', async (reporter) => {
         try {
             // Reset run context for new generation
             analysisResultRepository.resetProductDocsRun();
             
-            progress.report({ message: 'Step 1/3: Analyzing files individually...' });
+            reporter.report('Step 1/3: Analyzing files individually...');
             SWLogger.log('Step 1/3: analyzing files...');
             
             // Use enhanced documentation generation with incremental save callbacks
@@ -442,7 +440,7 @@ export async function generateLLMInsights() {
     SWLogger.section('Generate Architecture Insights');
     SWLogger.log('Status: generating');
 
-    const { progressService } = await import('../infrastructure/progressService');
+    const { progressService } = await import('./infrastructure/progressService');
     
     await progressService.withProgressNonCancellable('Generating Architecture Insights with AI...', async (reporter) => {
         try {
@@ -482,7 +480,7 @@ export async function generateLLMInsights() {
             
             // Generate insights using both analysis and product docs
             // This now does: Step 1) Analyze product purpose, Step 2) Generate contextual recommendations
-            progress.report({ message: 'Step 2/2: Generating contextual architecture recommendations...' });
+            reporter.report('Step 2/2: Generating contextual architecture recommendations...');
             const insights = await llmService.generateArchitectureInsights(
                 lastAnalysisContext,
                 lastCodeAnalysis || undefined,
@@ -490,13 +488,13 @@ export async function generateLLMInsights() {
                 {
                     onProductPurposeStart: () => {
                         // Update progress notification to show product purpose is being submitted
-                        progress.report({ message: 'Step 1/2: Submitting product purpose analysis to LLM...' });
+                        reporter.report('Step 1/2: Submitting product purpose analysis to LLM...');
                         SWLogger.log('Submitting product purpose analysis to LLM');
                     },
                     onProductPurposeAnalysis: (productPurpose) => {
                         analysisResultRepository.saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
                         // Update progress notification to show product purpose analysis received
-                        progress.report({ message: 'Step 1/2: Received product purpose analysis from LLM' });
+                        reporter.report('Step 1/2: Received product purpose analysis from LLM');
                         SWLogger.log('Received product purpose analysis from LLM');
                         // Refresh insights viewer to show incremental data
                         const insightsViewer = stateManager.getInsightsViewer();
@@ -506,9 +504,7 @@ export async function generateLLMInsights() {
                     },
                     onInsightsIterationStart: (iteration, maxIterations) => {
                         // Update progress notification to show iteration is being submitted
-                        progress.report({ 
-                            message: `Step 2/2: Submitting architecture insights iteration ${iteration}/${maxIterations} to LLM...`
-                        });
+                        reporter.report(`Step 2/2: Submitting architecture insights iteration ${iteration}/${maxIterations} to LLM...`);
                         SWLogger.log(`Submitting architecture insights iteration ${iteration}/${maxIterations} to LLM`);
                     },
                     onInsightsIteration: (insights, iteration, maxIterations) => {
@@ -1474,21 +1470,19 @@ export async function generateUnitTests(): Promise<void> {
     SWLogger.section('Generate Unit Tests');
     SWLogger.log('Status: generating');
 
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Generating Unit Test Plan with AI...',
-        cancellable: true
-    }, async (progress, cancellationToken) => {
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgress('Generating Unit Test Plan with AI...', async (reporter) => {
         try {
             // Check for cancellation
-            if (cancellationToken.isCancellationRequested) {
+            if (reporter.cancellationToken?.isCancellationRequested) {
                 throw new Error('Cancelled by user');
             }
 
-            progress.report({ message: 'Generating unit test plan...' });
+            reporter.report('Generating unit test plan...');
             
             // Check for cancellation before LLM call
-            if (cancellationToken.isCancellationRequested) {
+            if (reporter.cancellationToken?.isCancellationRequested) {
                 throw new Error('Cancelled by user');
             }
 
@@ -1500,16 +1494,16 @@ export async function generateUnitTests(): Promise<void> {
                 lastEnhancedProductDocs || undefined,
                 lastLLMInsights || undefined,
                 workspaceRoot,
-                cancellationToken
+                reporter.cancellationToken
             );
 
             // Check for cancellation before saving
-            if (cancellationToken.isCancellationRequested) {
+            if (reporter.cancellationToken?.isCancellationRequested) {
                 throw new Error('Cancelled by user');
             }
 
             // Save unit test plan
-            progress.report({ message: 'Saving unit test plan...' });
+            reporter.report('Saving unit test plan...');
             const unitTestDir = path.join(workspaceRoot, 'UnitTests');
             if (!fs.existsSync(unitTestDir)) {
                 fs.mkdirSync(unitTestDir, { recursive: true });
@@ -1567,7 +1561,7 @@ export async function generateUnitTests(): Promise<void> {
             SWLogger.log(`Unit test plan saved to: ${planFile}`);
             
             // Extract and write actual test files from the plan
-            progress.report({ message: 'Writing test files...' });
+            reporter.report('Writing test files...');
             const testFilesWritten = await writeTestFilesFromPlan(transformedPlan, workspaceRoot);
             SWLogger.log(`Written ${testFilesWritten.length} test file(s): ${testFilesWritten.join(', ')}`);
             
@@ -1657,14 +1651,12 @@ export async function runComprehensiveAnalysis(): Promise<void> {
     SWLogger.section('Comprehensive Analysis');
     SWLogger.log('Starting sequential analysis workflow...');
 
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Comprehensive Analysis & Report Generation',
-        cancellable: true
-    }, async (progress, cancellationToken) => {
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgress('Comprehensive Analysis & Report Generation', async (reporter) => {
         try {
             // Step 1: Ensure workspace analysis is complete
-            progress.report({ message: 'Step 1/4: Analyzing workspace...', increment: 0 });
+            reporter.report('Step 1/4: Analyzing workspace...', 0);
             
             let lastAnalysisContext = stateManager.getAnalysisContext();
             let lastCodeAnalysis = stateManager.getCodeAnalysis();
