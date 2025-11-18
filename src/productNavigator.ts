@@ -57,14 +57,19 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
 
             this.watcherDisposables.push(
                 this.fileWatcherService.watch('productNavigator-docs', pattern, (event) => {
+                    console.log('[ProductNavigator] ========== FILE WATCHER EVENT ==========');
+                    console.log('[ProductNavigator] Event type:', event.type, 'File:', event.uri.fsPath);
+                    console.log('[ProductNavigator] Current productDocs:', !!this.productDocs, 'incrementalFiles size:', this.incrementalFiles.size);
                     if (event.type === 'created') {
                         console.log('[ProductNavigator] New file created in docs:', event.uri.fsPath);
                         this.loadIncrementalFile(event.uri.fsPath);
+                        console.log('[ProductNavigator] After load, incrementalFiles size:', this.incrementalFiles.size);
                         console.log('[ProductNavigator] Refreshing after file create');
                         this.refresh();
                     } else if (event.type === 'changed') {
                         console.log('[ProductNavigator] File changed in docs:', event.uri.fsPath);
                         this.loadIncrementalFile(event.uri.fsPath);
+                        console.log('[ProductNavigator] After load, incrementalFiles size:', this.incrementalFiles.size);
                         console.log('[ProductNavigator] Refreshing after file change');
                         this.refresh();
                     } else if (event.type === 'deleted') {
@@ -74,9 +79,11 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
                             console.log('[ProductNavigator] Main product docs file deleted, clearing productDocs');
                             this.productDocs = null;
                         }
+                        console.log('[ProductNavigator] After delete, incrementalFiles size:', this.incrementalFiles.size);
                         console.log('[ProductNavigator] Refreshing after file delete');
                         this.refresh();
                     }
+                    console.log('[ProductNavigator] ========== FILE WATCHER EVENT COMPLETE ==========');
                 })
             );
             
@@ -285,10 +292,15 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
     }
 
     clearState(): void {
-        console.log('[ProductNavigator] clearState() called - clearing productDocs and incrementalFiles');
+        console.log('[ProductNavigator] ========== clearState() CALLED ==========');
+        console.log('[ProductNavigator] Before clear - productDocs:', !!this.productDocs, 'incrementalFiles size:', this.incrementalFiles.size);
+        console.log('[ProductNavigator] Stack trace:', new Error().stack);
         this.productDocs = null;
         this.incrementalFiles.clear();
+        console.log('[ProductNavigator] After clear - productDocs:', !!this.productDocs, 'incrementalFiles size:', this.incrementalFiles.size);
+        console.log('[ProductNavigator] Calling refresh()...');
         this.refresh();
+        console.log('[ProductNavigator] ========== clearState() COMPLETE ==========');
     }
 
     refresh(): void {
@@ -313,19 +325,25 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
     }
 
     getChildren(element?: ProductNavItem): Thenable<ProductNavItem[]> {
-        console.log('[ProductNavigator] getChildren called, element type:', element?.type || 'root');
+        console.log('[ProductNavigator] ========== getChildren() CALLED ==========');
+        console.log('[ProductNavigator] Element type:', element?.type || 'root');
         console.log('[ProductNavigator] Has productDocs:', !!this.productDocs);
+        console.log('[ProductNavigator] incrementalFiles size:', this.incrementalFiles.size);
+        console.log('[ProductNavigator] Stack trace:', new Error().stack?.split('\n').slice(1, 6).join('\n'));
         
         // Only build partial docs from incremental files if we don't have complete docs yet
         // This matches the behavior of InsightsViewerProvider which only loads from disk if !this.insights
         let partialDocs: EnhancedProductDocumentation | null = null;
         if (!this.productDocs) {
+            console.log('[ProductNavigator] productDocs is null, calling buildPartialDocsFromIncremental()...');
             partialDocs = this.buildPartialDocsFromIncremental();
-            console.log('[ProductNavigator] Built partial docs:', {
+            console.log('[ProductNavigator] Built partial docs result:', {
                 hasPartialDocs: !!partialDocs,
                 modulesCount: partialDocs?.modules?.length || 0,
                 fileSummariesCount: partialDocs?.fileSummaries?.length || 0
             });
+        } else {
+            console.log('[ProductNavigator] productDocs exists, skipping buildPartialDocsFromIncremental()');
         }
         
         const docs = this.productDocs || partialDocs;
@@ -397,52 +415,62 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
     }
 
     private buildPartialDocsFromIncremental(): EnhancedProductDocumentation | null {
-        console.log('[ProductNavigator] buildPartialDocsFromIncremental() called');
+        console.log('[ProductNavigator] ========== buildPartialDocsFromIncremental() CALLED ==========');
+        console.log('[ProductNavigator] Stack trace:', new Error().stack?.split('\n').slice(1, 6).join('\n'));
         
         // Always reload from disk to ensure we have the latest data
         // This prevents showing stale data after files are deleted
+        console.log('[ProductNavigator] Calling reloadIncrementalFilesFromDisk()...');
         this.reloadIncrementalFilesFromDisk();
+        console.log('[ProductNavigator] After reload, incrementalFiles size:', this.incrementalFiles.size);
         
         // Check for module-summaries.json aggregate file
         if (!this.workspaceRoot) {
-            console.log('[ProductNavigator] No workspace root');
+            console.log('[ProductNavigator] No workspace root, returning null');
             return null;
         }
         
         const shadowDir = path.join(this.workspaceRoot, '.shadow', 'docs');
         console.log('[ProductNavigator] Checking shadow dir:', shadowDir);
+        console.log('[ProductNavigator] Shadow dir exists:', fs.existsSync(shadowDir));
         
         if (!fs.existsSync(shadowDir)) {
-            console.log('[ProductNavigator] Shadow dir does not exist');
+            console.log('[ProductNavigator] Shadow dir does not exist, returning null');
             return null;
         }
         
         // Find the latest product-docs run directory
         const entries = fs.readdirSync(shadowDir, { withFileTypes: true });
-        console.log('[ProductNavigator] Found entries in shadow dir:', entries.map(e => e.name));
+        console.log('[ProductNavigator] Found entries in shadow dir:', entries.map(e => `${e.name} (${e.isDirectory() ? 'dir' : 'file'})`));
         
         const productDocRuns = entries
             .filter(e => e.isDirectory() && e.name.startsWith('product-docs-'))
-            .map(e => ({
-                name: e.name,
-                path: path.join(shadowDir, e.name),
-                mtime: fs.statSync(path.join(shadowDir, e.name)).mtimeMs
-            }))
+            .map(e => {
+                const runPath = path.join(shadowDir, e.name);
+                const stats = fs.statSync(runPath);
+                return {
+                    name: e.name,
+                    path: runPath,
+                    mtime: stats.mtimeMs,
+                    mtimeDate: new Date(stats.mtimeMs).toISOString()
+                };
+            })
             .sort((a, b) => b.mtime - a.mtime);
         
-        console.log('[ProductNavigator] Found product doc runs:', productDocRuns.map(r => r.name));
+        console.log('[ProductNavigator] Found product doc runs:', productDocRuns.map(r => `${r.name} (mtime: ${r.mtimeDate})`));
         
         if (productDocRuns.length === 0) {
-            console.log('[ProductNavigator] No product doc runs found');
+            console.log('[ProductNavigator] No product doc runs found, returning null');
             return null;
         }
         
         const latestRun = productDocRuns[0];
-        console.log('[ProductNavigator] Using latest run:', latestRun.name, 'at', latestRun.path);
+        console.log('[ProductNavigator] Using latest run:', latestRun.name, 'at', latestRun.path, 'modified:', latestRun.mtimeDate);
         
         // Load module summaries from aggregate file
         const moduleSummariesPath = path.join(latestRun.path, 'module-summaries.json');
         console.log('[ProductNavigator] Checking for module summaries at:', moduleSummariesPath);
+        console.log('[ProductNavigator] Module summaries file exists:', fs.existsSync(moduleSummariesPath));
         
         let modules: ModuleSummary[] = [];
         if (fs.existsSync(moduleSummariesPath)) {
@@ -470,6 +498,7 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
         // Load file summaries from aggregate file
         const fileSummariesPath = path.join(latestRun.path, 'file-summaries.json');
         console.log('[ProductNavigator] Checking for file summaries at:', fileSummariesPath);
+        console.log('[ProductNavigator] File summaries file exists:', fs.existsSync(fileSummariesPath));
         
         let fileSummaries: FileSummary[] = [];
         if (fs.existsSync(fileSummariesPath)) {
@@ -516,7 +545,10 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
         
         // Only return partial docs if we have some data
         if (modules.length > 0 || fileSummaries.length > 0) {
-            console.log('[ProductNavigator] Returning partial docs with', modules.length, 'modules and', fileSummaries.length, 'file summaries');
+            console.log('[ProductNavigator] ========== RETURNING PARTIAL DOCS ==========');
+            console.log('[ProductNavigator] Modules:', modules.length, 'File summaries:', fileSummaries.length);
+            console.log('[ProductNavigator] Module names:', modules.map(m => m.module));
+            console.log('[ProductNavigator] File paths:', fileSummaries.map(f => f.file));
             return {
                 overview: '',
                 whatItDoes: [],
@@ -529,7 +561,8 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
             } as EnhancedProductDocumentation;
         }
         
-        console.log('[ProductNavigator] No data found in incremental files, returning null');
+        console.log('[ProductNavigator] ========== NO DATA FOUND, RETURNING NULL ==========');
+        console.log('[ProductNavigator] Modules:', modules.length, 'File summaries:', fileSummaries.length);
         return null;
     }
 

@@ -133,16 +133,25 @@ async function analyzeWorkspace() {
     }
 
     // Clear product navigator and insights viewer state to prevent showing stale data
+    console.log('[Extension] ========== analyzeWorkspace() STARTING ==========');
+    console.log('[Extension] Clearing state before analysis...');
     const { getStateManager } = await import('./state/llmStateManager');
     const stateManager = getStateManager();
     const productNavigator = stateManager.getProductNavigator();
     if (productNavigator) {
+        console.log('[Extension] Calling productNavigator.clearState()...');
         productNavigator.clearState();
+    } else {
+        console.log('[Extension] WARNING: productNavigator is null!');
     }
     const insightsViewer = stateManager.getInsightsViewer();
     if (insightsViewer) {
+        console.log('[Extension] Calling insightsViewer.setInsights(null)...');
         insightsViewer.setInsights(null);
+    } else {
+        console.log('[Extension] WARNING: insightsViewer is null!');
     }
+    console.log('[Extension] State cleared, starting analysis...');
 
     statusBarItem.text = '$(sync~spin) Analyzing...';
     
