@@ -110,6 +110,11 @@
         "icon": "$(beaker)"
       },
       {
+        "command": "shadowWatch.runUnitTests",
+        "title": "Shadow Watch: Run Unit Tests",
+        "icon": "$(play)"
+      },
+      {
         "command": "shadowWatch.setApiKey",
         "title": "Shadow Watch: Set OpenAI API Key"
       },
