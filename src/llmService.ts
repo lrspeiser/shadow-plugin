@@ -700,6 +700,7 @@ export class LLMService {
         // Step 2: Generate architecture insights with product purpose context (iterative loop)
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
         const fileAccessHelper = new FileAccessHelper(workspaceRoot);
+        const incrementalService = new IncrementalAnalysisService(fileAccessHelper);
         const basePrompt = this.promptBuilder.buildArchitecturePrompt(context, codeAnalysis, productDocs, productPurposeAnalysis, fileAccessHelper);
         const providerName = isClaude ? 'Claude' : 'OpenAI';
         console.log(`[Architecture Insights] Using ${providerName} provider`);
@@ -708,12 +709,10 @@ export class LLMService {
         try {
             let insights: LLMInsights | null = null;
             const messages: any[] = [];
-            let iteration = 0;
             const maxIterations = 3;
             let finalResult: any = null;
             
-            while (iteration < maxIterations) {
-                iteration++;
+            for (let iteration = 1; iteration <= maxIterations; iteration++) {
                 console.log(`[Architecture Insights] Iteration ${iteration}/${maxIterations}`);
 
                 // Call callback before sending to LLM
@@ -835,39 +834,11 @@ export class LLMService {
                     break;
                 }
 
-                // Limit to 5 requests per iteration
-                const limitedRequests = requests.slice(0, 5);
-                console.log(`[Architecture Insights] Processing ${limitedRequests.length} request(s) in iteration ${iteration}`);
-
-                // Process requests
-                let additionalInfo = '\n## Additional Information Requested\n\n';
-                const fileRequests = limitedRequests.filter(r => r.type === 'file') as any[];
-                const grepRequests = limitedRequests.filter(r => r.type === 'grep') as any[];
-
-                // Read requested files
-                if (fileRequests.length > 0) {
-                    const filePaths = fileRequests.map(r => r.path);
-                    const fileResponses = fileAccessHelper.readFiles(filePaths);
-                    additionalInfo += fileAccessHelper.formatFileResponses(fileResponses);
-                }
-
-                // Execute grep searches
-                if (grepRequests.length > 0) {
-                    const grepResponses = grepRequests.map(req => 
-                        fileAccessHelper.grep(req.pattern, req.filePattern, req.maxResults || 20)
-                    );
-                    additionalInfo += fileAccessHelper.formatGrepResponses(grepResponses);
-                }
-
-                // Add assistant response and additional info to conversation
-                messages.push({
-                    role: 'assistant',
-                    content: JSON.stringify(finalResult)
-                });
-                messages.push({
-                    role: 'user',
-                    content: additionalInfo
-                });
+                // Process requests using incremental service
+                console.log(`[Architecture Insights] Processing ${requests.length} request(s) in iteration ${iteration}`);
+                const { messages: updatedMessages } = incrementalService.processRequests(requests, finalResult, messages);
+                messages.length = 0;
+                messages.push(...updatedMessages);
             }
 
             // Remove requests field before returning
