@@ -14,27 +14,22 @@ import { InsightsViewerProvider } from './insightsViewer';
 import { UnitTestsNavigatorProvider } from './unitTestsNavigator';
 import { SWLogger } from './logger';
 import { createTimestampedStorage } from './storage/incrementalStorage';
+import { getStateManager } from './state/llmStateManager';
 
-let llmService: LLMService;
-let lastAnalysisContext: AnalysisContext | null = null;
-let lastEnhancedProductDocs: EnhancedProductDocumentation | null = null;
-let lastLLMInsights: LLMInsights | null = null;
-let treeProvider: InsightsTreeProvider | null = null;
-let productNavigator: ProductNavigatorProvider | null = null;
-let insightsViewer: InsightsViewerProvider | null = null;
-let analysisViewer: AnalysisViewerProvider | null = null;
-let unitTestsNavigator: UnitTestsNavigatorProvider | null = null;
-let outputChannel: vscode.OutputChannel | null = null;
-let lastCodeAnalysis: CodeAnalysis | null = null;
+// Use state manager for all state
+const stateManager = getStateManager();
 
 export function initializeLLMService() {
-    llmService = new LLMService();
+    const llmService = new LLMService();
+    stateManager.setLLMService(llmService);
+    
     // Create output channel for documentation
-    outputChannel = vscode.window.createOutputChannel('Shadow Watch Documentation');
+    stateManager.getOutputChannel();
     SWLogger.section('Extension Init');
     
     // Refresh tree view when API key configuration changes
     llmService.setOnConfigurationChange(() => {
+        const treeProvider = stateManager.getTreeProvider();
         if (treeProvider) {
             treeProvider.refresh();
         }
@@ -77,13 +72,9 @@ async function loadSavedInsights(): Promise<void> {
         if (fs.existsSync(insightsPath)) {
             try {
                 const insightsContent = fs.readFileSync(insightsPath, 'utf-8');
-                lastLLMInsights = JSON.parse(insightsContent) as LLMInsights;
+                const insights = JSON.parse(insightsContent) as LLMInsights;
+                stateManager.setLLMInsights(insights);
                 console.log(`Loaded architecture insights from latest run: ${latestRun.name}`);
-                
-                // Update insights viewer if available
-                if (insightsViewer) {
-                    insightsViewer.setInsights(lastLLMInsights);
-                }
             } catch (error) {
                 console.error('Failed to load architecture insights from file:', error);
             }
@@ -120,20 +111,11 @@ async function loadSavedProductDocs(): Promise<void> {
         if (fs.existsSync(docsPath)) {
             try {
                 const docsContent = fs.readFileSync(docsPath, 'utf-8');
-                lastEnhancedProductDocs = JSON.parse(docsContent) as EnhancedProductDocumentation;
+                const docs = JSON.parse(docsContent) as EnhancedProductDocumentation;
+                stateManager.setEnhancedProductDocs(docs);
                 console.log(`✅ Loaded enhanced product documentation from latest run: ${latestRun.name}`);
                 console.log(`   Path: ${docsPath}`);
                 SWLogger.log(`Loaded product docs from ${docsPath}`);
-                
-                // Update product navigator if available (might be set later)
-                if (productNavigator) {
-                    productNavigator.setProductDocs(lastEnhancedProductDocs);
-                }
-                
-                // Update tree provider status if available (might be set later)
-                if (treeProvider) {
-                    treeProvider.setProductDocsStatus('complete');
-                }
             } catch (error) {
                 console.error('Failed to load enhanced product documentation from file:', error);
                 console.error(`   Attempted path: ${docsPath}`);
@@ -150,57 +132,36 @@ async function loadSavedProductDocs(): Promise<void> {
 }
 
 export function setTreeProvider(provider: InsightsTreeProvider) {
-    treeProvider = provider;
-    // Pass LLMService to tree provider so it can check API key status
-    provider.setLLMService(llmService);
-    // If we already have docs loaded, update the status now that tree provider is available
-    if (lastEnhancedProductDocs) {
-        treeProvider.setProductDocsStatus('complete');
-    }
-    // If we already have analysis loaded, update the status now that tree provider is available
-    if (lastAnalysisContext) {
-        treeProvider.setAnalysisComplete();
-    }
+    stateManager.setTreeProvider(provider);
 }
 
 export function setProductNavigator(provider: ProductNavigatorProvider) {
-    productNavigator = provider;
-    // If we already have docs loaded, set them now
-    if (lastEnhancedProductDocs) {
-        productNavigator.setProductDocs(lastEnhancedProductDocs);
-    }
+    stateManager.setProductNavigator(provider);
 }
 
 export function setUnitTestsNavigator(provider: UnitTestsNavigatorProvider) {
-    unitTestsNavigator = provider;
+    stateManager.setUnitTestsNavigator(provider);
 }
 
 export function setInsightsViewer(provider: InsightsViewerProvider) {
-    insightsViewer = provider;
-    // If we already have insights loaded, set them now
-    if (lastLLMInsights) {
-        insightsViewer.setInsights(lastLLMInsights);
-    }
+    stateManager.setInsightsViewer(provider);
 }
 
 export function setAnalysisViewer(provider: AnalysisViewerProvider) {
-    analysisViewer = provider;
-    // If we already have analysis loaded, set it now
-    if (lastCodeAnalysis) {
-        analysisViewer.setAnalysis(lastCodeAnalysis);
-    }
+    stateManager.setAnalysisViewer(provider);
 }
 
 export function setCodeAnalysis(analysis: CodeAnalysis) {
-    lastCodeAnalysis = analysis;
+    stateManager.setCodeAnalysis(analysis);
     // Convert CodeAnalysis to AnalysisContext and save it
-    lastAnalysisContext = convertCodeAnalysisToContext(analysis);
+    const context = convertCodeAnalysisToContext(analysis);
+    stateManager.setAnalysisContext(context);
     // Save analysis data for future use
     saveCodeAnalysis(analysis);
 }
 
 export function setAnalysisContext(context: AnalysisContext) {
-    lastAnalysisContext = context;
+    stateManager.setAnalysisContext(context);
 }
 
 /**
@@ -280,20 +241,11 @@ export async function loadSavedCodeAnalysis(): Promise<void> {
         try {
             const analysisContent = fs.readFileSync(analysisPath, 'utf-8');
             const analysis = JSON.parse(analysisContent) as CodeAnalysis;
-            lastCodeAnalysis = analysis;
-            lastAnalysisContext = convertCodeAnalysisToContext(analysis);
+            stateManager.setCodeAnalysis(analysis);
+            const context = convertCodeAnalysisToContext(analysis);
+            stateManager.setAnalysisContext(context);
             console.log('✅ Loaded code analysis from file on startup');
             console.log(`   Path: ${analysisPath}`);
-            
-            // Update tree provider status if available (might be set later)
-            if (treeProvider) {
-                treeProvider.setAnalysisComplete();
-            }
-            
-            // Update analysis viewer if available (might be set later)
-            if (analysisViewer) {
-                analysisViewer.setAnalysis(analysis);
-            }
         } catch (error) {
             console.error('Failed to load code analysis from file:', error);
             console.error(`   Attempted path: ${analysisPath}`);
@@ -322,12 +274,14 @@ export async function copyLLMInsight(type: string, content: string): Promise<voi
 }
 
 export async function setApiKey() {
+    const llmService = stateManager.getLLMService();
     const provider = llmService.getProvider();
     const isClaude = provider === 'claude';
     const wasConfigured = llmService.isConfigured();
     const success = await llmService.promptForApiKey();
     if (success) {
         // Refresh tree view to update button label
+        const treeProvider = stateManager.getTreeProvider();
         if (treeProvider) {
             treeProvider.refresh();
         }
@@ -340,10 +294,12 @@ export async function setApiKey() {
 }
 
 export async function setClaudeApiKey() {
+    const llmService = stateManager.getLLMService();
     const wasConfigured = llmService.isConfigured();
     const success = await llmService.promptForClaudeApiKey();
     if (success) {
         // Refresh tree view to update button label
+        const treeProvider = stateManager.getTreeProvider();
         if (treeProvider) {
             treeProvider.refresh();
         }
@@ -355,6 +311,9 @@ export async function setClaudeApiKey() {
 }
 
 export async function generateProductDocs() {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
     // Prevent duplicate calls
     if (treeProvider && treeProvider.getProductDocsStatus() === 'generating') {
         vscode.window.showWarningMessage('Product documentation generation is already in progress. Please wait...');
@@ -378,6 +337,7 @@ export async function generateProductDocs() {
         }
     }
 
+    const lastAnalysisContext = stateManager.getAnalysisContext();
     if (!lastAnalysisContext) {
         vscode.window.showErrorMessage('Please run "Analyze Workspace" first');
         return;
@@ -390,6 +350,7 @@ export async function generateProductDocs() {
     SWLogger.section('Generate Product Docs');
     SWLogger.log('Status: generating');
 
+    const lastCodeAnalysis = stateManager.getCodeAnalysis();
     if (!lastCodeAnalysis) {
         vscode.window.showErrorMessage('Please run "Analyze Workspace" first to get code analysis');
         return;
@@ -415,8 +376,8 @@ export async function generateProductDocs() {
             SWLogger.log('Step 1/3: analyzing files...');
             
             // Use enhanced documentation generation with incremental save callbacks
-            lastEnhancedProductDocs = await llmService.generateEnhancedProductDocs(
-                lastCodeAnalysis!,
+            const productDocs = await llmService.generateEnhancedProductDocs(
+                lastCodeAnalysis,
                 workspaceRoot,
                 {
                     onFileStart: (filePath, index, total) => {
@@ -434,6 +395,7 @@ export async function generateProductDocs() {
                         });
                         SWLogger.log(`Received file ${index}/${total} from LLM: ${summary.file}`);
                         // Refresh product navigator to show new files
+                        const productNavigator = stateManager.getProductNavigator();
                         if (productNavigator) {
                             productNavigator.refresh();
                         }
@@ -445,6 +407,7 @@ export async function generateProductDocs() {
                             message: `Step 2/3: Generating module summaries (${index}/${total}): ${path.basename(summary.module)}`
                         });
                         // Refresh product navigator to show new files
+                        const productNavigator = stateManager.getProductNavigator();
                         if (productNavigator) {
                             productNavigator.refresh();
                         }
@@ -456,6 +419,7 @@ export async function generateProductDocs() {
                             message: `Step 3/3: Generating product documentation (iteration ${iteration}/${maxIterations})`
                         });
                         // Refresh product navigator to show new files
+                        const productNavigator = stateManager.getProductNavigator();
                         if (productNavigator) {
                             productNavigator.refresh();
                         }
@@ -463,21 +427,19 @@ export async function generateProductDocs() {
                 }
             );
             
+            // Update state and UI
+            stateManager.setEnhancedProductDocs(productDocs);
+            
             // Update UI to show complete status
             if (treeProvider) {
                 treeProvider.setProductDocsStatus('complete');
             }
             SWLogger.log('Status: complete');
-
-            // Update product navigator
-            if (productNavigator) {
-                productNavigator.setProductDocs(lastEnhancedProductDocs);
-            }
             
             progress.report({ message: 'Step 2/3: Saving documentation...' });
             
             // Save enhanced docs to .shadow folder
-            await saveEnhancedProductDocsToFile(lastEnhancedProductDocs, workspaceRoot);
+            await saveEnhancedProductDocsToFile(productDocs, workspaceRoot);
             SWLogger.log('Saved docs to .shadow/docs');
             
             progress.report({ message: 'Step 3/3: Complete' });
@@ -496,6 +458,9 @@ export async function generateProductDocs() {
 }
 
 export async function generateLLMInsights() {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
     // Prevent duplicate calls
     if (treeProvider && treeProvider.getInsightsStatus() === 'generating') {
         vscode.window.showWarningMessage('Architecture insights generation is already in progress. Please wait...');
@@ -520,9 +485,11 @@ export async function generateLLMInsights() {
     }
 
     // Check if analysis is available (try loading if not already loaded)
+    let lastAnalysisContext = stateManager.getAnalysisContext();
     if (!lastAnalysisContext) {
         // Try to load saved analysis one more time
         await loadSavedCodeAnalysis();
+        lastAnalysisContext = stateManager.getAnalysisContext();
         if (!lastAnalysisContext) {
             vscode.window.showErrorMessage('Please run "Analyze Workspace" first');
             return;
@@ -530,9 +497,11 @@ export async function generateLLMInsights() {
     }
 
     // Check if product docs are available (recommended but not required)
+    let lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
     if (!lastEnhancedProductDocs) {
         // Try to load saved docs one more time
         await loadSavedProductDocs();
+        lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
         const result = await vscode.window.showWarningMessage(
             'Product documentation not generated yet. Architecture insights will be more accurate with product docs. Generate them now?',
             'Generate Product Docs First',
@@ -542,6 +511,7 @@ export async function generateLLMInsights() {
         if (result === 'Generate Product Docs First') {
             await generateProductDocs();
             // If generation was successful, continue with insights
+            lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
             if (!lastEnhancedProductDocs) {
                 return;
             }
@@ -566,6 +536,8 @@ export async function generateLLMInsights() {
             }
 
             const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
+            const lastCodeAnalysis = stateManager.getCodeAnalysis();
+            const outputChannel = stateManager.getOutputChannel();
             
             progress.report({ message: 'Step 1/2: Analyzing product purpose and architecture rationale...' });
             console.log('Starting architecture insights generation...');
@@ -577,20 +549,18 @@ export async function generateLLMInsights() {
             });
             
             // Log to output channel
-            if (outputChannel) {
-                outputChannel.clear();
-                outputChannel.appendLine('═══════════════════════════════════════════════════════════');
-                outputChannel.appendLine('🧠 GENERATING ARCHITECTURE INSIGHTS (Multi-Step Process)');
-                outputChannel.appendLine('═══════════════════════════════════════════════════════════');
-                const currentProvider = llmService.getProvider();
-                const providerName = currentProvider === 'claude' ? 'Claude' : 'OpenAI';
-                outputChannel.appendLine(`🤖 LLM Provider: ${providerName} (${currentProvider})`);
-                outputChannel.appendLine(`📊 Analysis Context: ${lastAnalysisContext.totalFiles} files, ${lastAnalysisContext.totalLines} lines`);
-                if (lastEnhancedProductDocs) {
-                    outputChannel.appendLine('📚 Product documentation available - will analyze product purpose first');
-                }
-                outputChannel.show(true);
+            outputChannel.clear();
+            outputChannel.appendLine('═══════════════════════════════════════════════════════════');
+            outputChannel.appendLine('🧠 GENERATING ARCHITECTURE INSIGHTS (Multi-Step Process)');
+            outputChannel.appendLine('═══════════════════════════════════════════════════════════');
+            const currentProvider = llmService.getProvider();
+            const providerName = currentProvider === 'claude' ? 'Claude' : 'OpenAI';
+            outputChannel.appendLine(`🤖 LLM Provider: ${providerName} (${currentProvider})`);
+            outputChannel.appendLine(`📊 Analysis Context: ${lastAnalysisContext.totalFiles} files, ${lastAnalysisContext.totalLines} lines`);
+            if (lastEnhancedProductDocs) {
+                outputChannel.appendLine('📚 Product documentation available - will analyze product purpose first');
             }
+            outputChannel.show(true);
             
             // Reset run context for new generation
             currentArchitectureInsightsRun = null;
@@ -598,7 +568,7 @@ export async function generateLLMInsights() {
             // Generate insights using both analysis and product docs
             // This now does: Step 1) Analyze product purpose, Step 2) Generate contextual recommendations
             progress.report({ message: 'Step 2/2: Generating contextual architecture recommendations...' });
-            lastLLMInsights = await llmService.generateArchitectureInsights(
+            const insights = await llmService.generateArchitectureInsights(
                 lastAnalysisContext,
                 lastCodeAnalysis || undefined,
                 lastEnhancedProductDocs || undefined,
@@ -614,6 +584,7 @@ export async function generateLLMInsights() {
                         progress.report({ message: 'Step 1/2: Received product purpose analysis from LLM' });
                         SWLogger.log('Received product purpose analysis from LLM');
                         // Refresh insights viewer to show incremental data
+                        const insightsViewer = stateManager.getInsightsViewer();
                         if (insightsViewer) {
                             insightsViewer.refresh();
                         }
@@ -642,6 +613,7 @@ export async function generateLLMInsights() {
                         SWLogger.log(`Received architecture insights iteration ${iteration}/${maxIterations} from LLM`);
                         
                         // Refresh insights viewer to show incremental data
+                        const insightsViewer = stateManager.getInsightsViewer();
                         console.log('[llmIntegration] Setting insights on viewer, insightsViewer exists:', !!insightsViewer);
                         if (insightsViewer) {
                             console.log('[llmIntegration] Calling insightsViewer.setInsights() with:', {
@@ -658,30 +630,32 @@ export async function generateLLMInsights() {
             );
             SWLogger.log('Insights generated');
             
+            // Update state
+            stateManager.setLLMInsights(insights);
+            
             // Debug: Log insights to console and output channel
             console.log('Generated LLM Insights object:', {
-                hasRawContent: !!lastLLMInsights.rawContent,
-                rawContentLength: lastLLMInsights.rawContent?.length || 0,
-                hasOverall: !!lastLLMInsights.overallAssessment,
-                strengthsCount: lastLLMInsights.strengths?.length || 0,
-                issuesCount: lastLLMInsights.issues?.length || 0
+                hasRawContent: !!insights.rawContent,
+                rawContentLength: insights.rawContent?.length || 0,
+                hasOverall: !!insights.overallAssessment,
+                strengthsCount: insights.strengths?.length || 0,
+                issuesCount: insights.issues?.length || 0
             });
-            console.log('Full LLM Insights JSON:', JSON.stringify(lastLLMInsights, null, 2));
+            console.log('Full LLM Insights JSON:', JSON.stringify(insights, null, 2));
             
             // Log to output channel
-            if (outputChannel) {
-                outputChannel.appendLine(`✅ API Response received`);
-                outputChannel.appendLine(`📏 Raw content length: ${lastLLMInsights.rawContent?.length || 0} characters`);
-                if (lastLLMInsights.rawContent && lastLLMInsights.rawContent.length > 0) {
-                    outputChannel.appendLine('📄 Raw response (first 500 chars):');
-                    outputChannel.appendLine(lastLLMInsights.rawContent.substring(0, 500));
-                    outputChannel.appendLine('');
-                    outputChannel.appendLine('📊 Parsing results:');
-                    outputChannel.appendLine(`  - Overall Assessment: ${lastLLMInsights.overallAssessment ? '✅ Found' : '❌ Missing'}`);
-                    outputChannel.appendLine(`  - Strengths: ${lastLLMInsights.strengths?.length || 0} items`);
-                    outputChannel.appendLine(`  - Issues: ${lastLLMInsights.issues?.length || 0} items`);
-                    outputChannel.appendLine(`  - Organization: ${lastLLMInsights.organization ? '✅ Found' : '❌ Missing'}`);
-                    outputChannel.appendLine(`  - Recommendations: ${lastLLMInsights.recommendations?.length || 0} items`);
+            outputChannel.appendLine(`✅ API Response received`);
+            outputChannel.appendLine(`📏 Raw content length: ${insights.rawContent?.length || 0} characters`);
+            if (insights.rawContent && insights.rawContent.length > 0) {
+                outputChannel.appendLine('📄 Raw response (first 500 chars):');
+                outputChannel.appendLine(insights.rawContent.substring(0, 500));
+                outputChannel.appendLine('');
+                outputChannel.appendLine('📊 Parsing results:');
+                outputChannel.appendLine(`  - Overall Assessment: ${insights.overallAssessment ? '✅ Found' : '❌ Missing'}`);
+                outputChannel.appendLine(`  - Strengths: ${insights.strengths?.length || 0} items`);
+                outputChannel.appendLine(`  - Issues: ${insights.issues?.length || 0} items`);
+                outputChannel.appendLine(`  - Organization: ${insights.organization ? '✅ Found' : '❌ Missing'}`);
+                outputChannel.appendLine(`  - Recommendations: ${insights.recommendations?.length || 0} items`);
                 } else {
                     outputChannel.appendLine('❌ ERROR: Raw content is empty!');
                     outputChannel.appendLine('This suggests the API call returned no content.');
@@ -689,19 +663,19 @@ export async function generateLLMInsights() {
             }
             
             // Check if insights are empty
-            const hasInsights = lastLLMInsights.overallAssessment || 
-                               (lastLLMInsights.strengths && lastLLMInsights.strengths.length > 0) ||
-                               (lastLLMInsights.issues && lastLLMInsights.issues.length > 0) ||
-                               lastLLMInsights.organization ||
-                               lastLLMInsights.folderReorganization ||
-                               (lastLLMInsights.recommendations && lastLLMInsights.recommendations.length > 0) ||
-                               (lastLLMInsights.priorities && lastLLMInsights.priorities.length > 0);
+            const hasInsights = insights.overallAssessment || 
+                               (insights.strengths && insights.strengths.length > 0) ||
+                               (insights.issues && insights.issues.length > 0) ||
+                               insights.organization ||
+                               insights.folderReorganization ||
+                               (insights.recommendations && insights.recommendations.length > 0) ||
+                               (insights.priorities && insights.priorities.length > 0);
             
             if (!hasInsights) {
-                const hasRawContent = lastLLMInsights.rawContent && lastLLMInsights.rawContent.length > 0;
+                const hasRawContent = insights.rawContent && insights.rawContent.length > 0;
                 if (hasRawContent) {
                     vscode.window.showWarningMessage('⚠️ LLM insights parsing failed, but raw response is available. Check the output channel.');
-                    console.warn('Parsing failed but raw content exists:', lastLLMInsights.rawContent?.substring(0, 500) || '');
+                    console.warn('Parsing failed but raw content exists:', insights.rawContent?.substring(0, 500) || '');
                 } else {
                     vscode.window.showErrorMessage('❌ LLM returned empty response. Check console for API error details.');
                     console.error('Both parsed insights and raw content are empty!');
@@ -711,12 +685,12 @@ export async function generateLLMInsights() {
             progress.report({ message: 'Saving insights...' });
             
             // Save to .shadow folder in project
-            await saveArchitectureInsightsToFile(lastLLMInsights);
+            await saveArchitectureInsightsToFile(insights);
             SWLogger.log('Saved insights to .shadow/docs');
             
             // Update tree view with LLM insights
             if (treeProvider) {
-                treeProvider.setLLMInsights(lastLLMInsights);
+                treeProvider.setLLMInsights(insights);
                 treeProvider.setInsightsStatus('complete');
                 console.log('Set LLM insights on tree provider');
                 // Force refresh to ensure UI updates
@@ -740,7 +714,8 @@ export async function generateLLMInsights() {
             SWLogger.log(`ERROR generating insights: ${error?.message || error}`);
             
             // Log error to output channel with detailed error information
-            if (outputChannel) {
+            const outputChannel = stateManager.getOutputChannel();
+            {
                 outputChannel.appendLine('');
                 outputChannel.appendLine('❌ ERROR OCCURRED:');
                 outputChannel.appendLine(`Message: ${error.message}`);
