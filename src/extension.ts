@@ -14,6 +14,7 @@ import { InsightsViewerProvider, InsightItem } from './insightsViewer';
 import { StaticAnalysisViewerProvider, StaticAnalysisItem } from './staticAnalysisViewer';
 import { UnitTestsNavigatorProvider, UnitTestItem } from './unitTestsNavigator';
 import { getConfigurationManager } from './config/configurationManager';
+import { ErrorHandler } from './utils/errorHandler';
 
 let analyzer: CodeAnalyzer;
 let insightGenerator: InsightGenerator;
@@ -117,8 +118,18 @@ export function activate(context: vscode.ExtensionContext) {
         statusBarItem.command = 'shadowWatch.showInsights';
         statusBarItem.show();
     } catch (error) {
-        console.error('Error initializing Shadow Watch extension:', error);
-        vscode.window.showErrorMessage(`Shadow Watch initialization failed: ${error}`);
+        ErrorHandler.handleSync(
+            () => { throw error; },
+            {
+                component: 'Extension',
+                operation: 'activate',
+                severity: 'error',
+                showUserMessage: true,
+                userMessage: 'Shadow Watch initialization failed',
+                logToFile: true,
+                rethrow: true
+            }
+        );
         return;
     }
 

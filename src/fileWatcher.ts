@@ -5,6 +5,7 @@ import { InsightGenerator } from './insightGenerator';
 import { DiagnosticsProvider } from './diagnosticsProvider';
 import { InsightsTreeProvider } from './insightsTreeView';
 import { getConfigurationManager } from './config/configurationManager';
+import { ErrorHandler } from './utils/errorHandler';
 
 export class FileWatcher {
     private watcher: vscode.FileSystemWatcher | undefined;
@@ -95,20 +96,26 @@ export class FileWatcher {
         this.isAnalyzing = true;
         this.lastAnalysisTime = Date.now();
 
-        try {
-            // Analyze the specific file
-            const analysis = await this.analyzer.analyzeFile(filePath);
-            const insights = this.insightGenerator.generateInsightsForFile(analysis, filePath);
+        await ErrorHandler.handle(
+            async () => {
+                // Analyze the specific file
+                const analysis = await this.analyzer.analyzeFile(filePath);
+                const insights = this.insightGenerator.generateInsightsForFile(analysis, filePath);
 
-            // Update diagnostics for this file
-            const uri = vscode.Uri.file(filePath);
-            this.diagnosticsProvider.updateDiagnosticsForFile(uri, insights);
+                // Update diagnostics for this file
+                const uri = vscode.Uri.file(filePath);
+                this.diagnosticsProvider.updateDiagnosticsForFile(uri, insights);
+            },
+            {
+                component: 'FileWatcher',
+                operation: 'triggerAnalysis',
+                severity: 'warning',
+                showUserMessage: false, // File watcher errors should be silent
+                logToFile: true
+            }
+        );
 
-        } catch (error) {
-            console.error('Analysis failed:', error);
-        } finally {
-            this.isAnalyzing = false;
-        }
+        this.isAnalyzing = false;
     }
 
     private isCodeFile(filePath: string): boolean {
