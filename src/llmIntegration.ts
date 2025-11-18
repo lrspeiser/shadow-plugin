@@ -4,6 +4,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 import { LLMService, AnalysisContext, LLMInsights } from './llmService';
 import { InsightsTreeProvider } from './insightsTreeView';
 import { EnhancedProductDocumentation } from './fileDocumentation';
@@ -1822,5 +1826,288 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
             SWLogger.log('Analysis workflow complete');
         }
     });
+}
+
+/**
+ * Run unit tests and generate a report using LLM
+ */
+export async function runUnitTests(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const unitTestPlanPath = path.join(workspaceRoot, '.shadow', 'UnitTests', 'unit_test_plan.json');
+    
+    if (!fs.existsSync(unitTestPlanPath)) {
+        vscode.window.showErrorMessage('Unit test plan not found. Please generate unit tests first.');
+        return;
+    }
+
+    // Load unit test plan
+    let unitTestPlan: any;
+    try {
+        const planContent = fs.readFileSync(unitTestPlanPath, 'utf-8');
+        unitTestPlan = JSON.parse(planContent);
+    } catch (error: any) {
+        vscode.window.showErrorMessage(`Failed to load unit test plan: ${error.message}`);
+        return;
+    }
+
+    const testingFramework = unitTestPlan.aggregated_plan?.unit_test_plan?.testing_framework || 'jest';
+    const testSuites = unitTestPlan.aggregated_plan?.test_suites || [];
+
+    if (testSuites.length === 0) {
+        vscode.window.showErrorMessage('No test suites found in unit test plan');
+        return;
+    }
+
+    SWLogger.section('Run Unit Tests');
+    SWLogger.log('Starting test execution...');
+
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgress('Running Unit Tests...', async (reporter) => {
+        try {
+            const testResults: any[] = [];
+            
+            // Run each test suite
+            for (let i = 0; i < testSuites.length; i++) {
+                const suite = testSuites[i];
+                reporter.report(`Running test suite ${i + 1}/${testSuites.length}: ${suite.name || suite.id}`);
+                
+                // Get test file path
+                const testFilePath = suite.test_file_path;
+                if (!testFilePath) {
+                    SWLogger.log(`Skipping suite ${suite.id}: no test_file_path`);
+                    continue;
+                }
+                
+                // Resolve test file path
+                let fullTestPath: string;
+                if (path.isAbsolute(testFilePath)) {
+                    fullTestPath = testFilePath;
+                } else if (testFilePath.startsWith('.shadow/UnitTests/')) {
+                    fullTestPath = path.join(workspaceRoot, testFilePath);
+                } else {
+                    fullTestPath = path.join(workspaceRoot, '.shadow', 'UnitTests', path.basename(testFilePath));
+                }
+                
+                if (!fs.existsSync(fullTestPath)) {
+                    SWLogger.log(`Test file not found: ${fullTestPath}`);
+                    testResults.push({
+                        suite: suite.name || suite.id,
+                        status: 'skipped',
+                        reason: `Test file not found: ${fullTestPath}`
+                    });
+                    continue;
+                }
+                
+                // Determine test command based on framework
+                let testCommand: string;
+                if (testingFramework === 'jest') {
+                    testCommand = `npx jest "${fullTestPath}" --json --no-coverage`;
+                } else if (testingFramework === 'pytest') {
+                    testCommand = `pytest "${fullTestPath}" --json-report --json-report-file=-`;
+                } else if (testingFramework === 'mocha') {
+                    testCommand = `npx mocha "${fullTestPath}" --reporter json`;
+                } else if (testingFramework === 'vitest') {
+                    testCommand = `npx vitest run "${fullTestPath}" --reporter=json`;
+                } else {
+                    // Try to use run_suite_instructions from the plan
+                    testCommand = suite.run_suite_instructions || `npm test -- "${fullTestPath}"`;
+                }
+                
+                try {
+                    SWLogger.log(`Executing: ${testCommand}`);
+                    const { stdout, stderr } = await execAsync(testCommand, {
+                        cwd: workspaceRoot,
+                        timeout: 300000 // 5 minutes timeout
+                    });
+                    
+                    // Parse test results
+                    let parsedResults: any;
+                    try {
+                        parsedResults = JSON.parse(stdout);
+                    } catch {
+                        // If JSON parsing fails, use raw output
+                        parsedResults = {
+                            rawOutput: stdout,
+                            stderr: stderr
+                        };
+                    }
+                    
+                    testResults.push({
+                        suite: suite.name || suite.id,
+                        status: parsedResults.success !== false ? 'passed' : 'failed',
+                        results: parsedResults,
+                        stdout: stdout,
+                        stderr: stderr
+                    });
+                    
+                } catch (error: any) {
+                    SWLogger.log(`Test execution failed for ${suite.name}: ${error.message}`);
+                    testResults.push({
+                        suite: suite.name || suite.id,
+                        status: 'error',
+                        error: error.message,
+                        stdout: error.stdout || '',
+                        stderr: error.stderr || ''
+                    });
+                }
+                
+                // Check for cancellation
+                if (reporter.cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+            }
+            
+            // Generate test report using LLM
+            reporter.report('Generating test report with AI...');
+            const testReport = await generateTestReport(testResults, unitTestPlan, workspaceRoot, reporter.cancellationToken);
+            
+            // Save report
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const reportPath = path.join(docsDir, `unit-test-report-${timestamp}.md`);
+            fs.writeFileSync(reportPath, testReport, 'utf-8');
+            
+            SWLogger.log(`Test report saved to: ${reportPath}`);
+            vscode.window.showInformationMessage(
+                `✅ Unit tests completed! Report saved to ${path.relative(workspaceRoot, reportPath)}`
+            );
+            
+            // Open the report
+            const doc = await vscode.workspace.openTextDocument(reportPath);
+            await vscode.window.showTextDocument(doc);
+            
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Test execution cancelled');
+                return;
+            }
+            const errorMessage = error.message || String(error);
+            SWLogger.log(`ERROR: Failed to run unit tests: ${errorMessage}`);
+            vscode.window.showErrorMessage(`Failed to run unit tests: ${errorMessage}`);
+        }
+    });
+}
+
+/**
+ * Generate test report from test results using LLM
+ */
+async function generateTestReport(
+    testResults: any[],
+    unitTestPlan: any,
+    workspaceRoot: string,
+    cancellationToken?: vscode.CancellationToken
+): Promise<string> {
+    const llmService = stateManager.getLLMService();
+    
+    // Build prompt for test report generation
+    const prompt = `You are a test analysis expert. Analyze the following unit test results and generate a comprehensive test report.
+
+## Test Plan Summary
+- Testing Framework: ${unitTestPlan.aggregated_plan?.unit_test_plan?.testing_framework || 'unknown'}
+- Total Test Suites: ${unitTestPlan.aggregated_plan?.test_suites?.length || 0}
+- Test Strategy: ${unitTestPlan.aggregated_plan?.unit_test_plan?.strategy || 'N/A'}
+
+## Test Results
+${JSON.stringify(testResults, null, 2)}
+
+## Your Task
+Generate a comprehensive test report in markdown format that includes:
+
+1. **Executive Summary**: Overall test status, pass/fail counts, success rate
+2. **Test Suite Results**: For each suite, document:
+   - Status (passed/failed/error/skipped)
+   - Number of tests run
+   - Number of tests passed/failed
+   - Key failures or errors
+   - Any warnings or issues
+3. **Analysis**: 
+   - What worked well
+   - What failed and why
+   - Patterns in failures (e.g., all tests in a suite failed, specific function failures)
+   - Missing tests or coverage gaps
+4. **Recommendations**:
+   - How to fix failing tests
+   - Tests that should be added
+   - Improvements to test quality
+   - Areas needing more coverage
+
+Format the report as markdown with clear sections and subsections. Be specific and actionable.`;
+
+    try {
+        const provider = llmService.getProvider();
+        const isClaude = provider === 'claude';
+        
+        const response = await llmService['retryHandler'].executeWithRetry(
+            async () => {
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+                
+                if (isClaude) {
+                    const providerInstance = llmService['providerFactory'].getCurrentProvider();
+                    const llmResponse = await providerInstance.sendRequest({
+                        model: 'claude-sonnet-4-5',
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                        maxTokens: 8000,
+                        systemPrompt: 'You are an expert test analyst who generates comprehensive, actionable test reports.'
+                    });
+                    return llmResponse.content;
+                } else {
+                    const openaiProvider = llmService['providerFactory'].getProvider('openai');
+                    const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
+                        {
+                            model: 'gpt-5.1',
+                            systemPrompt: 'You are an expert test analyst who generates comprehensive, actionable test reports.',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8000
+                        },
+                        ['gpt-5.1', 'gpt-5', 'gpt-4o']
+                    );
+                    return llmResponse.content;
+                }
+            }
+        );
+        
+        return response;
+    } catch (error: any) {
+        // Fallback to a simple report if LLM fails
+        return `# Unit Test Report
+
+Generated: ${new Date().toISOString()}
+
+## Summary
+${testResults.filter(r => r.status === 'passed').length} passed, ${testResults.filter(r => r.status === 'failed').length} failed, ${testResults.filter(r => r.status === 'error').length} errors
+
+## Results
+${testResults.map(r => `### ${r.suite}
+- Status: ${r.status}
+${r.error ? `- Error: ${r.error}` : ''}
+${r.reason ? `- Reason: ${r.reason}` : ''}
+`).join('\n')}
+
+## Note
+LLM report generation failed: ${error.message}
+`;
+    }
 }
 

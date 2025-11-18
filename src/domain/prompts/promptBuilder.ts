@@ -281,6 +281,42 @@ Examples:
 
 [Continue with more contextual recommendations]
 
+## Success/Errors
+For EACH major code path, function, or component, document:
+1. **What should succeed**: Expected successful behaviors, valid inputs, happy paths
+2. **What should fail**: Expected error conditions, invalid inputs, edge cases that should throw errors
+3. **Silent failures to watch for**: Cases where code might fail silently (e.g., fallbacks, default values, try-catch that swallows errors)
+4. **Fallback behaviors**: Any fallback mechanisms and when they activate
+
+This section helps identify:
+- Missing error handling
+- Silent failures that need logging
+- Fallback logic that might mask problems
+- Code paths that should fail but don't
+- Error conditions that aren't properly handled
+
+Format for each entry:
+- **Component/Function**: [Name]
+  - **Success Cases**: [List what should work]
+  - **Expected Failures**: [List what should fail and how]
+  - **Silent Failures Risk**: [Any cases that might fail silently]
+  - **Fallbacks**: [Any fallback mechanisms]
+
+Examples:
+- **Component**: User authentication
+  - **Success Cases**: Valid credentials return user object, session created
+  - **Expected Failures**: Invalid credentials throw AuthenticationError, expired tokens throw TokenExpiredError
+  - **Silent Failures Risk**: Network timeout might return null instead of throwing, missing user defaults to guest access
+  - **Fallbacks**: On API failure, falls back to cached credentials (risky - should log)
+
+- **Function**: parseConfigFile(path)
+  - **Success Cases**: Valid JSON/YAML file returns config object
+  - **Expected Failures**: Invalid file format throws ParseError, missing file throws FileNotFoundError
+  - **Silent Failures Risk**: Malformed file might return empty object {} instead of error
+  - **Fallbacks**: None
+
+[Continue documenting all major code paths, functions, and components]
+
 ## Refactoring Priorities
 For EACH priority, provide:
 1. **Title**: Human-readable title (e.g., "Organize Documentation Files" not "Move .md files")

@@ -489,6 +489,19 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         }
         items.push(genUnitTestsBtn);
 
+        // Run Unit Tests button (only show if tests have been generated)
+        if (this.unitTestStatus === 'complete') {
+            const runUnitTestsBtn = new TreeItem('▶️ Run Unit Tests', vscode.TreeItemCollapsibleState.None);
+            runUnitTestsBtn.type = 'action';
+            runUnitTestsBtn.iconPath = new vscode.ThemeIcon('play');
+            runUnitTestsBtn.description = 'Run tests and generate report';
+            runUnitTestsBtn.command = {
+                command: 'shadowWatch.runUnitTests',
+                title: 'Run Unit Tests'
+            };
+            items.push(runUnitTestsBtn);
+        }
+
         // Open Documentation button (opens .shadow/docs folder)
         const openDocsBtn = new TreeItem('📁 Open Documentation', vscode.TreeItemCollapsibleState.None);
         openDocsBtn.type = 'action';

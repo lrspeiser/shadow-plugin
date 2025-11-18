@@ -197,6 +197,10 @@ export const llmInsightsSchema = {
             items: priorityItemSchema,
             description: "Top 3-5 refactoring priorities. Each priority must have a human-readable title, detailed description with rationale, and relevant files/functions."
         },
+        successErrors: {
+            type: "string",
+            description: "Success/Errors analysis documenting for each major code path: what should succeed, what should fail, silent failures to watch for, and fallback behaviors. This helps identify missing error handling, silent failures, and fallback logic that might mask problems."
+        },
         cursorPrompt: {
             type: "string",
             description: "LLM refactoring prompt (optional)"
@@ -210,7 +214,7 @@ export const llmInsightsSchema = {
             description: "Optional: Request specific files or grep searches to get more information. Use this if you need to examine specific code to provide better analysis. Maximum 5 requests per iteration."
         }
     },
-    required: ["overallAssessment", "strengths", "issues", "organization", "entryPointsAnalysis", "orphanedFilesAnalysis", "folderReorganization", "recommendations", "priorities"],
+    required: ["overallAssessment", "strengths", "issues", "organization", "entryPointsAnalysis", "orphanedFilesAnalysis", "folderReorganization", "recommendations", "priorities", "successErrors"],
     additionalProperties: false
 };
 

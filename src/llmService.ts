@@ -1710,6 +1710,16 @@ ${architectureInsights.issues?.slice(0, 10).map(i => {
     return `- ${i.title}: ${i.description}${files}${funcs}`;
 }).join('\n') || 'N/A'}
 
+### Success/Errors Analysis (CRITICAL FOR TEST GENERATION)
+${(architectureInsights as any).successErrors || 'N/A'}
+
+**IMPORTANT**: Use the Success/Errors section above to generate comprehensive tests:
+- Test all success cases documented
+- Test all expected failures and verify proper error handling
+- Add tests for silent failure scenarios (these are critical to catch)
+- Test fallback behaviors and verify they log appropriately
+- Add logging assertions where silent failures or fallbacks are detected
+
 ### Recommendations (Test These Areas)
 ${architectureInsights.recommendations?.slice(0, 10).map(r => {
     if (typeof r === 'string') return `- ${r}`;
@@ -1846,7 +1856,7 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
    - VSCode API (if applicable)
    - Third-party libraries
 
-10. **Test Storage Location**: The unit test plan will be saved to the \`UnitTests/\` folder in the project root. Users can reference this location when asking LLMs to help run or modify the tests.
+10. **Test Storage Location**: The unit test plan will be saved to the \`.shadow/UnitTests/\` folder. Users can reference this location when asking LLMs to help run or modify the tests.
 
 11. **Test Quality**: Each test should:
     - Have a clear, descriptive name

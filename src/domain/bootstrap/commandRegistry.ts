@@ -131,6 +131,9 @@ export class CommandRegistry {
             vscode.commands.registerCommand('shadowWatch.generateUnitTests', async () => {
                 await llmIntegration.generateUnitTests();
             }),
+            vscode.commands.registerCommand('shadowWatch.runUnitTests', async () => {
+                await llmIntegration.runUnitTests();
+            }),
             vscode.commands.registerCommand('shadowWatch.showProductDocs', async () => {
                 await llmIntegration.showProductDocs();
             })
