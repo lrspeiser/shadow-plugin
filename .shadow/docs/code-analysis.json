@@ -222,7 +222,7 @@
     },
     {
       "path": "shadow-watch-1.0.0.vsix",
-      "lines": 1873,
+      "lines": 1851,
       "functions": 0,
       "language": "vsix"
     },
@@ -6145,7 +6145,7 @@
     }
   ],
   "_metadata": {
-    "generatedAt": "2025-11-18T00:28:41.118Z",
-    "generatedAtLocal": "11/17/2025, 4:28:41 PM"
+    "generatedAt": "2025-11-18T03:44:27.217Z",
+    "generatedAtLocal": "11/17/2025, 7:44:27 PM"
   }
 }
