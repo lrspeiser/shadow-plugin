@@ -1131,6 +1131,37 @@ CRITICAL: For EACH issue, provide a structured response with:
 Format for description:
 [Problem description]. **Proposed Fix**: [Specific, actionable solution with steps or approach. Be detailed and concrete.]
 
+**CRITICAL ANALYSIS REQUIREMENTS - Check for these specific anti-patterns:**
+
+1. **Layer Violations**: Look for UI code in integration/service layers, business logic in UI layers, etc. Check if files contain code that belongs in a different architectural layer.
+   - Example: HTML generation functions in integration/service files
+   - Example: UI rendering logic mixed with business logic
+   - Example: Direct DOM manipulation in service classes
+
+2. **Duplicate Functionality**: Identify multiple implementations of the same feature or multiple ways to accomplish the same task.
+   - Example: Multiple HTML generation functions when a template engine exists
+   - Example: Multiple ways to display the same data (webview + tree view for same content)
+   - Example: Duplicate command handlers for the same action
+   - Check if newer implementations (like template engines, providers) make older implementations redundant
+
+3. **Legacy/Redundant Code**: Find code that duplicates newer, better implementations or is no longer needed.
+   - Example: Legacy HTML generation functions when WebviewTemplateEngine exists
+   - Example: Old command handlers that duplicate newer provider functionality
+   - Example: Functions that create webviews when tree view providers already exist
+   - Check command registrations - are there commands that open webviews when tree views already provide the same functionality?
+
+4. **Architectural Inconsistencies**: Look for patterns that violate established architecture.
+   - Example: Direct file I/O in UI components
+   - Example: Service classes creating UI elements
+   - Example: Integration layer containing presentation logic
+
+**How to detect these issues:**
+- Search for HTML generation functions (get*Html, generate*Html, create*Html) and check if they're in the right layer
+- Check if template engines or providers exist that should replace manual HTML generation
+- Look for commands that create webviews when tree view providers already exist
+- Identify functions in integration/service files that create UI elements (webviews, panels, etc.)
+- Check for duplicate ways to display the same data (multiple viewers for same content type)
+
 Examples:
 - Title: "Root Directory Clutter"
   Description: "165 files in root directory (including ~124 .md files and multiple .sh scripts) make navigation difficult. **Proposed Fix**: Create organized folder structure: move documentation to docs/, config files to config/, utilities to utils/. Create a migration script that: (1) moves files, (2) updates imports, (3) verifies entry points work."
@@ -1142,7 +1173,17 @@ Examples:
   Relevant Files: ["src/services/UserService.ts", "src/services/OrderService.ts"]
   Relevant Functions: ["UserService.getUser", "OrderService.createOrder"]
 
-IMPORTANT: Every issue MUST have a clear, human-readable title and a detailed description with proposed fix. Include relevant files and functions when applicable.
+- Title: "UI Code in Integration Layer"
+  Description: "HTML generation functions (getEnhancedProductDocsHtml, getLLMInsightsHtml) are in llmIntegration.ts, which is an integration layer file. UI code should be in UI modules. Additionally, these functions duplicate WebviewTemplateEngine functionality. **Proposed Fix**: Remove HTML generation functions from llmIntegration.ts. If webviews are still needed, use WebviewTemplateEngine from src/ui/webview/webviewTemplateEngine.ts. If tree views already provide this functionality (via ProductNavigatorProvider, InsightsViewerProvider), remove the redundant webview functions entirely."
+  Relevant Files: ["src/llmIntegration.ts"]
+  Relevant Functions: ["getEnhancedProductDocsHtml", "getLLMInsightsHtml", "showProductDocs", "showLLMInsights"]
+
+- Title: "Redundant Commands and Functions"
+  Description: "showProductDocs() and showLLMInsights() commands create webviews, but ProductNavigatorProvider and InsightsViewerProvider already provide tree views for the same data. This creates duplicate ways to access the same functionality. **Proposed Fix**: Remove showProductDocs() and showLLMInsights() functions and their command registrations. Users should use the dedicated tree view providers instead. If webview display is specifically needed, refactor to use WebviewTemplateEngine and move to a UI module."
+  Relevant Files: ["src/llmIntegration.ts", "src/extension.ts"]
+  Relevant Functions: ["showProductDocs", "showLLMInsights"]
+
+IMPORTANT: Every issue MUST have a clear, human-readable title and a detailed description with proposed fix. Include relevant files and functions when applicable. Pay special attention to layer violations, duplicate functionality, and legacy/redundant code patterns.
 
 [Continue with more issues, each with title, description, relevantFiles, and relevantFunctions]
 
@@ -1154,6 +1195,13 @@ CRITICALLY analyze file structure. Pay special attention to:
 - Documentation files that should be in a docs/ folder
 - Configuration files that should be organized
 - Any file organization anti-patterns
+
+**CRITICAL: Also analyze architectural layer organization:**
+- Check if UI code (HTML generation, webview creation, UI rendering) is in the correct layer (should be in `ui/` or `view/` directories, not in `integration/` or `service/` directories)
+- Verify that integration/service layer files don't contain presentation logic
+- Identify files that mix concerns (e.g., service files with UI code, UI files with business logic)
+- Look for duplicate functionality across different layers (e.g., HTML generation in both integration layer and UI layer)
+- Check if newer architectural patterns (template engines, providers) make older implementations in wrong layers redundant
 
 [Write your analysis here - at least 2-3 paragraphs]
 
