@@ -13,14 +13,15 @@ import { AnalysisViewerProvider } from './analysisViewer';
 import { InsightsViewerProvider } from './insightsViewer';
 import { UnitTestsNavigatorProvider } from './unitTestsNavigator';
 import { SWLogger } from './logger';
-import { createTimestampedStorage } from './storage/incrementalStorage';
 import { getStateManager } from './state/llmStateManager';
 import { convertCodeAnalysisToContext, saveCodeAnalysis, loadSavedCodeAnalysis as loadSavedCodeAnalysisFromFile } from './context/analysisContextBuilder';
 import { DocumentationFormatter } from './domain/formatters/documentationFormatter';
+import { AnalysisResultRepository } from './infrastructure/persistence/analysisResultRepository';
 
 // Use state manager for all state
 const stateManager = getStateManager();
 const documentationFormatter = new DocumentationFormatter();
+const analysisResultRepository = new AnalysisResultRepository();
 
 export function initializeLLMService() {
     const llmService = new LLMService();
@@ -294,7 +295,7 @@ export async function generateProductDocs() {
     }, async (progress) => {
         try {
             // Reset run context for new generation
-            currentProductDocsRun = null;
+            analysisResultRepository.resetProductDocsRun();
             
             progress.report({ message: 'Step 1/3: Analyzing files individually...' });
             SWLogger.log('Step 1/3: analyzing files...');
@@ -312,7 +313,7 @@ export async function generateProductDocs() {
                         SWLogger.log(`Submitting file ${index}/${total} to LLM: ${filePath}`);
                     },
                     onFileSummary: (summary, index, total) => {
-                        saveIncrementalFileSummary(summary, workspaceRoot, index, total);
+                        analysisResultRepository.saveIncrementalFileSummary(summary, workspaceRoot, index, total);
                         // Update progress notification to show which file was received from LLM
                         progress.report({ 
                             message: `Step 1/3: Received file ${index}/${total} from LLM: ${path.basename(summary.file)}`
@@ -325,7 +326,7 @@ export async function generateProductDocs() {
                         }
                     },
                     onModuleSummary: (summary, index, total) => {
-                        saveIncrementalModuleSummary(summary, workspaceRoot, index, total);
+                        analysisResultRepository.saveIncrementalModuleSummary(summary, workspaceRoot, index, total);
                         // Update progress notification to show incremental progress
                         progress.report({ 
                             message: `Step 2/3: Generating module summaries (${index}/${total}): ${path.basename(summary.module)}`
@@ -337,7 +338,7 @@ export async function generateProductDocs() {
                         }
                     },
                     onProductDocIteration: (doc, iteration, maxIterations) => {
-                        saveIncrementalProductDocIteration(doc, workspaceRoot, iteration, maxIterations);
+                        analysisResultRepository.saveIncrementalProductDocIteration(doc, workspaceRoot, iteration, maxIterations);
                         // Update progress notification to show incremental progress
                         progress.report({ 
                             message: `Step 3/3: Generating product documentation (iteration ${iteration}/${maxIterations})`
@@ -363,7 +364,7 @@ export async function generateProductDocs() {
             progress.report({ message: 'Step 2/3: Saving documentation...' });
             
             // Save enhanced docs to .shadow folder
-            await saveEnhancedProductDocsToFile(productDocs, workspaceRoot);
+            await analysisResultRepository.saveEnhancedProductDocs(productDocs, workspaceRoot);
             SWLogger.log('Saved docs to .shadow/docs');
             
             progress.report({ message: 'Step 3/3: Complete' });
@@ -487,7 +488,7 @@ export async function generateLLMInsights() {
             outputChannel.show(true);
             
             // Reset run context for new generation
-            currentArchitectureInsightsRun = null;
+            analysisResultRepository.resetArchitectureInsightsRun();
             
             // Generate insights using both analysis and product docs
             // This now does: Step 1) Analyze product purpose, Step 2) Generate contextual recommendations
@@ -503,7 +504,7 @@ export async function generateLLMInsights() {
                         SWLogger.log('Submitting product purpose analysis to LLM');
                     },
                     onProductPurposeAnalysis: (productPurpose) => {
-                        saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
+                        analysisResultRepository.saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
                         // Update progress notification to show product purpose analysis received
                         progress.report({ message: 'Step 1/2: Received product purpose analysis from LLM' });
                         SWLogger.log('Received product purpose analysis from LLM');
@@ -528,7 +529,7 @@ export async function generateLLMInsights() {
                             insightsKeys: insights ? Object.keys(insights) : []
                         });
                         
-                        saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, iteration, maxIterations);
+                        analysisResultRepository.saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, iteration, maxIterations);
                         
                         // Update progress notification to show iteration was received
                         progress.report({ 
@@ -608,7 +609,7 @@ export async function generateLLMInsights() {
             progress.report({ message: 'Saving insights...' });
             
             // Save to .shadow folder in project
-            await saveArchitectureInsightsToFile(insights);
+            await analysisResultRepository.saveArchitectureInsights(insights);
             SWLogger.log('Saved insights to .shadow/docs');
             
             // Update tree view with LLM insights
@@ -728,361 +729,7 @@ export async function showLLMInsights() {
 }
 
 // Legacy saveProductDocsToFile removed - using enhanced docs only
-
-// Incremental save helpers for product docs
-interface ProductDocsRunContext {
-    runId: string;
-    runDir: string;
-    startTime: Date;
-}
-
-let currentProductDocsRun: ProductDocsRunContext | null = null;
-
-function getProductDocsRunDir(workspaceRoot: string): string {
-    if (!currentProductDocsRun) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const runId = `product-docs-${timestamp}`;
-        const shadowDir = path.join(workspaceRoot, '.shadow');
-        const docsDir = path.join(shadowDir, 'docs');
-        const runDir = path.join(docsDir, runId);
-        
-        currentProductDocsRun = {
-            runId,
-            runDir,
-            startTime: new Date()
-        };
-        
-        // Create directory structure
-        if (!fs.existsSync(runDir)) {
-            fs.mkdirSync(runDir, { recursive: true });
-        }
-    }
-    return currentProductDocsRun.runDir;
-}
-
-function saveIncrementalFileSummary(fileSummary: any, workspaceRoot: string, index: number, total: number): void {
-    try {
-        const runDir = getProductDocsRunDir(workspaceRoot);
-        const filePath = path.join(runDir, `file-summaries`, `${String(index).padStart(4, '0')}-${path.basename(fileSummary.file).replace(/[^a-zA-Z0-9.-]/g, '_')}.json`);
-        
-        // Create subdirectory if needed
-        const fileSummariesDir = path.dirname(filePath);
-        if (!fs.existsSync(fileSummariesDir)) {
-            fs.mkdirSync(fileSummariesDir, { recursive: true });
-        }
-        
-        const summaryWithMetadata = {
-            ...fileSummary,
-            _metadata: {
-                index,
-                total,
-                savedAt: new Date().toISOString()
-            }
-        };
-        fs.writeFileSync(filePath, JSON.stringify(summaryWithMetadata, null, 2), 'utf-8');
-        
-        // Also update aggregate file
-        updateFileSummariesAggregate(runDir, fileSummary, index, total);
-    } catch (error) {
-        console.error('Failed to save incremental file summary:', error);
-    }
-}
-
-function updateFileSummariesAggregate(runDir: string, fileSummary: any, index: number, total: number): void {
-    try {
-        const aggregatePath = path.join(runDir, 'file-summaries.json');
-        let summaries: any[] = [];
-        
-        if (fs.existsSync(aggregatePath)) {
-            const content = fs.readFileSync(aggregatePath, 'utf-8');
-            summaries = JSON.parse(content);
-        }
-        
-        // Update or add this summary
-        const existingIndex = summaries.findIndex(s => s.file === fileSummary.file);
-        if (existingIndex >= 0) {
-            summaries[existingIndex] = fileSummary;
-        } else {
-            summaries.push(fileSummary);
-        }
-        
-        // Add metadata
-        const aggregate = {
-            summaries,
-            _metadata: {
-                totalFiles: total,
-                completedFiles: summaries.length,
-                lastUpdated: new Date().toISOString()
-            }
-        };
-        
-        fs.writeFileSync(aggregatePath, JSON.stringify(aggregate, null, 2), 'utf-8');
-    } catch (error) {
-        console.error('Failed to update file summaries aggregate:', error);
-    }
-}
-
-function saveIncrementalModuleSummary(moduleSummary: any, workspaceRoot: string, index: number, total: number): void {
-    try {
-        const runDir = getProductDocsRunDir(workspaceRoot);
-        const modulePath = path.join(runDir, `module-summaries`, `${String(index).padStart(4, '0')}-${path.basename(moduleSummary.module).replace(/[^a-zA-Z0-9.-]/g, '_')}.json`);
-        
-        // Create subdirectory if needed
-        const moduleSummariesDir = path.dirname(modulePath);
-        if (!fs.existsSync(moduleSummariesDir)) {
-            fs.mkdirSync(moduleSummariesDir, { recursive: true });
-        }
-        
-        const summaryWithMetadata = {
-            ...moduleSummary,
-            _metadata: {
-                index,
-                total,
-                savedAt: new Date().toISOString()
-            }
-        };
-        fs.writeFileSync(modulePath, JSON.stringify(summaryWithMetadata, null, 2), 'utf-8');
-        
-        // Also update aggregate file
-        updateModuleSummariesAggregate(runDir, moduleSummary, index, total);
-    } catch (error) {
-        console.error('Failed to save incremental module summary:', error);
-    }
-}
-
-function updateModuleSummariesAggregate(runDir: string, moduleSummary: any, index: number, total: number): void {
-    try {
-        const aggregatePath = path.join(runDir, 'module-summaries.json');
-        let summaries: any[] = [];
-        
-        if (fs.existsSync(aggregatePath)) {
-            const content = fs.readFileSync(aggregatePath, 'utf-8');
-            summaries = JSON.parse(content);
-        }
-        
-        // Update or add this summary
-        const existingIndex = summaries.findIndex(s => s.module === moduleSummary.module);
-        if (existingIndex >= 0) {
-            summaries[existingIndex] = moduleSummary;
-        } else {
-            summaries.push(moduleSummary);
-        }
-        
-        // Add metadata
-        const aggregate = {
-            summaries,
-            _metadata: {
-                totalModules: total,
-                completedModules: summaries.length,
-                lastUpdated: new Date().toISOString()
-            }
-        };
-        
-        fs.writeFileSync(aggregatePath, JSON.stringify(aggregate, null, 2), 'utf-8');
-    } catch (error) {
-        console.error('Failed to update module summaries aggregate:', error);
-    }
-}
-
-function saveIncrementalProductDocIteration(productDoc: any, workspaceRoot: string, iteration: number, maxIterations: number): void {
-    try {
-        const runDir = getProductDocsRunDir(workspaceRoot);
-        const iterationPath = path.join(runDir, `product-doc-iteration-${iteration}.json`);
-        
-        const docWithMetadata = {
-            ...productDoc,
-            _metadata: {
-                iteration,
-                maxIterations,
-                savedAt: new Date().toISOString()
-            }
-        };
-        fs.writeFileSync(iterationPath, JSON.stringify(docWithMetadata, null, 2), 'utf-8');
-        
-        // Also save as markdown
-        const markdownPath = path.join(runDir, `product-doc-iteration-${iteration}.md`);
-        const markdown = documentationFormatter.formatEnhancedDocsAsMarkdown(productDoc);
-        fs.writeFileSync(markdownPath, markdown, 'utf-8');
-    } catch (error) {
-        console.error('Failed to save incremental product doc iteration:', error);
-    }
-}
-
-async function saveEnhancedProductDocsToFile(
-    docs: EnhancedProductDocumentation,
-    workspaceRoot: string
-): Promise<void> {
-    const shadowDir = path.join(workspaceRoot, '.shadow');
-    const docsDir = path.join(shadowDir, 'docs');
-
-    try {
-        if (!fs.existsSync(shadowDir)) {
-            fs.mkdirSync(shadowDir, { recursive: true });
-        }
-        if (!fs.existsSync(docsDir)) {
-            fs.mkdirSync(docsDir, { recursive: true });
-        }
-
-        // Save final version in run directory
-        const runDir = currentProductDocsRun?.runDir;
-        if (!runDir) {
-            throw new Error('No run directory available for saving product docs');
-        }
-        
-        // Save as markdown
-        const markdownPath = path.join(runDir, 'enhanced-product-documentation.md');
-        const markdown = formatEnhancedDocsAsMarkdown(docs);
-        fs.writeFileSync(markdownPath, markdown, 'utf-8');
-
-        // Also save raw JSON with timestamp metadata
-        const jsonPath = path.join(runDir, 'enhanced-product-documentation.json');
-        const docsWithMetadata = {
-            ...docs,
-            _metadata: {
-                generatedAt: new Date().toISOString(),
-                generatedAtLocal: new Date().toLocaleString(),
-                runId: currentProductDocsRun?.runId
-            }
-        };
-        fs.writeFileSync(jsonPath, JSON.stringify(docsWithMetadata, null, 2), 'utf-8');
-        
-        // Reset run context
-        currentProductDocsRun = null;
-    } catch (error) {
-        console.error('Failed to save enhanced documentation:', error);
-        vscode.window.showWarningMessage(`Failed to save enhanced documentation: ${error}`);
-    }
-}
-
-
-// Incremental save helpers for architecture insights
-interface ArchitectureInsightsRunContext {
-    runId: string;
-    runDir: string;
-    startTime: Date;
-}
-
-let currentArchitectureInsightsRun: ArchitectureInsightsRunContext | null = null;
-
-function getArchitectureInsightsRunDir(workspaceRoot: string): string {
-    if (!currentArchitectureInsightsRun) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const runId = `architecture-insights-${timestamp}`;
-        const shadowDir = path.join(workspaceRoot, '.shadow');
-        const docsDir = path.join(shadowDir, 'docs');
-        const runDir = path.join(docsDir, runId);
-        
-        currentArchitectureInsightsRun = {
-            runId,
-            runDir,
-            startTime: new Date()
-        };
-        
-        // Create directory structure
-        if (!fs.existsSync(runDir)) {
-            fs.mkdirSync(runDir, { recursive: true });
-        }
-    }
-    return currentArchitectureInsightsRun.runDir;
-}
-
-function saveIncrementalProductPurposeAnalysis(productPurpose: any, workspaceRoot: string): void {
-    const runDir = getArchitectureInsightsRunDir(workspaceRoot);
-    const storage = createTimestampedStorage<any>(runDir, 'product-purpose-analysis');
-    storage.saveSync(productPurpose);
-}
-
-function saveIncrementalArchitectureInsightsIteration(insights: any, workspaceRoot: string, iteration: number, maxIterations: number): void {
-    try {
-        const runDir = getArchitectureInsightsRunDir(workspaceRoot);
-        const iterationPath = path.join(runDir, `architecture-insights-iteration-${iteration}.json`);
-        
-        console.log('[llmIntegration] Saving architecture insights iteration', iteration, 'to:', iterationPath);
-        console.log('[llmIntegration] Insights data being saved:', {
-            hasOverall: !!insights.overallAssessment,
-            strengthsCount: insights.strengths?.length || 0,
-            issuesCount: insights.issues?.length || 0,
-            recommendationsCount: insights.recommendations?.length || 0,
-            prioritiesCount: insights.priorities?.length || 0,
-            hasOrganization: !!insights.organization,
-            hasEntryPointsAnalysis: !!insights.entryPointsAnalysis,
-            hasOrphanedFilesAnalysis: !!insights.orphanedFilesAnalysis,
-            hasFolderReorganization: !!insights.folderReorganization,
-            hasCursorPrompt: !!insights.cursorPrompt,
-            hasProductPurposeAnalysis: !!insights.productPurposeAnalysis,
-            keys: Object.keys(insights)
-        });
-        
-        const insightsWithMetadata = {
-            ...insights,
-            _metadata: {
-                iteration,
-                maxIterations,
-                savedAt: new Date().toISOString()
-            }
-        };
-        fs.writeFileSync(iterationPath, JSON.stringify(insightsWithMetadata, null, 2), 'utf-8');
-        console.log('[llmIntegration] Successfully saved iteration file, size:', fs.statSync(iterationPath).size, 'bytes');
-        
-        // Also save as markdown
-        const markdownPath = path.join(runDir, `architecture-insights-iteration-${iteration}.md`);
-        const markdown = documentationFormatter.formatInsightsAsMarkdown(insights);
-        fs.writeFileSync(markdownPath, markdown, 'utf-8');
-        console.log('[llmIntegration] Successfully saved markdown file');
-    } catch (error) {
-        console.error('[llmIntegration] Failed to save incremental architecture insights iteration:', error);
-        console.error('[llmIntegration] Error details:', error instanceof Error ? error.stack : error);
-    }
-}
-
-async function saveArchitectureInsightsToFile(insights: LLMInsights): Promise<void> {
-    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        return;
-    }
-
-    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const shadowDir = path.join(workspaceRoot, '.shadow');
-    const docsDir = path.join(shadowDir, 'docs');
-
-    try {
-        // Create .shadow/docs directory if it doesn't exist
-        if (!fs.existsSync(shadowDir)) {
-            fs.mkdirSync(shadowDir, { recursive: true });
-        }
-        if (!fs.existsSync(docsDir)) {
-            fs.mkdirSync(docsDir, { recursive: true });
-        }
-
-        // Save final version in run directory
-        const runDir = currentArchitectureInsightsRun?.runDir;
-        if (!runDir) {
-            throw new Error('No run directory available for saving architecture insights');
-        }
-        
-        // Save as markdown
-        const markdownPath = path.join(runDir, 'architecture-insights.md');
-        const markdown = documentationFormatter.formatInsightsAsMarkdown(insights);
-        fs.writeFileSync(markdownPath, markdown, 'utf-8');
-
-        // Also save raw JSON for programmatic access with timestamp metadata
-        const jsonPath = path.join(runDir, 'architecture-insights.json');
-        const insightsWithMetadata = {
-            ...insights,
-            _metadata: {
-                generatedAt: new Date().toISOString(),
-                generatedAtLocal: new Date().toLocaleString(),
-                runId: currentArchitectureInsightsRun?.runId
-            }
-        };
-        fs.writeFileSync(jsonPath, JSON.stringify(insightsWithMetadata, null, 2), 'utf-8');
-        
-        // Reset run context
-        currentArchitectureInsightsRun = null;
-    } catch (error) {
-        console.error('Failed to save architecture insights:', error);
-        vscode.window.showWarningMessage(`Failed to save architecture insights: ${error}`);
-    }
-}
+// All persistence logic moved to AnalysisResultRepository
 
 // Legacy formatDocsAsMarkdown removed - using enhanced docs only
 
@@ -1906,7 +1553,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                 );
 
                 stateManager.setEnhancedProductDocs(productDocs);
-                await saveEnhancedProductDocsToFile(productDocs, workspaceRoot);
+                await analysisResultRepository.saveEnhancedProductDocs(productDocs, workspaceRoot);
                 
                 if (treeProvider) {
                     treeProvider.setProductDocsStatus('complete');
@@ -1949,7 +1596,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                             progress.report({ message: 'Step 3/4: Analyzing product purpose...', increment: 0 });
                         },
                         onProductPurposeAnalysis: (productPurpose) => {
-                            saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
+                            analysisResultRepository.saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
                         },
                         onInsightsIterationStart: (iteration, maxIterations) => {
                             if (cancellationToken.isCancellationRequested) {
@@ -1971,7 +1618,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                 );
 
                 stateManager.setLLMInsights(insights);
-                await saveArchitectureInsightsToFile(insights);
+                await analysisResultRepository.saveArchitectureInsights(insights);
                 
                 if (treeProvider) {
                     treeProvider.setLLMInsights(insights);
