@@ -656,10 +656,9 @@ export async function generateLLMInsights() {
                 outputChannel.appendLine(`  - Issues: ${insights.issues?.length || 0} items`);
                 outputChannel.appendLine(`  - Organization: ${insights.organization ? '✅ Found' : '❌ Missing'}`);
                 outputChannel.appendLine(`  - Recommendations: ${insights.recommendations?.length || 0} items`);
-                } else {
-                    outputChannel.appendLine('❌ ERROR: Raw content is empty!');
-                    outputChannel.appendLine('This suggests the API call returned no content.');
-                }
+            } else {
+                outputChannel.appendLine('❌ ERROR: Raw content is empty!');
+                outputChannel.appendLine('This suggests the API call returned no content.');
             }
             
             // Check if insights are empty
@@ -2033,6 +2032,7 @@ export async function generateUnitTests(): Promise<void> {
             SWLogger.log(`Unit test plan saved to: ${planFile}`);
             
             // Refresh the unit tests navigator to show the new plan
+            const unitTestsNavigator = stateManager.getUnitTestsNavigator();
             if (unitTestsNavigator) {
                 // Load the plan directly into the navigator
                 try {
@@ -2080,6 +2080,9 @@ function escapeHtml(text: string): string {
  * Sequential workflow: Analyze Workspace → Generate Product Docs → Generate Architecture Insights → Generate Report
  */
 export async function runComprehensiveAnalysis(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         vscode.window.showErrorMessage('No workspace folder open');
         return;
@@ -2173,14 +2176,17 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                     }
                 );
 
-                await saveEnhancedProductDocsToFile(lastEnhancedProductDocs, workspaceRoot);
+                stateManager.setEnhancedProductDocs(productDocs);
+                await saveEnhancedProductDocsToFile(productDocs, workspaceRoot);
                 
                 if (treeProvider) {
                     treeProvider.setProductDocsStatus('complete');
                 }
+                const productNavigator = stateManager.getProductNavigator();
                 if (productNavigator) {
-                    productNavigator.setProductDocs(lastEnhancedProductDocs);
+                    productNavigator.setProductDocs(productDocs);
                 }
+                lastEnhancedProductDocs = productDocs;
             }
 
             if (cancellationToken.isCancellationRequested) {
@@ -2190,8 +2196,10 @@ export async function runComprehensiveAnalysis(): Promise<void> {
             // Step 3: Generate Architecture Insights
             progress.report({ message: 'Step 3/4: Generating architecture insights...', increment: 25 });
             
+            let lastLLMInsights = stateManager.getLLMInsights();
             if (!lastLLMInsights) {
                 await loadSavedInsights();
+                lastLLMInsights = stateManager.getLLMInsights();
             }
             
             if (!lastLLMInsights) {
@@ -2200,7 +2208,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                     treeProvider.setInsightsStatus('generating');
                 }
 
-                lastLLMInsights = await llmService.generateArchitectureInsights(
+                const insights = await llmService.generateArchitectureInsights(
                     lastAnalysisContext!,
                     lastCodeAnalysis || undefined,
                     lastEnhancedProductDocs || undefined,
@@ -2225,6 +2233,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                         },
                         onInsightsIteration: (insights) => {
                             saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, 1, 1);
+                            const insightsViewer = stateManager.getInsightsViewer();
                             if (insightsViewer) {
                                 insightsViewer.setInsights(insights);
                             }
@@ -2232,15 +2241,18 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                     }
                 );
 
-                await saveArchitectureInsightsToFile(lastLLMInsights);
+                stateManager.setLLMInsights(insights);
+                await saveArchitectureInsightsToFile(insights);
                 
                 if (treeProvider) {
-                    treeProvider.setLLMInsights(lastLLMInsights);
+                    treeProvider.setLLMInsights(insights);
                     treeProvider.setInsightsStatus('complete');
                 }
+                const insightsViewer = stateManager.getInsightsViewer();
                 if (insightsViewer) {
-                    insightsViewer.setInsights(lastLLMInsights);
+                    insightsViewer.setInsights(insights);
                 }
+                lastLLMInsights = insights;
             }
 
             if (cancellationToken.isCancellationRequested) {
