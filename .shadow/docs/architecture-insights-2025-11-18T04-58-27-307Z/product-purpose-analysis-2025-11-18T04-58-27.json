@@ -1,0 +1,47 @@
+{
+  "productPurpose": "Shadow Watch aims to bridge the gap between static code analysis and AI-powered development workflows by providing continuous, real-time architecture monitoring that feeds directly into AI assistant tools. Its core mission is to eliminate friction in the developer feedback loop by detecting architecture issues the moment code is saved and formatting those issues in a way that AI tools can immediately act upon. Rather than replacing human or AI review, it serves as an intelligent intermediary that identifies problems, explains them clearly, and packages them for AI-assisted resolution.",
+  "architectureRationale": "The architecture exists as a single VS Code extension entry point because the product serves one primary user type (developers working in VS Code) but must support multiple interaction patterns within that environment. The multi-layered architecture with sidebar, webview, diagnostics, and AI integration reflects the need to meet developers where they work: some want passive inline warnings, others want detailed exploratory views, and still others want to immediately pipe issues to external AI tools. The continuous monitoring system exists because waiting for developers to manually trigger analysis breaks the rapid feedback loop necessary for preventing technical debt. The flexible AI provider abstraction exists because developers use different AI assistants (Cursor, ChatGPT, Claude) and need consistent functionality regardless of their choice. The caching system exists because re-analyzing entire codebases on every save would block development workflow. Multiple view modes (tree, webview, inline diagnostics) exist because different issues require different levels of detail and context.",
+  "designDecisions": [
+    "Continuous file monitoring on save - Reason: Manual analysis triggers create friction and allow architecture issues to accumulate unnoticed; real-time feedback prevents problems before they compound",
+    "Multiple presentation layers (sidebar, webview, diagnostics) - Reason: Different severity issues require different levels of attention; critical errors need inline visibility while architectural insights benefit from detailed formatted views",
+    "LLM-ready prompt formatting with provider-specific templates - Reason: Developers already use AI assistants for refactoring but waste time manually formatting context; pre-formatted prompts eliminate that friction and ensure AI tools receive properly structured information",
+    "AI provider abstraction supporting OpenAI, Anthropic, and custom endpoints - Reason: Developers have strong preferences for different AI tools based on cost, performance, and availability; forcing a single provider would limit adoption",
+    "Severity-based categorization (error, warning, info) - Reason: Not all architecture issues are equally urgent; developers need to prioritize critical problems while keeping lower-severity issues visible for future improvement",
+    "Caching of analysis results - Reason: Re-analyzing unchanged files wastes computation and blocks the development workflow; incremental analysis maintains responsiveness",
+    "Direct navigation from issues to code locations - Reason: Identifying problems is useless if developers must manually search for the problematic code; one-click navigation reduces time-to-fix",
+    "Product documentation generation alongside technical analysis - Reason: Developers often inherit unfamiliar codebases where understanding user-facing purpose is as important as fixing technical issues; bridging this gap accelerates onboarding",
+    "Multi-language support - Reason: Real-world projects use multiple languages; requiring different tools per language fragments the developer experience and increases cognitive load"
+  ],
+  "userGoals": [
+    "Catch architecture anti-patterns immediately during development before they become embedded in the codebase",
+    "Understand what an unfamiliar codebase actually does from a user perspective without reading every file",
+    "Get AI-powered refactoring suggestions without manually copying code and context into chat interfaces",
+    "Navigate directly to problematic code locations without searching through files manually",
+    "Maintain comprehensive documentation that stays current with code changes without manual effort",
+    "Identify circular dependencies and god objects before they cause maintenance nightmares",
+    "Use their preferred AI assistant (Cursor, ChatGPT, Claude) without switching tools or reformatting context",
+    "See architecture issues at the right level of detail - inline for critical errors, detailed views for exploratory analysis",
+    "Analyze specific files quickly during focused work without triggering full workspace scans",
+    "Understand test coverage and test purposes through AI-generated documentation that explains what tests verify",
+    "Monitor overall codebase health trends over time through quantified health scores",
+    "Get actionable suggestions alongside problem identification rather than just being told something is wrong",
+    "Work with multiple programming languages in a single project without juggling different analysis tools"
+  ],
+  "contextualFactors": [
+    "VS Code extension ecosystem constraints requiring single extension.js entry point but supporting rich UI capabilities",
+    "Real-time development workflow requiring non-blocking, incremental analysis",
+    "AI assistant integration landscape with multiple competing tools (Cursor, ChatGPT, Claude) each requiring different prompt formats",
+    "Developer context-switching costs making inline and sidebar views necessary to avoid leaving the editor",
+    "Codebase complexity growth over time requiring automated monitoring since manual reviews don't scale",
+    "Multi-language project realities where teams mix JavaScript, Python, Go, and other languages",
+    "Performance requirements for large codebases where full re-analysis on every save would be prohibitive",
+    "Developer preference diversity where some want passive monitoring and others want active AI-powered guidance",
+    "Documentation drift problem where manually written docs become outdated immediately after code changes",
+    "Knowledge transfer challenges when developers join projects and need to understand both technical architecture and user-facing purpose",
+    "Architecture anti-pattern detection requiring AST parsing and dependency graph analysis beyond simple regex matching",
+    "AI API rate limits and costs requiring intelligent caching and selective analysis triggering"
+  ],
+  "_metadata": {
+    "savedAt": "2025-11-18T04:58:27.308Z"
+  }
+}
