@@ -151,8 +151,12 @@ export function activate(context: vscode.ExtensionContext) {
             await clearAllData();
         }),
 
-        vscode.commands.registerCommand('shadowWatch.openSettings', () => {
-            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:shadow-watch.shadow-watch');
+        vscode.commands.registerCommand('shadowWatch.openSettings', async () => {
+            await showSettings();
+        }),
+
+        vscode.commands.registerCommand('shadowWatch.openLatestReport', async () => {
+            await openLatestReport();
         }),
 
         vscode.commands.registerCommand('shadowWatch.switchProvider', async () => {
@@ -251,6 +255,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('shadowWatch.showUnitTestItemDetails', async (item: any) => {
             await showUnitTestItemDetails(item);
+        }),
+
+        vscode.commands.registerCommand('shadowWatch.openSettingsWebview', async () => {
+            await showSettings();
         }),
 
         statusBarItem,
@@ -1161,6 +1169,243 @@ async function showUnitTestItemDetails(item: any): Promise<void> {
 </html>`;
 
     panel.webview.html = html;
+}
+
+async function showSettings(): Promise<void> {
+    const panel = vscode.window.createWebviewPanel(
+        'shadowWatchSettings',
+        '⚙️ Shadow Watch Settings',
+        vscode.ViewColumn.One,
+        {
+            enableScripts: true
+        }
+    );
+
+    const config = vscode.workspace.getConfiguration('shadowWatch');
+    const currentProvider = config.get<string>('llmProvider', 'openai');
+    const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Claude';
+    const otherProvider = currentProvider === 'openai' ? 'Claude' : 'OpenAI';
+
+    // Handle messages from the webview
+    panel.webview.onDidReceiveMessage(async (message) => {
+        switch (message.command) {
+            case 'switchProvider':
+                await switchProvider();
+                // Refresh the webview with updated config
+                const updatedConfig = vscode.workspace.getConfiguration('shadowWatch');
+                const updatedProvider = updatedConfig.get<string>('llmProvider', 'openai');
+                panel.webview.html = getSettingsHtml(updatedConfig, updatedProvider);
+                // Refresh tree view to update provider display
+                if (treeProvider) {
+                    treeProvider.refresh();
+                }
+                break;
+            case 'copyMenuStructure':
+                await copyMenuStructure();
+                break;
+            case 'openVSCodeSettings':
+                vscode.commands.executeCommand('workbench.action.openSettings', '@ext:shadow-watch.shadow-watch');
+                break;
+        }
+    });
+
+    panel.webview.html = getSettingsHtml(config, currentProvider);
+}
+
+function getSettingsHtml(config: vscode.WorkspaceConfiguration, currentProvider: string): string {
+    const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Claude';
+    const otherProvider = currentProvider === 'openai' ? 'Claude' : 'OpenAI';
+    const openaiKey = config.get<string>('openaiApiKey', '');
+    const claudeKey = config.get<string>('claudeApiKey', '');
+    const hasOpenAIKey = openaiKey && openaiKey.trim() !== '';
+    const hasClaudeKey = claudeKey && claudeKey.trim() !== '';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Watch Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            color: #333;
+            background: #fafafa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .setting-item {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .setting-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .setting-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button.secondary {
+            background: #95a5a6;
+        }
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ Shadow Watch Settings</h1>
+        
+        <div class="section">
+            <h2>🤖 LLM Provider</h2>
+            <div class="setting-item">
+                <div class="setting-label">Current Provider: ${providerName}</div>
+                <div class="setting-description">
+                    ${currentProvider === 'claude' && !hasClaudeKey 
+                        ? '⚠️ WARNING: Claude is selected but Claude API key is not set!'
+                        : currentProvider === 'openai' && !hasOpenAIKey
+                        ? '⚠️ WARNING: OpenAI is selected but OpenAI API key is not set!'
+                        : '✅ Current provider has API key configured.'}
+                </div>
+                <button onclick="switchProvider()">Switch to ${otherProvider}</button>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">API Key Status</div>
+                <div class="setting-description">
+                    <span class="status ${hasOpenAIKey ? 'success' : 'error'}">OpenAI: ${hasOpenAIKey ? 'Set' : 'Not set'}</span>
+                    <span class="status ${hasClaudeKey ? 'success' : 'error'}">Claude: ${hasClaudeKey ? 'Set' : 'Not set'}</span>
+                </div>
+                <button class="secondary" onclick="openVSCodeSettings()">Open VSCode Settings</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Menu Structure</h2>
+            <div class="setting-item">
+                <div class="setting-label">Copy Menu Structure</div>
+                <div class="setting-description">Copy the current menu structure to clipboard for sharing or documentation.</div>
+                <button onclick="copyMenuStructure()">📋 Copy Menu Structure</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ All Settings</h2>
+            <div class="setting-item">
+                <div class="setting-label">VSCode Settings</div>
+                <div class="setting-description">Open the full VSCode settings page for Shadow Watch to configure all options.</div>
+                <button class="secondary" onclick="openVSCodeSettings()">Open VSCode Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        function switchProvider() {
+            vscode.postMessage({ command: 'switchProvider' });
+        }
+        
+        function copyMenuStructure() {
+            vscode.postMessage({ command: 'copyMenuStructure' });
+        }
+        
+        function openVSCodeSettings() {
+            vscode.postMessage({ command: 'openVSCodeSettings' });
+        }
+    </script>
+</body>
+</html>`;
+}
+
+async function openLatestReport(): Promise<void> {
+    if (!treeProvider) {
+        vscode.window.showErrorMessage('Tree provider not initialized');
+        return;
+    }
+
+    const reportPath = treeProvider.getReportPath();
+    if (!reportPath) {
+        vscode.window.showWarningMessage('No report found. Run "Analyze Workspace" first to generate a report.');
+        return;
+    }
+
+    const fs = require('fs');
+    if (!fs.existsSync(reportPath)) {
+        vscode.window.showWarningMessage('Report file not found. It may have been deleted.');
+        return;
+    }
+
+    try {
+        const reportUri = vscode.Uri.file(reportPath);
+        const document = await vscode.workspace.openTextDocument(reportUri);
+        await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to open report: ${error}`);
+    }
 }
 
 export function deactivate() {

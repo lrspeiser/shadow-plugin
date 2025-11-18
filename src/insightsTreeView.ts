@@ -17,6 +17,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
     private productDocsTimestamp: number | null = null;
     private insightsTimestamp: number | null = null;
     private analysisTimestamp: number | null = null;
+    private reportPath: string | null = null;
+    private reportTimestamp: number | null = null;
     private staticAnalysisViewer: any = null;
 
     constructor(
@@ -104,6 +106,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             productDocsTimestamp?: number;
             insightsTimestamp?: number;
             analysisTimestamp?: number;
+            reportPath?: string;
+            reportTimestamp?: number;
             productDocsStatus?: 'idle' | 'generating' | 'complete';
             insightsStatus?: 'idle' | 'generating' | 'complete';
             analysisStatus?: 'idle' | 'complete';
@@ -113,6 +117,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             this.productDocsTimestamp = saved.productDocsTimestamp || null;
             this.insightsTimestamp = saved.insightsTimestamp || null;
             this.analysisTimestamp = saved.analysisTimestamp || null;
+            this.reportPath = saved.reportPath || null;
+            this.reportTimestamp = saved.reportTimestamp || null;
             if (saved.productDocsStatus) this.productDocsStatus = saved.productDocsStatus;
             if (saved.insightsStatus) this.insightsStatus = saved.insightsStatus;
             if (saved.analysisStatus) this.analysisStatus = saved.analysisStatus;
@@ -247,6 +253,22 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }
         }
 
+        // Check for latest report file
+        const reportFiles = entries
+            .filter(e => e.isFile() && e.name.startsWith('refactoring-report-') && e.name.endsWith('.md'))
+            .map(e => ({
+                name: e.name,
+                path: path.join(docsDir, e.name),
+                mtime: fs.statSync(path.join(docsDir, e.name)).mtimeMs
+            }))
+            .sort((a, b) => b.mtime - a.mtime);
+        
+        if (reportFiles.length > 0 && !this.reportPath) {
+            const latestReport = reportFiles[0];
+            this.reportPath = latestReport.path;
+            this.reportTimestamp = latestReport.mtime;
+        }
+
         this.refresh();
     }
 
@@ -258,6 +280,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             productDocsTimestamp: this.productDocsTimestamp,
             insightsTimestamp: this.insightsTimestamp,
             analysisTimestamp: this.analysisTimestamp,
+            reportPath: this.reportPath,
+            reportTimestamp: this.reportTimestamp,
             productDocsStatus: this.productDocsStatus,
             insightsStatus: this.insightsStatus,
             analysisStatus: this.analysisStatus
@@ -269,6 +293,17 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         this.analysisTimestamp = Date.now();
         this.savePersistedState();
         this.refresh();
+    }
+
+    setReportPath(reportPath: string): void {
+        this.reportPath = reportPath;
+        this.reportTimestamp = Date.now();
+        this.savePersistedState();
+        this.refresh();
+    }
+
+    getReportPath(): string | null {
+        return this.reportPath;
     }
 
     private getWorkspaceKey(): string | null {
@@ -454,34 +489,35 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         }
         items.push(genUnitTestsBtn);
 
-        // Open .shadow/docs folder button
-        const openDocsBtn = new TreeItem('📁 Open Documentation Folder', vscode.TreeItemCollapsibleState.None);
+        // Open Documentation button (opens .shadow/docs folder)
+        const openDocsBtn = new TreeItem('📁 Open Documentation', vscode.TreeItemCollapsibleState.None);
         openDocsBtn.type = 'action';
         openDocsBtn.iconPath = new vscode.ThemeIcon('folder-opened');
         openDocsBtn.description = 'View saved docs and insights';
         openDocsBtn.command = {
             command: 'shadowWatch.openDocsFolder',
-            title: 'Open Documentation Folder'
+            title: 'Open Documentation'
         };
         items.push(openDocsBtn);
 
-        // LLM Provider Switcher (make it easy to switch)
-        const config = vscode.workspace.getConfiguration('shadowWatch');
-        const currentProvider = config.get<string>('llmProvider', 'openai');
-        const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Claude';
-        const otherProvider = currentProvider === 'openai' ? 'Claude' : 'OpenAI';
-        
-        const providerBtn = new TreeItem(`🤖 Using: ${providerName}`, vscode.TreeItemCollapsibleState.None);
-        providerBtn.type = 'action';
-        providerBtn.iconPath = new vscode.ThemeIcon('sync');
-        providerBtn.description = `Click to switch to ${otherProvider}`;
-        providerBtn.command = {
-            command: 'shadowWatch.switchProvider',
-            title: `Switch to ${otherProvider}`
-        };
-        items.push(providerBtn);
+        // Open Latest Report button (if report exists)
+        if (this.reportPath) {
+            const fs = require('fs');
+            if (fs.existsSync(this.reportPath)) {
+                const openReportBtn = new TreeItem('📄 Open Latest Report', vscode.TreeItemCollapsibleState.None);
+                openReportBtn.type = 'action';
+                openReportBtn.iconPath = new vscode.ThemeIcon('file-text');
+                const lastRun = this.formatTimestamp(this.reportTimestamp);
+                openReportBtn.description = lastRun ? `Last run: ${lastRun}` : 'Click to open';
+                openReportBtn.command = {
+                    command: 'shadowWatch.openLatestReport',
+                    title: 'Open Latest Report'
+                };
+                items.push(openReportBtn);
+            }
+        }
 
-        // Open Settings UI (direct button, no dropdown)
+        // Open Settings UI
         const openSettingsBtn = new TreeItem('⚙️ Open Settings', vscode.TreeItemCollapsibleState.None);
         openSettingsBtn.type = 'action';
         openSettingsBtn.iconPath = new vscode.ThemeIcon('settings-gear');
@@ -491,17 +527,6 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             title: 'Open Settings'
         };
         items.push(openSettingsBtn);
-
-        // Copy Menu Structure button
-        const copyMenuBtn = new TreeItem('📋 Copy Menu Structure', vscode.TreeItemCollapsibleState.None);
-        copyMenuBtn.type = 'action';
-        copyMenuBtn.iconPath = new vscode.ThemeIcon('copy');
-        copyMenuBtn.description = 'Copy menu structure to clipboard';
-        copyMenuBtn.command = {
-            command: 'shadowWatch.copyMenuStructure',
-            title: 'Copy Menu Structure'
-        };
-        items.push(copyMenuBtn);
 
         return items;
     }

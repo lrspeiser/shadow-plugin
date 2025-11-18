@@ -2255,6 +2255,11 @@ export async function runComprehensiveAnalysis(): Promise<void> {
 
             SWLogger.log(`Report saved to: ${reportPath}`);
 
+            // Track report path in tree provider
+            if (treeProvider) {
+                treeProvider.setReportPath(reportPath);
+            }
+
             // Open the report in VSCode
             const reportUri = vscode.Uri.file(reportPath);
             const document = await vscode.workspace.openTextDocument(reportUri);
