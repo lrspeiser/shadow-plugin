@@ -2453,6 +2453,7 @@ Generate a comprehensive unit test plan with EXECUTABLE TEST CODE in the followi
 2. **Test Language**: Write tests in ${primaryLanguage.toUpperCase()} (same language as the codebase). Use ${testingFrameworks[0]} or ${testingFrameworks[1] || 'appropriate framework'}.
 
 3. **MANDATORY: Executable Test Code**: Each test_case MUST include complete, copy-paste-ready test_code in ${primaryLanguage.toUpperCase()}. This field is REQUIRED and cannot be null or empty. The test_code must:
+   - **CRITICAL: Return ONLY plain source code text. NO HTML tags, NO markdown code blocks (no triple backticks), NO formatting markup. Just the raw executable code.**
    - Use the CORRECT import syntax for the actual code structure (check if it's a class, module, or function export)
    - Match the ACTUAL function signatures and parameter types from the codebase
    - Include all necessary imports and dependencies

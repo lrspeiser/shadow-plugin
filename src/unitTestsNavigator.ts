@@ -38,10 +38,10 @@ export class UnitTestsNavigatorProvider implements vscode.TreeDataProvider<UnitT
     private setupFileWatcher(): void {
         if (!this.workspaceRoot) return;
 
-        const unitTestPlanPath = path.join(this.workspaceRoot, 'ShadowFiles', 'tests', 'unit', 'unit_test_plan.json');
+        const unitTestPlanPath = path.join(this.workspaceRoot, 'UnitTests', 'unit_test_plan.json');
         const watchPattern = new vscode.RelativePattern(
             vscode.workspace.workspaceFolders![0],
-            'ShadowFiles/tests/unit/unit_test_plan.json'
+            'UnitTests/unit_test_plan.json'
         );
 
         this.fileWatcher = vscode.workspace.createFileSystemWatcher(watchPattern);
@@ -62,7 +62,7 @@ export class UnitTestsNavigatorProvider implements vscode.TreeDataProvider<UnitT
     private loadUnitTestPlan(): void {
         if (!this.workspaceRoot) return;
 
-        const unitTestPlanPath = path.join(this.workspaceRoot, 'ShadowFiles', 'tests', 'unit', 'unit_test_plan.json');
+        const unitTestPlanPath = path.join(this.workspaceRoot, 'UnitTests', 'unit_test_plan.json');
         
         if (fs.existsSync(unitTestPlanPath)) {
             try {

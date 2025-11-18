@@ -456,7 +456,7 @@ export const unitTestPlanSchema = {
                                 },
                                 test_code: {
                                     type: "string",
-                                    description: "REQUIRED: Complete, executable test code in the project's language using the testing framework specified in unit_test_strategy. Include all imports, setup, mocks, and assertions. This MUST be ready to copy-paste into a test file and run immediately. Do NOT leave this empty or as a placeholder."
+                                    description: "REQUIRED: Complete, executable test code in the project's language using the testing framework specified in unit_test_strategy. Include all imports, setup, mocks, and assertions. This MUST be ready to copy-paste into a test file and run immediately. Do NOT leave this empty or as a placeholder. CRITICAL: Return ONLY plain source code text - NO HTML tags, NO markdown code blocks (no triple backticks), NO formatting markup. Just raw executable code."
                                 },
                                 run_instructions: {
                                     type: "string",

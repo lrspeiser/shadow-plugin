@@ -1837,8 +1837,8 @@ export async function clearAllData(): Promise<void> {
             }
         }
 
-        // Clear unit tests in ShadowFiles/tests/unit/
-        const unitTestsDir = path.join(workspaceRoot, 'ShadowFiles', 'tests', 'unit');
+        // Clear unit tests in UnitTests/
+        const unitTestsDir = path.join(workspaceRoot, 'UnitTests');
         if (fs.existsSync(unitTestsDir)) {
             try {
                 fs.rmSync(unitTestsDir, { recursive: true, force: true });
@@ -1983,10 +1983,38 @@ export async function generateUnitTests(): Promise<void> {
 
             // Save unit test plan
             progress.report({ message: 'Saving unit test plan...' });
-            const unitTestDir = path.join(workspaceRoot, 'ShadowFiles', 'tests', 'unit');
+            const unitTestDir = path.join(workspaceRoot, 'UnitTests');
             if (!fs.existsSync(unitTestDir)) {
                 fs.mkdirSync(unitTestDir, { recursive: true });
             }
+
+            // Helper function to strip HTML and markdown from test_code
+            function stripHtmlAndMarkdown(text: string): string {
+                if (!text) return text;
+                let cleaned = text;
+                // Remove markdown code blocks (```language ... ```)
+                cleaned = cleaned.replace(/```[\w]*\n?/g, '');
+                cleaned = cleaned.replace(/```/g, '');
+                // Remove HTML tags
+                cleaned = cleaned.replace(/<[^>]*>/g, '');
+                // Decode HTML entities
+                cleaned = cleaned.replace(/&lt;/g, '<');
+                cleaned = cleaned.replace(/&gt;/g, '>');
+                cleaned = cleaned.replace(/&amp;/g, '&');
+                cleaned = cleaned.replace(/&quot;/g, '"');
+                cleaned = cleaned.replace(/&#39;/g, "'");
+                // Trim whitespace
+                return cleaned.trim();
+            }
+
+            // Clean test_code in all test cases
+            const cleanedTestSuites = (unitTestPlan.test_suites || []).map((suite: any) => ({
+                ...suite,
+                test_cases: (suite.test_cases || []).map((testCase: any) => ({
+                    ...testCase,
+                    test_code: testCase.test_code ? stripHtmlAndMarkdown(testCase.test_code) : testCase.test_code
+                }))
+            }));
 
             // Transform LLM response to match navigator's expected structure
             const transformedPlan = {
@@ -2000,7 +2028,7 @@ export async function generateUnitTests(): Promise<void> {
                         mocking_approach: unitTestPlan.unit_test_strategy.mocking_strategy,
                         isolation_strategy: unitTestPlan.unit_test_strategy.isolation_level
                     } : undefined,
-                    test_suites: unitTestPlan.test_suites || [],
+                    test_suites: cleanedTestSuites,
                     read_write_test_suites: [],
                     user_workflow_test_suites: []
                 }

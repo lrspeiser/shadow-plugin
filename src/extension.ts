@@ -15,6 +15,7 @@ import { StaticAnalysisViewerProvider, StaticAnalysisItem } from './staticAnalys
 import { UnitTestsNavigatorProvider, UnitTestItem } from './unitTestsNavigator';
 import { getConfigurationManager } from './config/configurationManager';
 import { ErrorHandler } from './utils/errorHandler';
+import { WebviewTemplateEngine } from './ui/webview/webviewTemplateEngine';
 
 let analyzer: CodeAnalyzer;
 let insightGenerator: InsightGenerator;
@@ -1227,20 +1228,13 @@ function getSettingsHtml(currentProvider: string): string {
     const hasOpenAIKey = openaiKey && openaiKey.trim() !== '';
     const hasClaudeKey = claudeKey && claudeKey.trim() !== '';
 
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow Watch Settings</title>
-    <style>
+    const engine = new WebviewTemplateEngine();
+    const escape = WebviewTemplateEngine.escapeHtml;
+
+    const customStyles = `
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
             max-width: 800px;
-            margin: 0 auto;
             padding: 40px;
-            color: #333;
             background: #fafafa;
         }
         .container {
@@ -1252,13 +1246,9 @@ function getSettingsHtml(currentProvider: string): string {
         h1 {
             color: #2c3e50;
             border-bottom: 3px solid #3498db;
-            padding-bottom: 15px;
-            margin-top: 0;
         }
         h2 {
             color: #34495e;
-            margin-top: 30px;
-            margin-bottom: 15px;
             font-size: 1.3em;
         }
         .section {
@@ -1283,24 +1273,10 @@ function getSettingsHtml(currentProvider: string): string {
             margin-bottom: 12px;
         }
         button {
-            padding: 10px 20px;
             background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 10px;
-            margin-top: 5px;
         }
         button:hover {
             background: #2980b9;
-        }
-        button.secondary {
-            background: #95a5a6;
-        }
-        button.secondary:hover {
-            background: #7f8c8d;
         }
         .status {
             display: inline-block;
@@ -1321,57 +1297,56 @@ function getSettingsHtml(currentProvider: string): string {
             background: #f8d7da;
             color: #721c24;
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>⚙️ Shadow Watch Settings</h1>
-        
-        <div class="section">
-            <h2>🤖 LLM Provider</h2>
-            <div class="setting-item">
-                <div class="setting-label">Current Provider: ${providerName}</div>
-                <div class="setting-description">
-                    ${currentProvider === 'claude' && !hasClaudeKey 
-                        ? '⚠️ WARNING: Claude is selected but Claude API key is not set!'
-                        : currentProvider === 'openai' && !hasOpenAIKey
-                        ? '⚠️ WARNING: OpenAI is selected but OpenAI API key is not set!'
-                        : '✅ Current provider has API key configured.'}
+    `;
+
+    const content = `
+        <div class="container">
+            <h1>⚙️ Shadow Watch Settings</h1>
+            
+            <div class="section">
+                <h2>🤖 LLM Provider</h2>
+                <div class="setting-item">
+                    <div class="setting-label">Current Provider: ${escape(providerName)}</div>
+                    <div class="setting-description">
+                        ${currentProvider === 'claude' && !hasClaudeKey 
+                            ? '⚠️ WARNING: Claude is selected but Claude API key is not set!'
+                            : currentProvider === 'openai' && !hasOpenAIKey
+                            ? '⚠️ WARNING: OpenAI is selected but OpenAI API key is not set!'
+                            : '✅ Current provider has API key configured.'}
+                    </div>
+                    <button onclick="switchProvider()">Switch to ${escape(otherProvider)}</button>
                 </div>
-                <button onclick="switchProvider()">Switch to ${otherProvider}</button>
-            </div>
-            <div class="setting-item">
-                <div class="setting-label">API Key Status</div>
-                <div class="setting-description">
-                    <span class="status ${hasOpenAIKey ? 'success' : 'error'}">OpenAI: ${hasOpenAIKey ? 'Set' : 'Not set'}</span>
-                    <span class="status ${hasClaudeKey ? 'success' : 'error'}">Claude: ${hasClaudeKey ? 'Set' : 'Not set'}</span>
+                <div class="setting-item">
+                    <div class="setting-label">API Key Status</div>
+                    <div class="setting-description">
+                        <span class="status ${hasOpenAIKey ? 'success' : 'error'}">OpenAI: ${hasOpenAIKey ? 'Set' : 'Not set'}</span>
+                        <span class="status ${hasClaudeKey ? 'success' : 'error'}">Claude: ${hasClaudeKey ? 'Set' : 'Not set'}</span>
+                    </div>
+                    <button class="secondary" onclick="openVSCodeSettings()">Open VSCode Settings</button>
                 </div>
-                <button class="secondary" onclick="openVSCodeSettings()">Open VSCode Settings</button>
+            </div>
+
+            <div class="section">
+                <h2>📋 Menu Structure</h2>
+                <div class="setting-item">
+                    <div class="setting-label">Copy Menu Structure</div>
+                    <div class="setting-description">Copy the current menu structure to clipboard for sharing or documentation.</div>
+                    <button onclick="copyMenuStructure()">📋 Copy Menu Structure</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚙️ All Settings</h2>
+                <div class="setting-item">
+                    <div class="setting-label">VSCode Settings</div>
+                    <div class="setting-description">Open the full VSCode settings page for Shadow Watch to configure all options.</div>
+                    <button class="secondary" onclick="openVSCodeSettings()">Open VSCode Settings</button>
+                </div>
             </div>
         </div>
+    `;
 
-        <div class="section">
-            <h2>📋 Menu Structure</h2>
-            <div class="setting-item">
-                <div class="setting-label">Copy Menu Structure</div>
-                <div class="setting-description">Copy the current menu structure to clipboard for sharing or documentation.</div>
-                <button onclick="copyMenuStructure()">📋 Copy Menu Structure</button>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>⚙️ All Settings</h2>
-            <div class="setting-item">
-                <div class="setting-label">VSCode Settings</div>
-                <div class="setting-description">Open the full VSCode settings page for Shadow Watch to configure all options.</div>
-                <button class="secondary" onclick="openVSCodeSettings()">Open VSCode Settings</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const vscode = acquireVsCodeApi();
-        
+    const customScript = `
         function switchProvider() {
             vscode.postMessage({ command: 'switchProvider' });
         }
@@ -1383,9 +1358,14 @@ function getSettingsHtml(currentProvider: string): string {
         function openVSCodeSettings() {
             vscode.postMessage({ command: 'openVSCodeSettings' });
         }
-    </script>
-</body>
-</html>`;
+    `;
+
+    return engine.render({
+        title: 'Shadow Watch Settings',
+        content,
+        customStyles,
+        customScript
+    });
 }
 
 async function openLatestReport(): Promise<void> {
