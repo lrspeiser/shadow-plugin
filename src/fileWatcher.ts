@@ -4,6 +4,7 @@ import { CodeAnalyzer } from './analyzer';
 import { InsightGenerator } from './insightGenerator';
 import { DiagnosticsProvider } from './diagnosticsProvider';
 import { InsightsTreeProvider } from './insightsTreeView';
+import { getConfigurationManager } from './config/configurationManager';
 
 export class FileWatcher {
     private watcher: vscode.FileSystemWatcher | undefined;
@@ -23,10 +24,8 @@ export class FileWatcher {
             return; // Already running
         }
 
-        const config = vscode.workspace.getConfiguration('shadowWatch');
-        const analyzeOnSave = config.get('analyzeOnSave', true);
-
-        if (!analyzeOnSave) {
+        const configManager = getConfigurationManager();
+        if (!configManager.analyzeOnSave) {
             return;
         }
 
@@ -58,8 +57,8 @@ export class FileWatcher {
             return;
         }
 
-        const config = vscode.workspace.getConfiguration('shadowWatch');
-        const interval = config.get('analyzeInterval', 30000);
+        const configManager = getConfigurationManager();
+        const interval = configManager.analyzeInterval;
 
         const now = Date.now();
         if (now - this.lastAnalysisTime < interval) {
@@ -76,8 +75,8 @@ export class FileWatcher {
             return; // Already scheduled
         }
 
-        const config = vscode.workspace.getConfiguration('shadowWatch');
-        const interval = config.get('analyzeInterval', 30000);
+        const configManager = getConfigurationManager();
+        const interval = configManager.analyzeInterval;
 
         this.pendingAnalysis = setTimeout(() => {
             this.pendingAnalysis = undefined;

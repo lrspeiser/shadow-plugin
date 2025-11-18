@@ -13,6 +13,7 @@ import { AnalysisViewerProvider, AnalysisItem } from './analysisViewer';
 import { InsightsViewerProvider, InsightItem } from './insightsViewer';
 import { StaticAnalysisViewerProvider, StaticAnalysisItem } from './staticAnalysisViewer';
 import { UnitTestsNavigatorProvider, UnitTestItem } from './unitTestsNavigator';
+import { getConfigurationManager } from './config/configurationManager';
 
 let analyzer: CodeAnalyzer;
 let insightGenerator: InsightGenerator;
@@ -175,13 +176,15 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand('shadowWatch.insights.focus');
         }),
 
-        vscode.commands.registerCommand('shadowWatch.enable', () => {
-            vscode.workspace.getConfiguration('shadowWatch').update('enabled', true, true);
+        vscode.commands.registerCommand('shadowWatch.enable', async () => {
+            const configManager = getConfigurationManager();
+            await configManager.update('enabled', true, vscode.ConfigurationTarget.Global);
             vscode.window.showInformationMessage('Shadow Watch enabled');
         }),
 
-        vscode.commands.registerCommand('shadowWatch.disable', () => {
-            vscode.workspace.getConfiguration('shadowWatch').update('enabled', false, true);
+        vscode.commands.registerCommand('shadowWatch.disable', async () => {
+            const configManager = getConfigurationManager();
+            await configManager.update('enabled', false, vscode.ConfigurationTarget.Global);
             vscode.window.showInformationMessage('Shadow Watch disabled');
         }),
 
@@ -270,40 +273,32 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Start file watcher if enabled
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    if (config.get('enabled')) {
+    const configManager = getConfigurationManager();
+    if (configManager.enabled) {
         fileWatcher.start();
     }
 
     // Watch for configuration changes
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('shadowWatch.enabled')) {
-                const enabled = vscode.workspace.getConfiguration('shadowWatch').get('enabled');
-                if (enabled) {
-                    fileWatcher.start();
-                } else {
-                    fileWatcher.stop();
-                }
-            }
-            
-            // Handle clearAllData setting - when set to true, trigger clear and reset
-            if (e.affectsConfiguration('shadowWatch.clearAllData')) {
-                const shouldClear = vscode.workspace.getConfiguration('shadowWatch').get<boolean>('clearAllData', false);
-                if (shouldClear) {
-                    // Reset the setting first to prevent re-triggering
-                    config.update('clearAllData', false, vscode.ConfigurationTarget.Global);
-                    // Trigger the clear action
-                    clearAllData();
-                }
-            }
-        })
-    );
+    configManager.onConfigurationChange(() => {
+        if (configManager.enabled) {
+            fileWatcher.start();
+        } else {
+            fileWatcher.stop();
+        }
+        
+        // Handle clearAllData setting - when set to true, trigger clear and reset
+        if (configManager.clearAllData) {
+            // Reset the setting first to prevent re-triggering
+            configManager.update('clearAllData', false, vscode.ConfigurationTarget.Global);
+            // Trigger the clear action
+            clearAllData();
+        }
+    });
 }
 
 async function analyzeWorkspace() {
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    if (!config.get('enabled')) {
+    const configManager = getConfigurationManager();
+    if (!configManager.enabled) {
         vscode.window.showWarningMessage('Shadow Watch is disabled');
         return;
     }
@@ -367,8 +362,8 @@ async function analyzeCurrentFile() {
         return;
     }
 
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    if (!config.get('enabled')) {
+    const configManager = getConfigurationManager();
+    if (!configManager.enabled) {
         vscode.window.showWarningMessage('Shadow Watch is disabled');
         return;
     }
@@ -400,8 +395,8 @@ async function copyAllInsights() {
         return;
     }
 
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    const format = config.get('llmFormat') as string || 'cursor';
+    const configManager = getConfigurationManager();
+    const format = configManager.llmFormat;
     
     const formatted = llmFormatter.formatInsights(insights, format);
     await vscode.env.clipboard.writeText(formatted);
@@ -424,8 +419,8 @@ async function copyFileInsights() {
         return;
     }
 
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    const format = config.get('llmFormat') as string || 'cursor';
+    const configManager = getConfigurationManager();
+    const format = configManager.llmFormat;
     
     const formatted = llmFormatter.formatInsights(insights, format);
     await vscode.env.clipboard.writeText(formatted);
@@ -438,8 +433,8 @@ async function copyInsight(item: any) {
         return;
     }
 
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    const format = config.get('llmFormat') as string || 'cursor';
+    const configManager = getConfigurationManager();
+    const format = configManager.llmFormat;
     
     const formatted = llmFormatter.formatInsights([item.insight], format);
     await vscode.env.clipboard.writeText(formatted);
@@ -482,12 +477,12 @@ async function copyMenuStructure() {
 }
 
 async function showProviderStatus() {
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    const currentProvider = config.get<string>('llmProvider', 'openai');
+    const configManager = getConfigurationManager();
+    const currentProvider = configManager.llmProvider;
     const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Claude';
     
-    const openaiKey = config.get<string>('openaiApiKey', '');
-    const claudeKey = config.get<string>('claudeApiKey', '');
+    const openaiKey = configManager.openaiApiKey;
+    const claudeKey = configManager.claudeApiKey;
     
     const hasOpenAIKey = openaiKey && openaiKey.trim() !== '';
     const hasClaudeKey = claudeKey && claudeKey.trim() !== '';
@@ -530,8 +525,8 @@ You can switch providers using the "🤖 Using: [Provider]" button in the sideba
 }
 
 async function switchProvider() {
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    const currentProvider = config.get<string>('llmProvider', 'openai');
+    const configManager = getConfigurationManager();
+    const currentProvider = configManager.llmProvider;
     const newProvider = currentProvider === 'openai' ? 'claude' : 'openai';
     
     const providerName = newProvider === 'openai' ? 'OpenAI' : 'Claude';
@@ -542,7 +537,7 @@ async function switchProvider() {
     );
     
     if (result === 'Switch') {
-        await config.update('llmProvider', newProvider, vscode.ConfigurationTarget.Global);
+        await configManager.update('llmProvider', newProvider, vscode.ConfigurationTarget.Global);
         
         // Show confirmation with provider details
         const message = `✅ Switched to ${providerName}.\n\n` +
@@ -1181,8 +1176,8 @@ async function showSettings(): Promise<void> {
         }
     );
 
-    const config = vscode.workspace.getConfiguration('shadowWatch');
-    const currentProvider = config.get<string>('llmProvider', 'openai');
+    const configManager = getConfigurationManager();
+    const currentProvider = configManager.llmProvider;
     const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Claude';
     const otherProvider = currentProvider === 'openai' ? 'Claude' : 'OpenAI';
 
@@ -1192,9 +1187,9 @@ async function showSettings(): Promise<void> {
             case 'switchProvider':
                 await switchProvider();
                 // Refresh the webview with updated config
-                const updatedConfig = vscode.workspace.getConfiguration('shadowWatch');
-                const updatedProvider = updatedConfig.get<string>('llmProvider', 'openai');
-                panel.webview.html = getSettingsHtml(updatedConfig, updatedProvider);
+                const updatedConfigManager = getConfigurationManager();
+                const updatedProvider = updatedConfigManager.llmProvider;
+                panel.webview.html = getSettingsHtml(updatedProvider);
                 // Refresh tree view to update provider display
                 if (treeProvider) {
                     treeProvider.refresh();
@@ -1209,14 +1204,15 @@ async function showSettings(): Promise<void> {
         }
     });
 
-    panel.webview.html = getSettingsHtml(config, currentProvider);
+    panel.webview.html = getSettingsHtml(currentProvider);
 }
 
-function getSettingsHtml(config: vscode.WorkspaceConfiguration, currentProvider: string): string {
+function getSettingsHtml(currentProvider: string): string {
+    const configManager = getConfigurationManager();
     const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Claude';
     const otherProvider = currentProvider === 'openai' ? 'Claude' : 'OpenAI';
-    const openaiKey = config.get<string>('openaiApiKey', '');
-    const claudeKey = config.get<string>('claudeApiKey', '');
+    const openaiKey = configManager.openaiApiKey;
+    const claudeKey = configManager.claudeApiKey;
     const hasOpenAIKey = openaiKey && openaiKey.trim() !== '';
     const hasClaudeKey = claudeKey && claudeKey.trim() !== '';
 

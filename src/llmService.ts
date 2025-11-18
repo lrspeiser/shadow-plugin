@@ -9,6 +9,7 @@ import { CodeAnalysis, FileInfo } from './analyzer';
 import { productPurposeAnalysisSchema, llmInsightsSchema, productDocumentationSchema, unitTestPlanSchema } from './llmSchemas';
 import { FileAccessHelper, LLMRequest } from './fileAccessHelper';
 import { SWLogger } from './logger';
+import { getConfigurationManager, LLMProvider as ConfigLLMProvider } from './config/configurationManager';
 
 export interface AnalysisContext {
     files: Array<{
@@ -82,20 +83,17 @@ export class LLMService {
     private claudeApiKey: string | null = null;
     private provider: LLMProvider = 'openai'; // Default to OpenAI for backward compatibility
     private onConfigurationChange: (() => void) | null = null;
+    private configManager = getConfigurationManager();
 
     constructor() {
         this.updateApiKeys();
         
-        // Listen for configuration changes
-        vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('shadowWatch.openaiApiKey') || 
-                e.affectsConfiguration('shadowWatch.claudeApiKey') ||
-                e.affectsConfiguration('shadowWatch.llmProvider')) {
-                this.updateApiKeys();
-                // Notify listeners that configuration changed
-                if (this.onConfigurationChange) {
-                    this.onConfigurationChange();
-                }
+        // Listen for configuration changes via ConfigurationManager
+        this.configManager.onConfigurationChange(() => {
+            this.updateApiKeys();
+            // Notify listeners that configuration changed
+            if (this.onConfigurationChange) {
+                this.onConfigurationChange();
             }
         });
     }
@@ -105,15 +103,13 @@ export class LLMService {
     }
 
     private updateApiKeys() {
-        const config = vscode.workspace.getConfiguration('shadowWatch');
-        
         // Get provider preference
-        this.provider = config.get<LLMProvider>('llmProvider', 'openai');
+        this.provider = this.configManager.llmProvider;
         
         // Update OpenAI client
-        const openaiKey = config.get<string>('openaiApiKey', '');
-        if (openaiKey && openaiKey.trim() !== '') {
-            this.openaiApiKey = openaiKey.trim();
+        const openaiKey = this.configManager.openaiApiKey;
+        if (openaiKey && openaiKey.length > 0) {
+            this.openaiApiKey = openaiKey;
             this.openaiClient = new OpenAI({
                 apiKey: this.openaiApiKey,
                 timeout: 300000 // 5 minutes
@@ -124,9 +120,9 @@ export class LLMService {
         }
         
         // Update Claude client
-        const claudeKey = config.get<string>('claudeApiKey', '');
-        if (claudeKey && claudeKey.trim() !== '') {
-            this.claudeApiKey = claudeKey.trim();
+        const claudeKey = this.configManager.claudeApiKey;
+        if (claudeKey && claudeKey.length > 0) {
+            this.claudeApiKey = claudeKey;
             this.claudeClient = new Anthropic({
                 apiKey: this.claudeApiKey,
                 timeout: 300000 // 5 minutes
@@ -172,13 +168,12 @@ export class LLMService {
         });
 
         if (result) {
-            const config = vscode.workspace.getConfiguration('shadowWatch');
             const keyName = isClaude ? 'claudeApiKey' : 'openaiApiKey';
-            await config.update(keyName, result.trim(), vscode.ConfigurationTarget.Global);
+            await this.configManager.update(keyName, result.trim(), vscode.ConfigurationTarget.Global);
             
             // If setting the key for the current provider, also update the provider if needed
             if (!provider && targetProvider !== this.provider) {
-                await config.update('llmProvider', targetProvider, vscode.ConfigurationTarget.Global);
+                await this.configManager.update('llmProvider', targetProvider, vscode.ConfigurationTarget.Global);
             }
             
             return true;
@@ -414,8 +409,7 @@ export class LLMService {
             onProductDocIteration?: (doc: EnhancedProductDocumentation, iteration: number, maxIterations: number) => void;
         }
     ): Promise<EnhancedProductDocumentation> {
-        const config = vscode.workspace.getConfiguration('shadowWatch');
-        const provider = config.get<string>('llmProvider', 'openai');
+        const provider = this.configManager.llmProvider;
         const isClaude = provider === 'claude';
 
         if (isClaude) {
