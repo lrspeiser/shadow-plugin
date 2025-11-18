@@ -316,13 +316,17 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
         console.log('[ProductNavigator] getChildren called, element type:', element?.type || 'root');
         console.log('[ProductNavigator] Has productDocs:', !!this.productDocs);
         
-        // Build partial product docs from incremental files if we don't have complete docs yet
-        const partialDocs = this.buildPartialDocsFromIncremental();
-        console.log('[ProductNavigator] Built partial docs:', {
-            hasPartialDocs: !!partialDocs,
-            modulesCount: partialDocs?.modules?.length || 0,
-            fileSummariesCount: partialDocs?.fileSummaries?.length || 0
-        });
+        // Only build partial docs from incremental files if we don't have complete docs yet
+        // This matches the behavior of InsightsViewerProvider which only loads from disk if !this.insights
+        let partialDocs: EnhancedProductDocumentation | null = null;
+        if (!this.productDocs) {
+            partialDocs = this.buildPartialDocsFromIncremental();
+            console.log('[ProductNavigator] Built partial docs:', {
+                hasPartialDocs: !!partialDocs,
+                modulesCount: partialDocs?.modules?.length || 0,
+                fileSummariesCount: partialDocs?.fileSummaries?.length || 0
+            });
+        }
         
         const docs = this.productDocs || partialDocs;
         

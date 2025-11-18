@@ -132,24 +132,39 @@ async function analyzeWorkspace() {
         return;
     }
 
-    // Clear product navigator state to prevent showing stale data
+    // Clear product navigator and insights viewer state to prevent showing stale data
     const { getStateManager } = await import('./state/llmStateManager');
     const stateManager = getStateManager();
     const productNavigator = stateManager.getProductNavigator();
     if (productNavigator) {
         productNavigator.clearState();
     }
+    const insightsViewer = stateManager.getInsightsViewer();
+    if (insightsViewer) {
+        insightsViewer.setInsights(null);
+    }
 
     statusBarItem.text = '$(sync~spin) Analyzing...';
     
     const { progressService } = await import('./infrastructure/progressService');
     
-    await progressService.withProgressNonCancellable('Shadow Watch', async (reporter) => {
+    await progressService.withProgress('Shadow Watch', async (reporter) => {
         reporter.report('Analyzing workspace...');
 
         try {
+            // Check for cancellation
+            if (reporter.cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
             const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
             const analysis = await analyzer.analyzeWorkspace(workspaceRoot);
+            
+            // Check for cancellation after analysis
+            if (reporter.cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
             const insights = insightGenerator.generateInsights(analysis);
             
             // Set analysis context for LLM features (setCodeAnalysis will also set the context)
@@ -174,8 +189,13 @@ async function analyzeWorkspace() {
             
             reporter.report('Step 1 complete. Starting comprehensive analysis...');
             
+            // Check for cancellation before comprehensive analysis
+            if (reporter.cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+            
             // Now run the comprehensive analysis workflow (Product Docs → Architecture Insights → Report)
-            await llmIntegration.runComprehensiveAnalysis();
+            await llmIntegration.runComprehensiveAnalysis(reporter.cancellationToken);
             
         } catch (error) {
             statusBarItem.text = '$(eye) Error';

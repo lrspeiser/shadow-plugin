@@ -290,7 +290,7 @@ export async function generateProductDocs() {
 
     const { progressService } = await import('./infrastructure/progressService');
     
-    await progressService.withProgressNonCancellable('Generating Enhanced Product Documentation with AI...', async (reporter) => {
+    await progressService.withProgress('Generating Enhanced Product Documentation with AI...', async (reporter) => {
         try {
             // Reset run context for new generation
             analysisResultRepository.resetProductDocsRun();
@@ -442,7 +442,7 @@ export async function generateLLMInsights() {
 
     const { progressService } = await import('./infrastructure/progressService');
     
-    await progressService.withProgressNonCancellable('Generating Architecture Insights with AI...', async (reporter) => {
+    await progressService.withProgress('Generating Architecture Insights with AI...', async (reporter) => {
         try {
             if (!lastAnalysisContext) {
                 throw new Error('No analysis context available. Please run workspace analysis first.');
@@ -1585,7 +1585,7 @@ function escapeHtml(text: string): string {
 /**
  * Sequential workflow: Analyze Workspace → Generate Product Docs → Generate Architecture Insights → Generate Report
  */
-export async function runComprehensiveAnalysis(): Promise<void> {
+export async function runComprehensiveAnalysis(cancellationToken?: vscode.CancellationToken): Promise<void> {
     const llmService = stateManager.getLLMService();
     const treeProvider = stateManager.getTreeProvider();
     

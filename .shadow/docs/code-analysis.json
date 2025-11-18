@@ -1,7 +1,7 @@
 {
   "totalFiles": 43,
-  "totalLines": 16660,
-  "totalFunctions": 832,
+  "totalLines": 16686,
+  "totalFunctions": 833,
   "largeFiles": 9,
   "files": [
     {
@@ -126,8 +126,8 @@
     },
     {
       "path": "src/extension.ts",
-      "lines": 642,
-      "functions": 42,
+      "lines": 650,
+      "functions": 43,
       "language": "typescript"
     },
     {
@@ -210,7 +210,7 @@
     },
     {
       "path": "src/productNavigator.ts",
-      "lines": 1039,
+      "lines": 1057,
       "functions": 49,
       "language": "typescript"
     },
@@ -366,7 +366,7 @@
     },
     {
       "path": "shadow-watch-1.0.0.vsix",
-      "lines": 2039,
+      "lines": 2019,
       "functions": 0,
       "language": "vsix"
     },
@@ -2516,8 +2516,8 @@
       "name": "analyzeWorkspace",
       "file": "src/extension.ts",
       "startLine": 123,
-      "endLine": 178,
-      "lines": 56,
+      "endLine": 186,
+      "lines": 64,
       "language": "javascript"
     },
     {
@@ -2539,65 +2539,65 @@
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 151,
-      "endLine": 153,
+      "startLine": 139,
+      "endLine": 141,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 159,
+      "endLine": 161,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "analyzeCurrentFile",
       "file": "src/extension.ts",
-      "startLine": 180,
-      "endLine": 211,
+      "startLine": 188,
+      "endLine": 219,
       "lines": 32,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 182,
-      "endLine": 185,
+      "startLine": 190,
+      "endLine": 193,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 188,
-      "endLine": 191,
+      "startLine": 196,
+      "endLine": 199,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "copyAllInsights",
       "file": "src/extension.ts",
-      "startLine": 213,
-      "endLine": 227,
+      "startLine": 221,
+      "endLine": 235,
       "lines": 15,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 215,
-      "endLine": 218,
+      "startLine": 223,
+      "endLine": 226,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "copyFileInsights",
       "file": "src/extension.ts",
-      "startLine": 229,
-      "endLine": 251,
+      "startLine": 237,
+      "endLine": 259,
       "lines": 23,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 231,
-      "endLine": 234,
-      "lines": 4,
       "language": "javascript"
     },
     {
@@ -2609,83 +2609,83 @@
       "language": "javascript"
     },
     {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 247,
+      "endLine": 250,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
       "name": "copyInsight",
       "file": "src/extension.ts",
-      "startLine": 253,
-      "endLine": 265,
+      "startLine": 261,
+      "endLine": 273,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 254,
-      "endLine": 256,
+      "startLine": 262,
+      "endLine": 264,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "clearCache",
       "file": "src/extension.ts",
-      "startLine": 267,
-      "endLine": 273,
+      "startLine": 275,
+      "endLine": 281,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "copyMenuStructure",
       "file": "src/extension.ts",
-      "startLine": 275,
-      "endLine": 297,
+      "startLine": 283,
+      "endLine": 305,
       "lines": 23,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 276,
-      "endLine": 279,
+      "startLine": 284,
+      "endLine": 287,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "showProviderStatus",
       "file": "src/extension.ts",
-      "startLine": 299,
-      "endLine": 345,
+      "startLine": 307,
+      "endLine": 353,
       "lines": 47,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 338,
-      "endLine": 340,
+      "startLine": 346,
+      "endLine": 348,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "switchProvider",
       "file": "src/extension.ts",
-      "startLine": 347,
-      "endLine": 381,
+      "startLine": 355,
+      "endLine": 389,
       "lines": 35,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 359,
-      "endLine": 380,
+      "startLine": 367,
+      "endLine": 388,
       "lines": 22,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 369,
-      "endLine": 371,
-      "lines": 3,
       "language": "javascript"
     },
     {
@@ -2697,79 +2697,71 @@
       "language": "javascript"
     },
     {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 385,
+      "endLine": 387,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
       "name": "clearAllData",
       "file": "src/extension.ts",
-      "startLine": 383,
-      "endLine": 411,
+      "startLine": 391,
+      "endLine": 419,
       "lines": 29,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 391,
-      "endLine": 410,
+      "startLine": 399,
+      "endLine": 418,
       "lines": 20,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 398,
-      "endLine": 400,
+      "startLine": 406,
+      "endLine": 408,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "showSettings",
       "file": "src/extension.ts",
-      "startLine": 416,
-      "endLine": 455,
+      "startLine": 424,
+      "endLine": 463,
       "lines": 40,
       "language": "javascript"
     },
     {
       "name": "switch",
       "file": "src/extension.ts",
-      "startLine": 433,
-      "endLine": 451,
+      "startLine": 441,
+      "endLine": 459,
       "lines": 19,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 441,
-      "endLine": 443,
+      "startLine": 449,
+      "endLine": 451,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "getSettingsHtml",
       "file": "src/extension.ts",
-      "startLine": 457,
-      "endLine": 604,
+      "startLine": 465,
+      "endLine": 612,
       "lines": 148,
       "language": "javascript"
     },
     {
       "name": "switchProvider",
-      "file": "src/extension.ts",
-      "startLine": 585,
-      "endLine": 587,
-      "lines": 3,
-      "language": "javascript"
-    },
-    {
-      "name": "copyMenuStructure",
-      "file": "src/extension.ts",
-      "startLine": 589,
-      "endLine": 591,
-      "lines": 3,
-      "language": "javascript"
-    },
-    {
-      "name": "openVSCodeSettings",
       "file": "src/extension.ts",
       "startLine": 593,
       "endLine": 595,
@@ -2777,50 +2769,66 @@
       "language": "javascript"
     },
     {
+      "name": "copyMenuStructure",
+      "file": "src/extension.ts",
+      "startLine": 597,
+      "endLine": 599,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "openVSCodeSettings",
+      "file": "src/extension.ts",
+      "startLine": 601,
+      "endLine": 603,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
       "name": "openLatestReport",
       "file": "src/extension.ts",
-      "startLine": 606,
-      "endLine": 631,
+      "startLine": 614,
+      "endLine": 639,
       "lines": 26,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 607,
-      "endLine": 610,
+      "startLine": 615,
+      "endLine": 618,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 613,
-      "endLine": 616,
+      "startLine": 621,
+      "endLine": 624,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "deactivate",
       "file": "src/extension.ts",
-      "startLine": 633,
-      "endLine": 640,
+      "startLine": 641,
+      "endLine": 648,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 634,
-      "endLine": 636,
+      "startLine": 642,
+      "endLine": 644,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 637,
-      "endLine": 639,
+      "startLine": 645,
+      "endLine": 647,
       "lines": 3,
       "language": "javascript"
     },
@@ -6155,217 +6163,201 @@
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 235,
-      "endLine": 240,
+      "startLine": 242,
+      "endLine": 247,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 246,
-      "endLine": 251,
+      "startLine": 253,
+      "endLine": 258,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 259,
-      "endLine": 261,
+      "startLine": 266,
+      "endLine": 268,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 265,
-      "endLine": 268,
+      "startLine": 272,
+      "endLine": 275,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 269,
-      "endLine": 271,
+      "startLine": 276,
+      "endLine": 278,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 290,
-      "endLine": 296,
+      "startLine": 304,
+      "endLine": 310,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 315,
-      "endLine": 325,
+      "startLine": 329,
+      "endLine": 339,
       "lines": 11,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 333,
-      "endLine": 341,
+      "startLine": 347,
+      "endLine": 355,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "switch",
       "file": "src/productNavigator.ts",
-      "startLine": 344,
-      "endLine": 378,
+      "startLine": 358,
+      "endLine": 392,
       "lines": 35,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 385,
-      "endLine": 388,
+      "startLine": 403,
+      "endLine": 406,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 413,
-      "endLine": 416,
+      "startLine": 431,
+      "endLine": 434,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 476,
-      "endLine": 493,
+      "startLine": 494,
+      "endLine": 511,
       "lines": 18,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 478,
-      "endLine": 492,
+      "startLine": 496,
+      "endLine": 510,
       "lines": 15,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 479,
-      "endLine": 491,
+      "startLine": 497,
+      "endLine": 509,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 487,
-      "endLine": 490,
+      "startLine": 505,
+      "endLine": 508,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 496,
-      "endLine": 508,
+      "startLine": 514,
+      "endLine": 526,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 521,
-      "endLine": 528,
+      "startLine": 539,
+      "endLine": 546,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 531,
-      "endLine": 538,
+      "startLine": 549,
+      "endLine": 556,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 547,
-      "endLine": 554,
+      "startLine": 565,
+      "endLine": 572,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 557,
-      "endLine": 564,
+      "startLine": 575,
+      "endLine": 582,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 567,
-      "endLine": 574,
+      "startLine": 585,
+      "endLine": 592,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 577,
-      "endLine": 594,
+      "startLine": 595,
+      "endLine": 612,
       "lines": 18,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 582,
-      "endLine": 584,
+      "startLine": 600,
+      "endLine": 602,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 598,
-      "endLine": 610,
+      "startLine": 616,
+      "endLine": 628,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 601,
-      "endLine": 609,
+      "startLine": 619,
+      "endLine": 627,
       "lines": 9,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/productNavigator.ts",
-      "startLine": 644,
-      "endLine": 651,
-      "lines": 8,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/productNavigator.ts",
-      "startLine": 653,
-      "endLine": 660,
-      "lines": 8,
       "language": "javascript"
     },
     {
@@ -6387,120 +6379,136 @@
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 791,
-      "endLine": 799,
+      "startLine": 680,
+      "endLine": 687,
+      "lines": 8,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/productNavigator.ts",
+      "startLine": 689,
+      "endLine": 696,
+      "lines": 8,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/productNavigator.ts",
+      "startLine": 809,
+      "endLine": 817,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 802,
-      "endLine": 812,
+      "startLine": 820,
+      "endLine": 830,
       "lines": 11,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 803,
-      "endLine": 811,
+      "startLine": 821,
+      "endLine": 829,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 815,
-      "endLine": 828,
+      "startLine": 833,
+      "endLine": 846,
       "lines": 14,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 816,
-      "endLine": 827,
+      "startLine": 834,
+      "endLine": 845,
       "lines": 12,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 831,
-      "endLine": 841,
+      "startLine": 849,
+      "endLine": 859,
       "lines": 11,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 832,
-      "endLine": 840,
+      "startLine": 850,
+      "endLine": 858,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 844,
-      "endLine": 854,
+      "startLine": 862,
+      "endLine": 872,
       "lines": 11,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 845,
-      "endLine": 853,
+      "startLine": 863,
+      "endLine": 871,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 857,
-      "endLine": 865,
+      "startLine": 875,
+      "endLine": 883,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 901,
-      "endLine": 909,
+      "startLine": 919,
+      "endLine": 927,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 912,
-      "endLine": 920,
+      "startLine": 930,
+      "endLine": 938,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/productNavigator.ts",
-      "startLine": 923,
-      "endLine": 933,
+      "startLine": 941,
+      "endLine": 951,
       "lines": 11,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 924,
-      "endLine": 932,
+      "startLine": 942,
+      "endLine": 950,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/productNavigator.ts",
-      "startLine": 950,
-      "endLine": 956,
+      "startLine": 968,
+      "endLine": 974,
       "lines": 7,
       "language": "javascript"
     },
@@ -7372,7 +7380,7 @@
     }
   ],
   "_metadata": {
-    "generatedAt": "2025-11-18T16:47:18.908Z",
-    "generatedAtLocal": "11/18/2025, 8:47:18 AM"
+    "generatedAt": "2025-11-18T16:56:11.804Z",
+    "generatedAtLocal": "11/18/2025, 8:56:11 AM"
   }
 }
