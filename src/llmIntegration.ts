@@ -2056,7 +2056,16 @@ export async function generateUnitTests(): Promise<void> {
             vscode.window.showInformationMessage(
                 '✅ Unit test plan generated! Check the "Unit Tests" panel to view it.'
             );
+            
+            // Reset status to complete on success
+            if (treeProvider) {
+                treeProvider.setUnitTestStatus('complete');
+            }
         } catch (error: any) {
+            // Reset status to idle on error
+            if (treeProvider) {
+                treeProvider.setUnitTestStatus('idle');
+            }
             const errorMessage = error.message || String(error);
             SWLogger.log(`ERROR: Failed to generate unit tests: ${errorMessage}`);
             vscode.window.showErrorMessage(`Failed to generate unit tests: ${errorMessage}`);
