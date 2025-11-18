@@ -2536,7 +2536,7 @@ Return ONLY the JSON object, no other text.`;
         try {
             if (isClaude) {
                 const response = await this.claudeClient!.messages.create({
-                    model: 'claude-3-5-sonnet-20241022',
+                    model: 'claude-sonnet-4-5',
                     max_tokens: 8192,
                     messages: [{
                         role: 'user',

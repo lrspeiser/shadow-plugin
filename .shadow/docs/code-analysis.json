@@ -1,7 +1,7 @@
 {
   "totalFiles": 20,
-  "totalLines": 12313,
-  "totalFunctions": 672,
+  "totalLines": 12968,
+  "totalFunctions": 719,
   "largeFiles": 8,
   "files": [
     {
@@ -30,8 +30,8 @@
     },
     {
       "path": "src/extension.ts",
-      "lines": 1171,
-      "functions": 73,
+      "lines": 1420,
+      "functions": 83,
       "language": "typescript"
     },
     {
@@ -60,8 +60,8 @@
     },
     {
       "path": "src/insightsTreeView.ts",
-      "lines": 1020,
-      "functions": 53,
+      "lines": 957,
+      "functions": 52,
       "language": "typescript"
     },
     {
@@ -78,8 +78,8 @@
     },
     {
       "path": "src/llmIntegration.ts",
-      "lines": 2059,
-      "functions": 174,
+      "lines": 2291,
+      "functions": 200,
       "language": "typescript"
     },
     {
@@ -90,8 +90,8 @@
     },
     {
       "path": "src/llmService.ts",
-      "lines": 2516,
-      "functions": 129,
+      "lines": 2753,
+      "functions": 141,
       "language": "typescript"
     },
     {
@@ -222,7 +222,7 @@
     },
     {
       "path": "shadow-watch-1.0.0.vsix",
-      "lines": 1639,
+      "lines": 1873,
       "functions": 0,
       "language": "vsix"
     },
@@ -670,432 +670,424 @@
       "name": "activate",
       "file": "src/extension.ts",
       "startLine": 34,
-      "endLine": 294,
-      "lines": 261,
+      "endLine": 302,
+      "lines": 269,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 213,
-      "endLine": 216,
+      "startLine": 217,
+      "endLine": 220,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 275,
-      "endLine": 277,
+      "startLine": 283,
+      "endLine": 285,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 285,
-      "endLine": 290,
+      "startLine": 293,
+      "endLine": 298,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "analyzeWorkspace",
       "file": "src/extension.ts",
-      "startLine": 296,
-      "endLine": 349,
-      "lines": 54,
+      "startLine": 304,
+      "endLine": 361,
+      "lines": 58,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 303,
-      "endLine": 306,
+      "startLine": 311,
+      "endLine": 314,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 326,
-      "endLine": 328,
+      "startLine": 334,
+      "endLine": 336,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "analyzeCurrentFile",
       "file": "src/extension.ts",
-      "startLine": 351,
-      "endLine": 382,
+      "startLine": 363,
+      "endLine": 394,
       "lines": 32,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 353,
-      "endLine": 356,
+      "startLine": 365,
+      "endLine": 368,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "copyAllInsights",
       "file": "src/extension.ts",
-      "startLine": 384,
-      "endLine": 398,
+      "startLine": 396,
+      "endLine": 410,
       "lines": 15,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 386,
-      "endLine": 389,
+      "startLine": 398,
+      "endLine": 401,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "copyFileInsights",
       "file": "src/extension.ts",
-      "startLine": 400,
-      "endLine": 422,
+      "startLine": 412,
+      "endLine": 434,
       "lines": 23,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 402,
-      "endLine": 405,
+      "startLine": 414,
+      "endLine": 417,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 410,
-      "endLine": 413,
+      "startLine": 422,
+      "endLine": 425,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "copyInsight",
       "file": "src/extension.ts",
-      "startLine": 424,
-      "endLine": 436,
+      "startLine": 436,
+      "endLine": 448,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 425,
-      "endLine": 427,
+      "startLine": 437,
+      "endLine": 439,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "clearCache",
       "file": "src/extension.ts",
-      "startLine": 438,
-      "endLine": 444,
+      "startLine": 450,
+      "endLine": 456,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "copyMenuStructure",
       "file": "src/extension.ts",
-      "startLine": 446,
-      "endLine": 470,
+      "startLine": 458,
+      "endLine": 482,
       "lines": 25,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 447,
-      "endLine": 450,
+      "startLine": 459,
+      "endLine": 462,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "showProviderStatus",
       "file": "src/extension.ts",
-      "startLine": 472,
-      "endLine": 518,
+      "startLine": 484,
+      "endLine": 530,
       "lines": 47,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 511,
-      "endLine": 513,
+      "startLine": 523,
+      "endLine": 525,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "switchProvider",
       "file": "src/extension.ts",
-      "startLine": 520,
-      "endLine": 554,
+      "startLine": 532,
+      "endLine": 566,
       "lines": 35,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 532,
-      "endLine": 553,
+      "startLine": 544,
+      "endLine": 565,
       "lines": 22,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 542,
-      "endLine": 544,
+      "startLine": 554,
+      "endLine": 556,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 550,
-      "endLine": 552,
+      "startLine": 562,
+      "endLine": 564,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "clearAllData",
       "file": "src/extension.ts",
-      "startLine": 556,
-      "endLine": 584,
+      "startLine": 568,
+      "endLine": 596,
       "lines": 29,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 564,
-      "endLine": 583,
+      "startLine": 576,
+      "endLine": 595,
       "lines": 20,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 571,
-      "endLine": 573,
+      "startLine": 583,
+      "endLine": 585,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "navigateToProductItem",
       "file": "src/extension.ts",
-      "startLine": 586,
-      "endLine": 660,
+      "startLine": 598,
+      "endLine": 672,
       "lines": 75,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 587,
-      "endLine": 589,
+      "startLine": 599,
+      "endLine": 601,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 594,
-      "endLine": 609,
+      "startLine": 606,
+      "endLine": 621,
       "lines": 16,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 596,
-      "endLine": 608,
+      "startLine": 608,
+      "endLine": 620,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 612,
-      "endLine": 639,
+      "startLine": 624,
+      "endLine": 651,
       "lines": 28,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 615,
-      "endLine": 638,
+      "startLine": 627,
+      "endLine": 650,
       "lines": 24,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 630,
-      "endLine": 634,
-      "lines": 5,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
       "startLine": 642,
-      "endLine": 659,
+      "endLine": 646,
+      "lines": 5,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 654,
+      "endLine": 671,
       "lines": 18,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 644,
-      "endLine": 658,
+      "startLine": 656,
+      "endLine": 670,
       "lines": 15,
       "language": "javascript"
     },
     {
       "name": "navigateToAnalysisItem",
       "file": "src/extension.ts",
-      "startLine": 662,
-      "endLine": 732,
+      "startLine": 674,
+      "endLine": 744,
       "lines": 71,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 663,
-      "endLine": 665,
+      "startLine": 675,
+      "endLine": 677,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 670,
-      "endLine": 687,
+      "startLine": 682,
+      "endLine": 699,
       "lines": 18,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 674,
-      "endLine": 686,
+      "startLine": 686,
+      "endLine": 698,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 690,
-      "endLine": 713,
+      "startLine": 702,
+      "endLine": 725,
       "lines": 24,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 692,
-      "endLine": 712,
+      "startLine": 704,
+      "endLine": 724,
       "lines": 21,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 703,
-      "endLine": 708,
+      "startLine": 715,
+      "endLine": 720,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 716,
-      "endLine": 731,
+      "startLine": 728,
+      "endLine": 743,
       "lines": 16,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 718,
-      "endLine": 730,
+      "startLine": 730,
+      "endLine": 742,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "copyInsightItem",
       "file": "src/extension.ts",
-      "startLine": 734,
-      "endLine": 748,
+      "startLine": 746,
+      "endLine": 760,
       "lines": 15,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 743,
-      "endLine": 747,
+      "startLine": 755,
+      "endLine": 759,
       "lines": 5,
       "language": "javascript"
     },
     {
       "name": "showProductItemDetails",
       "file": "src/extension.ts",
-      "startLine": 750,
-      "endLine": 793,
+      "startLine": 762,
+      "endLine": 805,
       "lines": 44,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 752,
-      "endLine": 755,
+      "startLine": 764,
+      "endLine": 767,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "showInsightItemDetails",
       "file": "src/extension.ts",
-      "startLine": 795,
-      "endLine": 959,
+      "startLine": 807,
+      "endLine": 971,
       "lines": 165,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 802,
-      "endLine": 806,
+      "startLine": 814,
+      "endLine": 818,
       "lines": 5,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 822,
-      "endLine": 825,
+      "startLine": 834,
+      "endLine": 837,
       "lines": 4,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 849,
-      "endLine": 857,
-      "lines": 9,
       "language": "javascript"
     },
     {
@@ -1107,43 +1099,27 @@
       "language": "javascript"
     },
     {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 873,
+      "endLine": 881,
+      "lines": 9,
+      "language": "javascript"
+    },
+    {
       "name": "showUnitTestItemDetails",
       "file": "src/extension.ts",
-      "startLine": 961,
-      "endLine": 1160,
+      "startLine": 973,
+      "endLine": 1172,
       "lines": 200,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 968,
-      "endLine": 1006,
+      "startLine": 980,
+      "endLine": 1018,
       "lines": 39,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 974,
-      "endLine": 977,
-      "lines": 4,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 978,
-      "endLine": 981,
-      "lines": 4,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/extension.ts",
-      "startLine": 982,
-      "endLine": 985,
-      "lines": 4,
       "language": "javascript"
     },
     {
@@ -1189,24 +1165,24 @@
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 1012,
-      "endLine": 1015,
+      "startLine": 1006,
+      "endLine": 1009,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 1016,
-      "endLine": 1019,
+      "startLine": 1010,
+      "endLine": 1013,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 1020,
-      "endLine": 1023,
+      "startLine": 1014,
+      "endLine": 1017,
       "lines": 4,
       "language": "javascript"
     },
@@ -1221,32 +1197,136 @@
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 1042,
-      "endLine": 1045,
+      "startLine": 1028,
+      "endLine": 1031,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 1032,
+      "endLine": 1035,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 1036,
+      "endLine": 1039,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 1054,
+      "endLine": 1057,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "showSettings",
+      "file": "src/extension.ts",
+      "startLine": 1174,
+      "endLine": 1213,
+      "lines": 40,
+      "language": "javascript"
+    },
+    {
+      "name": "switch",
+      "file": "src/extension.ts",
+      "startLine": 1191,
+      "endLine": 1209,
+      "lines": 19,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 1199,
+      "endLine": 1201,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "getSettingsHtml",
+      "file": "src/extension.ts",
+      "startLine": 1215,
+      "endLine": 1382,
+      "lines": 168,
+      "language": "javascript"
+    },
+    {
+      "name": "switchProvider",
+      "file": "src/extension.ts",
+      "startLine": 1368,
+      "endLine": 1370,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "copyMenuStructure",
+      "file": "src/extension.ts",
+      "startLine": 1372,
+      "endLine": 1374,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "openVSCodeSettings",
+      "file": "src/extension.ts",
+      "startLine": 1376,
+      "endLine": 1378,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "openLatestReport",
+      "file": "src/extension.ts",
+      "startLine": 1384,
+      "endLine": 1409,
+      "lines": 26,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 1385,
+      "endLine": 1388,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/extension.ts",
+      "startLine": 1391,
+      "endLine": 1394,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "deactivate",
       "file": "src/extension.ts",
-      "startLine": 1162,
-      "endLine": 1169,
+      "startLine": 1411,
+      "endLine": 1418,
       "lines": 8,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 1163,
-      "endLine": 1165,
+      "startLine": 1412,
+      "endLine": 1414,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/extension.ts",
-      "startLine": 1166,
-      "endLine": 1168,
+      "startLine": 1415,
+      "endLine": 1417,
       "lines": 3,
       "language": "javascript"
     },
@@ -1685,424 +1765,416 @@
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 44,
-      "endLine": 46,
+      "startLine": 46,
+      "endLine": 48,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 52,
-      "endLine": 54,
+      "startLine": 54,
+      "endLine": 56,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 73,
-      "endLine": 76,
+      "startLine": 75,
+      "endLine": 78,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 82,
-      "endLine": 85,
+      "startLine": 84,
+      "endLine": 87,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 112,
-      "endLine": 119,
-      "lines": 8,
+      "startLine": 116,
+      "endLine": 125,
+      "lines": 10,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 126,
-      "endLine": 128,
+      "startLine": 132,
+      "endLine": 134,
       "lines": 3,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/insightsTreeView.ts",
-      "startLine": 151,
-      "endLine": 163,
-      "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
       "startLine": 157,
-      "endLine": 160,
-      "lines": 4,
+      "endLine": 169,
+      "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 175,
-      "endLine": 201,
-      "lines": 27,
+      "startLine": 163,
+      "endLine": 166,
+      "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
       "startLine": 181,
-      "endLine": 184,
+      "endLine": 207,
+      "lines": 27,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/insightsTreeView.ts",
+      "startLine": 187,
+      "endLine": 190,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 208,
-      "endLine": 248,
+      "startLine": 214,
+      "endLine": 254,
       "lines": 41,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 227,
-      "endLine": 236,
+      "startLine": 233,
+      "endLine": 242,
       "lines": 10,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 232,
-      "endLine": 235,
+      "startLine": 238,
+      "endLine": 241,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 242,
-      "endLine": 247,
+      "startLine": 248,
+      "endLine": 253,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 244,
-      "endLine": 246,
+      "startLine": 250,
+      "endLine": 252,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 275,
-      "endLine": 277,
-      "lines": 3,
+      "startLine": 266,
+      "endLine": 270,
+      "lines": 5,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
       "startLine": 310,
-      "endLine": 318,
+      "endLine": 312,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/insightsTreeView.ts",
+      "startLine": 345,
+      "endLine": 353,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 337,
-      "endLine": 340,
+      "startLine": 372,
+      "endLine": 375,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 342,
-      "endLine": 345,
+      "startLine": 377,
+      "endLine": 380,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 347,
-      "endLine": 350,
+      "startLine": 382,
+      "endLine": 385,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "traverse",
       "file": "src/insightsTreeView.ts",
-      "startLine": 366,
-      "endLine": 384,
+      "startLine": 401,
+      "endLine": 419,
       "lines": 19,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 374,
-      "endLine": 383,
+      "startLine": 409,
+      "endLine": 418,
       "lines": 10,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/insightsTreeView.ts",
-      "startLine": 377,
-      "endLine": 379,
+      "startLine": 412,
+      "endLine": 414,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/insightsTreeView.ts",
-      "startLine": 386,
-      "endLine": 388,
+      "startLine": 421,
+      "endLine": 423,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 391,
-      "endLine": 397,
+      "startLine": 426,
+      "endLine": 432,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/insightsTreeView.ts",
-      "startLine": 394,
-      "endLine": 396,
+      "startLine": 429,
+      "endLine": 431,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 408,
-      "endLine": 412,
+      "startLine": 443,
+      "endLine": 447,
       "lines": 5,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 431,
-      "endLine": 436,
+      "startLine": 463,
+      "endLine": 468,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 470,
-      "endLine": 475,
-      "lines": 6,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/insightsTreeView.ts",
-      "startLine": 487,
-      "endLine": 491,
+      "startLine": 472,
+      "endLine": 476,
       "lines": 5,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 516,
-      "endLine": 521,
-      "lines": 6,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/insightsTreeView.ts",
-      "startLine": 525,
-      "endLine": 529,
-      "lines": 5,
+      "startLine": 504,
+      "endLine": 518,
+      "lines": 15,
       "language": "javascript"
     },
     {
       "name": "switch",
       "file": "src/insightsTreeView.ts",
-      "startLine": 617,
-      "endLine": 635,
+      "startLine": 554,
+      "endLine": 572,
       "lines": 19,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 638,
-      "endLine": 649,
+      "startLine": 575,
+      "endLine": 586,
       "lines": 12,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 664,
-      "endLine": 670,
+      "startLine": 601,
+      "endLine": 607,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 666,
-      "endLine": 668,
+      "startLine": 603,
+      "endLine": 605,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 678,
-      "endLine": 680,
+      "startLine": 615,
+      "endLine": 617,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "penalty",
       "file": "src/insightsTreeView.ts",
-      "startLine": 687,
-      "endLine": 696,
+      "startLine": 624,
+      "endLine": 633,
       "lines": 10,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 694,
-      "endLine": 696,
+      "startLine": 631,
+      "endLine": 633,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 707,
-      "endLine": 709,
+      "startLine": 644,
+      "endLine": 646,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 712,
-      "endLine": 714,
+      "startLine": 649,
+      "endLine": 651,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 726,
-      "endLine": 731,
+      "startLine": 663,
+      "endLine": 668,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 748,
-      "endLine": 760,
+      "startLine": 685,
+      "endLine": 697,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 763,
-      "endLine": 769,
+      "startLine": 700,
+      "endLine": 706,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 772,
-      "endLine": 804,
+      "startLine": 709,
+      "endLine": 741,
       "lines": 33,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 807,
-      "endLine": 819,
+      "startLine": 744,
+      "endLine": 756,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 822,
-      "endLine": 834,
+      "startLine": 759,
+      "endLine": 771,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 837,
-      "endLine": 883,
+      "startLine": 774,
+      "endLine": 820,
       "lines": 47,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 874,
-      "endLine": 882,
+      "startLine": 811,
+      "endLine": 819,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 886,
-      "endLine": 918,
+      "startLine": 823,
+      "endLine": 855,
       "lines": 33,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 921,
-      "endLine": 933,
+      "startLine": 858,
+      "endLine": 870,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/insightsTreeView.ts",
-      "startLine": 944,
-      "endLine": 956,
+      "startLine": 881,
+      "endLine": 893,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "switch",
       "file": "src/insightsTreeView.ts",
-      "startLine": 967,
-      "endLine": 984,
+      "startLine": 904,
+      "endLine": 921,
       "lines": 18,
       "language": "javascript"
     },
@@ -3971,6 +4043,214 @@
       "language": "javascript"
     },
     {
+      "name": "runComprehensiveAnalysis",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2062,
+      "endLine": 2289,
+      "lines": 228,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2063,
+      "endLine": 2066,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2075,
+      "endLine": 2080,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2088,
+      "endLine": 2091,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2105,
+      "endLine": 2110,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2107,
+      "endLine": 2109,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2115,
+      "endLine": 2117,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2119,
+      "endLine": 2158,
+      "lines": 40,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2121,
+      "endLine": 2123,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2130,
+      "endLine": 2132,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2152,
+      "endLine": 2154,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2155,
+      "endLine": 2157,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2160,
+      "endLine": 2162,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2167,
+      "endLine": 2169,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2171,
+      "endLine": 2218,
+      "lines": 48,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2173,
+      "endLine": 2175,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2183,
+      "endLine": 2185,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2192,
+      "endLine": 2194,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2202,
+      "endLine": 2204,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2211,
+      "endLine": 2214,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2215,
+      "endLine": 2217,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2220,
+      "endLine": 2222,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2236,
+      "endLine": 2238,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2259,
+      "endLine": 2261,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2273,
+      "endLine": 2275,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmIntegration.ts",
+      "startLine": 2282,
+      "endLine": 2285,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
       "name": "constructor",
       "file": "src/llmService.ts",
       "startLine": 86,
@@ -5003,6 +5283,102 @@
       "language": "javascript"
     },
     {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2527,
+      "endLine": 2529,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2530,
+      "endLine": 2532,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2537,
+      "endLine": 2557,
+      "lines": 21,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2547,
+      "endLine": 2549,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2552,
+      "endLine": 2554,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "for",
+      "file": "src/llmService.ts",
+      "startLine": 2562,
+      "endLine": 2588,
+      "lines": 27,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2564,
+      "endLine": 2566,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2575,
+      "endLine": 2577,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2580,
+      "endLine": 2582,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2593,
+      "endLine": 2595,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2637,
+      "endLine": 2652,
+      "lines": 16,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 2654,
+      "endLine": 2679,
+      "lines": 26,
+      "language": "javascript"
+    },
+    {
       "name": "constructor",
       "file": "src/productNavigator.ts",
       "startLine": 22,
@@ -5647,7 +6023,8 @@
       "./analysisViewer",
       "./insightsViewer",
       "./staticAnalysisViewer",
-      "./unitTestsNavigator"
+      "./unitTestsNavigator",
+      "fs"
     ],
     "src/fileAccessHelper.ts": [
       "fs",
@@ -5674,6 +6051,7 @@
       "./insightGenerator",
       "./llmFormatter",
       "./llmService",
+      "fs",
       "path"
     ],
     "src/insightsViewer.ts": [
@@ -5767,7 +6145,7 @@
     }
   ],
   "_metadata": {
-    "generatedAt": "2025-11-17T23:51:28.054Z",
-    "generatedAtLocal": "11/17/2025, 3:51:28 PM"
+    "generatedAt": "2025-11-18T00:28:41.118Z",
+    "generatedAtLocal": "11/17/2025, 4:28:41 PM"
   }
 }
