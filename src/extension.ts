@@ -132,6 +132,14 @@ async function analyzeWorkspace() {
         return;
     }
 
+    // Clear product navigator state to prevent showing stale data
+    const { getStateManager } = await import('./state/llmStateManager');
+    const stateManager = getStateManager();
+    const productNavigator = stateManager.getProductNavigator();
+    if (productNavigator) {
+        productNavigator.clearState();
+    }
+
     statusBarItem.text = '$(sync~spin) Analyzing...';
     
     const { progressService } = await import('./infrastructure/progressService');

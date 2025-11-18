@@ -225,7 +225,14 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
     }
 
     private loadExistingIncrementalFiles(): void {
+        this.reloadIncrementalFilesFromDisk();
+    }
+
+    private reloadIncrementalFilesFromDisk(): void {
         if (!this.workspaceRoot) return;
+
+        // Clear existing incremental files to reload from disk
+        this.incrementalFiles.clear();
 
         const shadowDir = path.join(this.workspaceRoot, '.shadow', 'docs');
         if (!fs.existsSync(shadowDir)) return;
@@ -274,6 +281,13 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
 
     setProductDocs(docs: EnhancedProductDocumentation | null): void {
         this.productDocs = docs;
+        this.refresh();
+    }
+
+    clearState(): void {
+        console.log('[ProductNavigator] clearState() called - clearing productDocs and incrementalFiles');
+        this.productDocs = null;
+        this.incrementalFiles.clear();
         this.refresh();
     }
 
@@ -380,6 +394,10 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
 
     private buildPartialDocsFromIncremental(): EnhancedProductDocumentation | null {
         console.log('[ProductNavigator] buildPartialDocsFromIncremental() called');
+        
+        // Always reload from disk to ensure we have the latest data
+        // This prevents showing stale data after files are deleted
+        this.reloadIncrementalFilesFromDisk();
         
         // Check for module-summaries.json aggregate file
         if (!this.workspaceRoot) {
