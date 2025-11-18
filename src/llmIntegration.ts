@@ -715,7 +715,7 @@ export async function generateLLMInsights() {
             
             // Log error to output channel with detailed error information
             const outputChannel = stateManager.getOutputChannel();
-            {
+            if (outputChannel) {
                 outputChannel.appendLine('');
                 outputChannel.appendLine('❌ ERROR OCCURRED:');
                 outputChannel.appendLine(`Message: ${error.message}`);
@@ -771,6 +771,7 @@ export async function generateLLMInsights() {
 }
 
 export async function showProductDocs() {
+    const lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
     if (!lastEnhancedProductDocs) {
         vscode.window.showWarningMessage('No product documentation generated yet. Run "Generate Product Documentation" first.');
         return;
@@ -787,6 +788,7 @@ export async function showProductDocs() {
 }
 
 export async function showLLMInsights() {
+    const lastLLMInsights = stateManager.getLLMInsights();
     if (!lastLLMInsights) {
         vscode.window.showWarningMessage('No AI insights generated yet. Run "Generate AI Architecture Insights" first.');
         return;
@@ -1298,7 +1300,10 @@ async function saveArchitectureInsightsToFile(insights: LLMInsights): Promise<vo
 // Legacy formatDocsAsMarkdown removed - using enhanced docs only
 
 async function showProductDocsInOutput(): Promise<void> {
-    if (!lastEnhancedProductDocs || !outputChannel) {
+    const lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
+    const outputChannel = stateManager.getOutputChannel();
+    
+    if (!lastEnhancedProductDocs) {
         return;
     }
 
@@ -1409,11 +1414,14 @@ function formatInsightsAsMarkdown(insights: LLMInsights): string {
 }
 
 async function showArchitectureInsightsInOutput(): Promise<void> {
-    if (!lastLLMInsights || !outputChannel) {
+    const lastLLMInsights = stateManager.getLLMInsights();
+    const outputChannel = stateManager.getOutputChannel();
+    
+    if (!lastLLMInsights) {
         return;
     }
 
-    const channel = outputChannel; // TypeScript guard
+    const channel = outputChannel;
     channel.clear();
     channel.appendLine('═══════════════════════════════════════════════════════════');
     channel.appendLine('🧠 AI ARCHITECTURE INSIGHTS');
@@ -1766,10 +1774,7 @@ function getLLMInsightsHtml(insights: LLMInsights): string {
 
 export async function clearAllData(): Promise<void> {
     // Clear all in-memory state
-    lastAnalysisContext = null;
-    lastEnhancedProductDocs = null;
-    lastLLMInsights = null;
-    lastCodeAnalysis = null;
+    stateManager.clearAll();
 
     // Clear workspace .shadow/docs files
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
@@ -1825,6 +1830,7 @@ export async function clearAllData(): Promise<void> {
     }
 
     // Clear tree provider state
+    const treeProvider = stateManager.getTreeProvider();
     if (treeProvider) {
         treeProvider.clear();
         treeProvider.setProductDocsStatus('idle');
@@ -1834,31 +1840,33 @@ export async function clearAllData(): Promise<void> {
     }
 
     // Clear product navigator
+    const productNavigator = stateManager.getProductNavigator();
     if (productNavigator) {
         productNavigator.setProductDocs(null);
     }
 
-
     // Clear insights viewer
+    const insightsViewer = stateManager.getInsightsViewer();
     if (insightsViewer) {
         insightsViewer.setInsights(null);
     }
 
     // Clear analysis viewer
+    const analysisViewer = stateManager.getAnalysisViewer();
     if (analysisViewer) {
         analysisViewer.setAnalysis(null);
     }
 
     // Clear unit tests navigator
+    const unitTestsNavigator = stateManager.getUnitTestsNavigator();
     if (unitTestsNavigator) {
         unitTestsNavigator.setUnitTestPlan(null);
         unitTestsNavigator.refresh();
     }
 
     // Clear output channel
-    if (outputChannel) {
-        outputChannel.clear();
-    }
+    const outputChannel = stateManager.getOutputChannel();
+    outputChannel.clear();
 }
 
 
@@ -1866,6 +1874,9 @@ export async function clearAllData(): Promise<void> {
  * Generate unit tests using LLM directly (no backend required)
  */
 export async function generateUnitTests(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
     // Prevent duplicate calls
     if (treeProvider && treeProvider.getUnitTestStatus() === 'generating') {
         vscode.window.showWarningMessage('Unit test generation is already in progress. Please wait or cancel the current operation.');
@@ -1895,8 +1906,10 @@ export async function generateUnitTests(): Promise<void> {
     }
 
     // Check prerequisites
+    let lastAnalysisContext = stateManager.getAnalysisContext();
     if (!lastAnalysisContext) {
         await loadSavedCodeAnalysis();
+        lastAnalysisContext = stateManager.getAnalysisContext();
         if (!lastAnalysisContext) {
             vscode.window.showErrorMessage('Please run "Analyze Workspace" first');
             return;
@@ -1906,11 +1919,15 @@ export async function generateUnitTests(): Promise<void> {
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
     // Load product docs and architecture insights from local files
+    let lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
     if (!lastEnhancedProductDocs) {
         await loadSavedProductDocs();
+        lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
     }
+    let lastLLMInsights = stateManager.getLLMInsights();
     if (!lastLLMInsights) {
         await loadSavedInsights();
+        lastLLMInsights = stateManager.getLLMInsights();
     }
 
     SWLogger.section('Generate Unit Tests');
@@ -1942,6 +1959,7 @@ export async function generateUnitTests(): Promise<void> {
             }
 
             // Generate unit test plan using LLM service
+            const lastCodeAnalysis = stateManager.getCodeAnalysis();
             const unitTestPlan = await llmService.generateUnitTestPlan(
                 lastAnalysisContext!,
                 lastCodeAnalysis || undefined,
@@ -2104,8 +2122,12 @@ export async function runComprehensiveAnalysis(): Promise<void> {
             // Step 1: Ensure workspace analysis is complete
             progress.report({ message: 'Step 1/4: Analyzing workspace...', increment: 0 });
             
+            let lastAnalysisContext = stateManager.getAnalysisContext();
+            let lastCodeAnalysis = stateManager.getCodeAnalysis();
             if (!lastAnalysisContext || !lastCodeAnalysis) {
                 await loadSavedCodeAnalysis();
+                lastAnalysisContext = stateManager.getAnalysisContext();
+                lastCodeAnalysis = stateManager.getCodeAnalysis();
                 if (!lastAnalysisContext || !lastCodeAnalysis) {
                     throw new Error('Workspace analysis not found. Please run "Analyze Workspace" first.');
                 }
@@ -2114,8 +2136,10 @@ export async function runComprehensiveAnalysis(): Promise<void> {
             // Step 2: Generate Product Documentation
             progress.report({ message: 'Step 2/4: Generating product documentation...', increment: 25 });
             
+            let lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
             if (!lastEnhancedProductDocs) {
                 await loadSavedProductDocs();
+                lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
             }
             
             if (!lastEnhancedProductDocs) {
@@ -2124,7 +2148,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                     treeProvider.setProductDocsStatus('generating');
                 }
 
-                lastEnhancedProductDocs = await llmService.generateEnhancedProductDocs(
+                const productDocs = await llmService.generateEnhancedProductDocs(
                     lastCodeAnalysis!,
                     workspaceRoot,
                     {
