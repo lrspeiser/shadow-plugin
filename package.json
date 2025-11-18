@@ -160,6 +160,10 @@
         {
           "id": "shadowWatch.unitTestsNavigator",
           "name": "Unit Tests"
+        },
+        {
+          "id": "shadowWatch.staticAnalysisViewer",
+          "name": "Static Analysis"
         }
       ]
     },
