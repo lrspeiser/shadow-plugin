@@ -1541,13 +1541,13 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                             });
                         },
                         onFileSummary: (summary) => {
-                            saveIncrementalFileSummary(summary, workspaceRoot, 0, 0);
+                            analysisResultRepository.saveIncrementalFileSummary(summary, workspaceRoot, 0, 0);
                         },
                         onModuleSummary: (summary) => {
-                            saveIncrementalModuleSummary(summary, workspaceRoot, 0, 0);
+                            analysisResultRepository.saveIncrementalModuleSummary(summary, workspaceRoot, 0, 0);
                         },
                         onProductDocIteration: (doc) => {
-                            saveIncrementalProductDocIteration(doc, workspaceRoot, 1, 1);
+                            analysisResultRepository.saveIncrementalProductDocIteration(doc, workspaceRoot, 1, 1);
                         }
                     }
                 );
@@ -1608,7 +1608,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                             });
                         },
                         onInsightsIteration: (insights) => {
-                            saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, 1, 1);
+                            analysisResultRepository.saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, 1, 1);
                             const insightsViewer = stateManager.getInsightsViewer();
                             if (insightsViewer) {
                                 insightsViewer.setInsights(insights);
