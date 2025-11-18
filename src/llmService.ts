@@ -14,6 +14,7 @@ import { LLMResponseParser } from './ai/llmResponseParser';
 import { RateLimiter } from './ai/llmRateLimiter';
 import { RetryHandler } from './ai/llmRetryHandler';
 import { PromptBuilder } from './domain/prompts/promptBuilder';
+import { IncrementalAnalysisService } from './domain/services/incrementalAnalysisService';
 
 export interface AnalysisContext {
     files: Array<{
@@ -84,6 +85,7 @@ export class LLMService {
     private rateLimiter: RateLimiter;
     private retryHandler: RetryHandler;
     private promptBuilder: PromptBuilder;
+    private incrementalAnalysisService: IncrementalAnalysisService | null = null;
     private onConfigurationChange: (() => void) | null = null;
     private configManager = getConfigurationManager();
 
@@ -407,14 +409,13 @@ export class LLMService {
 
         const isClaude = provider.getName() === 'claude';
         const fileAccessHelper = new FileAccessHelper(workspaceRoot);
-        let basePrompt = this.promptBuilder.buildProductLevelPrompt(fileSummaries, moduleSummaries, analysis, fileAccessHelper);
+        const incrementalService = new IncrementalAnalysisService(fileAccessHelper);
+        const basePrompt = this.promptBuilder.buildProductLevelPrompt(fileSummaries, moduleSummaries, analysis, fileAccessHelper);
         const messages: any[] = [];
-        let iteration = 0;
         const maxIterations = 3;
         let finalResult: any = null;
 
-        while (iteration < maxIterations) {
-            iteration++;
+        for (let iteration = 1; iteration <= maxIterations; iteration++) {
             console.log(`[Product Documentation] Iteration ${iteration}/${maxIterations}`);
             SWLogger.log(`Product-level iteration ${iteration}/${maxIterations}`);
 
@@ -488,40 +489,12 @@ export class LLMService {
                 break;
             }
 
-            // Limit to 5 requests per iteration
-            const limitedRequests = requests.slice(0, 5);
-            console.log(`[Product Documentation] Processing ${limitedRequests.length} request(s) in iteration ${iteration}`);
-            SWLogger.log(`Processing ${limitedRequests.length} request(s)`);
-
-            // Process requests
-            let additionalInfo = '\n## Additional Information Requested\n\n';
-            const fileRequests = limitedRequests.filter(r => r.type === 'file') as any[];
-            const grepRequests = limitedRequests.filter(r => r.type === 'grep') as any[];
-
-            // Read requested files
-            if (fileRequests.length > 0) {
-                const filePaths = fileRequests.map(r => r.path);
-                const fileResponses = fileAccessHelper.readFiles(filePaths);
-                additionalInfo += fileAccessHelper.formatFileResponses(fileResponses);
-            }
-
-            // Execute grep searches
-            if (grepRequests.length > 0) {
-                const grepResponses = grepRequests.map(req => 
-                    fileAccessHelper.grep(req.pattern, req.filePattern, req.maxResults || 20)
-                );
-                additionalInfo += fileAccessHelper.formatGrepResponses(grepResponses);
-            }
-
-            // Add assistant response and additional info to conversation
-            messages.push({
-                role: 'assistant',
-                content: JSON.stringify(finalResult)
-            });
-            messages.push({
-                role: 'user',
-                content: additionalInfo
-            });
+            // Process requests using incremental service
+            console.log(`[Product Documentation] Processing ${requests.length} request(s) in iteration ${iteration}`);
+            SWLogger.log(`Processing ${requests.length} request(s)`);
+            const { messages: updatedMessages } = incrementalService.processRequests(requests, finalResult, messages);
+            messages.length = 0;
+            messages.push(...updatedMessages);
         }
 
         // Remove requests field before returning
