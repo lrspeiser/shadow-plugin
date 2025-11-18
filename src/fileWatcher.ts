@@ -6,23 +6,30 @@ import { DiagnosticsProvider } from './diagnosticsProvider';
 import { InsightsTreeProvider } from './insightsTreeView';
 import { getConfigurationManager } from './config/configurationManager';
 import { ErrorHandler } from './utils/errorHandler';
+import { FileWatcherService } from './domain/services/fileWatcherService';
 
 export class FileWatcher {
-    private watcher: vscode.FileSystemWatcher | undefined;
+    private fileWatcherService: FileWatcherService;
     private lastAnalysisTime: number = 0;
     private pendingAnalysis: NodeJS.Timeout | undefined;
     private isAnalyzing: boolean = false;
+    private documentSaveDisposable: vscode.Disposable | undefined;
+    private isStarted: boolean = false;
 
     constructor(
         private analyzer: CodeAnalyzer,
         private insightGenerator: InsightGenerator,
         private diagnosticsProvider: DiagnosticsProvider,
-        private treeProvider: InsightsTreeProvider
-    ) {}
+        private treeProvider: InsightsTreeProvider,
+        fileWatcherService?: FileWatcherService
+    ) {
+        // Use provided service or create new one
+        this.fileWatcherService = fileWatcherService || new FileWatcherService();
+    }
 
     start(): void {
-        if (this.watcher) {
-            return; // Already running
+        if (this.isStarted) {
+            return; // Already started
         }
 
         const configManager = getConfigurationManager();
@@ -30,18 +37,23 @@ export class FileWatcher {
             return;
         }
 
-        // Watch for file saves
-        vscode.workspace.onDidSaveTextDocument(document => {
+        // Watch for file saves using unified service
+        this.documentSaveDisposable = this.fileWatcherService.watchDocumentSaves((document) => {
             this.onFileSaved(document);
         });
 
+        this.isStarted = true;
         console.log('Shadow Watch file watcher started');
     }
 
     stop(): void {
-        if (this.watcher) {
-            this.watcher.dispose();
-            this.watcher = undefined;
+        if (!this.isStarted) {
+            return;
+        }
+
+        if (this.documentSaveDisposable) {
+            this.documentSaveDisposable.dispose();
+            this.documentSaveDisposable = undefined;
         }
 
         if (this.pendingAnalysis) {
@@ -49,6 +61,7 @@ export class FileWatcher {
             this.pendingAnalysis = undefined;
         }
 
+        this.isStarted = false;
         console.log('Shadow Watch file watcher stopped');
     }
 
@@ -69,6 +82,21 @@ export class FileWatcher {
         }
 
         this.triggerAnalysis(document.uri.fsPath);
+    }
+
+    /**
+     * Get the file watcher service (for sharing with other components)
+     */
+    getFileWatcherService(): FileWatcherService {
+        return this.fileWatcherService;
+    }
+
+    /**
+     * Dispose the file watcher
+     */
+    dispose(): void {
+        this.stop();
+        // Note: Don't dispose the shared service here as it may be used by others
     }
 
     private scheduleAnalysis(): void {

@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { EnhancedProductDocumentation, FileSummary, ModuleSummary } from './fileDocumentation';
 import * as path from 'path';
 import * as fs from 'fs';
+import { FileWatcherService } from './domain/services/fileWatcherService';
 
 export class ProductNavigatorProvider implements vscode.TreeDataProvider<ProductNavItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ProductNavItem | undefined | null | void> = 
@@ -18,8 +19,14 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
     private fileWatcher: vscode.FileSystemWatcher | undefined;
     private aggregateWatchers: vscode.FileSystemWatcher[] = [];
     private incrementalFiles: Map<string, any> = new Map(); // Track incremental files
+    private fileWatcherService: FileWatcherService | undefined;
+    private watcherDisposables: vscode.Disposable[] = [];
 
-    constructor(private context: vscode.ExtensionContext) {
+    constructor(
+        private context: vscode.ExtensionContext,
+        fileWatcherService?: FileWatcherService
+    ) {
+        this.fileWatcherService = fileWatcherService;
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             this.workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
             this.setupFileWatcher();
@@ -40,99 +47,159 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
             fs.mkdirSync(docsDir, { recursive: true });
         }
         
-        // Watch for new files in .shadow/docs and subdirectories
-        const pattern = new vscode.RelativePattern(
-            vscode.Uri.file(docsDir),
-            '**/*.{json,md}'
-        );
+        // Use unified file watcher service if available, otherwise create watchers directly
+        if (this.fileWatcherService) {
+            // Watch for new files in .shadow/docs and subdirectories
+            const pattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/*.{json,md}'
+            );
 
-        this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
-        
-        this.fileWatcher.onDidCreate((uri) => {
-            console.log('[ProductNavigator] New file created in docs:', uri.fsPath);
-            this.loadIncrementalFile(uri.fsPath);
-            console.log('[ProductNavigator] Refreshing after file create');
-            this.refresh();
-        });
-        
-        this.fileWatcher.onDidChange((uri) => {
-            console.log('[ProductNavigator] File changed in docs:', uri.fsPath);
-            this.loadIncrementalFile(uri.fsPath);
-            // Refresh to show updated modules/files from aggregate files
-            console.log('[ProductNavigator] Refreshing after file change');
-            this.refresh();
-        });
-        
-        this.fileWatcher.onDidDelete((uri) => {
-            console.log('[ProductNavigator] File deleted in docs:', uri.fsPath);
-            // Remove from incremental files cache
-            this.incrementalFiles.delete(uri.fsPath);
+            this.watcherDisposables.push(
+                this.fileWatcherService.watch('productNavigator-docs', pattern, (event) => {
+                    if (event.type === 'created') {
+                        console.log('[ProductNavigator] New file created in docs:', event.uri.fsPath);
+                        this.loadIncrementalFile(event.uri.fsPath);
+                        console.log('[ProductNavigator] Refreshing after file create');
+                        this.refresh();
+                    } else if (event.type === 'changed') {
+                        console.log('[ProductNavigator] File changed in docs:', event.uri.fsPath);
+                        this.loadIncrementalFile(event.uri.fsPath);
+                        console.log('[ProductNavigator] Refreshing after file change');
+                        this.refresh();
+                    } else if (event.type === 'deleted') {
+                        console.log('[ProductNavigator] File deleted in docs:', event.uri.fsPath);
+                        this.incrementalFiles.delete(event.uri.fsPath);
+                        if (event.uri.fsPath.includes('enhanced-product-documentation.json')) {
+                            console.log('[ProductNavigator] Main product docs file deleted, clearing productDocs');
+                            this.productDocs = null;
+                        }
+                        console.log('[ProductNavigator] Refreshing after file delete');
+                        this.refresh();
+                    }
+                })
+            );
             
-            // Check if this is the main product docs file
-            if (uri.fsPath.includes('enhanced-product-documentation.json')) {
-                console.log('[ProductNavigator] Main product docs file deleted, clearing productDocs');
+            // Watch for changes to aggregate files
+            const aggregatePattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/module-summaries.json'
+            );
+            this.watcherDisposables.push(
+                this.fileWatcherService.watch('productNavigator-module-summaries', aggregatePattern, (event) => {
+                    console.log('[ProductNavigator] Module summaries aggregate file', event.type, ':', event.uri.fsPath);
+                    if (event.type === 'deleted') {
+                        this.productDocs = null;
+                        this.incrementalFiles.clear();
+                    }
+                    console.log('[ProductNavigator] Refreshing after module summaries', event.type);
+                    this.refresh();
+                })
+            );
+            
+            const fileSummariesPattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/file-summaries.json'
+            );
+            this.watcherDisposables.push(
+                this.fileWatcherService.watch('productNavigator-file-summaries', fileSummariesPattern, (event) => {
+                    console.log('[ProductNavigator] File summaries aggregate file', event.type, ':', event.uri.fsPath);
+                    if (event.type === 'deleted') {
+                        this.productDocs = null;
+                        this.incrementalFiles.clear();
+                    }
+                    console.log('[ProductNavigator] Refreshing after file summaries', event.type);
+                    this.refresh();
+                })
+            );
+        } else {
+            // Fallback: create watchers directly (backward compatibility)
+            const pattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/*.{json,md}'
+            );
+
+            this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+            
+            this.fileWatcher.onDidCreate((uri) => {
+                console.log('[ProductNavigator] New file created in docs:', uri.fsPath);
+                this.loadIncrementalFile(uri.fsPath);
+                console.log('[ProductNavigator] Refreshing after file create');
+                this.refresh();
+            });
+            
+            this.fileWatcher.onDidChange((uri) => {
+                console.log('[ProductNavigator] File changed in docs:', uri.fsPath);
+                this.loadIncrementalFile(uri.fsPath);
+                console.log('[ProductNavigator] Refreshing after file change');
+                this.refresh();
+            });
+            
+            this.fileWatcher.onDidDelete((uri) => {
+                console.log('[ProductNavigator] File deleted in docs:', uri.fsPath);
+                this.incrementalFiles.delete(uri.fsPath);
+                if (uri.fsPath.includes('enhanced-product-documentation.json')) {
+                    console.log('[ProductNavigator] Main product docs file deleted, clearing productDocs');
+                    this.productDocs = null;
+                }
+                console.log('[ProductNavigator] Refreshing after file delete');
+                this.refresh();
+            });
+            
+            // Also watch for changes to aggregate files specifically
+            const aggregatePattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/module-summaries.json'
+            );
+            const aggregateWatcher = vscode.workspace.createFileSystemWatcher(aggregatePattern);
+            aggregateWatcher.onDidChange((uri) => {
+                console.log('[ProductNavigator] Module summaries aggregate file changed:', uri.fsPath);
+                console.log('[ProductNavigator] Refreshing after module summaries change');
+                this.refresh();
+            });
+            aggregateWatcher.onDidCreate((uri) => {
+                console.log('[ProductNavigator] Module summaries aggregate file created:', uri.fsPath);
+                console.log('[ProductNavigator] Refreshing after module summaries create');
+                this.refresh();
+            });
+            
+            aggregateWatcher.onDidDelete((uri) => {
+                console.log('[ProductNavigator] Module summaries aggregate file deleted:', uri.fsPath);
                 this.productDocs = null;
-            }
+                this.incrementalFiles.clear();
+                console.log('[ProductNavigator] Refreshing after module summaries delete');
+                this.refresh();
+            });
             
-            console.log('[ProductNavigator] Refreshing after file delete');
-            this.refresh();
-        });
-        
-        // Also watch for changes to aggregate files specifically
-        const aggregatePattern = new vscode.RelativePattern(
-            vscode.Uri.file(docsDir),
-            '**/module-summaries.json'
-        );
-        const aggregateWatcher = vscode.workspace.createFileSystemWatcher(aggregatePattern);
-        aggregateWatcher.onDidChange((uri) => {
-            console.log('[ProductNavigator] Module summaries aggregate file changed:', uri.fsPath);
-            console.log('[ProductNavigator] Refreshing after module summaries change');
-            this.refresh();
-        });
-        aggregateWatcher.onDidCreate((uri) => {
-            console.log('[ProductNavigator] Module summaries aggregate file created:', uri.fsPath);
-            console.log('[ProductNavigator] Refreshing after module summaries create');
-            this.refresh();
-        });
-        
-        aggregateWatcher.onDidDelete((uri) => {
-            console.log('[ProductNavigator] Module summaries aggregate file deleted:', uri.fsPath);
-            // Clear product docs if aggregate file is deleted
-            this.productDocs = null;
-            this.incrementalFiles.clear();
-            console.log('[ProductNavigator] Refreshing after module summaries delete');
-            this.refresh();
-        });
-        
-        // Watch file-summaries.json aggregate too
-        const fileSummariesPattern = new vscode.RelativePattern(
-            vscode.Uri.file(docsDir),
-            '**/file-summaries.json'
-        );
-        const fileSummariesWatcher = vscode.workspace.createFileSystemWatcher(fileSummariesPattern);
-        fileSummariesWatcher.onDidChange((uri) => {
-            console.log('[ProductNavigator] File summaries aggregate file changed:', uri.fsPath);
-            console.log('[ProductNavigator] Refreshing after file summaries change');
-            this.refresh();
-        });
-        fileSummariesWatcher.onDidCreate((uri) => {
-            console.log('[ProductNavigator] File summaries aggregate file created:', uri.fsPath);
-            console.log('[ProductNavigator] Refreshing after file summaries create');
-            this.refresh();
-        });
-        
-        fileSummariesWatcher.onDidDelete((uri) => {
-            console.log('[ProductNavigator] File summaries aggregate file deleted:', uri.fsPath);
-            // Clear product docs if aggregate file is deleted
-            this.productDocs = null;
-            this.incrementalFiles.clear();
-            console.log('[ProductNavigator] Refreshing after file summaries delete');
-            this.refresh();
-        });
-        
-        // Store watchers for disposal
-        this.aggregateWatchers.push(aggregateWatcher);
-        this.aggregateWatchers.push(fileSummariesWatcher);
+            // Watch file-summaries.json aggregate too
+            const fileSummariesPattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/file-summaries.json'
+            );
+            const fileSummariesWatcher = vscode.workspace.createFileSystemWatcher(fileSummariesPattern);
+            fileSummariesWatcher.onDidChange((uri) => {
+                console.log('[ProductNavigator] File summaries aggregate file changed:', uri.fsPath);
+                console.log('[ProductNavigator] Refreshing after file summaries change');
+                this.refresh();
+            });
+            fileSummariesWatcher.onDidCreate((uri) => {
+                console.log('[ProductNavigator] File summaries aggregate file created:', uri.fsPath);
+                console.log('[ProductNavigator] Refreshing after file summaries create');
+                this.refresh();
+            });
+            
+            fileSummariesWatcher.onDidDelete((uri) => {
+                console.log('[ProductNavigator] File summaries aggregate file deleted:', uri.fsPath);
+                this.productDocs = null;
+                this.incrementalFiles.clear();
+                console.log('[ProductNavigator] Refreshing after file summaries delete');
+                this.refresh();
+            });
+            
+            // Store watchers for disposal
+            this.aggregateWatchers.push(aggregateWatcher);
+            this.aggregateWatchers.push(fileSummariesWatcher);
+        }
 
         // Load existing incremental files
         this.loadExistingIncrementalFiles();
@@ -188,8 +255,16 @@ export class ProductNavigatorProvider implements vscode.TreeDataProvider<Product
     }
 
     dispose(): void {
+        // Dispose unified service watchers
+        for (const disposable of this.watcherDisposables) {
+            disposable.dispose();
+        }
+        this.watcherDisposables = [];
+        
+        // Dispose legacy watchers (if using fallback)
         if (this.fileWatcher) {
             this.fileWatcher.dispose();
+            this.fileWatcher = undefined;
         }
         for (const watcher of this.aggregateWatchers) {
             watcher.dispose();

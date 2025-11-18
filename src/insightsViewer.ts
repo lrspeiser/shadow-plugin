@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { LLMInsights } from './llmService';
 import * as path from 'path';
 import * as fs from 'fs';
+import { FileWatcherService } from './domain/services/fileWatcherService';
 
 export class InsightsViewerProvider implements vscode.TreeDataProvider<InsightItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<InsightItem | undefined | null | void> = 
@@ -16,8 +17,14 @@ export class InsightsViewerProvider implements vscode.TreeDataProvider<InsightIt
     private workspaceRoot: string | null = null;
     private fileWatcher: vscode.FileSystemWatcher | undefined;
     private purposeWatcher: vscode.FileSystemWatcher | undefined;
+    private fileWatcherService: FileWatcherService | undefined;
+    private watcherDisposables: vscode.Disposable[] = [];
 
-    constructor(private context: vscode.ExtensionContext) {
+    constructor(
+        private context: vscode.ExtensionContext,
+        fileWatcherService?: FileWatcherService
+    ) {
+        this.fileWatcherService = fileWatcherService;
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             this.workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
             this.setupFileWatcher();
@@ -38,42 +45,77 @@ export class InsightsViewerProvider implements vscode.TreeDataProvider<InsightIt
             fs.mkdirSync(docsDir, { recursive: true });
         }
         
-        // Watch for architecture insights iteration files
-        const pattern = new vscode.RelativePattern(
-            vscode.Uri.file(docsDir),
-            '**/architecture-insights-iteration-*.json'
-        );
+        // Use unified file watcher service if available, otherwise create watchers directly
+        if (this.fileWatcherService) {
+            // Watch for architecture insights iteration files
+            const pattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/architecture-insights-iteration-*.json'
+            );
 
-        this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
-        
-        this.fileWatcher.onDidCreate((uri) => {
-            console.log('[InsightsViewer] New insights iteration file created:', uri.fsPath);
-            this.loadIncrementalInsights(uri.fsPath);
-            this.refresh();
-        });
-        
-        this.fileWatcher.onDidChange((uri) => {
-            console.log('[InsightsViewer] Insights iteration file changed:', uri.fsPath);
-            this.loadIncrementalInsights(uri.fsPath);
-            this.refresh();
-        });
+            this.watcherDisposables.push(
+                this.fileWatcherService.watch('insightsViewer-iterations', pattern, (event) => {
+                    if (event.type === 'created' || event.type === 'changed') {
+                        console.log('[InsightsViewer] Insights iteration file', event.type, ':', event.uri.fsPath);
+                        this.loadIncrementalInsights(event.uri.fsPath);
+                        this.refresh();
+                    }
+                })
+            );
 
-        // Also watch for product-purpose-analysis.json
-        const purposePattern = new vscode.RelativePattern(
-            vscode.Uri.file(docsDir),
-            '**/product-purpose-analysis.json'
-        );
-        this.purposeWatcher = vscode.workspace.createFileSystemWatcher(purposePattern);
-        this.purposeWatcher.onDidCreate((uri) => {
-            console.log('[InsightsViewer] Product purpose analysis file created:', uri.fsPath);
-            this.loadIncrementalInsights(uri.fsPath);
-            this.refresh();
-        });
-        this.purposeWatcher.onDidChange((uri) => {
-            console.log('[InsightsViewer] Product purpose analysis file changed:', uri.fsPath);
-            this.loadIncrementalInsights(uri.fsPath);
-            this.refresh();
-        });
+            // Also watch for product-purpose-analysis.json
+            const purposePattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/product-purpose-analysis.json'
+            );
+            this.watcherDisposables.push(
+                this.fileWatcherService.watch('insightsViewer-purpose', purposePattern, (event) => {
+                    if (event.type === 'created' || event.type === 'changed') {
+                        console.log('[InsightsViewer] Product purpose analysis file', event.type, ':', event.uri.fsPath);
+                        this.loadIncrementalInsights(event.uri.fsPath);
+                        this.refresh();
+                    }
+                })
+            );
+        } else {
+            // Fallback: create watchers directly (backward compatibility)
+            // Watch for architecture insights iteration files
+            const pattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/architecture-insights-iteration-*.json'
+            );
+
+            this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+            
+            this.fileWatcher.onDidCreate((uri) => {
+                console.log('[InsightsViewer] New insights iteration file created:', uri.fsPath);
+                this.loadIncrementalInsights(uri.fsPath);
+                this.refresh();
+            });
+            
+            this.fileWatcher.onDidChange((uri) => {
+                console.log('[InsightsViewer] Insights iteration file changed:', uri.fsPath);
+                this.loadIncrementalInsights(uri.fsPath);
+                this.refresh();
+            });
+
+            // Also watch for product-purpose-analysis.json
+            const purposePattern = new vscode.RelativePattern(
+                vscode.Uri.file(docsDir),
+                '**/product-purpose-analysis.json'
+            );
+            this.purposeWatcher = vscode.workspace.createFileSystemWatcher(purposePattern);
+            this.purposeWatcher.onDidCreate((uri) => {
+                console.log('[InsightsViewer] Product purpose analysis file created:', uri.fsPath);
+                this.loadIncrementalInsights(uri.fsPath);
+                this.refresh();
+            });
+            this.purposeWatcher.onDidChange((uri) => {
+                console.log('[InsightsViewer] Product purpose analysis file changed:', uri.fsPath);
+                this.loadIncrementalInsights(uri.fsPath);
+                this.refresh();
+            });
+        }
 
         // Load existing incremental files
         this.loadExistingIncrementalInsights();
@@ -218,11 +260,20 @@ export class InsightsViewerProvider implements vscode.TreeDataProvider<InsightIt
     }
 
     dispose(): void {
+        // Dispose unified service watchers
+        for (const disposable of this.watcherDisposables) {
+            disposable.dispose();
+        }
+        this.watcherDisposables = [];
+        
+        // Dispose legacy watchers (if using fallback)
         if (this.fileWatcher) {
             this.fileWatcher.dispose();
+            this.fileWatcher = undefined;
         }
         if (this.purposeWatcher) {
             this.purposeWatcher.dispose();
+            this.purposeWatcher = undefined;
         }
     }
 

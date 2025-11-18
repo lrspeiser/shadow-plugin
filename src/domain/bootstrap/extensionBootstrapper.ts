@@ -20,12 +20,14 @@ import { UnitTestsNavigatorProvider, UnitTestItem } from '../../unitTestsNavigat
 import { ProductNavItem } from '../../productNavigator';
 import { getConfigurationManager } from '../../config/configurationManager';
 import { ErrorHandler } from '../../utils/errorHandler';
+import { FileWatcherService } from '../../domain/services/fileWatcherService';
 
 export interface ExtensionComponents {
     analyzer: CodeAnalyzer;
     insightGenerator: InsightGenerator;
     llmFormatter: LLMFormatter;
     fileWatcher: FileWatcher;
+    fileWatcherService: FileWatcherService;
     treeProvider: InsightsTreeProvider;
     diagnosticsProvider: DiagnosticsProvider;
     cache: AnalysisCache;
@@ -65,8 +67,11 @@ export class ExtensionBootstrapper {
             // This ensures analysis status is properly restored
             llmIntegration.loadSavedCodeAnalysis();
             
-            // Create product navigator
-            const productNavigator = new ProductNavigatorProvider(context);
+            // Create shared file watcher service (create early so it can be passed to components)
+            const fileWatcherService = new FileWatcherService();
+            
+            // Create product navigator with shared file watcher service
+            const productNavigator = new ProductNavigatorProvider(context, fileWatcherService);
             llmIntegration.setProductNavigator(productNavigator);
             context.subscriptions.push(productNavigator); // Ensure proper disposal
             
@@ -74,8 +79,8 @@ export class ExtensionBootstrapper {
             const analysisViewer = new AnalysisViewerProvider();
             llmIntegration.setAnalysisViewer(analysisViewer);
             
-            // Create insights viewer
-            const insightsViewer = new InsightsViewerProvider(context);
+            // Create insights viewer with shared file watcher service
+            const insightsViewer = new InsightsViewerProvider(context, fileWatcherService);
             llmIntegration.setInsightsViewer(insightsViewer);
             context.subscriptions.push(insightsViewer); // Ensure proper disposal
             
@@ -89,7 +94,7 @@ export class ExtensionBootstrapper {
             treeProvider.setStaticAnalysisViewer(staticAnalysisViewer);
             
             // Tree provider will automatically check for existing files on construction
-            const fileWatcher = new FileWatcher(analyzer, insightGenerator, diagnosticsProvider, treeProvider);
+            const fileWatcher = new FileWatcher(analyzer, insightGenerator, diagnosticsProvider, treeProvider, fileWatcherService);
 
             // Register tree view with error handling
             treeView = vscode.window.createTreeView('shadowWatch.insights', {
@@ -139,6 +144,7 @@ export class ExtensionBootstrapper {
                 insightGenerator,
                 llmFormatter,
                 fileWatcher,
+                fileWatcherService,
                 treeProvider,
                 diagnosticsProvider,
                 cache,
