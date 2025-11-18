@@ -1895,14 +1895,34 @@ export async function runUnitTests(): Promise<void> {
                     continue;
                 }
                 
-                // Resolve test file path
+                // Resolve test file path - check both new and old locations
                 let fullTestPath: string;
                 if (path.isAbsolute(testFilePath)) {
                     fullTestPath = testFilePath;
                 } else if (testFilePath.startsWith('.shadow/UnitTests/')) {
                     fullTestPath = path.join(workspaceRoot, testFilePath);
+                } else if (testFilePath.startsWith('UnitTests/')) {
+                    // Check old location first, then new location
+                    const oldPath = path.join(workspaceRoot, testFilePath);
+                    const newPath = path.join(workspaceRoot, '.shadow', 'UnitTests', path.basename(testFilePath));
+                    if (fs.existsSync(oldPath)) {
+                        fullTestPath = oldPath;
+                    } else if (fs.existsSync(newPath)) {
+                        fullTestPath = newPath;
+                    } else {
+                        fullTestPath = newPath; // Will be checked below
+                    }
                 } else {
-                    fullTestPath = path.join(workspaceRoot, '.shadow', 'UnitTests', path.basename(testFilePath));
+                    // Try new location first, then old location
+                    const newPath = path.join(workspaceRoot, '.shadow', 'UnitTests', path.basename(testFilePath));
+                    const oldPath = path.join(workspaceRoot, 'UnitTests', path.basename(testFilePath));
+                    if (fs.existsSync(newPath)) {
+                        fullTestPath = newPath;
+                    } else if (fs.existsSync(oldPath)) {
+                        fullTestPath = oldPath;
+                    } else {
+                        fullTestPath = newPath; // Will be checked below
+                    }
                 }
                 
                 if (!fs.existsSync(fullTestPath)) {
