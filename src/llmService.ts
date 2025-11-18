@@ -1109,101 +1109,168 @@ If you need to examine specific files or search for code patterns to provide bet
 
 You can make up to 5 requests per iteration. If you request files/grep searches, the system will provide the results and you can continue analyzing. Maximum 3 iterations total.
 
-# Your Task
+# Your Task: Systematic Architecture Analysis
 
-Provide a comprehensive architectural analysis in MARKDOWN format (NOT HTML) using EXACTLY these markdown section headers. The content will be rendered in VSCode, so use proper markdown syntax:
+Follow this structured plan phase approach to analyze the codebase. Work through each step systematically, using the information provided and requesting additional files/searches as needed.
 
-## Overall Architecture Assessment
-[Describe the architecture style/pattern here - at least 2-3 paragraphs]
+## Plan Phase: Systematic Architecture Discovery
 
-## Strengths
-- Strength 1
-- Strength 2
-[Continue with more strengths]
+### Step 1: Understand Product Domain & Purpose
+First, understand WHAT this product does and WHY it exists:
+- Review product documentation, README files, and module descriptions
+- Identify the core problem the product solves
+- Understand user workflows and use cases
+- Note any domain-specific concepts or terminology
+- Identify the product's primary value proposition
 
-## Issues & Concerns
-CRITICAL: For EACH issue, provide a structured response with:
-1. **Title**: Human-readable title (e.g., "Root Directory Clutter" not "Multiple files in root")
+### Step 2: Map Architectural Layers
+Identify and document the architectural layers present in this codebase:
+- **Presentation Layer**: UI components, views, templates, webviews, rendering logic
+- **Application/Business Logic Layer**: Core business rules, use cases, orchestration
+- **Data/Integration Layer**: Data access, external API integration, file I/O, persistence
+- **Infrastructure Layer**: Configuration, utilities, cross-cutting concerns
+- **Domain Layer** (if applicable): Domain models, entities, value objects
+
+For each layer:
+- List which files/directories belong to each layer
+- Identify the responsibilities of each layer
+- Note any layer boundaries or interfaces between layers
+
+### Step 3: Analyze Dependencies & Data Flow
+Map how layers and modules interact:
+- Identify dependency direction (which layers depend on which)
+- Map data flow through the system (where data originates, how it transforms, where it's consumed)
+- Identify circular dependencies or problematic coupling
+- Note any dependency inversion or abstraction layers
+- Document external dependencies (APIs, libraries, services)
+
+### Step 4: Identify Architectural Patterns
+Document the patterns and styles used:
+- Architectural style (MVC, MVP, MVVM, Clean Architecture, Layered, etc.)
+- Design patterns in use (Factory, Strategy, Observer, etc.)
+- Communication patterns (events, callbacks, promises, streams)
+- Data patterns (repository, service, gateway, etc.)
+
+### Step 5: Detect Architectural Issues
+Based on your understanding from Steps 1-4, identify issues:
+
+**Layer Violations**: Code in the wrong architectural layer
+- Presentation logic in business/data layers
+- Business logic in presentation layer
+- Data access code in presentation layer
+- Cross-layer violations
+
+**Dependency Issues**: Problems with how components depend on each other
+- Circular dependencies
+- High coupling between layers
+- Missing abstraction layers
+- Direct dependencies on concrete implementations
+
+**Duplicate Functionality**: Multiple ways to accomplish the same task
+- Multiple implementations of the same feature
+- Redundant code paths for the same operation
+- Overlapping responsibilities between modules
+
+**Architectural Inconsistencies**: Patterns that violate the established architecture
+- Inconsistent use of patterns
+- Mixed architectural styles
+- Violations of layer boundaries
+- Missing or incorrect abstractions
+
+For EACH issue found, provide:
+1. **Title**: Human-readable title describing the issue
 2. **Description**: Detailed description including problem AND proposed fix
-3. **Relevant Files**: List of file paths affected (e.g., ["src/main.ts", "package.json"])
-4. **Relevant Functions**: List of function/class names involved (e.g., ["initializeApp", "UserService"])
+3. **Relevant Files**: List of file paths affected
+4. **Relevant Functions**: List of function/class names involved
 
 Format for description:
 [Problem description]. **Proposed Fix**: [Specific, actionable solution with steps or approach. Be detailed and concrete.]
 
-**CRITICAL ANALYSIS REQUIREMENTS - Check for these specific anti-patterns:**
-
-1. **Layer Violations**: Look for UI code in integration/service layers, business logic in UI layers, etc. Check if files contain code that belongs in a different architectural layer.
-   - Example: HTML generation functions in integration/service files
-   - Example: UI rendering logic mixed with business logic
-   - Example: Direct DOM manipulation in service classes
-
-2. **Duplicate Functionality**: Identify multiple implementations of the same feature or multiple ways to accomplish the same task.
-   - Example: Multiple HTML generation functions when a template engine exists
-   - Example: Multiple ways to display the same data (webview + tree view for same content)
-   - Example: Duplicate command handlers for the same action
-   - Check if newer implementations (like template engines, providers) make older implementations redundant
-
-3. **Legacy/Redundant Code**: Find code that duplicates newer, better implementations or is no longer needed.
-   - Example: Legacy HTML generation functions when WebviewTemplateEngine exists
-   - Example: Old command handlers that duplicate newer provider functionality
-   - Example: Functions that create webviews when tree view providers already exist
-   - Check command registrations - are there commands that open webviews when tree views already provide the same functionality?
-
-4. **Architectural Inconsistencies**: Look for patterns that violate established architecture.
-   - Example: Direct file I/O in UI components
-   - Example: Service classes creating UI elements
-   - Example: Integration layer containing presentation logic
-
-**How to detect these issues:**
-- Search for HTML generation functions (get*Html, generate*Html, create*Html) and check if they're in the right layer
-- Check if template engines or providers exist that should replace manual HTML generation
-- Look for commands that create webviews when tree view providers already exist
-- Identify functions in integration/service files that create UI elements (webviews, panels, etc.)
-- Check for duplicate ways to display the same data (multiple viewers for same content type)
-
 Examples:
-- Title: "Root Directory Clutter"
-  Description: "165 files in root directory (including ~124 .md files and multiple .sh scripts) make navigation difficult. **Proposed Fix**: Create organized folder structure: move documentation to docs/, config files to config/, utilities to utils/. Create a migration script that: (1) moves files, (2) updates imports, (3) verifies entry points work."
-  Relevant Files: ["README.md", "package.json", "setup.sh", "build.sh"]
-  Relevant Functions: []
+- Title: "Business Logic in Presentation Layer"
+  Description: "UserService.validateUser() is called directly from UI components in src/ui/login.tsx. Business validation logic should be in the application layer, not invoked from presentation. **Proposed Fix**: Create an ApplicationService layer (src/application/userService.ts) that handles validation. UI components should call application services, not domain services directly. Move validation logic to the application layer and update UI components to use the new service."
+  Relevant Files: ["src/ui/login.tsx", "src/services/UserService.ts"]
+  Relevant Functions: ["UserService.validateUser", "LoginComponent.handleSubmit"]
 
-- Title: "Tight Coupling Between Modules"
-  Description: "Components are directly dependent on concrete implementations, making testing and maintenance difficult. **Proposed Fix**: Introduce dependency injection and interfaces. Create abstraction layers between modules. Start by identifying the most tightly coupled modules and create interfaces for their dependencies."
-  Relevant Files: ["src/services/UserService.ts", "src/services/OrderService.ts"]
-  Relevant Functions: ["UserService.getUser", "OrderService.createOrder"]
+- Title: "Circular Dependency Between Layers"
+  Description: "Data layer (src/data/repository.ts) imports from application layer (src/application/useCase.ts), while application layer imports from data layer. This creates a circular dependency. **Proposed Fix**: Introduce interfaces in a shared contracts/domain layer. Data layer should implement interfaces defined in domain layer. Application layer should depend on domain interfaces, not concrete data implementations. Create src/domain/interfaces/IRepository.ts and refactor both layers to depend on it."
+  Relevant Files: ["src/data/repository.ts", "src/application/useCase.ts"]
+  Relevant Functions: ["UserRepository", "CreateUserUseCase"]
 
-- Title: "UI Code in Integration Layer"
-  Description: "HTML generation functions (getEnhancedProductDocsHtml, getLLMInsightsHtml) are in llmIntegration.ts, which is an integration layer file. UI code should be in UI modules. Additionally, these functions duplicate WebviewTemplateEngine functionality. **Proposed Fix**: Remove HTML generation functions from llmIntegration.ts. If webviews are still needed, use WebviewTemplateEngine from src/ui/webview/webviewTemplateEngine.ts. If tree views already provide this functionality (via ProductNavigatorProvider, InsightsViewerProvider), remove the redundant webview functions entirely."
-  Relevant Files: ["src/llmIntegration.ts"]
-  Relevant Functions: ["getEnhancedProductDocsHtml", "getLLMInsightsHtml", "showProductDocs", "showLLMInsights"]
-
-- Title: "Redundant Commands and Functions"
-  Description: "showProductDocs() and showLLMInsights() commands create webviews, but ProductNavigatorProvider and InsightsViewerProvider already provide tree views for the same data. This creates duplicate ways to access the same functionality. **Proposed Fix**: Remove showProductDocs() and showLLMInsights() functions and their command registrations. Users should use the dedicated tree view providers instead. If webview display is specifically needed, refactor to use WebviewTemplateEngine and move to a UI module."
-  Relevant Files: ["src/llmIntegration.ts", "src/extension.ts"]
-  Relevant Functions: ["showProductDocs", "showLLMInsights"]
-
-IMPORTANT: Every issue MUST have a clear, human-readable title and a detailed description with proposed fix. Include relevant files and functions when applicable. Pay special attention to layer violations, duplicate functionality, and legacy/redundant code patterns.
+- Title: "Duplicate Data Access Patterns"
+  Description: "Both src/data/userRepository.ts and src/services/userService.ts implement similar data fetching logic. Repository pattern should handle all data access, with services using repositories. **Proposed Fix**: Consolidate data access in repository layer. Remove data access code from service layer. Services should orchestrate business logic using repositories, not fetch data directly."
+  Relevant Files: ["src/data/userRepository.ts", "src/services/userService.ts"]
+  Relevant Functions: ["UserRepository.fetch", "UserService.getUser"]
 
 [Continue with more issues, each with title, description, relevantFiles, and relevantFunctions]
 
+# Output Format
+
+Provide your analysis using EXACTLY these markdown section headers. The content will be rendered in VSCode, so use proper markdown syntax:
+
+## Overall Architecture Assessment
+Based on your systematic analysis (Steps 1-4), provide a comprehensive assessment:
+- Architecture style and patterns identified
+- How well the architecture aligns with the product's purpose
+- Overall structural quality and maintainability
+- Key architectural decisions and their rationale
+[Write 2-3 paragraphs here]
+
+## Architectural Layers
+Document the layers you identified in Step 2:
+- **Presentation Layer**: [List files/directories and responsibilities]
+- **Application/Business Logic Layer**: [List files/directories and responsibilities]
+- **Data/Integration Layer**: [List files/directories and responsibilities]
+- **Infrastructure Layer**: [List files/directories and responsibilities]
+- **Domain Layer** (if applicable): [List files/directories and responsibilities]
+
+For each layer, note:
+- Which files/directories belong to it
+- What responsibilities it has
+- Any layer boundaries or interfaces
+
+## Dependencies & Data Flow
+Document your findings from Step 3:
+- Dependency direction between layers (create a dependency graph if helpful)
+- Data flow through the system (where data originates, transforms, is consumed)
+- Circular dependencies found (if any)
+- Abstraction layers and interfaces
+- External dependencies (APIs, libraries, services)
+
+## Architectural Patterns
+Document patterns identified in Step 4:
+- Architectural style (MVC, MVP, MVVM, Clean Architecture, Layered, etc.)
+- Design patterns in use
+- Communication patterns
+- Data patterns
+
+## Strengths
+- Strength 1 (e.g., "Clear separation of concerns between layers")
+- Strength 2 (e.g., "Well-defined interfaces between components")
+[Continue with more strengths based on your analysis]
+
+## Issues & Concerns
+Based on Step 5, list all architectural issues found. Use the format specified in Step 5 above.
+
 ## Code Organization
-CRITICALLY analyze file structure. Pay special attention to:
+Analyze file structure in the context of the architectural layers you identified:
 - Files cluttering the root directory (e.g., many .md files, config files, etc.)
-- Missing logical folder structure
-- Files that should be organized into subdirectories
+- Missing logical folder structure that aligns with architectural layers
+- Files that should be organized into subdirectories matching their layer
 - Documentation files that should be in a docs/ folder
 - Configuration files that should be organized
+- Files in wrong directories relative to their architectural layer
 - Any file organization anti-patterns
 
-**CRITICAL: Also analyze architectural layer organization:**
-- Check if UI code (HTML generation, webview creation, UI rendering) is in the correct layer (should be in `ui/` or `view/` directories, not in `integration/` or `service/` directories)
-- Verify that integration/service layer files don't contain presentation logic
-- Identify files that mix concerns (e.g., service files with UI code, UI files with business logic)
-- Look for duplicate functionality across different layers (e.g., HTML generation in both integration layer and UI layer)
-- Check if newer architectural patterns (template engines, providers) make older implementations in wrong layers redundant
+**Layer Organization Analysis:**
+Based on your layer mapping (Step 2), check if files are organized correctly:
+- Are presentation layer files in appropriate directories (ui/, views/, components/, etc.)?
+- Are business logic files separated from presentation and data layers?
+- Are data/integration files in appropriate directories (data/, repositories/, api/, etc.)?
+- Are infrastructure files (config, utils) properly separated?
+- Do file locations match their architectural layer responsibilities?
 
-[Write your analysis here - at least 2-3 paragraphs]
+[Write your analysis here - at least 2-3 paragraphs, referencing your layer mapping from earlier]
 
 ## Entry Points
 [Analyze entry points here]
