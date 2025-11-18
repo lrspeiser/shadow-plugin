@@ -307,17 +307,13 @@ export async function generateProductDocs() {
                 {
                     onFileStart: (filePath, index, total) => {
                         // Update progress notification to show which file is being submitted to LLM
-                        progress.report({ 
-                            message: `Step 1/3: Submitting file ${index}/${total} to LLM: ${path.basename(filePath)}`
-                        });
+                        reporter.report(`Step 1/3: Submitting file ${index}/${total} to LLM: ${path.basename(filePath)}`);
                         SWLogger.log(`Submitting file ${index}/${total} to LLM: ${filePath}`);
                     },
                     onFileSummary: (summary, index, total) => {
                         analysisResultRepository.saveIncrementalFileSummary(summary, workspaceRoot, index, total);
                         // Update progress notification to show which file was received from LLM
-                        progress.report({ 
-                            message: `Step 1/3: Received file ${index}/${total} from LLM: ${path.basename(summary.file)}`
-                        });
+                        reporter.report(`Step 1/3: Received file ${index}/${total} from LLM: ${path.basename(summary.file)}`);
                         SWLogger.log(`Received file ${index}/${total} from LLM: ${summary.file}`);
                         // Refresh product navigator to show new files
                         const productNavigator = stateManager.getProductNavigator();
@@ -328,9 +324,7 @@ export async function generateProductDocs() {
                     onModuleSummary: (summary, index, total) => {
                         analysisResultRepository.saveIncrementalModuleSummary(summary, workspaceRoot, index, total);
                         // Update progress notification to show incremental progress
-                        progress.report({ 
-                            message: `Step 2/3: Generating module summaries (${index}/${total}): ${path.basename(summary.module)}`
-                        });
+                        reporter.report(`Step 2/3: Generating module summaries (${index}/${total}): ${path.basename(summary.module)}`);
                         // Refresh product navigator to show new files
                         const productNavigator = stateManager.getProductNavigator();
                         if (productNavigator) {
@@ -340,9 +334,7 @@ export async function generateProductDocs() {
                     onProductDocIteration: (doc, iteration, maxIterations) => {
                         analysisResultRepository.saveIncrementalProductDocIteration(doc, workspaceRoot, iteration, maxIterations);
                         // Update progress notification to show incremental progress
-                        progress.report({ 
-                            message: `Step 3/3: Generating product documentation (iteration ${iteration}/${maxIterations})`
-                        });
+                        reporter.report(`Step 3/3: Generating product documentation (iteration ${iteration}/${maxIterations})`);
                         // Refresh product navigator to show new files
                         const productNavigator = stateManager.getProductNavigator();
                         if (productNavigator) {
@@ -450,11 +442,9 @@ export async function generateLLMInsights() {
     SWLogger.section('Generate Architecture Insights');
     SWLogger.log('Status: generating');
 
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Generating Architecture Insights with AI...',
-        cancellable: false
-    }, async (progress) => {
+    const { progressService } = await import('../infrastructure/progressService');
+    
+    await progressService.withProgressNonCancellable('Generating Architecture Insights with AI...', async (reporter) => {
         try {
             if (!lastAnalysisContext) {
                 throw new Error('No analysis context available. Please run workspace analysis first.');
@@ -464,7 +454,7 @@ export async function generateLLMInsights() {
             const lastCodeAnalysis = stateManager.getCodeAnalysis();
             const outputChannel = stateManager.getOutputChannel();
             
-            progress.report({ message: 'Step 1/2: Analyzing product purpose and architecture rationale...' });
+            reporter.report('Step 1/2: Analyzing product purpose and architecture rationale...');
             console.log('Starting architecture insights generation...');
             console.log('Analysis context:', {
                 totalFiles: lastAnalysisContext.totalFiles,
@@ -532,9 +522,7 @@ export async function generateLLMInsights() {
                         analysisResultRepository.saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, iteration, maxIterations);
                         
                         // Update progress notification to show iteration was received
-                        progress.report({ 
-                            message: `Step 2/2: Received architecture insights iteration ${iteration}/${maxIterations} from LLM`
-                        });
+                        reporter.report(`Step 2/2: Received architecture insights iteration ${iteration}/${maxIterations} from LLM`);
                         SWLogger.log(`Received architecture insights iteration ${iteration}/${maxIterations} from LLM`);
                         
                         // Refresh insights viewer to show incremental data
@@ -625,7 +613,7 @@ export async function generateLLMInsights() {
             SWLogger.log('Status: complete');
 
             
-            progress.report({ message: 'Displaying insights...' });
+            reporter.report('Displaying insights...');
             // Only show in output channel, not in webview (removed duplicate top window)
             await showArchitectureInsightsInOutput();
             
@@ -1246,8 +1234,179 @@ export async function clearAllData(): Promise<void> {
 
 
 /**
- * Generate unit tests using LLM directly (no backend required)
+ * Extract test code from unit test plan and write actual test files
  */
+async function writeTestFilesFromPlan(
+    plan: any,
+    workspaceRoot: string
+): Promise<string[]> {
+    const writtenFiles: string[] = [];
+    
+    if (!plan.aggregated_plan || !plan.aggregated_plan.test_suites) {
+        SWLogger.log('No test suites found in plan');
+        return writtenFiles;
+    }
+
+    // Group test cases by test_file_path
+    const testFilesMap = new Map<string, { suite: any; testCases: any[] }[]>();
+    
+    for (const suite of plan.aggregated_plan.test_suites) {
+        if (!suite.test_file_path || !suite.test_cases || suite.test_cases.length === 0) {
+            continue;
+        }
+        
+        const testFilePath = suite.test_file_path;
+        if (!testFilesMap.has(testFilePath)) {
+            testFilesMap.set(testFilePath, []);
+        }
+        
+        testFilesMap.get(testFilePath)!.push({
+            suite,
+            testCases: suite.test_cases.filter((tc: any) => tc.test_code && tc.test_code.trim().length > 0)
+        });
+    }
+
+    // Write each test file
+    for (const [testFilePath, suites] of testFilesMap.entries()) {
+        try {
+            // Resolve the test file path relative to workspace root
+            // If path starts with / or is absolute, use as-is, otherwise join with workspace root
+            let fullTestPath: string;
+            if (path.isAbsolute(testFilePath)) {
+                fullTestPath = testFilePath;
+            } else if (testFilePath.startsWith('UnitTests/') || testFilePath.startsWith('UnitTests\\')) {
+                // If it's already in UnitTests, use it directly
+                fullTestPath = path.join(workspaceRoot, testFilePath);
+            } else {
+                // Otherwise, put it in UnitTests folder
+                const fileName = path.basename(testFilePath);
+                fullTestPath = path.join(workspaceRoot, 'UnitTests', fileName);
+            }
+            
+            // Ensure directory exists
+            const testDir = path.dirname(fullTestPath);
+            if (!fs.existsSync(testDir)) {
+                fs.mkdirSync(testDir, { recursive: true });
+            }
+            
+            // Combine all test code from all suites for this file
+            const testCodeParts: string[] = [];
+            const seenImports = new Set<string>();
+            const seenTestNames = new Set<string>();
+            
+            for (const { suite, testCases } of suites) {
+                if (testCases.length === 0) continue;
+                
+                // Extract imports from first test case (they should be similar across test cases in a suite)
+                const firstTestCase = testCases[0];
+                const testCode = firstTestCase.test_code || '';
+                
+                // Extract imports (lines starting with import/require/using/etc)
+                const lines = testCode.split('\n');
+                const imports: string[] = [];
+                let inCodeBlock = false;
+                
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    // Skip markdown code blocks if any remain
+                    if (trimmed.startsWith('```')) {
+                        inCodeBlock = !inCodeBlock;
+                        continue;
+                    }
+                    if (inCodeBlock) continue;
+                    
+                    // Collect import statements
+                    if (trimmed.startsWith('import ') || 
+                        trimmed.startsWith('require(') || 
+                        trimmed.startsWith('using ') ||
+                        trimmed.startsWith('#include')) {
+                        if (!seenImports.has(trimmed)) {
+                            imports.push(line);
+                            seenImports.add(trimmed);
+                        }
+                    }
+                }
+                
+                // Add imports if not already added
+                for (const imp of imports) {
+                    if (!testCodeParts.some(p => p.includes(imp.trim()))) {
+                        testCodeParts.push(imp);
+                    }
+                }
+                
+                // Add test code from each test case
+                for (const testCase of testCases) {
+                    if (!testCase.test_code || !testCase.test_code.trim()) {
+                        continue;
+                    }
+                    
+                    let code = testCase.test_code;
+                    
+                    // Remove markdown code blocks if present
+                    code = code.replace(/```[\w]*\n?/g, '').replace(/```/g, '');
+                    
+                    // Remove HTML tags if present
+                    code = code.replace(/<[^>]*>/g, '');
+                    
+                    // Decode HTML entities
+                    code = code.replace(/&lt;/g, '<');
+                    code = code.replace(/&gt;/g, '>');
+                    code = code.replace(/&amp;/g, '&');
+                    code = code.replace(/&quot;/g, '"');
+                    code = code.replace(/&#39;/g, "'");
+                    code = code.replace(/&#039;/g, "'");
+                    
+                    code = code.trim();
+                    
+                    if (code.length > 0) {
+                        // Check for duplicate test names and add comment if needed
+                        const testNameMatch = code.match(/(?:test|it|describe|TEST)\s*\(?\s*['"`]([^'"`]+)['"`]/);
+                        if (testNameMatch) {
+                            const testName = testNameMatch[1];
+                            if (seenTestNames.has(testName)) {
+                                // Add a comment to indicate this might be a duplicate
+                                code = `// Note: Test name "${testName}" may be duplicated\n${code}`;
+                            } else {
+                                seenTestNames.add(testName);
+                            }
+                        }
+                        
+                        testCodeParts.push('');
+                        testCodeParts.push(`// Test: ${testCase.name || testCase.id}`);
+                        if (testCase.description) {
+                            testCodeParts.push(`// ${testCase.description}`);
+                        }
+                        testCodeParts.push(code);
+                    }
+                }
+            }
+            
+            if (testCodeParts.length === 0) {
+                SWLogger.log(`No test code found for ${testFilePath}, skipping`);
+                continue;
+            }
+            
+            // Combine all parts with proper spacing
+            const finalTestCode = testCodeParts
+                .filter(part => part.trim().length > 0 || part === '')
+                .join('\n')
+                .replace(/\n{3,}/g, '\n\n') // Remove excessive blank lines
+                .trim() + '\n';
+            
+            // Write the file
+            fs.writeFileSync(fullTestPath, finalTestCode, 'utf-8');
+            writtenFiles.push(path.relative(workspaceRoot, fullTestPath));
+            SWLogger.log(`Written test file: ${fullTestPath}`);
+            
+        } catch (error: any) {
+            SWLogger.log(`ERROR: Failed to write test file ${testFilePath}: ${error.message}`);
+            console.error(`Error writing test file ${testFilePath}:`, error);
+        }
+    }
+    
+    return writtenFiles;
+}
+
 export async function generateUnitTests(): Promise<void> {
     const llmService = stateManager.getLLMService();
     const treeProvider = stateManager.getTreeProvider();
@@ -1350,7 +1509,7 @@ export async function generateUnitTests(): Promise<void> {
             }
 
             // Save unit test plan
-            progress.report({ message: 'Saving unit test plan...' });
+            reporter.report('Saving unit test plan...');
             const unitTestDir = path.join(workspaceRoot, 'UnitTests');
             if (!fs.existsSync(unitTestDir)) {
                 fs.mkdirSync(unitTestDir, { recursive: true });
@@ -1407,6 +1566,11 @@ export async function generateUnitTests(): Promise<void> {
 
             SWLogger.log(`Unit test plan saved to: ${planFile}`);
             
+            // Extract and write actual test files from the plan
+            progress.report({ message: 'Writing test files...' });
+            const testFilesWritten = await writeTestFilesFromPlan(transformedPlan, workspaceRoot);
+            SWLogger.log(`Written ${testFilesWritten.length} test file(s): ${testFilesWritten.join(', ')}`);
+            
             // Refresh the unit tests navigator to show the new plan
             const unitTestsNavigator = stateManager.getUnitTestsNavigator();
             if (unitTestsNavigator) {
@@ -1422,9 +1586,10 @@ export async function generateUnitTests(): Promise<void> {
                 }
             }
             
-            vscode.window.showInformationMessage(
-                '✅ Unit test plan generated! Check the "Unit Tests" panel to view it.'
-            );
+            const message = testFilesWritten.length > 0
+                ? `✅ Unit test plan generated and ${testFilesWritten.length} test file(s) written! Check the "Unit Tests" panel.`
+                : '✅ Unit test plan generated! Check the "Unit Tests" panel to view it.';
+            vscode.window.showInformationMessage(message);
             
             // Reset status to complete on success
             if (treeProvider) {
@@ -1513,7 +1678,7 @@ export async function runComprehensiveAnalysis(): Promise<void> {
             }
 
             // Step 2: Generate Product Documentation
-            progress.report({ message: 'Step 2/4: Generating product documentation...', increment: 25 });
+            reporter.report('Step 2/4: Generating product documentation...', 25);
             
             let lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
             if (!lastEnhancedProductDocs) {
@@ -1532,13 +1697,10 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                     workspaceRoot,
                     {
                         onFileStart: (filePath, index, total) => {
-                            if (cancellationToken.isCancellationRequested) {
+                            if (reporter.cancellationToken?.isCancellationRequested) {
                                 throw new Error('Cancelled by user');
                             }
-                            progress.report({ 
-                                message: `Step 2/4: Analyzing file ${index}/${total}: ${path.basename(filePath)}`,
-                                increment: 0
-                            });
+                            reporter.report(`Step 2/4: Analyzing file ${index}/${total}: ${path.basename(filePath)}`, 0);
                         },
                         onFileSummary: (summary) => {
                             analysisResultRepository.saveIncrementalFileSummary(summary, workspaceRoot, 0, 0);
@@ -1565,12 +1727,12 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                 lastEnhancedProductDocs = productDocs;
             }
 
-            if (cancellationToken.isCancellationRequested) {
+            if (reporter.cancellationToken?.isCancellationRequested) {
                 throw new Error('Cancelled by user');
             }
 
             // Step 3: Generate Architecture Insights
-            progress.report({ message: 'Step 3/4: Generating architecture insights...', increment: 25 });
+            reporter.report('Step 3/4: Generating architecture insights...', 25);
             
             let lastLLMInsights = stateManager.getLLMInsights();
             if (!lastLLMInsights) {
@@ -1590,22 +1752,19 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                     lastEnhancedProductDocs || undefined,
                     {
                         onProductPurposeStart: () => {
-                            if (cancellationToken.isCancellationRequested) {
+                            if (reporter.cancellationToken?.isCancellationRequested) {
                                 throw new Error('Cancelled by user');
                             }
-                            progress.report({ message: 'Step 3/4: Analyzing product purpose...', increment: 0 });
+                            reporter.report('Step 3/4: Analyzing product purpose...', 0);
                         },
                         onProductPurposeAnalysis: (productPurpose) => {
                             analysisResultRepository.saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
                         },
                         onInsightsIterationStart: (iteration, maxIterations) => {
-                            if (cancellationToken.isCancellationRequested) {
+                            if (reporter.cancellationToken?.isCancellationRequested) {
                                 throw new Error('Cancelled by user');
                             }
-                            progress.report({ 
-                                message: `Step 3/4: Generating insights (${iteration}/${maxIterations})...`,
-                                increment: 0
-                            });
+                            reporter.report(`Step 3/4: Generating insights (${iteration}/${maxIterations})...`, 0);
                         },
                         onInsightsIteration: (insights) => {
                             analysisResultRepository.saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, 1, 1);
@@ -1631,12 +1790,12 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                 lastLLMInsights = insights;
             }
 
-            if (cancellationToken.isCancellationRequested) {
+            if (reporter.cancellationToken?.isCancellationRequested) {
                 throw new Error('Cancelled by user');
             }
 
             // Step 4: Generate Comprehensive Report
-            progress.report({ message: 'Step 4/4: Generating comprehensive report...', increment: 25 });
+            reporter.report('Step 4/4: Generating comprehensive report...', 25);
             SWLogger.log('Generating comprehensive report...');
 
             const report = await llmService.generateComprehensiveReport(
@@ -1644,15 +1803,15 @@ export async function runComprehensiveAnalysis(): Promise<void> {
                 lastCodeAnalysis || undefined,
                 lastEnhancedProductDocs || undefined,
                 lastLLMInsights || undefined,
-                cancellationToken
+                reporter.cancellationToken
             );
 
-            if (cancellationToken.isCancellationRequested) {
+            if (reporter.cancellationToken?.isCancellationRequested) {
                 throw new Error('Cancelled by user');
             }
 
             // Save report to file
-            progress.report({ message: 'Saving report...', increment: 0 });
+            reporter.report('Saving report...', 0);
             const shadowDir = path.join(workspaceRoot, '.shadow');
             const docsDir = path.join(shadowDir, 'docs');
             
