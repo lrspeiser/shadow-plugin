@@ -1,15 +1,18 @@
 /**
  * LLM Service for calling OpenAI/Claude to generate intelligent insights
+ * Refactored to use extracted providers, parser, and infrastructure
  */
 import * as vscode from 'vscode';
-import { OpenAI } from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
 import { FileSummary, ModuleSummary, EnhancedProductDocumentation, detectFileRole, groupFilesByModule, detectModuleType, readFileContent } from './fileDocumentation';
 import { CodeAnalysis, FileInfo } from './analyzer';
 import { productPurposeAnalysisSchema, llmInsightsSchema, productDocumentationSchema, unitTestPlanSchema } from './llmSchemas';
 import { FileAccessHelper, LLMRequest } from './fileAccessHelper';
 import { SWLogger } from './logger';
 import { getConfigurationManager, LLMProvider as ConfigLLMProvider } from './config/configurationManager';
+import { ProviderFactory, LLMProvider } from './ai/providers/providerFactory';
+import { LLMResponseParser } from './ai/llmResponseParser';
+import { RateLimiter } from './ai/llmRateLimiter';
+import { RetryHandler } from './ai/llmRetryHandler';
 
 export interface AnalysisContext {
     files: Array<{
@@ -74,23 +77,22 @@ export interface ProductDocumentation {
 }
 
 
-type LLMProvider = 'openai' | 'claude';
-
 export class LLMService {
-    private openaiClient: OpenAI | null = null;
-    private claudeClient: Anthropic | null = null;
-    private openaiApiKey: string | null = null;
-    private claudeApiKey: string | null = null;
-    private provider: LLMProvider = 'openai'; // Default to OpenAI for backward compatibility
+    private providerFactory: ProviderFactory;
+    private responseParser: LLMResponseParser;
+    private rateLimiter: RateLimiter;
+    private retryHandler: RetryHandler;
     private onConfigurationChange: (() => void) | null = null;
     private configManager = getConfigurationManager();
 
     constructor() {
-        this.updateApiKeys();
+        this.providerFactory = new ProviderFactory();
+        this.responseParser = new LLMResponseParser();
+        this.rateLimiter = new RateLimiter();
+        this.retryHandler = new RetryHandler();
         
         // Listen for configuration changes via ConfigurationManager
         this.configManager.onConfigurationChange(() => {
-            this.updateApiKeys();
             // Notify listeners that configuration changed
             if (this.onConfigurationChange) {
                 this.onConfigurationChange();
@@ -102,50 +104,17 @@ export class LLMService {
         this.onConfigurationChange = callback;
     }
 
-    private updateApiKeys() {
-        // Get provider preference
-        this.provider = this.configManager.llmProvider;
-        
-        // Update OpenAI client
-        const openaiKey = this.configManager.openaiApiKey;
-        if (openaiKey && openaiKey.length > 0) {
-            this.openaiApiKey = openaiKey;
-            this.openaiClient = new OpenAI({
-                apiKey: this.openaiApiKey,
-                timeout: 300000 // 5 minutes
-            });
-        } else {
-            this.openaiApiKey = null;
-            this.openaiClient = null;
-        }
-        
-        // Update Claude client
-        const claudeKey = this.configManager.claudeApiKey;
-        if (claudeKey && claudeKey.length > 0) {
-            this.claudeApiKey = claudeKey;
-            this.claudeClient = new Anthropic({
-                apiKey: this.claudeApiKey,
-                timeout: 300000 // 5 minutes
-            });
-        } else {
-            this.claudeApiKey = null;
-            this.claudeClient = null;
-        }
-    }
-
     public isConfigured(): boolean {
-        if (this.provider === 'claude') {
-            return this.claudeClient !== null;
-        }
-        return this.openaiClient !== null;
+        const provider = this.configManager.llmProvider;
+        return this.providerFactory.isProviderConfigured(provider);
     }
 
     public getProvider(): LLMProvider {
-        return this.provider;
+        return this.configManager.llmProvider;
     }
 
     public async promptForApiKey(provider?: LLMProvider): Promise<boolean> {
-        const targetProvider = provider || this.provider;
+        const targetProvider = provider || this.getProvider();
         const isClaude = targetProvider === 'claude';
         
         const result = await vscode.window.showInputBox({
@@ -172,7 +141,7 @@ export class LLMService {
             await this.configManager.update(keyName, result.trim(), vscode.ConfigurationTarget.Global);
             
             // If setting the key for the current provider, also update the provider if needed
-            if (!provider && targetProvider !== this.provider) {
+            if (!provider && targetProvider !== this.getProvider()) {
                 await this.configManager.update('llmProvider', targetProvider, vscode.ConfigurationTarget.Global);
             }
             
@@ -207,11 +176,12 @@ export class LLMService {
             onProductDocIteration?: (doc: EnhancedProductDocumentation, iteration: number, maxIterations: number) => void;
         }
     ): Promise<EnhancedProductDocumentation> {
-        // Product docs generation currently uses OpenAI (can be extended to Claude later)
         SWLogger.section('Product Docs: Start');
         SWLogger.log(`Files: ${analysis.files.length}, EntryPoints: ${analysis.entryPoints.length}`);
-        if (!this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
+        
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
         }
 
         console.log('Starting enhanced product documentation generation...');
@@ -285,9 +255,9 @@ export class LLMService {
      * STEP 1: Analyze a single file
      */
     private async analyzeFile(file: FileInfo, workspaceRoot: string): Promise<FileSummary> {
-        // File analysis currently uses OpenAI (can be extended to Claude later)
-        if (!this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
         }
 
         const fileContent = await readFileContent(file.path, workspaceRoot);
@@ -295,23 +265,32 @@ export class LLMService {
 
         const prompt = this.buildFileAnalysisPrompt(file, fileContent || '', role);
 
-        const response = await this.openaiClient.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are an expert code analyst who extracts user-facing and developer-facing behavior from code files. Focus on WHAT the code does from a user perspective, not implementation details.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            max_completion_tokens: 40000
-        });
+        // Wait for rate limit if needed
+        await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+        
+        // Send request with retry
+        const response = await this.retryHandler.executeWithRetry(
+            async () => {
+                const llmResponse = await provider.sendRequest({
+                    model: 'gpt-4o',
+                    systemPrompt: 'You are an expert code analyst who extracts user-facing and developer-facing behavior from code files. Focus on WHAT the code does from a user perspective, not implementation details.',
+                    messages: [
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    maxTokens: 40000
+                });
+                
+                // Record request for rate limiting
+                this.rateLimiter.recordRequest(provider.getName() as any);
+                
+                return llmResponse;
+            }
+        );
 
-        const content = response.choices[0].message.content || '';
-        return this.parseFileSummary(content, file.path, role);
+        return this.responseParser.parseFileSummary(response.content, file.path, role);
     }
 
     /**
@@ -324,9 +303,9 @@ export class LLMService {
             onModuleSummary?: (summary: ModuleSummary, index: number, total: number) => void;
         }
     ): Promise<ModuleSummary[]> {
-        // Module rollups currently use OpenAI (can be extended to Claude later)
-        if (!this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
         }
 
         const modules = groupFilesByModule(
@@ -352,23 +331,32 @@ export class LLMService {
             const prompt = this.buildModuleRollupPrompt(modulePath, moduleType, moduleFiles);
 
             try {
-                const response = await this.openaiClient.chat.completions.create({
-                    model: 'gpt-4o',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'You are an expert technical writer who creates module-level summaries from file-level documentation. Focus on user-facing capabilities and workflows.'
-                        },
-                        {
-                            role: 'user',
-                            content: prompt
-                        }
-                    ],
-                    max_completion_tokens: 40000
-                });
+                // Wait for rate limit if needed
+                await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+                
+                // Send request with retry
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        const llmResponse = await provider.sendRequest({
+                            model: 'gpt-4o',
+                            systemPrompt: 'You are an expert technical writer who creates module-level summaries from file-level documentation. Focus on user-facing capabilities and workflows.',
+                            messages: [
+                                {
+                                    role: 'user',
+                                    content: prompt
+                                }
+                            ],
+                            maxTokens: 40000
+                        });
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        
+                        return llmResponse;
+                    }
+                );
 
-                const content = response.choices[0].message.content || '';
-                const summary = this.parseModuleSummary(content, modulePath, moduleType, moduleFiles);
+                const summary = this.responseParser.parseModuleSummary(response.content, modulePath, moduleType, moduleFiles);
                 moduleSummaries.push(summary);
                 
                 // Call incremental save callback
@@ -409,19 +397,12 @@ export class LLMService {
             onProductDocIteration?: (doc: EnhancedProductDocumentation, iteration: number, maxIterations: number) => void;
         }
     ): Promise<EnhancedProductDocumentation> {
-        const provider = this.configManager.llmProvider;
-        const isClaude = provider === 'claude';
-
-        if (isClaude) {
-            if (!this.claudeClient) {
-                throw new Error('Claude API key not configured');
-            }
-        } else {
-            if (!this.openaiClient) {
-                throw new Error('OpenAI API key not configured');
-            }
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
         }
 
+        const isClaude = provider.getName() === 'claude';
         const fileAccessHelper = new FileAccessHelper(workspaceRoot);
         let basePrompt = this.buildProductLevelPrompt(fileSummaries, moduleSummaries, analysis, fileAccessHelper);
         const messages: any[] = [];
@@ -447,47 +428,47 @@ export class LLMService {
                 });
             }
 
-            let response: any;
-            if (isClaude) {
-                // Use Claude with structured outputs for guaranteed JSON
-                console.log('[Product Documentation] Using Claude with structured outputs...');
-                response = await (this.claudeClient as any).beta.messages.create({
-                    model: 'claude-sonnet-4-5',
-                    max_tokens: 40000,
-                    betas: ['structured-outputs-2025-11-13'],
-                    system: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic.',
-                    messages: messages,
-                    output_format: {
-                        type: 'json_schema',
-                        schema: productDocumentationSchema
+            // Wait for rate limit if needed
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
+            // Send request with retry
+            const structuredResponse = await this.retryHandler.executeWithRetry(
+                async () => {
+                    if (isClaude) {
+                        // Use Claude with structured outputs for guaranteed JSON
+                        console.log('[Product Documentation] Using Claude with structured outputs...');
+                        const response = await provider.sendStructuredRequest(
+                            {
+                                model: 'claude-sonnet-4-5',
+                                systemPrompt: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic.',
+                                messages: messages,
+                                maxTokens: 40000
+                            },
+                            productDocumentationSchema
+                        );
+                        SWLogger.log('Claude response received (product docs)');
+                        return response;
+                    } else {
+                        // Use OpenAI with JSON mode
+                        const response = await provider.sendStructuredRequest(
+                            {
+                                model: 'gpt-5.1',
+                                systemPrompt: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic. You MUST respond with valid JSON only, no markdown, no code blocks.',
+                                messages: messages,
+                                maxTokens: 40000
+                            },
+                            productDocumentationSchema
+                        );
+                        SWLogger.log('OpenAI response received (product docs)');
+                        return response;
                     }
-                });
-                SWLogger.log('Claude response received (product docs)');
-
-                const textContent = response.content[0].text;
-                if (!textContent) {
-                    throw new Error('No text content in Claude response');
                 }
-                finalResult = JSON.parse(textContent);
-            } else {
-                // Use OpenAI with JSON mode
-                response = await this.openaiClient!.chat.completions.create({
-                    model: 'gpt-5.1',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic. You MUST respond with valid JSON only, no markdown, no code blocks.'
-                        },
-                        ...messages
-                    ],
-                    response_format: { type: 'json_object' },
-                    max_completion_tokens: 40000
-                });
-                SWLogger.log('OpenAI response received (product docs)');
-
-                const content = response.choices[0].message.content || '';
-                finalResult = JSON.parse(content);
-            }
+            );
+            
+            // Record request for rate limiting
+            this.rateLimiter.recordRequest(provider.getName() as any);
+            
+            finalResult = structuredResponse.data;
 
             // Call incremental save callback for this iteration
             if (callbacks?.onProductDocIteration) {
@@ -560,31 +541,40 @@ export class LLMService {
      * Generate product documentation from codebase analysis (legacy method - kept for compatibility)
      */
     public async generateProductDocs(context: AnalysisContext): Promise<ProductDocumentation> {
-        // Product docs generation currently uses OpenAI (can be extended to Claude later)
-        if (!this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
         }
 
         const prompt = this.buildProductDocsPrompt(context);
 
-        const response = await this.openaiClient.chat.completions.create({
-            model: 'gpt-5.1',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are an expert technical writer who creates clear, comprehensive product documentation from code analysis.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            max_completion_tokens: 40000
-        });
+        // Wait for rate limit if needed
+        await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+        
+        // Send request with retry
+        const response = await this.retryHandler.executeWithRetry(
+            async () => {
+                const llmResponse = await provider.sendRequest({
+                    model: 'gpt-5.1',
+                    systemPrompt: 'You are an expert technical writer who creates clear, comprehensive product documentation from code analysis.',
+                    messages: [
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    maxTokens: 40000
+                });
+                
+                // Record request for rate limiting
+                this.rateLimiter.recordRequest(provider.getName() as any);
+                
+                return llmResponse;
+            }
+        );
 
-        const content = response.choices[0].message.content || '';
-        console.log('Product Docs LLM Response (first 1000 chars):', content.substring(0, 1000));
-        const parsed = this.parseProductDocs(content);
+        console.log('Product Docs LLM Response (first 1000 chars):', response.content.substring(0, 1000));
+        const parsed = this.responseParser.parseProductDocs(response.content);
         console.log('Parsed Product Docs:', {
             hasOverview: !!parsed.overview,
             featuresCount: parsed.features.length,
@@ -602,14 +592,12 @@ export class LLMService {
         productDocs: EnhancedProductDocumentation,
         context: AnalysisContext
     ): Promise<ProductPurposeAnalysis> {
-        const isClaude = this.provider === 'claude';
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
         
-        if (isClaude && !this.claudeClient) {
-            throw new Error('Claude API key not configured');
-        }
-        if (!isClaude && !this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
-        }
+        const isClaude = provider.getName() === 'claude';
 
         const prompt = this.buildProductPurposePrompt(productDocs, context);
         const providerName = isClaude ? 'Claude' : 'OpenAI';
@@ -617,72 +605,66 @@ export class LLMService {
         console.log('Product Purpose Analysis prompt length:', prompt.length);
 
         try {
+            // Wait for rate limit if needed
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
             if (isClaude) {
                 // Use Claude with structured outputs - NO PARSING NEEDED!
                 console.log('[Product Purpose] Using Claude with structured outputs...');
-                // Structured outputs is a beta feature
-                const response = await (this.claudeClient as any).beta.messages.create({
-                    model: 'claude-sonnet-4-5',
-                    max_tokens: 8000,
-                    betas: ['structured-outputs-2025-11-13'],
-                    system: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
-                    messages: [
-                        {
-                            role: 'user',
-                            content: prompt
-                        }
-                    ],
-                    output_format: {
-                        type: 'json_schema',
-                        schema: productPurposeAnalysisSchema
+                const structuredResponse = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        const response = await provider.sendStructuredRequest(
+                            {
+                                model: 'claude-sonnet-4-5',
+                                systemPrompt: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: prompt
+                                    }
+                                ],
+                                maxTokens: 8000
+                            },
+                            productPurposeAnalysisSchema
+                        );
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        
+                        return response;
                     }
-                });
+                );
 
-                // Claude structured outputs return valid JSON directly - no parsing needed!
-                const textContent = response.content[0].text;
-                if (!textContent) {
-                    throw new Error('No text content in Claude response');
-                }
-                const structuredOutput = JSON.parse(textContent);
                 console.log('✅ [Product Purpose] Claude structured output received (no parsing needed)');
-                return structuredOutput as ProductPurposeAnalysis;
+                return structuredResponse.data as ProductPurposeAnalysis;
             } else {
-                // Use OpenAI with traditional parsing
-                const modelsToTry = ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo'];
-                let lastError: any = null;
-                let response: any = null;
-
-                for (const model of modelsToTry) {
-                    try {
-                        console.log(`[Product Purpose] Trying model: ${model}`);
-                        response = await this.openaiClient!.chat.completions.create({
-                            model: model,
-                            messages: [
-                                {
-                                    role: 'system',
-                                    content: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.'
-                                },
-                                {
-                                    role: 'user',
-                                    content: prompt
-                                }
-                            ],
-                            max_completion_tokens: 8000
-                        });
-                        console.log(`✅ [Product Purpose] Successfully used model: ${model}`);
-                        break;
-                    } catch (modelError: any) {
-                        console.log(`❌ [Product Purpose] Model ${model} failed:`, modelError.message);
-                        lastError = modelError;
+                // Use OpenAI with fallback models
+                const openaiProvider = this.providerFactory.getProvider('openai');
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
+                            {
+                                model: 'gpt-5.1',
+                                systemPrompt: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: prompt
+                                    }
+                                ],
+                                maxTokens: 8000
+                            },
+                            ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
+                        );
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest('openai');
+                        
+                        return llmResponse;
                     }
-                }
+                );
 
-                if (!response || !response.choices?.[0]?.message?.content) {
-                    throw new Error(`Product purpose analysis failed: ${lastError?.message || 'Unknown error'}`);
-                }
-
-                const content = response.choices[0].message.content;
-                return this.parseProductPurposeAnalysis(content);
+                return this.responseParser.parseProductPurposeAnalysis(response.content);
             }
         } catch (error: any) {
             console.error('Error in analyzeProductPurpose:', error);
@@ -713,14 +695,12 @@ export class LLMService {
             onInsightsIteration?: (insights: LLMInsights, iteration: number, maxIterations: number) => void;
         }
     ): Promise<LLMInsights> {
-        const isClaude = this.provider === 'claude';
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
         
-        if (isClaude && !this.claudeClient) {
-            throw new Error('Claude API key not configured');
-        }
-        if (!isClaude && !this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
-        }
+        const isClaude = provider.getName() === 'claude';
 
         // Step 1: Analyze product purpose and architecture rationale (if product docs available)
         let productPurposeAnalysis: ProductPurposeAnalysis | undefined;
@@ -778,28 +758,32 @@ export class LLMService {
                     });
                 }
 
+                // Wait for rate limit if needed
+                await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+                
                 if (isClaude) {
                     // Use Claude with structured outputs - NO PARSING NEEDED!
                     console.log('[Architecture Insights] Using Claude with structured outputs...');
-                    // Structured outputs is a beta feature
-                    const response = await (this.claudeClient as any).beta.messages.create({
-                        model: 'claude-sonnet-4-5',
-                        max_tokens: 40000,
-                        betas: ['structured-outputs-2025-11-13'],
-                        system: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
-                        messages: messages,
-                        output_format: {
-                            type: 'json_schema',
-                            schema: llmInsightsSchema
+                    const structuredResponse = await this.retryHandler.executeWithRetry(
+                        async () => {
+                            const response = await provider.sendStructuredRequest(
+                                {
+                                    model: 'claude-sonnet-4-5',
+                                    systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
+                                    messages: messages,
+                                    maxTokens: 40000
+                                },
+                                llmInsightsSchema
+                            );
+                            
+                            // Record request for rate limiting
+                            this.rateLimiter.recordRequest(provider.getName() as any);
+                            
+                            return response;
                         }
-                    });
+                    );
 
-                    // Claude structured outputs return valid JSON directly - no parsing needed!
-                    const textContent = response.content[0].text;
-                    if (!textContent) {
-                        throw new Error('No text content in Claude response');
-                    }
-                    finalResult = JSON.parse(textContent);
+                    finalResult = structuredResponse.data;
                     insights = finalResult as LLMInsights;
                     
                     console.log('✅ Claude structured output received (no parsing needed):', {
@@ -808,53 +792,37 @@ export class LLMService {
                         issuesCount: insights.issues.length
                     });
                 } else {
-                // Use OpenAI with traditional parsing
-                const modelsToTry = ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo'];
-                let lastError: any = null;
-                let response: any = null;
-
-                    for (const model of modelsToTry) {
-                        try {
-                            console.log(`Trying model: ${model}`);
-                            response = await this.openaiClient!.chat.completions.create({
-                                model: model,
-                                messages: [
-                                    {
-                                        role: 'system',
-                                        content: 'You are an expert software architect who provides clear, actionable insights about code architecture.'
-                                    },
-                                    ...messages
-                                ],
-                                max_completion_tokens: 40000
-                            });
-                            console.log(`✅ Successfully used model: ${model}`);
-                            break;
-                        } catch (modelError: any) {
-                            console.log(`❌ Model ${model} failed:`, modelError.message);
-                            lastError = modelError;
+                    // Use OpenAI with fallback models
+                    const openaiProvider = this.providerFactory.getProvider('openai');
+                    const response = await this.retryHandler.executeWithRetry(
+                        async () => {
+                            const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
+                                {
+                                    model: 'gpt-5.1',
+                                    systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
+                                    messages: messages,
+                                    maxTokens: 40000
+                                },
+                                ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
+                            );
+                            
+                            // Record request for rate limiting
+                            this.rateLimiter.recordRequest('openai');
+                            
+                            return llmResponse;
                         }
-                    }
+                    );
 
-                    if (!response) {
-                        const errorDetails = lastError?.response?.data 
-                            ? JSON.stringify(lastError.response.data, null, 2)
-                            : lastError?.message || 'Unknown error';
-                        throw new Error(`All models failed. Last error: ${errorDetails}`);
-                    }
-
-                    const firstChoice = response.choices?.[0];
-                    const content = firstChoice.message.content || '';
-                    
-                    if (firstChoice.finish_reason === 'length') {
+                    if (response.finishReason === 'length') {
                         console.warn('⚠️ Response was truncated due to token limit.');
                     }
                     
-                    if (!content || content.length === 0) {
-                        throw new Error(`LLM API returned empty response. Finish reason: ${firstChoice.finish_reason}`);
+                    if (!response.content || response.content.length === 0) {
+                        throw new Error(`LLM API returned empty response. Finish reason: ${response.finishReason}`);
                     }
 
                     // Parse OpenAI response (traditional approach)
-                    insights = this.parseArchitectureInsights(content, context);
+                    insights = this.responseParser.parseArchitectureInsights(response.content, context);
                     finalResult = insights;
                     
                     // Validate that issues have proposed fixes (only for OpenAI, Claude guarantees structure)
@@ -874,7 +842,7 @@ export class LLMService {
                     }
                     
                     // Store raw content as fallback for OpenAI
-                    insights.rawContent = content;
+                    insights.rawContent = response.content;
                 }
                 
                 // Call incremental save callback for this iteration
@@ -2085,14 +2053,12 @@ GOOD EXAMPLE (DO THIS):
         workspaceRoot?: string,
         cancellationToken?: vscode.CancellationToken
     ): Promise<any> {
-        const isClaude = this.provider === 'claude';
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
         
-        if (isClaude && !this.claudeClient) {
-            throw new Error('Claude API key not configured');
-        }
-        if (!isClaude && !this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
-        }
+        const isClaude = provider.getName() === 'claude';
 
         SWLogger.section('Unit Test Plan Generation');
         SWLogger.log('Building prompt...');
@@ -2111,97 +2077,89 @@ GOOD EXAMPLE (DO THIS):
 
             let result: any = null;
 
+            // Wait for rate limit if needed
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
             if (isClaude) {
                 // Use Claude with structured outputs - NO PARSING NEEDED!
                 console.log('[Unit Test Plan] Using Claude with structured outputs...');
-                const response = await (this.claudeClient as any).beta.messages.create({
-                    model: 'claude-sonnet-4-5',
-                    max_tokens: 40000,
-                    betas: ['structured-outputs-2025-11-13'],
-                    system: 'You are an expert test architect who creates comprehensive unit test plans.',
-                    messages: [{
-                        role: 'user',
-                        content: prompt
-                    }],
-                    output_format: {
-                        type: 'json_schema',
-                        schema: unitTestPlanSchema
+                const structuredResponse = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        const response = await provider.sendStructuredRequest(
+                            {
+                                model: 'claude-sonnet-4-5',
+                                systemPrompt: 'You are an expert test architect who creates comprehensive unit test plans.',
+                                messages: [{
+                                    role: 'user',
+                                    content: prompt
+                                }],
+                                maxTokens: 40000
+                            },
+                            unitTestPlanSchema
+                        );
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        
+                        return response;
                     }
-                });
+                );
 
-                // Claude structured outputs return valid JSON directly - no parsing needed!
-                const textContent = response.content[0].text;
-                if (!textContent) {
-                    throw new Error('No text content in Claude response');
-                }
-                result = JSON.parse(textContent);
+                result = structuredResponse.data;
                 
                 console.log('✅ [Unit Test Plan] Claude structured output received (no parsing needed):', {
                     hasStrategy: !!result.unit_test_strategy,
                     testSuitesCount: result.test_suites?.length || 0
                 });
             } else {
-                // Use OpenAI with model fallback pattern (same as generateArchitectureInsights)
-                const modelsToTry = ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo'];
-                let lastError: any = null;
-                let response: any = null;
-
-                for (const model of modelsToTry) {
-                    // Check for cancellation
-                    if (cancellationToken?.isCancellationRequested) {
-                        throw new Error('Cancelled by user');
+                // Use OpenAI with fallback models
+                const openaiProvider = this.providerFactory.getProvider('openai');
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        // Check for cancellation
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
+                            {
+                                model: 'gpt-5.1',
+                                systemPrompt: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON, no other text.',
+                                messages: [{
+                                    role: 'user',
+                                    content: prompt
+                                }],
+                                maxTokens: 40000,
+                                temperature: 0.3
+                            },
+                            ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
+                        );
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest('openai');
+                        
+                        return llmResponse;
                     }
+                );
 
-                    try {
-                        console.log(`[Unit Test Plan] Trying model: ${model}`);
-                        response = await this.openaiClient!.chat.completions.create({
-                            model: model,
-                            messages: [{
-                                role: 'system',
-                                content: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON, no other text.'
-                            }, {
-                                role: 'user',
-                                content: prompt
-                            }],
-                            temperature: 0.3,
-                            max_completion_tokens: 40000
-                        });
-                        console.log(`✅ [Unit Test Plan] Successfully used model: ${model}`);
-                        break;
-                    } catch (modelError: any) {
-                        console.log(`❌ [Unit Test Plan] Model ${model} failed:`, modelError.message);
-                        lastError = modelError;
-                    }
-                }
-
-                if (!response) {
-                    const errorDetails = lastError?.response?.data 
-                        ? JSON.stringify(lastError.response.data, null, 2)
-                        : lastError?.message || 'Unknown error';
-                    throw new Error(`All models failed. Last error: ${errorDetails}`);
-                }
-
-                const firstChoice = response.choices?.[0];
-                const content = firstChoice?.message?.content || '';
-                
-                if (firstChoice?.finish_reason === 'length') {
+                if (response.finishReason === 'length') {
                     console.warn('⚠️ [Unit Test Plan] Response was truncated due to token limit.');
                 }
                 
-                if (!content || content.length === 0) {
-                    throw new Error(`LLM API returned empty response. Finish reason: ${firstChoice?.finish_reason}`);
+                if (!response.content || response.content.length === 0) {
+                    throw new Error(`LLM API returned empty response. Finish reason: ${response.finishReason}`);
                 }
 
                 // Try to parse as JSON
                 try {
-                    const jsonMatch = content.match(/\{[\s\S]*\}/);
+                    const jsonMatch = response.content.match(/\{[\s\S]*\}/);
                     if (jsonMatch) {
                         result = JSON.parse(jsonMatch[0]);
                     } else {
-                        result = { rawContent: content };
+                        result = { rawContent: response.content };
                     }
                 } catch {
-                    result = { rawContent: content };
+                    result = { rawContent: response.content };
                 }
             }
 
@@ -2519,72 +2477,78 @@ Return ONLY the JSON object, no other text.`;
         architectureInsights?: LLMInsights,
         cancellationToken?: vscode.CancellationToken
     ): Promise<string> {
-        const isClaude = this.provider === 'claude';
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
         
-        if (isClaude && !this.claudeClient) {
-            throw new Error('Claude API key not configured');
-        }
-        if (!isClaude && !this.openaiClient) {
-            throw new Error('OpenAI API key not configured');
-        }
+        const isClaude = provider.getName() === 'claude';
 
         const prompt = this.buildComprehensiveReportPrompt(context, codeAnalysis, productDocs, architectureInsights);
 
         try {
+            // Wait for rate limit if needed
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
             if (isClaude) {
-                const response = await this.claudeClient!.messages.create({
-                    model: 'claude-sonnet-4-5',
-                    max_tokens: 8192,
-                    messages: [{
-                        role: 'user',
-                        content: prompt
-                    }]
-                });
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'claude-sonnet-4-5',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        
+                        return llmResponse;
+                    }
+                );
 
                 if (cancellationToken?.isCancellationRequested) {
                     throw new Error('Cancelled by user');
                 }
 
-                const content = response.content[0];
-                if (content.type === 'text') {
-                    return content.text;
-                } else {
-                    throw new Error('Unexpected response type from Claude');
-                }
+                return response.content;
             } else {
                 // OpenAI fallback
-                const models = ['gpt-4o', 'gpt-4-turbo', 'gpt-4'];
-                let lastError: any = null;
-
-                for (const model of models) {
-                    try {
+                const openaiProvider = this.providerFactory.getProvider('openai');
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
                         if (cancellationToken?.isCancellationRequested) {
                             throw new Error('Cancelled by user');
                         }
-
-                        const response = await this.openaiClient!.chat.completions.create({
-                            model: model,
-                            messages: [{ role: 'user', content: prompt }],
-                            max_completion_tokens: 8192,
-                            temperature: 0.7
-                        });
-
-                        if (cancellationToken?.isCancellationRequested) {
-                            throw new Error('Cancelled by user');
-                        }
-
-                        const content = response.choices[0]?.message?.content;
-                        if (content) {
-                            return content;
-                        }
-                    } catch (error: any) {
-                        lastError = error;
-                        console.warn(`Failed with model ${model}:`, error.message);
-                        continue;
+                        
+                        const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
+                            {
+                                model: 'gpt-4o',
+                                messages: [{ role: 'user', content: prompt }],
+                                maxTokens: 8192,
+                                temperature: 0.7
+                            },
+                            ['gpt-4o', 'gpt-4-turbo', 'gpt-4']
+                        );
+                        
+                        // Record request for rate limiting
+                        this.rateLimiter.recordRequest('openai');
+                        
+                        return llmResponse;
                     }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
                 }
 
-                throw lastError || new Error('All models failed');
+                return response.content;
             }
         } catch (error: any) {
             if (error.message === 'Cancelled by user') {
