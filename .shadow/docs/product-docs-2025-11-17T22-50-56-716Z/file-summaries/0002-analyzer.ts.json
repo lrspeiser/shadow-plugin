@@ -1,0 +1,15 @@
+{
+  "file": "src/analyzer.ts",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 2,
+    "total": 38,
+    "savedAt": "2025-11-17T22:50:57.684Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "file": "scripts/test_product_docs.mjs",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 36,
+    "total": 38,
+    "savedAt": "2025-11-17T23:51:39.364Z"
+  }
+}

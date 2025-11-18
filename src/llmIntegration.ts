@@ -2056,3 +2056,230 @@ function escapeHtml(text: string): string {
         .replace(/\n/g, '<br>');
 }
 
+/**
+ * Sequential workflow: Analyze Workspace → Generate Product Docs → Generate Architecture Insights → Generate Report
+ */
+export async function runComprehensiveAnalysis(): Promise<void> {
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        const result = await vscode.window.showWarningMessage(
+            'LLM API key not configured. Would you like to set it now?',
+            'Set API Key',
+            'Cancel'
+        );
+        
+        if (result === 'Set API Key') {
+            await setApiKey();
+            if (!llmService.isConfigured()) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    // Update UI to show generating status
+    if (treeProvider) {
+        treeProvider.setProductDocsStatus('generating');
+        treeProvider.setInsightsStatus('generating');
+    }
+
+    SWLogger.section('Comprehensive Analysis');
+    SWLogger.log('Starting sequential analysis workflow...');
+
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Comprehensive Analysis & Report Generation',
+        cancellable: true
+    }, async (progress, cancellationToken) => {
+        try {
+            // Step 1: Ensure workspace analysis is complete
+            progress.report({ message: 'Step 1/4: Analyzing workspace...', increment: 0 });
+            
+            if (!lastAnalysisContext || !lastCodeAnalysis) {
+                await loadSavedCodeAnalysis();
+                if (!lastAnalysisContext || !lastCodeAnalysis) {
+                    throw new Error('Workspace analysis not found. Please run "Analyze Workspace" first.');
+                }
+            }
+
+            // Step 2: Generate Product Documentation
+            progress.report({ message: 'Step 2/4: Generating product documentation...', increment: 25 });
+            
+            if (!lastEnhancedProductDocs) {
+                await loadSavedProductDocs();
+            }
+            
+            if (!lastEnhancedProductDocs) {
+                SWLogger.log('Generating product documentation...');
+                if (treeProvider) {
+                    treeProvider.setProductDocsStatus('generating');
+                }
+
+                lastEnhancedProductDocs = await llmService.generateEnhancedProductDocs(
+                    lastCodeAnalysis!,
+                    workspaceRoot,
+                    {
+                        onFileStart: (filePath, index, total) => {
+                            if (cancellationToken.isCancellationRequested) {
+                                throw new Error('Cancelled by user');
+                            }
+                            progress.report({ 
+                                message: `Step 2/4: Analyzing file ${index}/${total}: ${path.basename(filePath)}`,
+                                increment: 0
+                            });
+                        },
+                        onFileSummary: (summary) => {
+                            saveIncrementalFileSummary(summary, workspaceRoot, 0, 0);
+                        },
+                        onModuleSummary: (summary) => {
+                            saveIncrementalModuleSummary(summary, workspaceRoot, 0, 0);
+                        },
+                        onProductDocIteration: (doc) => {
+                            saveIncrementalProductDocIteration(doc, workspaceRoot, 1, 1);
+                        }
+                    }
+                );
+
+                await saveEnhancedProductDocsToFile(lastEnhancedProductDocs, workspaceRoot);
+                
+                if (treeProvider) {
+                    treeProvider.setProductDocsStatus('complete');
+                }
+                if (productNavigator) {
+                    productNavigator.setProductDocs(lastEnhancedProductDocs);
+                }
+            }
+
+            if (cancellationToken.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            // Step 3: Generate Architecture Insights
+            progress.report({ message: 'Step 3/4: Generating architecture insights...', increment: 25 });
+            
+            if (!lastLLMInsights) {
+                await loadSavedInsights();
+            }
+            
+            if (!lastLLMInsights) {
+                SWLogger.log('Generating architecture insights...');
+                if (treeProvider) {
+                    treeProvider.setInsightsStatus('generating');
+                }
+
+                lastLLMInsights = await llmService.generateArchitectureInsights(
+                    lastAnalysisContext!,
+                    lastCodeAnalysis || undefined,
+                    lastEnhancedProductDocs || undefined,
+                    {
+                        onProductPurposeStart: () => {
+                            if (cancellationToken.isCancellationRequested) {
+                                throw new Error('Cancelled by user');
+                            }
+                            progress.report({ message: 'Step 3/4: Analyzing product purpose...', increment: 0 });
+                        },
+                        onProductPurposeAnalysis: (productPurpose) => {
+                            saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
+                        },
+                        onInsightsIterationStart: (iteration, maxIterations) => {
+                            if (cancellationToken.isCancellationRequested) {
+                                throw new Error('Cancelled by user');
+                            }
+                            progress.report({ 
+                                message: `Step 3/4: Generating insights (${iteration}/${maxIterations})...`,
+                                increment: 0
+                            });
+                        },
+                        onInsightsIteration: (insights) => {
+                            saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, 1, 1);
+                            if (insightsViewer) {
+                                insightsViewer.setInsights(insights);
+                            }
+                        }
+                    }
+                );
+
+                await saveArchitectureInsightsToFile(lastLLMInsights);
+                
+                if (treeProvider) {
+                    treeProvider.setLLMInsights(lastLLMInsights);
+                    treeProvider.setInsightsStatus('complete');
+                }
+                if (insightsViewer) {
+                    insightsViewer.setInsights(lastLLMInsights);
+                }
+            }
+
+            if (cancellationToken.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            // Step 4: Generate Comprehensive Report
+            progress.report({ message: 'Step 4/4: Generating comprehensive report...', increment: 25 });
+            SWLogger.log('Generating comprehensive report...');
+
+            const report = await llmService.generateComprehensiveReport(
+                lastAnalysisContext!,
+                lastCodeAnalysis || undefined,
+                lastEnhancedProductDocs || undefined,
+                lastLLMInsights || undefined,
+                cancellationToken
+            );
+
+            if (cancellationToken.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            // Save report to file
+            progress.report({ message: 'Saving report...', increment: 0 });
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            
+            if (!fs.existsSync(shadowDir)) {
+                fs.mkdirSync(shadowDir, { recursive: true });
+            }
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const reportPath = path.join(docsDir, `refactoring-report-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+
+            SWLogger.log(`Report saved to: ${reportPath}`);
+
+            // Open the report in VSCode
+            const reportUri = vscode.Uri.file(reportPath);
+            const document = await vscode.workspace.openTextDocument(reportUri);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+
+            vscode.window.showInformationMessage(
+                `✅ Comprehensive analysis complete! Report opened in editor.`
+            );
+
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Analysis cancelled by user');
+            } else {
+                const errorMessage = error.message || String(error);
+                SWLogger.log(`ERROR: Comprehensive analysis failed: ${errorMessage}`);
+                vscode.window.showErrorMessage(`Failed to complete analysis: ${errorMessage}`);
+            }
+        } finally {
+            // Reset statuses
+            if (treeProvider) {
+                treeProvider.setProductDocsStatus('complete');
+                treeProvider.setInsightsStatus('complete');
+            }
+            SWLogger.log('Analysis workflow complete');
+        }
+    });
+}
+

@@ -1,0 +1,15 @@
+{
+  "file": "scripts/setup.sh",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 32,
+    "total": 38,
+    "savedAt": "2025-11-17T23:51:38.213Z"
+  }
+}

@@ -339,7 +339,11 @@ async function analyzeWorkspace() {
             statusBarItem.text = `$(eye) ${insights.length} issues`;
             statusBarItem.tooltip = `Shadow Watch: ${insights.length} architecture issues found`;
             
-            vscode.window.showInformationMessage(`Analysis complete: ${insights.length} insights generated`);
+            progress.report({ message: 'Step 1 complete. Starting comprehensive analysis...' });
+            
+            // Now run the comprehensive analysis workflow (Product Docs → Architecture Insights → Report)
+            await llmIntegration.runComprehensiveAnalysis();
+            
         } catch (error) {
             statusBarItem.text = '$(eye) Error';
             vscode.window.showErrorMessage(`Analysis failed: ${error}`);

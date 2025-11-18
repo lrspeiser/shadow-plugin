@@ -2511,5 +2511,242 @@ Return ONLY the JSON object, no other text.`;
 
         return prompt;
     }
+
+    /**
+     * Generate comprehensive refactoring report combining workspace, product, and architecture data
+     */
+    public async generateComprehensiveReport(
+        context: AnalysisContext,
+        codeAnalysis?: CodeAnalysis,
+        productDocs?: EnhancedProductDocumentation,
+        architectureInsights?: LLMInsights,
+        cancellationToken?: vscode.CancellationToken
+    ): Promise<string> {
+        const isClaude = this.provider === 'claude';
+        
+        if (isClaude && !this.claudeClient) {
+            throw new Error('Claude API key not configured');
+        }
+        if (!isClaude && !this.openaiClient) {
+            throw new Error('OpenAI API key not configured');
+        }
+
+        const prompt = this.buildComprehensiveReportPrompt(context, codeAnalysis, productDocs, architectureInsights);
+
+        try {
+            if (isClaude) {
+                const response = await this.claudeClient!.messages.create({
+                    model: 'claude-3-5-sonnet-20241022',
+                    max_tokens: 8192,
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }]
+                });
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                const content = response.content[0];
+                if (content.type === 'text') {
+                    return content.text;
+                } else {
+                    throw new Error('Unexpected response type from Claude');
+                }
+            } else {
+                // OpenAI fallback
+                const models = ['gpt-4o', 'gpt-4-turbo', 'gpt-4'];
+                let lastError: any = null;
+
+                for (const model of models) {
+                    try {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+
+                        const response = await this.openaiClient!.chat.completions.create({
+                            model: model,
+                            messages: [{ role: 'user', content: prompt }],
+                            max_completion_tokens: 8192,
+                            temperature: 0.7
+                        });
+
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+
+                        const content = response.choices[0]?.message?.content;
+                        if (content) {
+                            return content;
+                        }
+                    } catch (error: any) {
+                        lastError = error;
+                        console.warn(`Failed with model ${model}:`, error.message);
+                        continue;
+                    }
+                }
+
+                throw lastError || new Error('All models failed');
+            }
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                throw error;
+            }
+            console.error('Error generating comprehensive report:', error);
+            throw new Error(`Failed to generate comprehensive report: ${error.message}`);
+        }
+    }
+
+    private buildComprehensiveReportPrompt(
+        context: AnalysisContext,
+        codeAnalysis?: CodeAnalysis,
+        productDocs?: EnhancedProductDocumentation,
+        architectureInsights?: LLMInsights
+    ): string {
+        let prompt = `You are an expert software architect and refactoring specialist. Generate a comprehensive refactoring report that provides actionable recommendations to reduce complexity, eliminate duplication, and improve code efficiency.
+
+## Codebase Statistics
+- Total Files: ${context.totalFiles}
+- Total Lines: ${context.totalLines}
+- Total Functions: ${context.totalFunctions}
+- Entry Points: ${context.entryPoints.length}
+- Orphaned Files: ${context.orphanedFiles.length}
+- Large Files (>500 lines): ${context.largeFiles}
+
+## Entry Points
+${context.entryPoints.map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
+
+## Key Files and Functions
+${codeAnalysis && codeAnalysis.files ? codeAnalysis.files
+    .sort((a, b) => b.lines - a.lines)
+    .slice(0, 50)
+    .map((f, i) => {
+        const fileFunctions = codeAnalysis.functions.filter(func => func.file === f.path);
+        const funcList = fileFunctions.length > 0
+            ? fileFunctions.map(func => `    - ${func.name} (lines ${func.startLine}-${func.endLine}, ${func.lines} lines)`)
+            : ['    - (no functions detected)'];
+        return `${i + 1}. ${f.path} (${f.language}, ${f.lines} lines, ${f.functions} functions)\n${funcList.join('\n')}`;
+    }).join('\n\n') : context.files
+    .sort((a, b) => b.lines - a.lines)
+    .slice(0, 50)
+    .map((f, i) => `${i + 1}. ${f.path} - ${f.lines} lines, ${f.functions} functions`)
+    .join('\n')}
+`;
+
+        if (productDocs) {
+            prompt += `\n## Product Overview
+${productDocs.overview || 'N/A'}
+
+## What It Does
+${productDocs.whatItDoes?.join('\n- ') || 'N/A'}
+
+## Architecture Summary
+${productDocs.architecture || 'N/A'}
+
+## Key Modules
+${productDocs.modules && productDocs.modules.length > 0
+    ? productDocs.modules.map(m => `- ${m.module} (${m.moduleType}): ${m.summary || 'N/A'}`).join('\n')
+    : 'N/A'}
+`;
+        }
+
+        if (architectureInsights) {
+            prompt += `\n## Architecture Assessment
+${architectureInsights.overallAssessment || 'N/A'}
+
+### Strengths
+${architectureInsights.strengths?.slice(0, 10).join('\n- ') || 'N/A'}
+
+### Critical Issues
+${architectureInsights.issues?.slice(0, 10).map(i => {
+    if (typeof i === 'string') return `- ${i}`;
+    return `- ${i.title}: ${i.description}`;
+}).join('\n') || 'N/A'}
+
+### Recommendations
+${architectureInsights.recommendations?.slice(0, 10).map(r => {
+    if (typeof r === 'string') return `- ${r}`;
+    return `- ${r.title}: ${r.description}`;
+}).join('\n') || 'N/A'}
+
+### Priorities
+${architectureInsights.priorities?.slice(0, 10).map(p => {
+    if (typeof p === 'string') return `- ${p}`;
+    return `- ${p.title}: ${p.description}`;
+}).join('\n') || 'N/A'}
+`;
+        }
+
+        prompt += `\n## Your Task
+
+Generate a comprehensive refactoring report in **Markdown format** (NOT HTML) that addresses:
+
+1. **Complexity Reduction**
+   - Identify overly complex functions, files, and modules
+   - Recommend specific refactoring techniques (extract functions, split classes, simplify logic)
+   - Prioritize by impact and effort
+
+2. **Duplication Elimination**
+   - Identify duplicate code patterns
+   - Suggest consolidation strategies
+   - Recommend shared utilities or abstractions
+
+3. **Efficiency Improvements**
+   - Identify performance bottlenecks
+   - Suggest optimizations
+   - Recommend better algorithms or data structures
+
+4. **Code Organization**
+   - Suggest better file/folder structure
+   - Recommend module boundaries
+   - Suggest dependency improvements
+
+5. **Actionable Recommendations**
+   - Provide specific, implementable suggestions
+   - Include file paths and function names where relevant
+   - Prioritize recommendations by impact
+   - Estimate effort for each recommendation
+
+## Report Structure
+
+Your report should be in Markdown format with the following sections:
+
+# Comprehensive Refactoring Report
+
+## Executive Summary
+(Brief overview of key findings and priorities)
+
+## Complexity Analysis
+(Detailed analysis of complexity issues with specific recommendations)
+
+## Duplication Analysis
+(Identified duplications and consolidation strategies)
+
+## Efficiency Recommendations
+(Performance improvements and optimizations)
+
+## Code Organization
+(Structural improvements and reorganization suggestions)
+
+## Prioritized Action Plan
+(Ranked list of recommendations with effort estimates)
+
+## Implementation Roadmap
+(Suggested order of implementation)
+
+---
+
+**IMPORTANT**: 
+- Use Markdown formatting (headers, lists, code blocks, etc.)
+- Do NOT use HTML tags
+- Be specific with file paths and function names
+- Provide actionable, implementable recommendations
+- Prioritize by impact and feasibility
+
+Return ONLY the Markdown report, no additional text or explanations.`;
+
+        return prompt;
+    }
 }
 

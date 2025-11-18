@@ -1,0 +1,15 @@
+{
+  "file": "README.md",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 27,
+    "total": 38,
+    "savedAt": "2025-11-17T22:51:07.396Z"
+  }
+}

@@ -1,0 +1,526 @@
+{
+  "overview": "Shadow Watch is a Visual Studio Code extension that continuously monitors codebases and provides AI-powered architecture analysis and documentation generation. It automatically analyzes code on every save, detecting architecture issues like god objects, circular dependencies, dead code, and complex functions. Users access insights through a dedicated sidebar that displays health scores, errors, warnings, and suggestions organized by severity. The extension generates LLM-ready prompts formatted specifically for AI assistants like Cursor and ChatGPT, allowing developers to quickly copy architecture issues and paste them into AI tools for automated refactoring guidance.\n\nBeyond traditional static analysis, Shadow Watch connects to AI language models (OpenAI GPT-4, Anthropic Claude, or custom providers) to generate comprehensive product documentation, architectural insights, and unit test documentation. Users can trigger AI-powered analysis to understand what their codebase does from a user perspective, identify design patterns, and document system architecture. The extension supports multiple programming languages including Python, JavaScript, TypeScript, Java, Go, Rust, C/C++, Ruby, and PHP. It provides multiple viewing modes including tree navigation, interactive webviews, and inline diagnostics, making it easy to explore analysis results and jump directly to problematic code. All analysis results are cached for performance, and the extension works incrementally to avoid blocking development workflow.",
+  "whatItDoes": [
+    "Continuously monitors code files and analyzes architecture on every save",
+    "Detects architecture issues including god objects, circular dependencies, dead code, large files, and complex functions",
+    "Displays codebase health score (0-100%) with severity-based issue categorization",
+    "Generates LLM-ready prompts formatted for Cursor, ChatGPT, and other AI assistants",
+    "Provides one-click copy functionality to send architecture issues to AI tools",
+    "Creates comprehensive product documentation explaining what applications do for users",
+    "Generates AI-powered architectural insights describing system design patterns and component relationships",
+    "Produces unit test documentation helping developers understand test coverage and purposes",
+    "Navigates directly to code locations when clicking on issues or insights",
+    "Switches between multiple AI providers (OpenAI, Anthropic Claude, custom endpoints)",
+    "Clears analysis cache and refreshes insights on demand",
+    "Analyzes individual files or entire workspaces based on user selection",
+    "Displays insights in sidebar tree view with expandable categories",
+    "Shows detailed analysis in interactive webview panels",
+    "Exports documentation in multiple formats optimized for different AI assistants"
+  ],
+  "userPerspective": {
+    "gui": [
+      "Dedicated Shadow Watch sidebar in VS Code activity bar with eye icon",
+      "Tree view showing Menu, Analyze Workspace, Product Navigator, AI Architecture Insights, and Unit Tests sections",
+      "Health score display showing overall codebase quality percentage",
+      "Issue list organized by severity: Errors (red), Warnings (yellow), Info (blue)",
+      "Click-to-navigate functionality jumping directly to problematic code locations",
+      "Interactive webview panels displaying formatted documentation with syntax highlighting",
+      "Copy buttons for quickly sending insights to clipboard in LLM-ready format",
+      "Refresh button to re-run analysis on demand",
+      "Settings gear icon for accessing configuration options",
+      "Status indicators showing analysis progress and current provider",
+      "Context menu options in editor for analyzing current file",
+      "Inline diagnostics showing architecture issues directly in code editor"
+    ],
+    "cli": [],
+    "api": [
+      "Integrates with OpenAI API for GPT-4 powered analysis and documentation generation",
+      "Connects to Anthropic Claude API for alternative AI-powered insights",
+      "Supports custom AI provider endpoints for self-hosted or specialized models",
+      "Accepts configuration for API keys through VS Code settings or command palette",
+      "Returns structured analysis results in JSON format for programmatic access"
+    ],
+    "cicd": [
+      "Provides commands that can be triggered programmatically for automated documentation generation",
+      "Supports workspace analysis that can be integrated into pre-commit hooks",
+      "Generates consistent documentation across team through shared configuration",
+      "Enables automated architecture quality checks in development workflows"
+    ]
+  },
+  "workflowIntegration": [
+    "Code review workflow: Analyze code before reviews, copy issues to AI for refactoring suggestions, apply fixes, verify resolution",
+    "AI-assisted refactoring: Identify architecture issues, copy formatted prompts to Cursor/ChatGPT, receive specific refactoring steps, implement changes",
+    "Continuous code quality monitoring: Automatic analysis on every save, immediate feedback on introduced issues, prevent technical debt accumulation",
+    "Onboarding workflow: Generate product documentation for new developers, explore architecture insights to understand system design, navigate through codebase with AI-generated summaries",
+    "Documentation maintenance: Automatically generate up-to-date product and architecture documentation, export for sharing with team, keep docs synchronized with code changes",
+    "Technical debt tracking: Identify god objects, circular dependencies, and dead code, prioritize fixes by severity, track improvement over time through health scores",
+    "LLM collaboration workflow: Copy architecture issues in optimized format, paste into AI assistant with specific questions, apply suggested solutions, re-analyze to confirm resolution"
+  ],
+  "problemsSolved": [
+    "Eliminates manual code review effort by automatically detecting common architecture anti-patterns",
+    "Reduces time spent formatting code issues for AI assistants through one-click LLM-ready prompts",
+    "Prevents technical debt accumulation by providing real-time feedback on every code save",
+    "Helps developers understand unfamiliar codebases through AI-generated product documentation and architecture insights",
+    "Maintains documentation currency by automatically regenerating docs as code changes",
+    "Provides actionable guidance by categorizing issues by severity and including specific suggestions",
+    "Enables effective AI collaboration by formatting issues specifically for Cursor, ChatGPT, and other tools",
+    "Improves code navigation efficiency by allowing direct jumps from issues to code locations",
+    "Reduces analysis time through intelligent caching that remembers previous results",
+    "Supports multiple programming languages eliminating need for language-specific analysis tools",
+    "Bridges knowledge gaps between code implementation and user-facing product behavior",
+    "Helps teams identify circular dependencies before they cause maintenance problems",
+    "Detects oversized files and complex functions before they become unmaintainable"
+  ],
+  "architecture": "Shadow Watch is built as a Visual Studio Code extension with a multi-layered architecture centered around continuous monitoring and AI-powered analysis. The core monitoring system uses VS Code's file system watcher to detect code changes on save, triggering incremental analysis through a static analysis engine that parses code into abstract syntax trees. The analyzer examines code structure, dependencies, function complexity, and file sizes to detect architecture issues like god objects, circular dependencies, and dead code. Analysis results are categorized by severity (error, warning, info) and cached to optimize performance for subsequent runs.\n\nThe extension integrates with external AI language model services through a flexible provider abstraction supporting OpenAI, Anthropic Claude, and custom endpoints. When users request AI-powered analysis, the system collects codebase statistics and file contents, formats them according to specific prompts for product documentation, architecture insights, or unit test analysis, and sends requests to the configured AI provider. Responses are validated against JSON schemas, parsed, and transformed into structured data for display. The presentation layer includes multiple view components: a sidebar tree view for hierarchical navigation, webview panels for rich formatted display, and a diagnostics provider for inline code annotations. The LLM formatter generates prompts optimized for different AI assistants (Cursor, ChatGPT, generic), allowing users to copy insights in the format that works best with their chosen AI tool. All components communicate through a central extension controller that manages state, coordinates workflows, handles user commands, and maintains the analysis cache.",
+  "titles": [
+    "Shadow Watch Architecture Monitor",
+    "Continuous Code Monitoring",
+    "Architecture Issue Detection",
+    "LLM-Ready Prompt Generation",
+    "Health Score Calculation",
+    "God Object Detection",
+    "Circular Dependency Detection",
+    "Dead Code Identification",
+    "Large File Warnings",
+    "Complex Function Analysis",
+    "Copy for LLM",
+    "AI-Powered Product Documentation",
+    "AI Architecture Insights",
+    "Unit Test Documentation",
+    "Product Navigator",
+    "Analysis Workspace View",
+    "Insights Sidebar",
+    "Interactive Documentation Viewer",
+    "Smart Caching System",
+    "Multi-Language Support",
+    "Severity-Based Prioritization",
+    "Click-to-Navigate",
+    "Real-time Analysis",
+    "Incremental Updates",
+    "Multi-Provider AI Integration",
+    "OpenAI Integration",
+    "Claude Integration",
+    "Custom Provider Support",
+    "Analyze Current File",
+    "Analyze Workspace",
+    "Refresh Analysis",
+    "Clear Cache",
+    "Switch LLM Provider",
+    "Set API Key",
+    "Show Insights Panel",
+    "Enable/Disable Monitoring",
+    "Copy Menu Structure",
+    "Show Provider Status"
+  ],
+  "descriptions": [
+    {
+      "title": "Shadow Watch Architecture Monitor",
+      "description": "VS Code extension providing continuous code architecture monitoring with AI-powered insights formatted for LLM assistants",
+      "category": "feature"
+    },
+    {
+      "title": "Continuous Code Monitoring",
+      "description": "Automatically analyzes code on every save, providing real-time feedback on architecture issues without blocking development workflow",
+      "category": "feature"
+    },
+    {
+      "title": "Architecture Issue Detection",
+      "description": "Identifies common anti-patterns including god objects, circular dependencies, dead code, oversized files, and complex functions",
+      "category": "feature"
+    },
+    {
+      "title": "LLM-Ready Prompt Generation",
+      "description": "Generates formatted prompts specifically optimized for Cursor, ChatGPT, and other AI assistants with one-click copy functionality",
+      "category": "feature"
+    },
+    {
+      "title": "Health Score Calculation",
+      "description": "Calculates overall codebase health percentage (0-100%) based on severity and quantity of detected issues",
+      "category": "feature"
+    },
+    {
+      "title": "God Object Detection",
+      "description": "Identifies files with excessive lines of code or too many responsibilities, suggesting module decomposition",
+      "category": "feature"
+    },
+    {
+      "title": "Circular Dependency Detection",
+      "description": "Discovers circular import relationships between modules and suggests abstraction strategies to break cycles",
+      "category": "feature"
+    },
+    {
+      "title": "Dead Code Identification",
+      "description": "Finds unused functions, classes, and imports that can be safely removed to improve maintainability",
+      "category": "feature"
+    },
+    {
+      "title": "Severity-Based Prioritization",
+      "description": "Categorizes issues as Errors (critical), Warnings (important), or Info (suggestions) to help developers focus on what matters most",
+      "category": "feature"
+    },
+    {
+      "title": "Click-to-Navigate",
+      "description": "Allows users to click any detected issue and jump directly to the problematic code location in the editor",
+      "category": "feature"
+    },
+    {
+      "title": "AI-Powered Product Documentation",
+      "description": "Generates comprehensive user-facing documentation explaining what applications do, problems solved, and workflows supported",
+      "category": "feature"
+    },
+    {
+      "title": "AI Architecture Insights",
+      "description": "Produces technical architecture documentation describing system design patterns, component relationships, and data flow",
+      "category": "feature"
+    },
+    {
+      "title": "Unit Test Documentation",
+      "description": "Analyzes test files to document test coverage, test purposes, and relationships between tests and implementation",
+      "category": "feature"
+    },
+    {
+      "title": "Product Navigator",
+      "description": "Provides hierarchical tree navigation through AI-generated product documentation with expandable sections",
+      "category": "component"
+    },
+    {
+      "title": "Insights Sidebar",
+      "description": "Dedicated sidebar panel showing health score, issues categorized by severity, and quick access to analysis commands",
+      "category": "component"
+    },
+    {
+      "title": "Interactive Documentation Viewer",
+      "description": "Webview panels displaying rich formatted analysis results with syntax highlighting, structured sections, and copy functionality",
+      "category": "component"
+    },
+    {
+      "title": "Smart Caching System",
+      "description": "Stores analysis results to reduce repeat analysis time by 80% and improve performance for large codebases",
+      "category": "component"
+    },
+    {
+      "title": "Multi-Language Support",
+      "description": "Analyzes code in Python, JavaScript, TypeScript, Java, Go, Rust, C/C++, Ruby, and PHP with language-specific parsing",
+      "category": "feature"
+    },
+    {
+      "title": "Incremental Updates",
+      "description": "Performs focused re-analysis only on changed files rather than full workspace scans, completing updates in under 1 second",
+      "category": "feature"
+    },
+    {
+      "title": "Multi-Provider AI Integration",
+      "description": "Supports multiple AI language model providers including OpenAI GPT-4, Anthropic Claude, and custom API endpoints",
+      "category": "integration"
+    },
+    {
+      "title": "Copy for LLM",
+      "description": "One-click copying of architecture issues formatted specifically for the user's chosen AI assistant (Cursor, ChatGPT, generic)",
+      "category": "workflow"
+    },
+    {
+      "title": "Analyze Workspace",
+      "description": "Performs comprehensive analysis of entire workspace, generating health scores and detecting all architecture issues across all files",
+      "category": "workflow"
+    },
+    {
+      "title": "Analyze Current File",
+      "description": "Analyzes only the currently active file in the editor, providing quick focused feedback without full workspace scan",
+      "category": "workflow"
+    },
+    {
+      "title": "Real-time Analysis",
+      "description": "Automatically triggers analysis on file save events, providing immediate feedback as developers write and modify code",
+      "category": "workflow"
+    }
+  ],
+  "relevantFunctions": [
+    {
+      "name": "analyzeWorkspace",
+      "description": "Performs comprehensive analysis of entire workspace, scanning all supported files and generating complete architecture report",
+      "module": "extension"
+    },
+    {
+      "name": "analyzeCurrentFile",
+      "description": "Analyzes only the currently active file in the editor for quick focused feedback",
+      "module": "extension"
+    },
+    {
+      "name": "copyAllInsights",
+      "description": "Copies all detected architecture issues to clipboard in format optimized for selected LLM assistant",
+      "module": "extension"
+    },
+    {
+      "name": "copyFileInsights",
+      "description": "Copies architecture issues for current file only to clipboard in LLM-ready format",
+      "module": "extension"
+    },
+    {
+      "name": "copyInsight",
+      "description": "Copies a specific insight or issue to clipboard for sharing with AI assistant",
+      "module": "extension"
+    },
+    {
+      "name": "clearCache",
+      "description": "Removes all cached analysis results, forcing fresh analysis on next run",
+      "module": "extension"
+    },
+    {
+      "name": "clearAllData",
+      "description": "Removes all stored data including cache and configuration, resetting extension to initial state",
+      "module": "extension"
+    },
+    {
+      "name": "switchProvider",
+      "description": "Allows user to select different AI language model provider (OpenAI, Claude, custom)",
+      "module": "extension"
+    },
+    {
+      "name": "copyMenuStructure",
+      "description": "Copies the structure and organization of analysis results for documentation purposes",
+      "module": "extension"
+    },
+    {
+      "name": "showProviderStatus",
+      "description": "Displays current AI provider configuration and connection status",
+      "module": "extension"
+    },
+    {
+      "name": "generateProductDocs",
+      "description": "Triggers AI-powered generation of comprehensive product documentation describing user-facing functionality",
+      "module": "llmIntegration"
+    },
+    {
+      "name": "generateLLMInsights",
+      "description": "Triggers AI-powered analysis to generate architectural insights about system design and patterns",
+      "module": "llmIntegration"
+    },
+    {
+      "name": "generateUnitTests",
+      "description": "Triggers AI-powered analysis of test files to document test coverage and purposes",
+      "module": "llmIntegration"
+    },
+    {
+      "name": "setApiKey",
+      "description": "Prompts user to enter OpenAI API key for AI-powered analysis features",
+      "module": "llmIntegration"
+    },
+    {
+      "name": "setClaudeApiKey",
+      "description": "Prompts user to enter Anthropic Claude API key for AI-powered analysis",
+      "module": "llmIntegration"
+    },
+    {
+      "name": "detectGodObjects",
+      "description": "Analyzes files to identify those with excessive lines of code indicating god object anti-pattern",
+      "module": "analyzer"
+    },
+    {
+      "name": "findCircularDependencies",
+      "description": "Traces import relationships to discover circular dependencies between modules",
+      "module": "analyzer"
+    },
+    {
+      "name": "identifyDeadCode",
+      "description": "Analyzes code to find unused functions, classes, and imports that can be removed",
+      "module": "analyzer"
+    },
+    {
+      "name": "calculateComplexity",
+      "description": "Measures cyclomatic complexity of functions to identify overly complex code",
+      "module": "analyzer"
+    },
+    {
+      "name": "calculateHealthScore",
+      "description": "Computes overall codebase health percentage based on severity and count of detected issues",
+      "module": "analyzer"
+    },
+    {
+      "name": "formatForCursor",
+      "description": "Formats architecture issues in prompt structure optimized for Cursor AI assistant",
+      "module": "llmFormatter"
+    },
+    {
+      "name": "formatForChatGPT",
+      "description": "Formats architecture issues in verbose structure optimized for ChatGPT",
+      "module": "llmFormatter"
+    },
+    {
+      "name": "formatGeneric",
+      "description": "Formats architecture issues in standard markdown for generic AI assistants",
+      "module": "llmFormatter"
+    }
+  ],
+  "relevantDataStructures": [
+    {
+      "name": "ArchitectureIssue",
+      "description": "Represents a detected architecture problem with severity, category, description, file location, and suggested fix",
+      "type": "interface"
+    },
+    {
+      "name": "HealthScore",
+      "description": "Contains overall codebase health percentage with breakdown by issue type and severity",
+      "type": "interface"
+    },
+    {
+      "name": "AnalysisResult",
+      "description": "Complete analysis output including health score, issues list, statistics, and timestamps",
+      "type": "interface"
+    },
+    {
+      "name": "InsightItem",
+      "description": "Tree view item representing a single insight or issue displayed in the sidebar",
+      "type": "class"
+    },
+    {
+      "name": "LLMPrompt",
+      "description": "Formatted prompt ready to be copied and pasted into AI assistant, optimized for specific LLM",
+      "type": "interface"
+    },
+    {
+      "name": "ProviderConfig",
+      "description": "Configuration for AI language model provider including API key, endpoint, model selection, and parameters",
+      "type": "interface"
+    },
+    {
+      "name": "CacheEntry",
+      "description": "Cached analysis result with file hash, timestamp, and expiration metadata for invalidation",
+      "type": "interface"
+    },
+    {
+      "name": "FileMetrics",
+      "description": "Metrics for individual file including line count, function count, complexity score, and dependencies",
+      "type": "interface"
+    },
+    {
+      "name": "DependencyGraph",
+      "description": "Graph structure representing import relationships between files for circular dependency detection",
+      "type": "class"
+    },
+    {
+      "name": "CodebaseStatistics",
+      "description": "Overall codebase statistics including file counts, line counts, language distribution, and issue summaries",
+      "type": "interface"
+    },
+    {
+      "name": "SeverityLevel",
+      "description": "Enumeration of issue severity levels: Error, Warning, Info",
+      "type": "type"
+    },
+    {
+      "name": "IssueCategory",
+      "description": "Categorization of issues: Code Organization, Dependencies, Dead Code, Complexity, Style",
+      "type": "type"
+    },
+    {
+      "name": "LLMFormat",
+      "description": "Enumeration of supported LLM prompt formats: cursor, chatgpt, generic, compact",
+      "type": "type"
+    },
+    {
+      "name": "NavigationTarget",
+      "description": "Code location data for click-to-navigate functionality including file path, line number, column",
+      "type": "interface"
+    }
+  ],
+  "relevantCodeFiles": [
+    {
+      "path": "src/extension.ts",
+      "description": "Main extension controller that registers all commands, initializes views, and coordinates analysis workflows",
+      "purpose": "Serves as entry point managing extension lifecycle and user command handling"
+    },
+    {
+      "path": "src/analyzer.ts",
+      "description": "Core static analysis engine that detects architecture issues by parsing code and analyzing patterns",
+      "purpose": "Performs actual code analysis including god object detection, circular dependency finding, and complexity calculation"
+    },
+    {
+      "path": "src/llmIntegration.ts",
+      "description": "Manages AI-powered analysis features including product documentation and architecture insights generation",
+      "purpose": "Coordinates communication with AI language model services for advanced analysis"
+    },
+    {
+      "path": "src/llmFormatter.ts",
+      "description": "Formats analysis results into prompts optimized for different AI assistants",
+      "purpose": "Generates LLM-ready prompts in Cursor, ChatGPT, generic, and compact formats"
+    },
+    {
+      "path": "src/llmService.ts",
+      "description": "Low-level service handling HTTP communication with AI provider APIs",
+      "purpose": "Manages API calls, authentication, request/response parsing, and error handling for AI services"
+    },
+    {
+      "path": "src/insightsTreeView.ts",
+      "description": "Implements sidebar tree view displaying issues organized by severity and category",
+      "purpose": "Provides hierarchical navigation interface for browsing detected architecture issues"
+    },
+    {
+      "path": "src/analysisViewer.ts",
+      "description": "Creates webview panels showing formatted analysis results with interactive display",
+      "purpose": "Renders rich documentation view with syntax highlighting and structured presentation"
+    },
+    {
+      "path": "src/insightsViewer.ts",
+      "description": "Manages display of AI-generated architectural insights in webview format",
+      "purpose": "Shows architectural pattern analysis and design documentation"
+    },
+    {
+      "path": "src/productNavigator.ts",
+      "description": "Provides navigation through AI-generated product documentation",
+      "purpose": "Enables users to browse and explore product documentation with tree view interface"
+    },
+    {
+      "path": "src/unitTestsNavigator.ts",
+      "description": "Displays AI-generated unit test documentation and analysis",
+      "purpose": "Helps developers understand test coverage and test purposes through documentation view"
+    },
+    {
+      "path": "src/diagnosticsProvider.ts",
+      "description": "Provides inline diagnostics showing architecture issues directly in code editor",
+      "purpose": "Displays warnings and errors as inline annotations in edited files"
+    },
+    {
+      "path": "src/fileWatcher.ts",
+      "description": "Monitors workspace files for changes and triggers incremental analysis",
+      "purpose": "Enables continuous monitoring by detecting file saves and modifications"
+    },
+    {
+      "path": "src/cache.ts",
+      "description": "Manages caching of analysis results for performance optimization",
+      "purpose": "Stores and retrieves cached results to avoid redundant analysis"
+    },
+    {
+      "path": "src/fileAccessHelper.ts",
+      "description": "Handles file system operations for reading code files and traversing directories",
+      "purpose": "Provides abstraction for file access supporting various file system scenarios"
+    },
+    {
+      "path": "src/fileDocumentation.ts",
+      "description": "Generates and exports documentation for individual files",
+      "purpose": "Creates file-level documentation and handles export to various formats"
+    },
+    {
+      "path": "src/insightGenerator.ts",
+      "description": "Generates architecture insights by analyzing code patterns and relationships",
+      "purpose": "Produces architectural analysis describing design patterns and component relationships"
+    },
+    {
+      "path": "src/llmSchemas.ts",
+      "description": "Defines JSON schemas for validating AI-generated responses",
+      "purpose": "Ensures quality and consistency of AI-generated analysis through schema validation"
+    }
+  ],
+  "exampleInput": {
+    "description": "Example architecture analysis request formatted for AI language model",
+    "json": "{\"totalFiles\":150,\"totalLines\":45230,\"languages\":{\"typescript\":85,\"javascript\":42,\"python\":23},\"issues\":[{\"severity\":\"error\",\"category\":\"Code Organization\",\"file\":\"src/analyzer.ts\",\"line\":1,\"description\":\"File has 1250 lines of code, indicating potential god object\",\"suggestion\":\"Break this file into smaller, focused modules\"},{\"severity\":\"warning\",\"category\":\"Dependencies\",\"description\":\"Circular dependency: models/User.ts → utils/validation.ts → models/User.ts\",\"suggestion\":\"Break this cycle by introducing an interface/abstraction\"}],\"healthScore\":67,\"analysisType\":\"architecture_issues\",\"format\":\"cursor\"}"
+  },
+  "exampleOutput": {
+    "description": "Example LLM-ready prompt generated for Cursor AI assistant",
+    "json": "{\"format\":\"cursor\",\"content\":\"# Code Architecture Issues\\n\\nI have 12 architecture issues that need attention:\\n\\n## 🔴 Critical Issues (Errors)\\n\\n### Very Large File\\n\\n**Category:** Code Organization\\n**Description:** src/analyzer.ts has 1250 lines of code, indicating potential god object.\\n**File:** `src/analyzer.ts`\\n**Suggestion:** Break this file into smaller, focused modules.\\n\\n## ⚠️ Warnings\\n\\n### Circular Dependency Detected\\n\\n**Category:** Dependencies\\n**Description:** Circular dependency: models/User.ts → utils/validation.ts → models/User.ts\\n**Suggestion:** Break this cycle by introducing an interface/abstraction.\\n\\n**Health Score:** 67%\\n**Total Issues:** 12 (3 errors, 6 warnings, 3 info)\",\"timestamp\":\"2024-01-15T10:30:00Z\",\"copyToClipboard\":true}"
+  },
+  "_metadata": {
+    "iteration": 2,
+    "maxIterations": 3,
+    "savedAt": "2025-11-17T23:54:59.547Z"
+  }
+}

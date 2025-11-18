@@ -1,0 +1,45 @@
+{
+  "productPurpose": "Shadow Watch aims to bridge the gap between code implementation and architectural understanding by providing continuous, AI-powered analysis that helps developers maintain clean architecture, understand unfamiliar codebases, and leverage AI assistants more effectively. Its core mission is to prevent technical debt accumulation through real-time feedback while simultaneously generating documentation that explains what code does from both a technical architecture perspective and a user-facing product perspective. The product serves as an intelligent intermediary between developers, their code, and AI tools, making architecture issues immediately visible and actionable.",
+  "architectureRationale": "The architecture exists as a VS Code extension with a single entry point because the product's core value proposition depends on tight integration with the developer's active coding environment. The continuous monitoring capability requires direct access to VS Code's file system watcher and save events, making a native extension the only viable architecture. The single entry point (extension.js) is sufficient because all user interactions flow through VS Code's extension API—there are no CLI or standalone GUI requirements since the product's entire value depends on being embedded in the development workflow. The multi-layered architecture (monitoring layer, analysis engine, AI integration layer, presentation layer) reflects the product's dual nature: it must perform fast, incremental static analysis for real-time feedback while also orchestrating complex AI interactions for deeper insights. The flexible AI provider abstraction exists because developers use different AI tools (ChatGPT, Claude, Cursor) and the product must integrate with all of them to maximize utility. Multiple view components (sidebar, webview, inline diagnostics) exist because developers need different contexts for consuming insights—quick navigation in sidebar, detailed reading in webview, and in-context warnings in the editor.",
+  "designDecisions": [
+    "Continuous monitoring on every save - Reason: Developers need immediate feedback to prevent technical debt before it compounds; waiting for manual analysis triggers would allow issues to accumulate unnoticed",
+    "Caching analysis results - Reason: Real-time analysis must not block development workflow; caching ensures subsequent saves are fast while still providing fresh insights on actual code changes",
+    "Multiple presentation modes (tree, webview, diagnostics) - Reason: Different contexts require different information density; developers scanning for issues need quick tree navigation, while understanding complex architecture requires detailed webview formatting",
+    "LLM-ready prompt generation - Reason: Developers increasingly rely on AI assistants for refactoring, but manually formatting architecture issues is time-consuming and error-prone; pre-formatted prompts eliminate this friction",
+    "AI provider abstraction supporting multiple services - Reason: Development teams have diverse AI tool preferences and budget constraints; supporting OpenAI, Anthropic, and custom endpoints ensures the extension works regardless of organizational choices",
+    "Severity-based categorization (error, warning, info) - Reason: Not all architecture issues are equally urgent; developers need to prioritize fixing critical problems first without being overwhelmed by minor suggestions",
+    "Direct code navigation from issues - Reason: Identifying problems is only valuable if developers can immediately jump to the problematic code; eliminating navigation friction increases likelihood of issues being addressed",
+    "JSON schema validation for AI responses - Reason: AI-generated content can be unpredictable; validating responses ensures the extension doesn't crash or display malformed data when AI providers return unexpected formats",
+    "Incremental analysis by file - Reason: Analyzing entire workspaces on every save would be prohibitively slow for large codebases; file-level incremental analysis maintains real-time responsiveness",
+    "Separate documentation types (product, architecture, tests) - Reason: Different stakeholders need different perspectives; product managers care about user-facing behavior, architects need design patterns, developers need test coverage understanding"
+  ],
+  "userGoals": [
+    "Understand what an unfamiliar codebase does from a user perspective without reading thousands of lines of code",
+    "Identify architecture problems (god objects, circular dependencies) before they cause maintenance nightmares",
+    "Get actionable refactoring guidance by quickly sending architecture issues to AI assistants like Cursor or ChatGPT",
+    "Maintain up-to-date documentation that explains system architecture and design patterns without manual writing effort",
+    "Navigate directly to problematic code locations instead of manually searching based on issue descriptions",
+    "Receive real-time feedback on architecture quality as they write code, not days later during code review",
+    "Switch between different AI providers (OpenAI, Claude, custom) based on budget, organizational policies, or quality preferences",
+    "Generate test documentation that helps new team members understand what existing tests cover and why they exist",
+    "Keep codebase healthy by addressing warnings and errors categorized by severity and urgency",
+    "Copy pre-formatted architecture insights optimized for their specific AI tool (Cursor vs ChatGPT) without manual reformatting",
+    "Avoid accumulating technical debt by seeing architecture scores degrade in real-time as complexity increases",
+    "Understand complex codebases through AI-generated insights about design patterns and component relationships"
+  ],
+  "contextualFactors": [
+    "VS Code extension ecosystem constraints - The product must operate within VS Code's extension API limitations, which dictates the single-entry-point architecture and extension.js manifest structure",
+    "Real-time development workflow integration - Developers expect tools to provide feedback without interrupting their flow, requiring asynchronous analysis, caching, and incremental processing",
+    "AI tool fragmentation - The developer ecosystem uses diverse AI assistants (Cursor, ChatGPT, Claude, custom models), necessitating flexible provider abstraction and format-specific prompt generation",
+    "Multi-language support requirements - Modern development teams work across Python, JavaScript, TypeScript, Java, Go, Rust, C/C++, Ruby, and PHP, requiring language-agnostic analysis capabilities",
+    "Performance constraints of large codebases - Enterprise applications can contain millions of lines of code, making full-workspace analysis impractical without intelligent caching and incremental strategies",
+    "Visual Studio Code's extension UI paradigm - The extension must conform to VS Code's sidebar, webview, and diagnostic patterns to feel native and intuitive to users",
+    "External API dependencies - Integration with OpenAI and Anthropic requires handling API quotas, rate limits, network failures, and API key management",
+    "Developer cognitive load concerns - Developers are already managing multiple tools and contexts, so the extension must present information hierarchically (health score → categories → specific issues) to avoid overwhelming users",
+    "Documentation currency problem - Traditional documentation becomes stale immediately after writing, requiring automated regeneration tied to code changes",
+    "AI prompt engineering complexity - Different AI models respond better to different prompt formats, requiring specialized formatting logic for Cursor-optimized vs ChatGPT-optimized prompts"
+  ],
+  "_metadata": {
+    "savedAt": "2025-11-17T23:55:42.780Z"
+  }
+}
