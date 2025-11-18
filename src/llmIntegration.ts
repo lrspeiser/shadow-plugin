@@ -1841,11 +1841,19 @@ export async function runUnitTests(): Promise<void> {
     }
 
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const unitTestPlanPath = path.join(workspaceRoot, '.shadow', 'UnitTests', 'unit_test_plan.json');
     
+    // Check both new location (.shadow/UnitTests) and old location (UnitTests) for backward compatibility
+    let unitTestPlanPath = path.join(workspaceRoot, '.shadow', 'UnitTests', 'unit_test_plan.json');
     if (!fs.existsSync(unitTestPlanPath)) {
-        vscode.window.showErrorMessage('Unit test plan not found. Please generate unit tests first.');
-        return;
+        // Try old location
+        const oldPath = path.join(workspaceRoot, 'UnitTests', 'unit_test_plan.json');
+        if (fs.existsSync(oldPath)) {
+            unitTestPlanPath = oldPath;
+            SWLogger.log(`Found unit test plan in old location: ${oldPath}`);
+        } else {
+            vscode.window.showErrorMessage('Unit test plan not found. Please generate unit tests first.');
+            return;
+        }
     }
 
     // Load unit test plan
