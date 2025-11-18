@@ -13,6 +13,7 @@ import { AnalysisViewerProvider } from './analysisViewer';
 import { InsightsViewerProvider } from './insightsViewer';
 import { UnitTestsNavigatorProvider } from './unitTestsNavigator';
 import { SWLogger } from './logger';
+import { createTimestampedStorage } from './storage/incrementalStorage';
 
 let llmService: LLMService;
 let lastAnalysisContext: AnalysisContext | null = null;
@@ -1222,20 +1223,9 @@ function getArchitectureInsightsRunDir(workspaceRoot: string): string {
 }
 
 function saveIncrementalProductPurposeAnalysis(productPurpose: any, workspaceRoot: string): void {
-    try {
-        const runDir = getArchitectureInsightsRunDir(workspaceRoot);
-        const purposePath = path.join(runDir, 'product-purpose-analysis.json');
-        
-        const purposeWithMetadata = {
-            ...productPurpose,
-            _metadata: {
-                savedAt: new Date().toISOString()
-            }
-        };
-        fs.writeFileSync(purposePath, JSON.stringify(purposeWithMetadata, null, 2), 'utf-8');
-    } catch (error) {
-        console.error('Failed to save incremental product purpose analysis:', error);
-    }
+    const runDir = getArchitectureInsightsRunDir(workspaceRoot);
+    const storage = createTimestampedStorage<any>(runDir, 'product-purpose-analysis');
+    storage.saveSync(productPurpose);
 }
 
 function saveIncrementalArchitectureInsightsIteration(insights: any, workspaceRoot: string, iteration: number, maxIterations: number): void {
