@@ -16,7 +16,11 @@ import { UnitTestsNavigatorProvider, UnitTestItem } from './unitTestsNavigator';
 import { getConfigurationManager } from './config/configurationManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { WebviewTemplateEngine } from './ui/webview/webviewTemplateEngine';
+import { ExtensionBootstrapper, ExtensionComponents } from './domain/bootstrap/extensionBootstrapper';
+import { CommandRegistry, CommandHandlers } from './domain/bootstrap/commandRegistry';
 
+// Component references (kept for backward compatibility with existing command handlers)
+let components: ExtensionComponents;
 let analyzer: CodeAnalyzer;
 let insightGenerator: InsightGenerator;
 let llmFormatter: LLMFormatter;
@@ -25,99 +29,46 @@ let treeProvider: InsightsTreeProvider;
 let diagnosticsProvider: DiagnosticsProvider;
 let cache: AnalysisCache;
 let statusBarItem: vscode.StatusBarItem;
-let productNavigatorView: vscode.TreeView<ProductNavItem>;
-let analysisViewerView: vscode.TreeView<AnalysisItem>;
-let insightsViewerView: vscode.TreeView<InsightItem>;
-let staticAnalysisViewerView: vscode.TreeView<StaticAnalysisItem>;
-let unitTestsNavigatorView: vscode.TreeView<UnitTestItem>;
 let analysisViewer: AnalysisViewerProvider;
 let insightsViewer: InsightsViewerProvider;
 let staticAnalysisViewer: StaticAnalysisViewerProvider;
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Shadow Watch extension is now active');
-
-    let treeView: vscode.TreeView<any>;
-    
     try {
-        // Initialize components
-        cache = new AnalysisCache(context.globalStorageUri.fsPath);
-        analyzer = new CodeAnalyzer(cache);
-        insightGenerator = new InsightGenerator();
-        llmFormatter = new LLMFormatter();
-        llmIntegration.initializeLLMService();
-        diagnosticsProvider = new DiagnosticsProvider();
-        treeProvider = new InsightsTreeProvider(context, llmFormatter);
-        llmIntegration.setTreeProvider(treeProvider);
+        // Initialize all components using bootstrapper
+        components = ExtensionBootstrapper.initialize(context);
         
-        // Load saved code analysis after treeProvider is set up
-        // This ensures analysis status is properly restored
-        llmIntegration.loadSavedCodeAnalysis();
+        // Set global references for backward compatibility with existing command handlers
+        analyzer = components.analyzer;
+        insightGenerator = components.insightGenerator;
+        llmFormatter = components.llmFormatter;
+        fileWatcher = components.fileWatcher;
+        treeProvider = components.treeProvider;
+        diagnosticsProvider = components.diagnosticsProvider;
+        cache = components.cache;
+        statusBarItem = components.statusBarItem;
+        analysisViewer = components.analysisViewer;
+        insightsViewer = components.insightsViewer;
+        staticAnalysisViewer = components.staticAnalysisViewer;
         
-        // Create product navigator
-        const productNavigator = new ProductNavigatorProvider(context);
-        llmIntegration.setProductNavigator(productNavigator);
-        context.subscriptions.push(productNavigator); // Ensure proper disposal
+        // Create command handlers that have access to components
+        const handlers = createCommandHandlers(components);
         
-        // Create analysis viewer
-        analysisViewer = new AnalysisViewerProvider();
-        llmIntegration.setAnalysisViewer(analysisViewer);
+        // Register all commands
+        const commandDisposables = CommandRegistry.register(context, components, handlers);
+        context.subscriptions.push(...commandDisposables);
         
-        // Create insights viewer
-        insightsViewer = new InsightsViewerProvider(context);
-        llmIntegration.setInsightsViewer(insightsViewer);
-        context.subscriptions.push(insightsViewer); // Ensure proper disposal
+        // Setup file watcher and configuration handlers
+        ExtensionBootstrapper.setupFileWatcher(components.fileWatcher, context);
         
-        // Create unit tests navigator
-        const unitTestsNavigator = new UnitTestsNavigatorProvider(context);
-        llmIntegration.setUnitTestsNavigator(unitTestsNavigator);
-        context.subscriptions.push(unitTestsNavigator); // Ensure proper disposal
-        
-        // Static analysis is now merged into insights tree view (no separate viewer needed)
-        staticAnalysisViewer = new StaticAnalysisViewerProvider();
-        treeProvider.setStaticAnalysisViewer(staticAnalysisViewer);
-        
-        // Tree provider will automatically check for existing files on construction
-        fileWatcher = new FileWatcher(analyzer, insightGenerator, diagnosticsProvider, treeProvider);
-
-        // Register tree view with error handling
-        treeView = vscode.window.createTreeView('shadowWatch.insights', {
-            treeDataProvider: treeProvider,
-            showCollapseAll: true
+        // Handle clearAllData setting
+        const configManager = getConfigurationManager();
+        configManager.onConfigurationChange(() => {
+            if (configManager.clearAllData) {
+                configManager.update('clearAllData', false, vscode.ConfigurationTarget.Global);
+                handlers.clearAllData();
+            }
         });
-
-        // Register product navigator tree view
-        productNavigatorView = vscode.window.createTreeView('shadowWatch.productNavigator', {
-            treeDataProvider: productNavigator,
-            showCollapseAll: true
-        });
-
-        // Register analysis viewer tree view
-        analysisViewerView = vscode.window.createTreeView('shadowWatch.analysisViewer', {
-            treeDataProvider: analysisViewer,
-            showCollapseAll: true
-        });
-
-        // Register insights viewer tree view
-        insightsViewerView = vscode.window.createTreeView('shadowWatch.insightsViewer', {
-            treeDataProvider: insightsViewer,
-            showCollapseAll: true
-        });
-        
-        // Register unit tests navigator tree view
-        unitTestsNavigatorView = vscode.window.createTreeView('shadowWatch.unitTestsNavigator', {
-            treeDataProvider: unitTestsNavigator,
-            showCollapseAll: true
-        });
-        
-        // Static analysis is now merged into insights tree view (shadowWatch.insights) - no separate tree view needed
-
-        // Status bar item
-        statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-        statusBarItem.text = '$(eye) Shadow Watch';
-        statusBarItem.tooltip = 'Shadow Watch: Ready';
-        statusBarItem.command = 'shadowWatch.showInsights';
-        statusBarItem.show();
     } catch (error) {
         ErrorHandler.handleSync(
             () => { throw error; },
@@ -133,180 +84,36 @@ export function activate(context: vscode.ExtensionContext) {
         );
         return;
     }
-
-    // Register commands
-    context.subscriptions.push(
-        vscode.commands.registerCommand('shadowWatch.analyze', async () => {
-            await analyzeWorkspace();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.analyzeFile', async () => {
-            await analyzeCurrentFile();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.copyInsights', async () => {
-            await copyAllInsights();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.copyFileInsights', async () => {
-            await copyFileInsights();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.copyInsight', async (item) => {
-            await copyInsight(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.clearCache', async () => {
-            await clearCache();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.clearAllData', async () => {
-            await clearAllData();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.openSettings', async () => {
-            await showSettings();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.openLatestReport', async () => {
-            await openLatestReport();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.switchProvider', async () => {
-            await switchProvider();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.copyMenuStructure', async () => {
-            await copyMenuStructure();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.showProviderStatus', async () => {
-            await showProviderStatus();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.showInsights', () => {
-            vscode.commands.executeCommand('shadowWatch.insights.focus');
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.enable', async () => {
-            const configManager = getConfigurationManager();
-            await configManager.update('enabled', true, vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage('Shadow Watch enabled');
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.disable', async () => {
-            const configManager = getConfigurationManager();
-            await configManager.update('enabled', false, vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage('Shadow Watch disabled');
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.refreshInsights', async () => {
-            await analyzeWorkspace();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.setApiKey', async () => {
-            await llmIntegration.setApiKey();
-        }),
-        
-        vscode.commands.registerCommand('shadowWatch.setClaudeApiKey', async () => {
-            await llmIntegration.setClaudeApiKey();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.generateProductDocs', async () => {
-            await llmIntegration.generateProductDocs();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.generateLLMInsights', async () => {
-            await llmIntegration.generateLLMInsights();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.generateUnitTests', async () => {
-            await llmIntegration.generateUnitTests();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.showProductDocs', async () => {
-            await llmIntegration.showProductDocs();
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.openDocsFolder', async () => {
-            if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-                vscode.window.showErrorMessage('No workspace folder open');
-                return;
-            }
-            const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-            const docsPath = vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, '.shadow', 'docs');
-            try {
-                // Open folder in explorer
-                await vscode.commands.executeCommand('revealFileInOS', docsPath);
-            } catch (error) {
-                // Fallback: show in VSCode explorer
-                await vscode.commands.executeCommand('revealInExplorer', docsPath);
-            }
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.copyLLMInsight', async (type: string, content: string) => {
-            await llmIntegration.copyLLMInsight(type, content);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.navigateToProductItem', async (item: ProductNavItem) => {
-            await navigateToProductItem(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.navigateToAnalysisItem', async (item: AnalysisItem) => {
-            await navigateToAnalysisItem(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.copyInsightItem', async (item: any) => {
-            await copyInsightItem(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.showProductItemDetails', async (item: ProductNavItem) => {
-            await showProductItemDetails(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.showInsightItemDetails', async (item: any) => {
-            await showInsightItemDetails(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.showUnitTestItemDetails', async (item: any) => {
-            await showUnitTestItemDetails(item);
-        }),
-
-        vscode.commands.registerCommand('shadowWatch.openSettingsWebview', async () => {
-            await showSettings();
-        }),
-
-        statusBarItem,
-        treeView,
-        productNavigatorView,
-        analysisViewerView,
-        insightsViewerView,
-        unitTestsNavigatorView
-    );
-
-    // Start file watcher if enabled
-    const configManager = getConfigurationManager();
-    if (configManager.enabled) {
-        fileWatcher.start();
-    }
-
-    // Watch for configuration changes
-    configManager.onConfigurationChange(() => {
-        if (configManager.enabled) {
-            fileWatcher.start();
-        } else {
-            fileWatcher.stop();
-        }
-        
-        // Handle clearAllData setting - when set to true, trigger clear and reset
-        if (configManager.clearAllData) {
-            // Reset the setting first to prevent re-triggering
-            configManager.update('clearAllData', false, vscode.ConfigurationTarget.Global);
-            // Trigger the clear action
-            clearAllData();
-        }
-    });
 }
+
+/**
+ * Create command handlers with access to components
+ */
+function createCommandHandlers(components: ExtensionComponents): CommandHandlers {
+    return {
+        analyzeWorkspace: () => analyzeWorkspace(),
+        analyzeCurrentFile: () => analyzeCurrentFile(),
+        copyAllInsights: () => copyAllInsights(),
+        copyFileInsights: () => copyFileInsights(),
+        copyInsight: (item: any) => copyInsight(item),
+        clearCache: () => clearCache(),
+        clearAllData: () => clearAllData(),
+        showSettings: () => showSettings(),
+        openLatestReport: () => openLatestReport(),
+        switchProvider: () => switchProvider(),
+        copyMenuStructure: () => copyMenuStructure(),
+        showProviderStatus: () => showProviderStatus(),
+        navigateToProductItem: (item: ProductNavItem) => navigateToProductItem(item),
+        navigateToAnalysisItem: (item: AnalysisItem) => navigateToAnalysisItem(item),
+        copyInsightItem: (item: any) => copyInsightItem(item),
+        showProductItemDetails: (item: ProductNavItem) => showProductItemDetails(item),
+        showInsightItemDetails: (item: any) => showInsightItemDetails(item),
+        showUnitTestItemDetails: (item: any) => showUnitTestItemDetails(item)
+    };
+}
+
+// Legacy command registration removed - now using CommandRegistry
+// All commands are registered via CommandRegistry.register()
 
 async function analyzeWorkspace() {
     const configManager = getConfigurationManager();
