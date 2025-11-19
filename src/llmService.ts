@@ -223,18 +223,27 @@ export class LLMService {
                     callbacks.onFileSummary(summary, i + 1, filesToAnalyze.length);
                 }
             } catch (error) {
-                console.error(`Failed to analyze file ${file.path}:`, error);
-                SWLogger.log(`ERROR analyzing file ${file.path}: ${(error as any)?.message || error}`);
-                // Create basic summary as fallback
+                const errorDetails = {
+                    file: file.path,
+                    errorType: error instanceof Error ? error.constructor.name : typeof error,
+                    message: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined,
+                    // Include more context for debugging
+                };
+                console.error(`Failed to analyze file ${file.path}:`, errorDetails);
+                SWLogger.log(`ERROR analyzing file ${file.path}: ${JSON.stringify(errorDetails, null, 2)}`);
+                
+                // Create basic summary as fallback with error details
                 const fallbackSummary = {
                     file: file.path,
                     role: detectFileRole(file.path, file),
-                    purpose: 'Analysis failed',
+                    purpose: `Analysis failed: ${error instanceof Error ? error.message : String(error)}`,
                     userVisibleActions: [],
                     developerVisibleActions: [],
                     keyFunctions: [],
                     dependencies: [],
-                    intent: 'Could not analyze this file'
+                    intent: `Could not analyze this file. Error: ${error instanceof Error ? error.message : String(error)}`,
+                    rawContent: `Error during analysis: ${JSON.stringify(errorDetails, null, 2)}`
                 };
                 fileSummaries.push(fallbackSummary);
                 
@@ -376,13 +385,22 @@ export class LLMService {
                     callbacks.onModuleSummary(summary, moduleSummaries.length, modules.size);
                 }
             } catch (error) {
-                console.error(`Failed to generate module summary for ${modulePath}:`, error);
-                SWLogger.log(`ERROR module summary ${modulePath}: ${(error as any)?.message || error}`);
+                const errorDetails = {
+                    module: modulePath,
+                    moduleType: moduleType,
+                    fileCount: moduleFiles.length,
+                    errorType: error instanceof Error ? error.constructor.name : typeof error,
+                    message: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined,
+                };
+                console.error(`Failed to generate module summary for ${modulePath}:`, errorDetails);
+                SWLogger.log(`ERROR module summary ${modulePath}: ${JSON.stringify(errorDetails, null, 2)}`);
+                
                 const fallbackSummary = {
                     module: modulePath,
                     moduleType: moduleType,
                     capabilities: [],
-                    summary: 'Module analysis failed',
+                    summary: `Module analysis failed: ${error instanceof Error ? error.message : String(error)}`,
                     files: moduleFiles
                 };
                 moduleSummaries.push(fallbackSummary);
@@ -2162,7 +2180,7 @@ Return ONLY the JSON object, no other text.`;
                             {
                                 model: 'gpt-4o',
                                 messages: [{ role: 'user', content: prompt }],
-                                maxTokens: 8192,
+                                maxTokens: 16384,  // Increased for comprehensive reports (GPT-4o supports up to 16,384)
                                 temperature: 0.7
                             },
                             ['gpt-4o', 'gpt-4-turbo', 'gpt-4']
