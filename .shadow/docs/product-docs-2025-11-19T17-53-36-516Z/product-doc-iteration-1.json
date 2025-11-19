@@ -1,0 +1,343 @@
+{
+  "overview": "Shadow Watch is a Visual Studio Code extension that provides intelligent code analysis and documentation assistance for software development projects. The extension analyzes your codebase using AI-powered language models to generate comprehensive documentation, architectural insights, and code understanding. It helps developers quickly understand complex codebases, navigate unfamiliar code, and maintain up-to-date documentation without manual effort. Shadow Watch integrates directly into your VS Code workflow, providing analysis results through interactive webviews, tree views, and navigation panels that make it easy to explore and understand your project's structure, functionality, and relationships.",
+  "whatItDoes": [
+    "Automatically analyzes codebases to generate comprehensive documentation including overviews, features, and architecture descriptions",
+    "Provides AI-powered code insights and explanations for functions, classes, and modules",
+    "Generates product documentation that describes what applications do from a user perspective",
+    "Creates architectural insights showing how components interact and depend on each other",
+    "Offers interactive navigation through analysis results with drill-down capabilities",
+    "Monitors code changes and incrementally updates analysis results as you work",
+    "Generates refactoring suggestions and improvement recommendations",
+    "Provides test configuration analysis and suggestions",
+    "Displays real-time progress tracking during analysis operations",
+    "Supports multiple AI providers including OpenAI and Anthropic for flexible model selection"
+  ],
+  "userPerspective": {
+    "gui": [
+      "Access analysis commands through VS Code's command palette and context menus",
+      "View comprehensive analysis results in interactive webview panels with formatted documentation",
+      "Navigate through code insights using tree view panels that organize findings by type and category",
+      "Click on analysis items to jump directly to relevant code locations in the editor",
+      "See real-time progress indicators showing analysis status and completion percentage",
+      "Browse generated documentation with syntax highlighting and collapsible sections",
+      "Explore architectural diagrams and component relationships through visual representations",
+      "Review refactoring suggestions with before/after comparisons",
+      "Access static analysis results showing code quality metrics and patterns",
+      "View unit test navigation panels showing test coverage and relationships"
+    ],
+    "cli": [],
+    "api": [],
+    "cicd": []
+  },
+  "workflowIntegration": [
+    "Code exploration workflow: analyze unfamiliar codebases to quickly understand structure and functionality",
+    "Documentation workflow: generate and maintain product documentation automatically as code changes",
+    "Code review workflow: get AI-powered insights on code quality and potential improvements",
+    "Refactoring workflow: receive suggestions for code improvements with detailed explanations",
+    "Onboarding workflow: help new team members understand complex codebases through generated documentation",
+    "Maintenance workflow: keep documentation synchronized with code changes through incremental analysis",
+    "Architecture review workflow: visualize and understand system architecture and component dependencies"
+  ],
+  "problemsSolved": [
+    "Eliminates the time-consuming manual process of writing and maintaining code documentation",
+    "Reduces the learning curve when working with unfamiliar or legacy codebases",
+    "Prevents documentation from becoming outdated by automatically updating it as code changes",
+    "Makes it easier to understand complex code relationships and dependencies without extensive exploration",
+    "Helps identify refactoring opportunities and code quality issues automatically",
+    "Simplifies navigation through large codebases by providing organized, searchable insights",
+    "Reduces onboarding time for new developers by providing comprehensive project understanding",
+    "Eliminates context switching by keeping all analysis and documentation within the VS Code environment"
+  ],
+  "architecture": "Shadow Watch is built as a VS Code extension with a modular architecture centered around AI-powered code analysis. The core analysis engine processes source code files and generates structured insights using configurable language models. The extension maintains state through persistent storage that tracks analysis results, progress, and incremental changes. A caching layer optimizes performance by avoiding redundant analysis of unchanged code. The architecture separates concerns into distinct layers: domain logic for business operations, infrastructure for external integrations, and presentation for user interface components. The system uses an event-driven approach with file watchers that trigger incremental analysis when code changes are detected. Analysis results flow through formatters that transform raw data into user-friendly documentation formats. The extension supports multiple AI providers through an abstraction layer that handles provider-specific communication, rate limiting, and retry logic. State management ensures consistency across multiple analysis operations and provides recovery from interruptions. The user interface layer consists of webview providers that render rich HTML content, tree view providers that organize hierarchical data, and navigation handlers that coordinate movement between different views and code locations.",
+  "titles": [
+    "Code Analysis Engine",
+    "AI Provider Integration",
+    "Documentation Generator",
+    "Insights Viewer",
+    "Analysis Tree View",
+    "Incremental Analysis",
+    "File Watcher Service",
+    "Progress Tracking",
+    "Navigation Handler",
+    "Refactoring Suggestions",
+    "Product Documentation",
+    "Architecture Insights",
+    "Test Configuration Analysis",
+    "LLM Service",
+    "State Management",
+    "Cache Management",
+    "Webview Rendering",
+    "Command Registry",
+    "Error Handling",
+    "JSON Response Parser"
+  ],
+  "descriptions": [
+    {
+      "title": "Code Analysis Engine",
+      "description": "Analyzes source code files to extract functions, classes, modules, dependencies, and relationships. Provides comprehensive understanding of codebase structure and organization.",
+      "category": "component"
+    },
+    {
+      "title": "AI Provider Integration",
+      "description": "Connects to external AI language models (OpenAI, Anthropic) to generate intelligent insights, documentation, and suggestions based on code analysis.",
+      "category": "integration"
+    },
+    {
+      "title": "Documentation Generator",
+      "description": "Automatically creates comprehensive product documentation describing what applications do, their features, architecture, and user workflows.",
+      "category": "feature"
+    },
+    {
+      "title": "Insights Viewer",
+      "description": "Interactive panel displaying AI-generated code insights, explanations, and recommendations organized by category and relevance.",
+      "category": "feature"
+    },
+    {
+      "title": "Analysis Tree View",
+      "description": "Hierarchical navigation panel showing analysis results organized by modules, components, functions, and data structures with drill-down capabilities.",
+      "category": "feature"
+    },
+    {
+      "title": "Incremental Analysis",
+      "description": "Monitors code changes and updates only affected analysis results instead of re-analyzing entire codebase, improving performance and responsiveness.",
+      "category": "feature"
+    },
+    {
+      "title": "File Watcher Service",
+      "description": "Automatically detects code file changes and triggers incremental analysis to keep documentation and insights synchronized with current code.",
+      "category": "component"
+    },
+    {
+      "title": "Progress Tracking",
+      "description": "Displays real-time progress indicators showing analysis status, completion percentage, and estimated time remaining for long-running operations.",
+      "category": "feature"
+    },
+    {
+      "title": "Navigation Handler",
+      "description": "Manages navigation between analysis results and source code, allowing users to click items and jump directly to relevant code locations.",
+      "category": "component"
+    },
+    {
+      "title": "Refactoring Suggestions",
+      "description": "Generates AI-powered recommendations for code improvements including refactoring opportunities, best practices, and quality enhancements.",
+      "category": "feature"
+    },
+    {
+      "title": "Product Documentation",
+      "description": "Creates user-focused documentation explaining what applications do from an end-user perspective rather than technical implementation details.",
+      "category": "feature"
+    },
+    {
+      "title": "Architecture Insights",
+      "description": "Visualizes and explains system architecture, component relationships, dependencies, and design patterns used in the codebase.",
+      "category": "feature"
+    },
+    {
+      "title": "Test Configuration Analysis",
+      "description": "Analyzes test frameworks and configurations to provide insights on test coverage, structure, and recommendations for improvement.",
+      "category": "feature"
+    },
+    {
+      "title": "LLM Service",
+      "description": "Core service managing communication with language models including prompt construction, response parsing, rate limiting, and error handling.",
+      "category": "component"
+    },
+    {
+      "title": "State Management",
+      "description": "Maintains analysis state, progress tracking, and results persistence across extension sessions ensuring consistency and recovery capabilities.",
+      "category": "component"
+    },
+    {
+      "title": "Cache Management",
+      "description": "Optimizes performance by caching analysis results and avoiding redundant processing of unchanged code files.",
+      "category": "component"
+    },
+    {
+      "title": "Webview Rendering",
+      "description": "Generates rich HTML interfaces for displaying analysis results, documentation, and insights with interactive elements and formatting.",
+      "category": "component"
+    },
+    {
+      "title": "Command Registry",
+      "description": "Registers and manages all VS Code commands provided by the extension, connecting user actions to analysis operations.",
+      "category": "component"
+    }
+  ],
+  "relevantFunctions": [
+    {
+      "name": "analyzeCodebase",
+      "description": "Main entry point that orchestrates full codebase analysis including file discovery, parsing, AI processing, and result generation",
+      "file": "src/analyzer.ts"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "description": "Creates comprehensive product documentation from analysis results describing application functionality from user perspective",
+      "file": "src/llmIntegration.ts"
+    },
+    {
+      "name": "generateInsights",
+      "description": "Produces AI-powered insights and recommendations based on code analysis results",
+      "file": "src/insightGenerator.ts"
+    },
+    {
+      "name": "incrementalAnalyze",
+      "description": "Updates only changed portions of analysis when code modifications are detected, improving performance",
+      "file": "src/storage/incrementalStorage.ts"
+    },
+    {
+      "name": "parseResponse",
+      "description": "Extracts and validates structured JSON data from AI model responses handling various response formats",
+      "file": "src/ai/llmResponseParser.ts"
+    },
+    {
+      "name": "buildPrompt",
+      "description": "Constructs detailed prompts for AI models including context, requirements, and examples for analysis tasks",
+      "file": "src/domain/prompts/promptBuilder.ts"
+    },
+    {
+      "name": "navigateToLocation",
+      "description": "Handles user navigation from analysis results to specific code locations in the editor",
+      "file": "src/domain/handlers/navigationHandler.ts"
+    },
+    {
+      "name": "watchFiles",
+      "description": "Monitors source code files for changes and triggers incremental analysis updates",
+      "file": "src/domain/services/fileWatcherService.ts"
+    },
+    {
+      "name": "trackProgress",
+      "description": "Reports analysis progress to users showing completion status and estimated time remaining",
+      "file": "src/infrastructure/progressService.ts"
+    },
+    {
+      "name": "formatDocumentation",
+      "description": "Transforms raw analysis data into formatted, human-readable documentation with proper structure",
+      "file": "src/domain/formatters/documentationFormatter.ts"
+    }
+  ],
+  "relevantDataStructures": [
+    {
+      "name": "AnalysisResult",
+      "description": "Complete analysis output containing all discovered functions, classes, modules, dependencies, insights, and documentation",
+      "type": "interface",
+      "file": "src/llmSchemas.ts"
+    },
+    {
+      "name": "CodeInsight",
+      "description": "AI-generated insight about code including description, category, severity, and affected code locations",
+      "type": "interface",
+      "file": "src/insightGenerator.ts"
+    },
+    {
+      "name": "ProductDocumentation",
+      "description": "Structured product documentation with overview, features, architecture, user workflows, and problems solved",
+      "type": "interface",
+      "file": "src/llmSchemas.ts"
+    },
+    {
+      "name": "FunctionAnalysis",
+      "description": "Detailed analysis of a function including parameters, return type, dependencies, complexity, and purpose",
+      "type": "interface",
+      "file": "src/analysis/functionAnalyzer.ts"
+    },
+    {
+      "name": "ModuleCapabilities",
+      "description": "Capabilities and features provided by a code module including public APIs, integrations, and responsibilities",
+      "type": "interface",
+      "file": "src/analyzer.ts"
+    },
+    {
+      "name": "ProgressState",
+      "description": "Current state of analysis operation including percentage complete, current task, and estimated time remaining",
+      "type": "interface",
+      "file": "src/infrastructure/progressService.ts"
+    },
+    {
+      "name": "CacheEntry",
+      "description": "Cached analysis result with timestamp, hash, and validity information for performance optimization",
+      "type": "interface",
+      "file": "src/cache.ts"
+    },
+    {
+      "name": "NavigationContext",
+      "description": "Context information for code navigation including target location, source view, and selection range",
+      "type": "interface",
+      "file": "src/domain/handlers/navigationHandler.ts"
+    }
+  ],
+  "relevantCodeFiles": [
+    {
+      "path": "src/extension.ts",
+      "description": "Extension entry point that initializes Shadow Watch when VS Code starts",
+      "purpose": "Bootstraps all extension components, registers commands, and sets up the analysis environment",
+      "role": "Main entry point"
+    },
+    {
+      "path": "src/analyzer.ts",
+      "description": "Core analysis engine that processes source code and extracts structural information",
+      "purpose": "Orchestrates codebase scanning, parsing, and initial analysis before AI processing",
+      "role": "Analysis coordinator"
+    },
+    {
+      "path": "src/llmIntegration.ts",
+      "description": "Integration layer for AI language model communication and analysis generation",
+      "purpose": "Manages all interactions with AI providers to generate insights and documentation",
+      "role": "AI integration"
+    },
+    {
+      "path": "src/llmService.ts",
+      "description": "Service handling language model requests, responses, and error recovery",
+      "purpose": "Provides reliable AI model communication with retry logic and rate limiting",
+      "role": "AI service"
+    },
+    {
+      "path": "src/insightGenerator.ts",
+      "description": "Generates actionable insights and recommendations from code analysis",
+      "purpose": "Creates AI-powered suggestions for code improvements and understanding",
+      "role": "Insight generation"
+    },
+    {
+      "path": "src/productNavigator.ts",
+      "description": "Navigation component for browsing through analysis results and documentation",
+      "purpose": "Enables users to explore generated documentation and jump to relevant code",
+      "role": "User navigation"
+    },
+    {
+      "path": "src/analysisViewer.ts",
+      "description": "Webview component displaying comprehensive analysis results",
+      "purpose": "Renders formatted analysis output in an interactive HTML interface",
+      "role": "Result presentation"
+    },
+    {
+      "path": "src/insightsTreeView.ts",
+      "description": "Tree view panel organizing insights by category and importance",
+      "purpose": "Provides hierarchical navigation through generated insights and recommendations",
+      "role": "Insight organization"
+    },
+    {
+      "path": "src/fileWatcher.ts",
+      "description": "File system monitoring for detecting code changes",
+      "purpose": "Triggers incremental analysis when source files are modified",
+      "role": "Change detection"
+    },
+    {
+      "path": "src/storage/incrementalStorage.ts",
+      "description": "Persistent storage managing incremental analysis state and results",
+      "purpose": "Optimizes analysis performance by storing and reusing previous results",
+      "role": "State persistence"
+    }
+  ],
+  "exampleInput": {
+    "description": "Configuration input for initiating a codebase analysis specifying target directory, file patterns, AI provider settings, and analysis options",
+    "json": "{\"workspaceRoot\":\"/Users/dev/myproject\",\"includePatterns\":[\"src/**/*.ts\",\"src/**/*.js\"],\"excludePatterns\":[\"node_modules/**\",\"dist/**\",\"*.test.ts\"],\"aiProvider\":\"anthropic\",\"model\":\"claude-3-opus-20240229\",\"analysisOptions\":{\"generateInsights\":true,\"generateDocumentation\":true,\"analyzeArchitecture\":true,\"analyzeFunctions\":true,\"maxTokens\":100000,\"temperature\":0.3},\"incrementalMode\":true,\"useCache\":true}"
+  },
+  "exampleOutput": {
+    "description": "Analysis result output containing generated product documentation, architectural insights, code analysis, and actionable recommendations",
+    "json": "{\"productDocumentation\":{\"overview\":\"MyProject is a task management application that helps teams collaborate on projects. Users can create tasks, assign them to team members, track progress, and generate reports.\",\"features\":[\"Create and organize tasks with priorities and deadlines\",\"Assign tasks to team members with notifications\",\"Track task progress with status updates\",\"Generate project reports and analytics\"],\"architecture\":\"The application follows a three-tier architecture with a React frontend, Node.js API backend, and PostgreSQL database. The frontend communicates with the backend through RESTful APIs. Real-time updates are handled via WebSocket connections.\"},\"insights\":[{\"category\":\"code-quality\",\"severity\":\"medium\",\"title\":\"Complex Function Detected\",\"description\":\"The processTaskAssignment function has high cyclomatic complexity and could benefit from decomposition\",\"location\":{\"file\":\"src/services/taskService.ts\",\"line\":145}},{\"category\":\"architecture\",\"severity\":\"low\",\"title\":\"Potential Circular Dependency\",\"description\":\"Services module imports from models module which imports back from services\",\"affectedFiles\":[\"src/services/index.ts\",\"src/models/task.ts\"]}],\"modules\":[{\"name\":\"Task Management\",\"purpose\":\"Handles task creation, updates, and lifecycle management\",\"capabilities\":[\"Task CRUD operations\",\"Task assignment\",\"Status tracking\"],\"dependencies\":[\"User Management\",\"Notification Service\"]}],\"functions\":[{\"name\":\"createTask\",\"purpose\":\"Creates a new task with validation and notifications\",\"complexity\":\"medium\",\"parameters\":[{\"name\":\"taskData\",\"type\":\"TaskInput\"},{\"name\":\"userId\",\"type\":\"string\"}],\"returns\":\"Promise<Task>\"}],\"statistics\":{\"totalFiles\":127,\"totalLines\":15432,\"totalFunctions\":342,\"analysisTime\":\"45s\"}}"
+  },
+  "_metadata": {
+    "iteration": 1,
+    "maxIterations": 1,
+    "savedAt": "2025-11-19T17:55:10.591Z"
+  }
+}

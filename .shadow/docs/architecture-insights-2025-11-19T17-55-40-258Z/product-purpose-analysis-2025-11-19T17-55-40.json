@@ -1,0 +1,40 @@
+{
+  "productPurpose": "Shadow Watch aims to eliminate the burden of manual code documentation and accelerate developer understanding of complex codebases. Its core mission is to make any codebase instantly comprehensible by leveraging AI to automatically generate, maintain, and present architectural insights and documentation that would otherwise require hours of manual exploration and writing. The product transforms the traditionally tedious process of code comprehension into an automated, always-current resource that lives directly in the developer's workflow.",
+  "architectureRationale": "The single entry point architecture (./dist/extension.js) exists because Shadow Watch is exclusively a VS Code extension serving one primary user type: developers working within VS Code. Unlike products that need separate CLI or API entry points for different consumption patterns, Shadow Watch's entire value proposition depends on tight integration with the VS Code environment - it needs access to the editor's file system, workspace context, opened files, and UI components. Multiple entry points would be unnecessary because the product's core value (automated documentation within your development environment) cannot be delivered through CLI or standalone API interfaces. The architecture is optimized for deep IDE integration rather than broad interface accessibility, reflecting that its users are always VS Code developers working on active projects.",
+  "designDecisions": [
+    "Modular architecture with separated domain, infrastructure, and presentation layers - Reason: Allows the AI analysis engine to evolve independently from UI rendering and external integrations, critical because AI providers and models change rapidly while UI patterns remain stable",
+    "Event-driven file watching with incremental analysis - Reason: Users need documentation to stay current as they code without manual intervention; full re-analysis on every change would be too slow and wasteful, so incremental updates provide real-time accuracy without performance penalties",
+    "Caching layer for analysis results - Reason: AI API calls are expensive in both time and cost; caching unchanged code analysis prevents redundant processing and makes the product economically viable for continuous use",
+    "Multiple AI provider abstraction - Reason: Users have different preferences, budgets, and access to AI services (OpenAI vs Anthropic); provider flexibility ensures the product remains usable regardless of which AI service a user has access to or prefers",
+    "Webview and tree view presentation layers - Reason: Documentation needs rich formatting, syntax highlighting, and hierarchical navigation that plain text cannot provide; webviews enable sophisticated HTML presentations while tree views provide quick structural navigation, serving different comprehension modes",
+    "Persistent state management with recovery - Reason: Analysis operations can take minutes on large codebases and may be interrupted; state persistence ensures users don't lose progress and can resume analysis after crashes or VS Code restarts",
+    "Formatter pipeline for transforming raw analysis - Reason: AI outputs are unstructured and vary by provider; formatters standardize raw analysis into consistent, readable documentation formats that users expect"
+  ],
+  "userGoals": [
+    "Quickly understand what an unfamiliar codebase does without reading every file",
+    "Navigate large projects efficiently by understanding architectural relationships and component dependencies",
+    "Keep documentation automatically updated as code evolves without manual writing effort",
+    "Onboard to new projects faster by accessing comprehensive generated overviews and insights",
+    "Identify refactoring opportunities and code quality issues without manual code review",
+    "Find specific functionality or code patterns through organized, searchable analysis results",
+    "Understand test coverage and test relationships without manually tracing test files",
+    "Stay in their development flow without context-switching to external documentation tools",
+    "Make informed architectural decisions based on current codebase structure and patterns",
+    "Reduce cognitive load when working with complex legacy systems by having AI-generated explanations available"
+  ],
+  "contextualFactors": [
+    "VS Code extension constraints requiring single entry point and deep IDE integration",
+    "AI API cost and latency requiring caching and incremental analysis strategies",
+    "Large codebase scalability requiring efficient change detection and partial re-analysis",
+    "Real-time workflow integration requiring non-blocking background processing with progress tracking",
+    "Multiple AI provider ecosystem requiring abstraction and provider-agnostic design",
+    "Rich documentation presentation needs requiring webview HTML rendering capabilities",
+    "Hierarchical code organization requiring tree-based navigation interfaces",
+    "Developer workflow continuity requiring persistent state across sessions and crashes",
+    "Varying project sizes requiring configurable analysis scope and file filtering",
+    "Documentation currency requirements driving automatic re-analysis on code changes"
+  ],
+  "_metadata": {
+    "savedAt": "2025-11-19T17:55:40.258Z"
+  }
+}
