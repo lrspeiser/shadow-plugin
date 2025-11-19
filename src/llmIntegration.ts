@@ -1929,8 +1929,15 @@ export async function runUnitTests(): Promise<void> {
                     SWLogger.log(`Test file not found: ${fullTestPath}`);
                     testResults.push({
                         suite: suite.name || suite.id,
+                        suiteId: suite.id,
+                        testFilePath: testFilePath,
                         status: 'skipped',
-                        reason: `Test file not found: ${fullTestPath}`
+                        reason: `Test file not found: ${fullTestPath}`,
+                        testCount: 0,
+                        passedCount: 0,
+                        failedCount: 0,
+                        skippedCount: 0,
+                        testCases: []
                     });
                     continue;
                 }
@@ -1969,22 +1976,52 @@ export async function runUnitTests(): Promise<void> {
                         };
                     }
                     
+                    // Extract more detailed information from parsed results
+                    const testCount = parsedResults.numTotalTests || parsedResults.numTests || 0;
+                    const passedCount = parsedResults.numPassedTests || parsedResults.numPassingTests || 0;
+                    const failedCount = parsedResults.numFailedTests || parsedResults.numFailingTests || 0;
+                    const testCases = parsedResults.testResults || parsedResults.results || [];
+                    
                     testResults.push({
                         suite: suite.name || suite.id,
-                        status: parsedResults.success !== false ? 'passed' : 'failed',
+                        suiteId: suite.id,
+                        testFilePath: testFilePath,
+                        status: parsedResults.success !== false && failedCount === 0 ? 'passed' : 'failed',
+                        testCount: testCount,
+                        passedCount: passedCount,
+                        failedCount: failedCount,
+                        skippedCount: parsedResults.numPendingTests || parsedResults.numSkippedTests || 0,
+                        executionTime: parsedResults.startTime && parsedResults.endTime 
+                            ? parsedResults.endTime - parsedResults.startTime 
+                            : undefined,
                         results: parsedResults,
+                        testCases: testCases.map((tc: any) => ({
+                            name: tc.name || tc.title,
+                            status: tc.status || (tc.failureMessages && tc.failureMessages.length > 0 ? 'failed' : 'passed'),
+                            failureMessages: tc.failureMessages || [],
+                            duration: tc.duration
+                        })),
                         stdout: stdout,
-                        stderr: stderr
+                        stderr: stderr,
+                        warnings: parsedResults.warnings || []
                     });
                     
                 } catch (error: any) {
                     SWLogger.log(`Test execution failed for ${suite.name}: ${error.message}`);
                     testResults.push({
                         suite: suite.name || suite.id,
+                        suiteId: suite.id,
+                        testFilePath: testFilePath,
                         status: 'error',
                         error: error.message,
+                        errorCode: error.code,
+                        testCount: 0,
+                        passedCount: 0,
+                        failedCount: 0,
+                        skippedCount: 0,
                         stdout: error.stdout || '',
-                        stderr: error.stderr || ''
+                        stderr: error.stderr || '',
+                        testCases: []
                     });
                 }
                 
@@ -2048,30 +2085,88 @@ async function generateTestReport(
 - Testing Framework: ${unitTestPlan.aggregated_plan?.unit_test_plan?.testing_framework || 'unknown'}
 - Total Test Suites: ${unitTestPlan.aggregated_plan?.test_suites?.length || 0}
 - Test Strategy: ${unitTestPlan.aggregated_plan?.unit_test_plan?.strategy || 'N/A'}
+- Mocking Approach: ${unitTestPlan.aggregated_plan?.unit_test_plan?.mocking_approach || 'N/A'}
+- Isolation Strategy: ${unitTestPlan.aggregated_plan?.unit_test_plan?.isolation_strategy || 'N/A'}
 
-## Test Results
+## Test Execution Summary
+- Total Suites Executed: ${testResults.length}
+- Passed Suites: ${testResults.filter(r => r.status === 'passed').length}
+- Failed Suites: ${testResults.filter(r => r.status === 'failed').length}
+- Error Suites: ${testResults.filter(r => r.status === 'error').length}
+- Skipped Suites: ${testResults.filter(r => r.status === 'skipped').length}
+- Total Tests Executed: ${testResults.reduce((sum, r) => sum + (r.testCount || 0), 0)}
+- Total Tests Passed: ${testResults.reduce((sum, r) => sum + (r.passedCount || 0), 0)}
+- Total Tests Failed: ${testResults.reduce((sum, r) => sum + (r.failedCount || 0), 0)}
+
+## Detailed Test Results
 ${JSON.stringify(testResults, null, 2)}
+
+## Test Plan Context
+${unitTestPlan.rationale ? `**Rationale:** ${unitTestPlan.rationale.substring(0, 500)}...\n\n` : ''}
+${unitTestPlan.aggregated_plan?.test_suites ? `**Test Suites Overview:**\n${unitTestPlan.aggregated_plan.test_suites.slice(0, 5).map((s: any) => `- ${s.name || s.id}: ${s.description || 'No description'}`).join('\n')}\n\n` : ''}
 
 ## Your Task
 Generate a comprehensive test report in markdown format that includes:
 
-1. **Executive Summary**: Overall test status, pass/fail counts, success rate
-2. **Test Suite Results**: For each suite, document:
-   - Status (passed/failed/error/skipped)
-   - Number of tests run
-   - Number of tests passed/failed
-   - Key failures or errors
+1. **Executive Summary**: 
+   - Overall test status with clear pass/fail indicators (✅/❌)
+   - Total test suites, tests executed, pass/fail/skip counts
+   - Success rate percentage
+   - Critical issues summary (if any)
+   - Table format for key metrics
+
+2. **Root Cause Analysis** (if failures exist):
+   - Identify the PRIMARY root cause(s) of failures
+   - Analyze error patterns across test suites
+   - Distinguish between configuration issues vs. code issues
+   - Identify systemic problems (affecting multiple suites) vs. isolated issues
+   - Document technical root causes with specific error examples
+
+3. **Detailed Test Suite Results**: For each suite, document:
+   - Suite name and test file path
+   - Status (passed/failed/error/skipped) with clear indicators
+   - Number of tests run, passed, failed, skipped
+   - Execution time (if available)
+   - Individual test case results (for failed tests, show which specific tests failed)
+   - Key failures or errors with full error messages
    - Any warnings or issues
-3. **Analysis**: 
-   - What worked well
-   - What failed and why
-   - Patterns in failures (e.g., all tests in a suite failed, specific function failures)
+   - Test objectives that were supposed to be validated
+
+4. **Pattern Analysis**:
+   - Common failure characteristics across suites
+   - What worked well (if anything)
+   - What failed and why (be specific)
+   - Patterns in failures (e.g., all tests in a suite failed, specific function failures, configuration issues)
    - Missing tests or coverage gaps
-4. **Recommendations**:
-   - How to fix failing tests
+   - Identify if failures are pre-execution (parsing/compilation) vs. runtime failures
+
+5. **Critical Recommendations** (prioritized):
+   - IMMEDIATE ACTION REQUIRED items (blocking issues)
+   - How to fix failing tests (with code examples if applicable)
+   - Configuration fixes needed (with specific config examples)
    - Tests that should be added
    - Improvements to test quality
    - Areas needing more coverage
+   - Estimated time to fix (if possible)
+
+6. **Success Criteria for Next Execution**:
+   - Phase 1: Configuration fixes (if needed)
+   - Phase 2: Test execution goals
+   - Phase 3: Quality validation targets
+
+7. **Conclusion**:
+   - Current state summary
+   - Blocker status
+   - Next steps in priority order
+
+**IMPORTANT**: 
+- Be extremely specific and actionable in recommendations
+- Include code examples for fixes when possible
+- Prioritize recommendations (CRITICAL, HIGH, MEDIUM)
+- If all tests failed due to configuration, focus heavily on configuration fixes
+- If individual tests failed, provide specific guidance for each
+- Use markdown tables, code blocks, and clear formatting
+- Be diagnostic - help identify WHY things failed, not just WHAT failed
 
 Format the report as markdown with clear sections and subsections. Be specific and actionable.`;
 
