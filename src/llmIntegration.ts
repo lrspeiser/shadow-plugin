@@ -2299,6 +2299,13 @@ async function refreshReportsViewer(): Promise<void> {
 }
 
 /**
+ * Refresh reports on extension startup
+ */
+export async function refreshReportsOnStartup(): Promise<void> {
+    await refreshReportsViewer();
+}
+
+/**
  * Show the Reports pane
  */
 export async function showReports(): Promise<void> {

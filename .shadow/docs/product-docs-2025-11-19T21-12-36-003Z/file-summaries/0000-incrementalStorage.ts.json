@@ -1,0 +1,64 @@
+{
+  "file": "src/storage/incrementalStorage.ts",
+  "role": "Core Logic",
+  "purpose": "Provides a generic storage system for saving and loading timestamped data incrementally to disk in JSON and optionally Markdown formats.",
+  "userVisibleActions": [
+    "Data is automatically saved to disk with timestamps for tracking when it was generated",
+    "Multiple versions of data can be saved incrementally with iteration numbers",
+    "Data can be retrieved from the most recent saved version",
+    "Previously saved data is preserved in timestamped files for historical tracking"
+  ],
+  "developerVisibleActions": [
+    "Create a storage instance configured for specific data types with custom prefixes and directories",
+    "Save typed data objects with optional metadata like iteration number, run ID, and timestamps",
+    "Load the most recent saved data automatically based on filename patterns",
+    "Store data in both JSON and Markdown formats simultaneously when configured",
+    "Organize saved files into subdirectories with customizable naming patterns",
+    "Access saved file paths and metadata for debugging or reporting",
+    "Handle storage errors through the ErrorHandler utility"
+  ],
+  "keyFunctions": [
+    {
+      "name": "save",
+      "desc": "Saves data to disk with metadata, creating timestamped files with optional iteration numbers",
+      "inputs": "data: T (generic typed data), metadata?: StorageMetadata (timestamps, iteration, runId, etc.)",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "load",
+      "desc": "Loads the most recently saved data from disk based on file patterns",
+      "inputs": "None",
+      "outputs": "Promise<{data: T, metadata: StorageMetadata} | null>"
+    },
+    {
+      "name": "getFilePath",
+      "desc": "Generates the file path for saving data based on metadata and configuration",
+      "inputs": "metadata?: StorageMetadata",
+      "outputs": "string (file path)"
+    },
+    {
+      "name": "getLatestFile",
+      "desc": "Finds the most recent file matching the storage pattern in the directory",
+      "inputs": "None",
+      "outputs": "string | null (file path)"
+    },
+    {
+      "name": "ensureDirectory",
+      "desc": "Creates the storage directory structure if it doesn't exist",
+      "inputs": "None",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "ErrorHandler"
+  ],
+  "intent": "This file exists to eliminate code duplication across different storage operations by providing a reusable, type-safe storage system. It solves the problem of consistently saving and retrieving timestamped data with metadata, supporting incremental workflows where multiple versions of data need to be preserved and tracked over time. It standardizes file naming, directory organization, and metadata handling across the application.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a generic storage system for saving and loading timestamped data incrementally to disk in JSON and optionally Markdown formats.\",\n  \"userVisibleActions\": [\n    \"Data is automatically saved to disk with timestamps for tracking when it was generated\",\n    \"Multiple versions of data can be saved incrementally with iteration numbers\",\n    \"Data can be retrieved from the most recent saved version\",\n    \"Previously saved data is preserved in timestamped files for historical tracking\"\n  ],\n  \"developerVisibleActions\": [\n    \"Create a storage instance configured for specific data types with custom prefixes and directories\",\n    \"Save typed data objects with optional metadata like iteration number, run ID, and timestamps\",\n    \"Load the most recent saved data automatically based on filename patterns\",\n    \"Store data in both JSON and Markdown formats simultaneously when configured\",\n    \"Organize saved files into subdirectories with customizable naming patterns\",\n    \"Access saved file paths and metadata for debugging or reporting\",\n    \"Handle storage errors through the ErrorHandler utility\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"save\",\n      \"desc\": \"Saves data to disk with metadata, creating timestamped files with optional iteration numbers\",\n      \"inputs\": \"data: T (generic typed data), metadata?: StorageMetadata (timestamps, iteration, runId, etc.)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"load\",\n      \"desc\": \"Loads the most recently saved data from disk based on file patterns\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Promise<{data: T, metadata: StorageMetadata} | null>\"\n    },\n    {\n      \"name\": \"getFilePath\",\n      \"desc\": \"Generates the file path for saving data based on metadata and configuration\",\n      \"inputs\": \"metadata?: StorageMetadata\",\n      \"outputs\": \"string (file path)\"\n    },\n    {\n      \"name\": \"getLatestFile\",\n      \"desc\": \"Finds the most recent file matching the storage pattern in the directory\",\n      \"inputs\": \"None\",\n      \"outputs\": \"string | null (file path)\"\n    },\n    {\n      \"name\": \"ensureDirectory\",\n      \"desc\": \"Creates the storage directory structure if it doesn't exist\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"ErrorHandler\"\n  ],\n  \"intent\": \"This file exists to eliminate code duplication across different storage operations by providing a reusable, type-safe storage system. It solves the problem of consistently saving and retrieving timestamped data with metadata, supporting incremental workflows where multiple versions of data need to be preserved and tracked over time. It standardizes file naming, directory organization, and metadata handling across the application.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:23:44.020Z"
+  }
+}

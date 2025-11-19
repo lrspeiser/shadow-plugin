@@ -1,0 +1,80 @@
+{
+  "file": "src/llmIntegration.ts",
+  "role": "Core Logic",
+  "purpose": "Manages LLM-powered code analysis features including insights generation, documentation, and navigation tree views in VS Code.",
+  "userVisibleActions": [
+    "View AI-generated code insights in a tree view panel",
+    "See analysis results for entry points, unit tests, and product documentation",
+    "Get real-time updates when API key configuration changes",
+    "View formatted documentation in an output channel",
+    "Navigate through analyzed code structure via tree providers",
+    "Access saved analysis results that persist across sessions",
+    "Receive notifications about analysis progress and completion",
+    "See error messages when LLM operations fail"
+  ],
+  "developerVisibleActions": [
+    "Initialize LLM service with API configuration",
+    "Trigger code analysis on workspace files",
+    "Generate insights from code analysis results",
+    "Save and load analysis contexts for reuse",
+    "Refresh tree views when analysis updates",
+    "Execute shell commands for analysis operations",
+    "Access state management for LLM operations",
+    "Convert code analysis to LLM context format",
+    "Persist analysis results to storage",
+    "Format documentation for display"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeLLMService",
+      "desc": "Sets up the LLM service, output channels, and tree view refresh handlers",
+      "inputs": "none",
+      "outputs": "void - initializes global state"
+    },
+    {
+      "name": "convertCodeAnalysisToContext",
+      "desc": "Transforms code analysis data into format suitable for LLM processing",
+      "inputs": "CodeAnalysis object",
+      "outputs": "AnalysisContext object"
+    },
+    {
+      "name": "saveCodeAnalysis",
+      "desc": "Persists code analysis results to storage",
+      "inputs": "CodeAnalysis data",
+      "outputs": "Promise indicating save completion"
+    },
+    {
+      "name": "loadSavedCodeAnalysisFromFile",
+      "desc": "Retrieves previously saved code analysis from storage",
+      "inputs": "file path or identifier",
+      "outputs": "Promise<CodeAnalysis>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "child_process",
+    "util",
+    "./llmService",
+    "./insightsTreeView",
+    "./fileDocumentation",
+    "./analyzer",
+    "./productNavigator",
+    "./analysisViewer",
+    "./insightsViewer",
+    "./unitTestsNavigator",
+    "./logger",
+    "./state/llmStateManager",
+    "./context/analysisContextBuilder",
+    "./domain/formatters/documentationFormatter",
+    "./infrastructure/persistence/analysisResultRepository"
+  ],
+  "intent": "This file exists to orchestrate LLM-powered code understanding features in VS Code. It solves the problem of making large codebases understandable by connecting AI analysis with VS Code's UI components (tree views, output channels, navigation). It manages the lifecycle of analysis operations, state persistence, and user-facing visualization of AI-generated insights.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages LLM-powered code analysis features including insights generation, documentation, and navigation tree views in VS Code.\",\n  \"userVisibleActions\": [\n    \"View AI-generated code insights in a tree view panel\",\n    \"See analysis results for entry points, unit tests, and product documentation\",\n    \"Get real-time updates when API key configuration changes\",\n    \"View formatted documentation in an output channel\",\n    \"Navigate through analyzed code structure via tree providers\",\n    \"Access saved analysis results that persist across sessions\",\n    \"Receive notifications about analysis progress and completion\",\n    \"See error messages when LLM operations fail\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize LLM service with API configuration\",\n    \"Trigger code analysis on workspace files\",\n    \"Generate insights from code analysis results\",\n    \"Save and load analysis contexts for reuse\",\n    \"Refresh tree views when analysis updates\",\n    \"Execute shell commands for analysis operations\",\n    \"Access state management for LLM operations\",\n    \"Convert code analysis to LLM context format\",\n    \"Persist analysis results to storage\",\n    \"Format documentation for display\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeLLMService\",\n      \"desc\": \"Sets up the LLM service, output channels, and tree view refresh handlers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void - initializes global state\"\n    },\n    {\n      \"name\": \"convertCodeAnalysisToContext\",\n      \"desc\": \"Transforms code analysis data into format suitable for LLM processing\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"AnalysisContext object\"\n    },\n    {\n      \"name\": \"saveCodeAnalysis\",\n      \"desc\": \"Persists code analysis results to storage\",\n      \"inputs\": \"CodeAnalysis data\",\n      \"outputs\": \"Promise indicating save completion\"\n    },\n    {\n      \"name\": \"loadSavedCodeAnalysisFromFile\",\n      \"desc\": \"Retrieves previously saved code analysis from storage\",\n      \"inputs\": \"file path or identifier\",\n      \"outputs\": \"Promise<CodeAnalysis>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"util\",\n    \"./llmService\",\n    \"./insightsTreeView\",\n    \"./fileDocumentation\",\n    \"./analyzer\",\n    \"./productNavigator\",\n    \"./analysisViewer\",\n    \"./insightsViewer\",\n    \"./unitTestsNavigator\",\n    \"./logger\",\n    \"./state/llmStateManager\",\n    \"./context/analysisContextBuilder\",\n    \"./domain/formatters/documentationFormatter\",\n    \"./infrastructure/persistence/analysisResultRepository\"\n  ],\n  \"intent\": \"This file exists to orchestrate LLM-powered code understanding features in VS Code. It solves the problem of making large codebases understandable by connecting AI analysis with VS Code's UI components (tree views, output channels, navigation). It manages the lifecycle of analysis operations, state persistence, and user-facing visualization of AI-generated insights.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:21:21.995Z"
+  }
+}

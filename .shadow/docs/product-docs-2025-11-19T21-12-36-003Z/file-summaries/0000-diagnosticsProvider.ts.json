@@ -1,0 +1,71 @@
+{
+  "file": "src/diagnosticsProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Manages and displays code diagnostics (warnings, errors, info messages) in the VS Code Problems panel based on insights generated from code analysis",
+  "userVisibleActions": [
+    "Shows diagnostic messages (warnings, errors, info) in the Problems panel for issues found in code files",
+    "Displays colored underlines or squiggles in code editor at specific line numbers where issues are detected",
+    "Groups diagnostic messages by file in the Problems panel",
+    "Shows 'Shadow Watch' as the source of diagnostic messages",
+    "Clears all diagnostic messages when requested",
+    "Updates diagnostics in real-time as insights are generated"
+  ],
+  "developerVisibleActions": [
+    "Creates a diagnostic collection named 'shadowWatch' that appears in the Problems panel",
+    "Converts Insight objects into VS Code Diagnostic objects that integrate with the editor",
+    "Updates diagnostics for all files or for a specific file based on insight data",
+    "Maps insight severity levels to VS Code diagnostic severity (Error, Warning, Information, Hint)",
+    "Positions diagnostics at specific line numbers extracted from insights",
+    "Clears diagnostics when analysis is reset or updated",
+    "Provides cleanup through dispose method for proper resource management"
+  ],
+  "keyFunctions": [
+    {
+      "name": "updateDiagnostics",
+      "desc": "Updates diagnostics for all files based on an array of insights",
+      "inputs": "insights: Insight[] - Array of insight objects containing file paths, line numbers, descriptions, and severity",
+      "outputs": "void - Displays diagnostics in Problems panel"
+    },
+    {
+      "name": "updateDiagnosticsForFile",
+      "desc": "Updates diagnostics for a specific file only",
+      "inputs": "uri: vscode.Uri - File URI, insights: Insight[] - Insights for that file",
+      "outputs": "void - Displays diagnostics for the specified file"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all diagnostics from the Problems panel",
+      "inputs": "None",
+      "outputs": "void"
+    },
+    {
+      "name": "createDiagnostic",
+      "desc": "Converts an Insight object into a VS Code Diagnostic object",
+      "inputs": "insight: Insight - Contains description, severity, line number, file path, and ID",
+      "outputs": "vscode.Diagnostic - VS Code diagnostic that appears in Problems panel and editor"
+    },
+    {
+      "name": "getSeverity",
+      "desc": "Maps insight severity string to VS Code DiagnosticSeverity enum",
+      "inputs": "severity: string - Severity level from insight",
+      "outputs": "vscode.DiagnosticSeverity - VS Code severity enum value"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up and disposes the diagnostic collection",
+      "inputs": "None",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./insightGenerator"
+  ],
+  "intent": "This file exists to bridge the gap between code analysis insights and VS Code's built-in diagnostics system, allowing code issues to be displayed natively in the Problems panel and editor with proper formatting, severity levels, and file grouping - giving users a familiar interface for viewing and navigating code issues discovered by Shadow Watch",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages and displays code diagnostics (warnings, errors, info messages) in the VS Code Problems panel based on insights generated from code analysis\",\n  \"userVisibleActions\": [\n    \"Shows diagnostic messages (warnings, errors, info) in the Problems panel for issues found in code files\",\n    \"Displays colored underlines or squiggles in code editor at specific line numbers where issues are detected\",\n    \"Groups diagnostic messages by file in the Problems panel\",\n    \"Shows 'Shadow Watch' as the source of diagnostic messages\",\n    \"Clears all diagnostic messages when requested\",\n    \"Updates diagnostics in real-time as insights are generated\"\n  ],\n  \"developerVisibleActions\": [\n    \"Creates a diagnostic collection named 'shadowWatch' that appears in the Problems panel\",\n    \"Converts Insight objects into VS Code Diagnostic objects that integrate with the editor\",\n    \"Updates diagnostics for all files or for a specific file based on insight data\",\n    \"Maps insight severity levels to VS Code diagnostic severity (Error, Warning, Information, Hint)\",\n    \"Positions diagnostics at specific line numbers extracted from insights\",\n    \"Clears diagnostics when analysis is reset or updated\",\n    \"Provides cleanup through dispose method for proper resource management\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"updateDiagnostics\",\n      \"desc\": \"Updates diagnostics for all files based on an array of insights\",\n      \"inputs\": \"insights: Insight[] - Array of insight objects containing file paths, line numbers, descriptions, and severity\",\n      \"outputs\": \"void - Displays diagnostics in Problems panel\"\n    },\n    {\n      \"name\": \"updateDiagnosticsForFile\",\n      \"desc\": \"Updates diagnostics for a specific file only\",\n      \"inputs\": \"uri: vscode.Uri - File URI, insights: Insight[] - Insights for that file\",\n      \"outputs\": \"void - Displays diagnostics for the specified file\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all diagnostics from the Problems panel\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"createDiagnostic\",\n      \"desc\": \"Converts an Insight object into a VS Code Diagnostic object\",\n      \"inputs\": \"insight: Insight - Contains description, severity, line number, file path, and ID\",\n      \"outputs\": \"vscode.Diagnostic - VS Code diagnostic that appears in Problems panel and editor\"\n    },\n    {\n      \"name\": \"getSeverity\",\n      \"desc\": \"Maps insight severity string to VS Code DiagnosticSeverity enum\",\n      \"inputs\": \"severity: string - Severity level from insight\",\n      \"outputs\": \"vscode.DiagnosticSeverity - VS Code severity enum value\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up and disposes the diagnostic collection\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between code analysis insights and VS Code's built-in diagnostics system, allowing code issues to be displayed natively in the Problems panel and editor with proper formatting, severity levels, and file grouping - giving users a familiar interface for viewing and navigating code issues discovered by Shadow Watch\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:16:09.084Z"
+  }
+}

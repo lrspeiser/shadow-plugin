@@ -1,0 +1,73 @@
+{
+  "module": "src/domain/formatters",
+  "moduleType": "other",
+  "capabilities": [
+    "Transform product documentation and code analysis into structured Markdown format",
+    "Generate comprehensive documentation with multiple user perspectives (GUI, CLI, API)",
+    "Organize file analysis results by component categories (UI, Business Logic, Data, Infrastructure)",
+    "Format LLM-generated insights with behavioral summaries, feature lists, and usage examples",
+    "Create timestamped documentation exports showing generation date and time",
+    "Display warning messages for missing or incomplete documentation sections",
+    "Structure file classifications with clear purpose descriptions"
+  ],
+  "summary": "The formatters module provides documentation generation and formatting capabilities that convert raw product analysis and code insights into polished, user-ready Markdown documents. It serves as the presentation layer for all documentation output, ensuring consistent formatting and organization across different documentation types.\n\nUsers can generate comprehensive product documentation that includes feature overviews, behavioral summaries, and usage examples from multiple perspectives (GUI, CLI, and API). The module automatically organizes file analysis results into logical categories, making it easy to understand codebase structure and component purposes. All generated documentation includes timestamps and proper sectioning, with clear warnings when information is missing or incomplete.\n\nThe primary workflow involves taking structured data from code analysis and LLM insights, then transforming it into readable, exportable Markdown documents. This enables users to view, share, and export documentation that accurately represents their product's capabilities, architecture, and usage patterns in a standardized format suitable for both human consumption and further processing.",
+  "files": [
+    {
+      "file": "src/domain/formatters/documentationFormatter.ts",
+      "role": "Core Logic",
+      "purpose": "Formats product documentation and code analysis insights into structured Markdown documents for user consumption and export.",
+      "userVisibleActions": [
+        "View product documentation formatted as Markdown with overview, features, and user perspectives",
+        "See file analysis results organized by component categories (UI, Business Logic, Data, Infrastructure)",
+        "Read LLM insights formatted with behavioral summaries, feature lists, and usage examples",
+        "Export documentation with timestamps showing generation date and time",
+        "Access documentation sections for GUI, CLI, and API perspectives",
+        "View file classifications and their purposes in structured sections",
+        "See warning messages for empty or missing documentation sections"
+      ],
+      "developerVisibleActions": [
+        "Call formatEnhancedDocsAsMarkdown() to convert product documentation objects into Markdown format",
+        "Call formatFileAnalysisAsMarkdown() to convert file analysis results into categorized Markdown sections",
+        "Call formatInsightsAsMarkdown() to convert LLM insights into comprehensive Markdown documentation",
+        "Receive formatted Markdown strings ready for file writing or display",
+        "Get automatic timestamp injection in UTC and local time formats",
+        "Handle empty sections gracefully with warning messages",
+        "Process nested data structures (arrays, objects) into bulleted lists and sections"
+      ],
+      "keyFunctions": [
+        {
+          "name": "formatEnhancedDocsAsMarkdown",
+          "desc": "Converts enhanced product documentation object into formatted Markdown with sections for overview, features, user perspectives, tech stack, architecture, and file structures",
+          "inputs": "EnhancedProductDocumentation object containing overview, features, user perspectives, tech stack, architecture, and file analysis",
+          "outputs": "Formatted Markdown string with hierarchical sections and timestamps"
+        },
+        {
+          "name": "formatFileAnalysisAsMarkdown",
+          "desc": "Formats file analysis results into categorized Markdown sections (UI Components, Business Logic, Data Layer, Infrastructure) with file paths and purposes",
+          "inputs": "File analysis results with categorized files (uiComponents, businessLogic, dataLayer, infrastructure)",
+          "outputs": "Markdown string with categorized file listings or warning message if empty"
+        },
+        {
+          "name": "formatInsightsAsMarkdown",
+          "desc": "Converts LLM analysis insights into comprehensive Markdown documentation including behavioral summary, key features, user interactions, technical details, and usage examples",
+          "inputs": "LLMInsights object containing behavioral summary, features, interactions, technical details, and examples",
+          "outputs": "Formatted Markdown string with all insight sections organized hierarchically"
+        }
+      ],
+      "dependencies": [
+        "../../fileDocumentation (EnhancedProductDocumentation type)",
+        "../../llmService (LLMInsights type)"
+      ],
+      "intent": "Separates documentation formatting logic from core analysis code, providing a dedicated service to transform structured data objects into human-readable Markdown documents that can be exported, displayed, or version-controlled.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Formats product documentation and code analysis insights into structured Markdown documents for user consumption and export.\",\n  \"userVisibleActions\": [\n    \"View product documentation formatted as Markdown with overview, features, and user perspectives\",\n    \"See file analysis results organized by component categories (UI, Business Logic, Data, Infrastructure)\",\n    \"Read LLM insights formatted with behavioral summaries, feature lists, and usage examples\",\n    \"Export documentation with timestamps showing generation date and time\",\n    \"Access documentation sections for GUI, CLI, and API perspectives\",\n    \"View file classifications and their purposes in structured sections\",\n    \"See warning messages for empty or missing documentation sections\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call formatEnhancedDocsAsMarkdown() to convert product documentation objects into Markdown format\",\n    \"Call formatFileAnalysisAsMarkdown() to convert file analysis results into categorized Markdown sections\",\n    \"Call formatInsightsAsMarkdown() to convert LLM insights into comprehensive Markdown documentation\",\n    \"Receive formatted Markdown strings ready for file writing or display\",\n    \"Get automatic timestamp injection in UTC and local time formats\",\n    \"Handle empty sections gracefully with warning messages\",\n    \"Process nested data structures (arrays, objects) into bulleted lists and sections\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatEnhancedDocsAsMarkdown\",\n      \"desc\": \"Converts enhanced product documentation object into formatted Markdown with sections for overview, features, user perspectives, tech stack, architecture, and file structures\",\n      \"inputs\": \"EnhancedProductDocumentation object containing overview, features, user perspectives, tech stack, architecture, and file analysis\",\n      \"outputs\": \"Formatted Markdown string with hierarchical sections and timestamps\"\n    },\n    {\n      \"name\": \"formatFileAnalysisAsMarkdown\",\n      \"desc\": \"Formats file analysis results into categorized Markdown sections (UI Components, Business Logic, Data Layer, Infrastructure) with file paths and purposes\",\n      \"inputs\": \"File analysis results with categorized files (uiComponents, businessLogic, dataLayer, infrastructure)\",\n      \"outputs\": \"Markdown string with categorized file listings or warning message if empty\"\n    },\n    {\n      \"name\": \"formatInsightsAsMarkdown\",\n      \"desc\": \"Converts LLM analysis insights into comprehensive Markdown documentation including behavioral summary, key features, user interactions, technical details, and usage examples\",\n      \"inputs\": \"LLMInsights object containing behavioral summary, features, interactions, technical details, and examples\",\n      \"outputs\": \"Formatted Markdown string with all insight sections organized hierarchically\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../fileDocumentation (EnhancedProductDocumentation type)\",\n    \"../../llmService (LLMInsights type)\"\n  ],\n  \"intent\": \"Separates documentation formatting logic from core analysis code, providing a dedicated service to transform structured data objects into human-readable Markdown documents that can be exported, displayed, or version-controlled.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:26:18.244Z"
+  }
+}

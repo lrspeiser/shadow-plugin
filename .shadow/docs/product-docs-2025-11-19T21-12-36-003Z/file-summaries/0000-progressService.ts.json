@@ -1,0 +1,41 @@
+{
+  "file": "src/infrastructure/progressService.ts",
+  "role": "Core Logic",
+  "purpose": "Provides a standardized service for displaying progress notifications to users during long-running operations.",
+  "userVisibleActions": [
+    "Shows progress notifications with title and optional message updates",
+    "Displays cancellable progress indicators that users can dismiss",
+    "Shows progress in different locations (notification, window status bar, etc.)"
+  ],
+  "developerVisibleActions": [
+    "Developer wraps async operations with progress reporting using withProgress method",
+    "Developer passes a title and optional configuration (cancellable, location)",
+    "Developer receives a reporter object to update progress messages during execution",
+    "Developer can check cancellation status via the cancellation token",
+    "Developer receives the result of the wrapped async operation"
+  ],
+  "keyFunctions": [
+    {
+      "name": "withProgress",
+      "desc": "Wraps an async task with progress reporting UI",
+      "inputs": "options (title, cancellable flag, location) and an async task function that receives a ProgressReporter",
+      "outputs": "Returns the result of the executed task"
+    },
+    {
+      "name": "ProgressReporter.report",
+      "desc": "Updates the progress message and optionally increments progress percentage",
+      "inputs": "message string and optional increment number",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode"
+  ],
+  "intent": "This file exists to reduce boilerplate code and ensure consistent progress reporting across the extension by wrapping VSCode's native withProgress API in a simpler, standardized interface that developers can reuse throughout the codebase.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a standardized service for displaying progress notifications to users during long-running operations.\",\n  \"userVisibleActions\": [\n    \"Shows progress notifications with title and optional message updates\",\n    \"Displays cancellable progress indicators that users can dismiss\",\n    \"Shows progress in different locations (notification, window status bar, etc.)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer wraps async operations with progress reporting using withProgress method\",\n    \"Developer passes a title and optional configuration (cancellable, location)\",\n    \"Developer receives a reporter object to update progress messages during execution\",\n    \"Developer can check cancellation status via the cancellation token\",\n    \"Developer receives the result of the wrapped async operation\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"withProgress\",\n      \"desc\": \"Wraps an async task with progress reporting UI\",\n      \"inputs\": \"options (title, cancellable flag, location) and an async task function that receives a ProgressReporter\",\n      \"outputs\": \"Returns the result of the executed task\"\n    },\n    {\n      \"name\": \"ProgressReporter.report\",\n      \"desc\": \"Updates the progress message and optionally increments progress percentage\",\n      \"inputs\": \"message string and optional increment number\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to reduce boilerplate code and ensure consistent progress reporting across the extension by wrapping VSCode's native withProgress API in a simpler, standardized interface that developers can reuse throughout the codebase.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:19:58.079Z"
+  }
+}

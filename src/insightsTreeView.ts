@@ -277,7 +277,7 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }
         }
 
-        // Check for latest report file
+        // Check for latest refactoring report file
         const reportFiles = entries
             .filter(e => e.isFile() && e.name.startsWith('refactoring-report-') && e.name.endsWith('.md'))
             .map(e => ({
@@ -291,6 +291,70 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             const latestReport = reportFiles[0];
             this.reportPath = latestReport.path;
             this.reportTimestamp = latestReport.mtime;
+        }
+
+        // Check for latest workspace report
+        const workspaceReportFiles = entries
+            .filter(e => e.isFile() && e.name.startsWith('workspace-report-') && e.name.endsWith('.md'))
+            .map(e => ({
+                name: e.name,
+                path: path.join(docsDir, e.name),
+                mtime: fs.statSync(path.join(docsDir, e.name)).mtimeMs
+            }))
+            .sort((a, b) => b.mtime - a.mtime);
+        
+        if (workspaceReportFiles.length > 0 && !this.workspaceReportPath) {
+            const latestReport = workspaceReportFiles[0];
+            this.workspaceReportPath = latestReport.path;
+            this.workspaceReportTimestamp = latestReport.mtime;
+        }
+
+        // Check for latest product report
+        const productReportFiles = entries
+            .filter(e => e.isFile() && e.name.startsWith('product-report-') && e.name.endsWith('.md'))
+            .map(e => ({
+                name: e.name,
+                path: path.join(docsDir, e.name),
+                mtime: fs.statSync(path.join(docsDir, e.name)).mtimeMs
+            }))
+            .sort((a, b) => b.mtime - a.mtime);
+        
+        if (productReportFiles.length > 0 && !this.productReportPath) {
+            const latestReport = productReportFiles[0];
+            this.productReportPath = latestReport.path;
+            this.productReportTimestamp = latestReport.mtime;
+        }
+
+        // Check for latest architecture report
+        const architectureReportFiles = entries
+            .filter(e => e.isFile() && e.name.startsWith('architecture-report-') && e.name.endsWith('.md'))
+            .map(e => ({
+                name: e.name,
+                path: path.join(docsDir, e.name),
+                mtime: fs.statSync(path.join(docsDir, e.name)).mtimeMs
+            }))
+            .sort((a, b) => b.mtime - a.mtime);
+        
+        if (architectureReportFiles.length > 0 && !this.architectureReportPath) {
+            const latestReport = architectureReportFiles[0];
+            this.architectureReportPath = latestReport.path;
+            this.architectureReportTimestamp = latestReport.mtime;
+        }
+
+        // Check for latest unit test report
+        const unitTestReportFiles = entries
+            .filter(e => e.isFile() && e.name.startsWith('unit-test-report-') && e.name.endsWith('.md'))
+            .map(e => ({
+                name: e.name,
+                path: path.join(docsDir, e.name),
+                mtime: fs.statSync(path.join(docsDir, e.name)).mtimeMs
+            }))
+            .sort((a, b) => b.mtime - a.mtime);
+        
+        if (unitTestReportFiles.length > 0 && !this.unitTestReportPath) {
+            const latestReport = unitTestReportFiles[0];
+            this.unitTestReportPath = latestReport.path;
+            this.unitTestReportTimestamp = latestReport.mtime;
         }
 
         this.refresh();

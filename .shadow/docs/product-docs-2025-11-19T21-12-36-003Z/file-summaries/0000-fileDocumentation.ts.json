@@ -1,0 +1,48 @@
+{
+  "file": "src/fileDocumentation.ts",
+  "role": "Core Logic",
+  "purpose": "Defines the type system and data structures for organizing code documentation at file, module, and product levels.",
+  "userVisibleActions": [
+    "No direct user-visible actions - this file defines data structures used internally"
+  ],
+  "developerVisibleActions": [
+    "Import and use TypeScript interfaces to structure documentation data",
+    "Create FileSummary objects to document individual code files with role, purpose, and key functions",
+    "Build ModuleSummary objects to organize files into logical modules with capabilities",
+    "Generate EnhancedProductDocumentation with product overview, user perspectives, and architecture",
+    "Access structured documentation data through well-defined TypeScript types",
+    "Use these interfaces to ensure consistent documentation format across the codebase"
+  ],
+  "keyFunctions": [
+    {
+      "name": "FileSummary",
+      "desc": "Interface defining how individual file documentation is structured",
+      "inputs": "file path, role, purpose, actions, functions, dependencies",
+      "outputs": "Structured file-level documentation object"
+    },
+    {
+      "name": "ModuleSummary",
+      "desc": "Interface defining how module-level documentation is structured",
+      "inputs": "module path, type, capabilities, files, endpoints/commands/workers",
+      "outputs": "Structured module-level documentation object"
+    },
+    {
+      "name": "EnhancedProductDocumentation",
+      "desc": "Interface defining complete product documentation structure",
+      "inputs": "overview, user perspectives (GUI/CLI/API/CICD), architecture, workflows, problems solved",
+      "outputs": "Comprehensive product documentation object"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer"
+  ],
+  "intent": "This file exists to establish a consistent, hierarchical documentation structure that organizes code documentation from individual files up to product-level summaries. It provides TypeScript type definitions that ensure all documentation follows the same format, making it easier to generate, aggregate, and consume documentation programmatically across the codebase.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines the type system and data structures for organizing code documentation at file, module, and product levels.\",\n  \"userVisibleActions\": [\n    \"No direct user-visible actions - this file defines data structures used internally\"\n  ],\n  \"developerVisibleActions\": [\n    \"Import and use TypeScript interfaces to structure documentation data\",\n    \"Create FileSummary objects to document individual code files with role, purpose, and key functions\",\n    \"Build ModuleSummary objects to organize files into logical modules with capabilities\",\n    \"Generate EnhancedProductDocumentation with product overview, user perspectives, and architecture\",\n    \"Access structured documentation data through well-defined TypeScript types\",\n    \"Use these interfaces to ensure consistent documentation format across the codebase\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"FileSummary\",\n      \"desc\": \"Interface defining how individual file documentation is structured\",\n      \"inputs\": \"file path, role, purpose, actions, functions, dependencies\",\n      \"outputs\": \"Structured file-level documentation object\"\n    },\n    {\n      \"name\": \"ModuleSummary\",\n      \"desc\": \"Interface defining how module-level documentation is structured\",\n      \"inputs\": \"module path, type, capabilities, files, endpoints/commands/workers\",\n      \"outputs\": \"Structured module-level documentation object\"\n    },\n    {\n      \"name\": \"EnhancedProductDocumentation\",\n      \"desc\": \"Interface defining complete product documentation structure\",\n      \"inputs\": \"overview, user perspectives (GUI/CLI/API/CICD), architecture, workflows, problems solved\",\n      \"outputs\": \"Comprehensive product documentation object\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to establish a consistent, hierarchical documentation structure that organizes code documentation from individual files up to product-level summaries. It provides TypeScript type definitions that ensure all documentation follows the same format, making it easier to generate, aggregate, and consume documentation programmatically across the codebase.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:18:59.607Z"
+  }
+}

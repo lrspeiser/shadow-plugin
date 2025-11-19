@@ -1,0 +1,39 @@
+{
+  "file": "src/ai/llmRetryHandler.ts",
+  "role": "Core Logic",
+  "purpose": "Handles automatic retry logic for LLM API requests with exponential backoff when errors occur",
+  "userVisibleActions": [
+    "API requests automatically retry when temporary failures occur (rate limits, timeouts, network issues)",
+    "Longer wait times occur between successive retry attempts",
+    "Failed requests eventually succeed or show error after maximum retries exhausted"
+  ],
+  "developerVisibleActions": [
+    "Wrap API calls with retry handler to get automatic retry behavior",
+    "Configure retry behavior (max attempts, delays, which errors trigger retries)",
+    "Receive callbacks when retries occur to track attempt progress",
+    "Get final result with number of attempts made",
+    "Non-retryable errors immediately throw without retry attempts"
+  ],
+  "keyFunctions": [
+    {
+      "name": "executeWithRetry",
+      "desc": "Executes an async operation with automatic retry logic and exponential backoff",
+      "inputs": "operation function to execute, optional retry configuration (maxRetries, delays, error types)",
+      "outputs": "Promise resolving to operation result with attempt count"
+    },
+    {
+      "name": "isRetryableError",
+      "desc": "Determines if an error should trigger a retry based on error type classification",
+      "inputs": "error object, list of retryable error patterns",
+      "outputs": "boolean indicating if error is retryable"
+    }
+  ],
+  "dependencies": [],
+  "intent": "Provides resilient LLM API communication by automatically handling transient failures like rate limits, timeouts, and network issues without requiring manual retry logic in calling code",
+  "rawContent": "```json\n{\n  \"purpose\": \"Handles automatic retry logic for LLM API requests with exponential backoff when errors occur\",\n  \"userVisibleActions\": [\n    \"API requests automatically retry when temporary failures occur (rate limits, timeouts, network issues)\",\n    \"Longer wait times occur between successive retry attempts\",\n    \"Failed requests eventually succeed or show error after maximum retries exhausted\"\n  ],\n  \"developerVisibleActions\": [\n    \"Wrap API calls with retry handler to get automatic retry behavior\",\n    \"Configure retry behavior (max attempts, delays, which errors trigger retries)\",\n    \"Receive callbacks when retries occur to track attempt progress\",\n    \"Get final result with number of attempts made\",\n    \"Non-retryable errors immediately throw without retry attempts\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"executeWithRetry\",\n      \"desc\": \"Executes an async operation with automatic retry logic and exponential backoff\",\n      \"inputs\": \"operation function to execute, optional retry configuration (maxRetries, delays, error types)\",\n      \"outputs\": \"Promise resolving to operation result with attempt count\"\n    },\n    {\n      \"name\": \"isRetryableError\",\n      \"desc\": \"Determines if an error should trigger a retry based on error type classification\",\n      \"inputs\": \"error object, list of retryable error patterns\",\n      \"outputs\": \"boolean indicating if error is retryable\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"Provides resilient LLM API communication by automatically handling transient failures like rate limits, timeouts, and network issues without requiring manual retry logic in calling code\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:13:13.592Z"
+  }
+}

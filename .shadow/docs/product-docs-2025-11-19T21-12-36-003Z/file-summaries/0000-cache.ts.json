@@ -1,0 +1,61 @@
+{
+  "file": "src/cache.ts",
+  "role": "Core Logic",
+  "purpose": "Manages persistent storage and retrieval of code analysis results with automatic expiration",
+  "userVisibleActions": [
+    "Analysis results load instantly when reopening a workspace (if cached within 24 hours)",
+    "Analysis cache automatically expires after 24 hours, triggering fresh analysis",
+    "Cache can be manually cleared to force fresh analysis"
+  ],
+  "developerVisibleActions": [
+    "Cache directory (.shadowwatch-cache) is created in the specified storage path",
+    "Analysis results are automatically saved after each analysis completes",
+    "Cache files are named using base64-encoded workspace paths",
+    "Stale cache entries (older than 24 hours) are automatically ignored",
+    "Cache read/write errors are logged to console but don't block operations"
+  ],
+  "keyFunctions": [
+    {
+      "name": "constructor",
+      "desc": "Initializes cache with storage location and creates cache directory",
+      "inputs": "storagePath: string",
+      "outputs": "AnalysisCache instance"
+    },
+    {
+      "name": "getCacheKey",
+      "desc": "Generates safe filename from workspace path for cache storage",
+      "inputs": "workspaceRoot: string",
+      "outputs": "base64-encoded string suitable for filename"
+    },
+    {
+      "name": "get",
+      "desc": "Retrieves cached analysis for workspace if exists and not expired",
+      "inputs": "workspaceRoot: string",
+      "outputs": "Promise<CodeAnalysis | null> - cached data or null if missing/expired"
+    },
+    {
+      "name": "set",
+      "desc": "Saves analysis results to cache with current timestamp",
+      "inputs": "workspaceRoot: string, data: CodeAnalysis",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all cached analysis files from cache directory",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer (CodeAnalysis type)"
+  ],
+  "intent": "Improves extension performance by caching expensive code analysis results, avoiding redundant analysis when reopening workspaces while ensuring cached data doesn't become stale through time-based expiration",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages persistent storage and retrieval of code analysis results with automatic expiration\",\n  \"userVisibleActions\": [\n    \"Analysis results load instantly when reopening a workspace (if cached within 24 hours)\",\n    \"Analysis cache automatically expires after 24 hours, triggering fresh analysis\",\n    \"Cache can be manually cleared to force fresh analysis\"\n  ],\n  \"developerVisibleActions\": [\n    \"Cache directory (.shadowwatch-cache) is created in the specified storage path\",\n    \"Analysis results are automatically saved after each analysis completes\",\n    \"Cache files are named using base64-encoded workspace paths\",\n    \"Stale cache entries (older than 24 hours) are automatically ignored\",\n    \"Cache read/write errors are logged to console but don't block operations\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes cache with storage location and creates cache directory\",\n      \"inputs\": \"storagePath: string\",\n      \"outputs\": \"AnalysisCache instance\"\n    },\n    {\n      \"name\": \"getCacheKey\",\n      \"desc\": \"Generates safe filename from workspace path for cache storage\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"base64-encoded string suitable for filename\"\n    },\n    {\n      \"name\": \"get\",\n      \"desc\": \"Retrieves cached analysis for workspace if exists and not expired\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"Promise<CodeAnalysis | null> - cached data or null if missing/expired\"\n    },\n    {\n      \"name\": \"set\",\n      \"desc\": \"Saves analysis results to cache with current timestamp\",\n      \"inputs\": \"workspaceRoot: string, data: CodeAnalysis\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all cached analysis files from cache directory\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer (CodeAnalysis type)\"\n  ],\n  \"intent\": \"Improves extension performance by caching expensive code analysis results, avoiding redundant analysis when reopening workspaces while ensuring cached data doesn't become stale through time-based expiration\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:15:30.202Z"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "file": "src/analyzer.ts",
+  "role": "Core Logic",
+  "purpose": "Defines the core data structures and interfaces for code analysis results, including file metadata, function signatures, dependencies, test mappings, and code duplication detection.",
+  "userVisibleActions": [
+    "See analysis results showing total files, lines, and functions in their codebase",
+    "View list of large files that may need refactoring",
+    "Identify orphaned files that are not imported anywhere",
+    "Discover entry points (main functions) in the codebase",
+    "Find duplicate code blocks across files",
+    "See which functions are not covered by tests",
+    "View function complexity and risk levels (high/medium/low)",
+    "Understand function dependencies on databases, HTTP, filesystem, and other external resources"
+  ],
+  "developerVisibleActions": [
+    "Import and use CodeAnalysis interface to structure analysis results",
+    "Access file information including path, lines of code, complexity metrics, and roles",
+    "Query function metadata including parameters, return types, visibility, and documentation",
+    "Retrieve import relationships between files to understand module dependencies",
+    "Access test mapping data to see which tests cover which source files and functions",
+    "Use FunctionMetadata to get detailed function signatures, branches, and state mutations",
+    "Access duplicate code detection results grouped by similarity hash",
+    "Query dependency information to identify external service integrations",
+    "Use AnalysisCache for caching and retrieving analysis results"
+  ],
+  "keyFunctions": [
+    {
+      "name": "CodeAnalysis",
+      "desc": "Primary interface containing complete codebase analysis results",
+      "inputs": "None (interface definition)",
+      "outputs": "Structured data with file counts, function lists, imports, orphaned files, entry points, duplicates, and optional enhanced metadata"
+    },
+    {
+      "name": "FunctionMetadata",
+      "desc": "Detailed metadata for a single function including signature, documentation, control flow, and dependencies",
+      "inputs": "None (interface definition)",
+      "outputs": "Function name, parameters, return type, visibility, branches, dependencies, state mutations, risk level, and line numbers"
+    },
+    {
+      "name": "TestMapping",
+      "desc": "Maps source files and functions to their corresponding test coverage",
+      "inputs": "None (interface definition)",
+      "outputs": "Source-to-test file mappings, function-to-test mappings, and list of uncovered functions"
+    },
+    {
+      "name": "DependencyInfo",
+      "desc": "Describes external and internal dependencies used by functions",
+      "inputs": "None (interface definition)",
+      "outputs": "Dependency name, type (db/http/filesystem/etc), whether it's internal, and line number"
+    },
+    {
+      "name": "BranchInfo",
+      "desc": "Represents control flow branches in code (if/else/loop/try/catch)",
+      "inputs": "None (interface definition)",
+      "outputs": "Branch type, human-readable condition description, and line number"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./cache"
+  ],
+  "intent": "This file exists to establish a standardized schema for code analysis results across the entire application. It solves the problem of consistently representing complex code structure information (functions, dependencies, tests, duplicates) in a way that different parts of the system can understand and use, enabling features like test coverage visualization, dependency tracking, code quality assessment, and duplicate detection.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines the core data structures and interfaces for code analysis results, including file metadata, function signatures, dependencies, test mappings, and code duplication detection.\",\n  \"userVisibleActions\": [\n    \"See analysis results showing total files, lines, and functions in their codebase\",\n    \"View list of large files that may need refactoring\",\n    \"Identify orphaned files that are not imported anywhere\",\n    \"Discover entry points (main functions) in the codebase\",\n    \"Find duplicate code blocks across files\",\n    \"See which functions are not covered by tests\",\n    \"View function complexity and risk levels (high/medium/low)\",\n    \"Understand function dependencies on databases, HTTP, filesystem, and other external resources\"\n  ],\n  \"developerVisibleActions\": [\n    \"Import and use CodeAnalysis interface to structure analysis results\",\n    \"Access file information including path, lines of code, complexity metrics, and roles\",\n    \"Query function metadata including parameters, return types, visibility, and documentation\",\n    \"Retrieve import relationships between files to understand module dependencies\",\n    \"Access test mapping data to see which tests cover which source files and functions\",\n    \"Use FunctionMetadata to get detailed function signatures, branches, and state mutations\",\n    \"Access duplicate code detection results grouped by similarity hash\",\n    \"Query dependency information to identify external service integrations\",\n    \"Use AnalysisCache for caching and retrieving analysis results\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"CodeAnalysis\",\n      \"desc\": \"Primary interface containing complete codebase analysis results\",\n      \"inputs\": \"None (interface definition)\",\n      \"outputs\": \"Structured data with file counts, function lists, imports, orphaned files, entry points, duplicates, and optional enhanced metadata\"\n    },\n    {\n      \"name\": \"FunctionMetadata\",\n      \"desc\": \"Detailed metadata for a single function including signature, documentation, control flow, and dependencies\",\n      \"inputs\": \"None (interface definition)\",\n      \"outputs\": \"Function name, parameters, return type, visibility, branches, dependencies, state mutations, risk level, and line numbers\"\n    },\n    {\n      \"name\": \"TestMapping\",\n      \"desc\": \"Maps source files and functions to their corresponding test coverage\",\n      \"inputs\": \"None (interface definition)\",\n      \"outputs\": \"Source-to-test file mappings, function-to-test mappings, and list of uncovered functions\"\n    },\n    {\n      \"name\": \"DependencyInfo\",\n      \"desc\": \"Describes external and internal dependencies used by functions\",\n      \"inputs\": \"None (interface definition)\",\n      \"outputs\": \"Dependency name, type (db/http/filesystem/etc), whether it's internal, and line number\"\n    },\n    {\n      \"name\": \"BranchInfo\",\n      \"desc\": \"Represents control flow branches in code (if/else/loop/try/catch)\",\n      \"inputs\": \"None (interface definition)\",\n      \"outputs\": \"Branch type, human-readable condition description, and line number\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./cache\"\n  ],\n  \"intent\": \"This file exists to establish a standardized schema for code analysis results across the entire application. It solves the problem of consistently representing complex code structure information (functions, dependencies, tests, duplicates) in a way that different parts of the system can understand and use, enabling features like test coverage visualization, dependency tracking, code quality assessment, and duplicate detection.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:15:17.312Z"
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "file": "src/state/llmStateManager.ts",
+  "role": "Core Logic",
+  "purpose": "Centralizes and manages all state for LLM-powered features, UI providers, and analysis results throughout the extension's lifecycle.",
+  "userVisibleActions": [
+    "View LLM-generated insights in the insights tree view",
+    "Navigate product documentation through the product navigator",
+    "See analysis results in the analysis viewer",
+    "Browse unit test information in the unit tests navigator",
+    "View generated reports through the reports viewer",
+    "See output messages in the LLM output channel"
+  ],
+  "developerVisibleActions": [
+    "Store and retrieve the current LLM service instance for making AI requests",
+    "Cache analysis context to avoid redundant processing",
+    "Store enhanced product documentation for later retrieval",
+    "Maintain LLM insights between operations",
+    "Store code analysis results for access by multiple components",
+    "Manage references to all UI tree providers and viewers",
+    "Update all registered UI providers when state changes",
+    "Access output channel for logging LLM operations",
+    "Clear all cached state when needed",
+    "Check if LLM service is available before making requests"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getLLMService",
+      "desc": "Retrieves the initialized LLM service or throws error if not available",
+      "inputs": "none",
+      "outputs": "LLMService instance"
+    },
+    {
+      "name": "setLLMService",
+      "desc": "Stores the LLM service instance for extension-wide access",
+      "inputs": "service: LLMService",
+      "outputs": "void"
+    },
+    {
+      "name": "getAnalysisContext",
+      "desc": "Retrieves the last stored analysis context",
+      "inputs": "none",
+      "outputs": "AnalysisContext or null"
+    },
+    {
+      "name": "setAnalysisContext",
+      "desc": "Stores analysis context for later retrieval",
+      "inputs": "context: AnalysisContext",
+      "outputs": "void"
+    },
+    {
+      "name": "getEnhancedProductDocs",
+      "desc": "Retrieves cached enhanced product documentation",
+      "inputs": "none",
+      "outputs": "EnhancedProductDocumentation or null"
+    },
+    {
+      "name": "setEnhancedProductDocs",
+      "desc": "Stores enhanced product documentation",
+      "inputs": "docs: EnhancedProductDocumentation",
+      "outputs": "void"
+    },
+    {
+      "name": "getLLMInsights",
+      "desc": "Retrieves cached LLM-generated insights",
+      "inputs": "none",
+      "outputs": "LLMInsights or null"
+    },
+    {
+      "name": "setLLMInsights",
+      "desc": "Stores LLM insights and updates all registered UI providers",
+      "inputs": "insights: LLMInsights",
+      "outputs": "void"
+    },
+    {
+      "name": "getCodeAnalysis",
+      "desc": "Retrieves cached code analysis results",
+      "inputs": "none",
+      "outputs": "CodeAnalysis or null"
+    },
+    {
+      "name": "setCodeAnalysis",
+      "desc": "Stores code analysis results",
+      "inputs": "analysis: CodeAnalysis",
+      "outputs": "void"
+    },
+    {
+      "name": "registerTreeProvider",
+      "desc": "Registers the insights tree provider for state updates",
+      "inputs": "provider: InsightsTreeProvider",
+      "outputs": "void"
+    },
+    {
+      "name": "registerProductNavigator",
+      "desc": "Registers the product navigator for state updates",
+      "inputs": "navigator: ProductNavigatorProvider",
+      "outputs": "void"
+    },
+    {
+      "name": "registerInsightsViewer",
+      "desc": "Registers the insights viewer for state updates",
+      "inputs": "viewer: InsightsViewerProvider",
+      "outputs": "void"
+    },
+    {
+      "name": "registerAnalysisViewer",
+      "desc": "Registers the analysis viewer for state updates",
+      "inputs": "viewer: AnalysisViewerProvider",
+      "outputs": "void"
+    },
+    {
+      "name": "registerUnitTestsNavigator",
+      "desc": "Registers the unit tests navigator for state updates",
+      "inputs": "navigator: UnitTestsNavigatorProvider",
+      "outputs": "void"
+    },
+    {
+      "name": "registerReportsViewer",
+      "desc": "Registers the reports viewer for state updates",
+      "inputs": "viewer: ReportsViewer",
+      "outputs": "void"
+    },
+    {
+      "name": "registerReportsTreeProvider",
+      "desc": "Registers the reports tree provider for state updates",
+      "inputs": "provider: ReportsTreeProvider",
+      "outputs": "void"
+    },
+    {
+      "name": "setOutputChannel",
+      "desc": "Stores the output channel for logging LLM operations",
+      "inputs": "channel: vscode.OutputChannel",
+      "outputs": "void"
+    },
+    {
+      "name": "getOutputChannel",
+      "desc": "Retrieves the output channel for displaying LLM messages",
+      "inputs": "none",
+      "outputs": "vscode.OutputChannel or null"
+    },
+    {
+      "name": "updateAllProviders",
+      "desc": "Refreshes all registered UI providers with current state",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "clearState",
+      "desc": "Clears all cached analysis data and state",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "hasLLMService",
+      "desc": "Checks if LLM service is initialized and available",
+      "inputs": "none",
+      "outputs": "boolean"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "llmService",
+    "fileDocumentation",
+    "analyzer",
+    "insightsTreeView",
+    "productNavigator",
+    "insightsViewer",
+    "analysisViewer",
+    "unitTestsNavigator",
+    "ui/reportsViewer",
+    "reportsTreeProvider"
+  ],
+  "intent": "Provides a single source of truth for all LLM-related state across the extension. Eliminates the need to pass state between components by centralizing storage and retrieval of LLM services, analysis results, documentation, and UI provider references. Ensures all UI components stay synchronized when state changes by automatically updating registered providers.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Centralizes and manages all state for LLM-powered features, UI providers, and analysis results throughout the extension's lifecycle.\",\n  \"userVisibleActions\": [\n    \"View LLM-generated insights in the insights tree view\",\n    \"Navigate product documentation through the product navigator\",\n    \"See analysis results in the analysis viewer\",\n    \"Browse unit test information in the unit tests navigator\",\n    \"View generated reports through the reports viewer\",\n    \"See output messages in the LLM output channel\"\n  ],\n  \"developerVisibleActions\": [\n    \"Store and retrieve the current LLM service instance for making AI requests\",\n    \"Cache analysis context to avoid redundant processing\",\n    \"Store enhanced product documentation for later retrieval\",\n    \"Maintain LLM insights between operations\",\n    \"Store code analysis results for access by multiple components\",\n    \"Manage references to all UI tree providers and viewers\",\n    \"Update all registered UI providers when state changes\",\n    \"Access output channel for logging LLM operations\",\n    \"Clear all cached state when needed\",\n    \"Check if LLM service is available before making requests\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getLLMService\",\n      \"desc\": \"Retrieves the initialized LLM service or throws error if not available\",\n      \"inputs\": \"none\",\n      \"outputs\": \"LLMService instance\"\n    },\n    {\n      \"name\": \"setLLMService\",\n      \"desc\": \"Stores the LLM service instance for extension-wide access\",\n      \"inputs\": \"service: LLMService\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getAnalysisContext\",\n      \"desc\": \"Retrieves the last stored analysis context\",\n      \"inputs\": \"none\",\n      \"outputs\": \"AnalysisContext or null\"\n    },\n    {\n      \"name\": \"setAnalysisContext\",\n      \"desc\": \"Stores analysis context for later retrieval\",\n      \"inputs\": \"context: AnalysisContext\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getEnhancedProductDocs\",\n      \"desc\": \"Retrieves cached enhanced product documentation\",\n      \"inputs\": \"none\",\n      \"outputs\": \"EnhancedProductDocumentation or null\"\n    },\n    {\n      \"name\": \"setEnhancedProductDocs\",\n      \"desc\": \"Stores enhanced product documentation\",\n      \"inputs\": \"docs: EnhancedProductDocumentation\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getLLMInsights\",\n      \"desc\": \"Retrieves cached LLM-generated insights\",\n      \"inputs\": \"none\",\n      \"outputs\": \"LLMInsights or null\"\n    },\n    {\n      \"name\": \"setLLMInsights\",\n      \"desc\": \"Stores LLM insights and updates all registered UI providers\",\n      \"inputs\": \"insights: LLMInsights\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getCodeAnalysis\",\n      \"desc\": \"Retrieves cached code analysis results\",\n      \"inputs\": \"none\",\n      \"outputs\": \"CodeAnalysis or null\"\n    },\n    {\n      \"name\": \"setCodeAnalysis\",\n      \"desc\": \"Stores code analysis results\",\n      \"inputs\": \"analysis: CodeAnalysis\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerTreeProvider\",\n      \"desc\": \"Registers the insights tree provider for state updates\",\n      \"inputs\": \"provider: InsightsTreeProvider\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerProductNavigator\",\n      \"desc\": \"Registers the product navigator for state updates\",\n      \"inputs\": \"navigator: ProductNavigatorProvider\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerInsightsViewer\",\n      \"desc\": \"Registers the insights viewer for state updates\",\n      \"inputs\": \"viewer: InsightsViewerProvider\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerAnalysisViewer\",\n      \"desc\": \"Registers the analysis viewer for state updates\",\n      \"inputs\": \"viewer: AnalysisViewerProvider\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerUnitTestsNavigator\",\n      \"desc\": \"Registers the unit tests navigator for state updates\",\n      \"inputs\": \"navigator: UnitTestsNavigatorProvider\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerReportsViewer\",\n      \"desc\": \"Registers the reports viewer for state updates\",\n      \"inputs\": \"viewer: ReportsViewer\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"registerReportsTreeProvider\",\n      \"desc\": \"Registers the reports tree provider for state updates\",\n      \"inputs\": \"provider: ReportsTreeProvider\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setOutputChannel\",\n      \"desc\": \"Stores the output channel for logging LLM operations\",\n      \"inputs\": \"channel: vscode.OutputChannel\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getOutputChannel\",\n      \"desc\": \"Retrieves the output channel for displaying LLM messages\",\n      \"inputs\": \"none\",\n      \"outputs\": \"vscode.OutputChannel or null\"\n    },\n    {\n      \"name\": \"updateAllProviders\",\n      \"desc\": \"Refreshes all registered UI providers with current state\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"clearState\",\n      \"desc\": \"Clears all cached analysis data and state\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"hasLLMService\",\n      \"desc\": \"Checks if LLM service is initialized and available\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"llmService\",\n    \"fileDocumentation\",\n    \"analyzer\",\n    \"insightsTreeView\",\n    \"productNavigator\",\n    \"insightsViewer\",\n    \"analysisViewer\",\n    \"unitTestsNavigator\",\n    \"ui/reportsViewer\",\n    \"reportsTreeProvider\"\n  ],\n  \"intent\": \"Provides a single source of truth for all LLM-related state across the extension. Eliminates the need to pass state between components by centralizing storage and retrieval of LLM services, analysis results, documentation, and UI provider references. Ensures all UI components stay synchronized when state changes by automatically updating registered providers.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:23:13.493Z"
+  }
+}

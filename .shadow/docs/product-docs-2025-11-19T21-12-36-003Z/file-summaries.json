@@ -1,0 +1,36 @@
+{
+  "summaries": [
+    {
+      "file": "jest.config.js",
+      "role": "Core Logic",
+      "purpose": "Configures Jest testing framework for TypeScript unit tests with coverage reporting and VS Code mocking support.",
+      "userVisibleActions": [
+        "Users indirectly benefit from automated testing ensuring code quality and stability",
+        "Test results and coverage reports help users trust the extension's reliability"
+      ],
+      "developerVisibleActions": [
+        "Developers can run unit tests using Jest framework with TypeScript support",
+        "Developers can view test coverage reports in text, HTML, and lcov formats",
+        "Developers can execute tests with 'npm test' or 'jest' commands",
+        "Test files are automatically discovered in __tests__ folders or files matching *.test.ts or *.spec.ts patterns",
+        "VS Code API calls are mocked during testing to enable unit testing without the actual VS Code environment",
+        "TypeScript code is transpiled on-the-fly during test execution",
+        "Coverage reports exclude test files, type definitions, and mock files from analysis",
+        "Tests run in Node.js environment with 10-second timeout per test"
+      ],
+      "keyFunctions": [],
+      "dependencies": [
+        "ts-jest",
+        "jest",
+        "vscode"
+      ],
+      "intent": "This file exists to configure the Jest testing framework for a TypeScript-based VS Code extension, enabling developers to write and run unit tests with proper TypeScript compilation, VS Code API mocking, and comprehensive coverage reporting to ensure code quality and maintainability.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Configures Jest testing framework for TypeScript unit tests with coverage reporting and VS Code mocking support.\",\n  \"userVisibleActions\": [\n    \"Users indirectly benefit from automated testing ensuring code quality and stability\",\n    \"Test results and coverage reports help users trust the extension's reliability\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developers can run unit tests using Jest framework with TypeScript support\",\n    \"Developers can view test coverage reports in text, HTML, and lcov formats\",\n    \"Developers can execute tests with 'npm test' or 'jest' commands\",\n    \"Test files are automatically discovered in __tests__ folders or files matching *.test.ts or *.spec.ts patterns\",\n    \"VS Code API calls are mocked during testing to enable unit testing without the actual VS Code environment\",\n    \"TypeScript code is transpiled on-the-fly during test execution\",\n    \"Coverage reports exclude test files, type definitions, and mock files from analysis\",\n    \"Tests run in Node.js environment with 10-second timeout per test\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"ts-jest\",\n    \"jest\",\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to configure the Jest testing framework for a TypeScript-based VS Code extension, enabling developers to write and run unit tests with proper TypeScript compilation, VS Code API mocking, and comprehensive coverage reporting to ensure code quality and maintainability.\"\n}\n```"
+    }
+  ],
+  "_metadata": {
+    "totalFiles": 0,
+    "completedFiles": 1,
+    "lastUpdated": "2025-11-19T21:12:36.003Z"
+  }
+}

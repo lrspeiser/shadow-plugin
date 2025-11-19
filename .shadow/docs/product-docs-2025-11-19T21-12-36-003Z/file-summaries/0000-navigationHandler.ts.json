@@ -1,0 +1,59 @@
+{
+  "file": "src/domain/handlers/navigationHandler.ts",
+  "role": "Core Logic",
+  "purpose": "Handles navigation to files, functions, and endpoints within the workspace when users interact with the product navigator and analysis viewer.",
+  "userVisibleActions": [
+    "Opens source code files in the editor when clicking on file items",
+    "Navigates to specific functions in files and highlights the function definition",
+    "Shows error messages when files cannot be opened",
+    "Displays function details in a quick pick menu with signature, description, and metadata",
+    "Navigates to endpoint handlers when clicking on API endpoints",
+    "Navigates to function usage locations when clicking on references",
+    "Opens analysis items showing code context with syntax highlighting",
+    "Shows warnings when navigation targets cannot be found"
+  ],
+  "developerVisibleActions": [
+    "Converts relative file paths to absolute paths using workspace root",
+    "Opens VS Code text documents programmatically",
+    "Positions cursor at specific line numbers for functions and code locations",
+    "Searches through document content to find function definitions by name",
+    "Creates selection ranges to highlight code sections",
+    "Displays formatted information panels using VS Code quick pick interface",
+    "Handles multiple navigation types: files, functions, endpoints, and analysis items",
+    "Falls back to line numbers when function names cannot be located in files"
+  ],
+  "keyFunctions": [
+    {
+      "name": "navigateToProductItem",
+      "desc": "Opens files or navigates to functions/endpoints from product navigator items",
+      "inputs": "ProductNavItem containing file path, function name, and line number",
+      "outputs": "Promise<void> - opens editor at target location"
+    },
+    {
+      "name": "navigateToAnalysisItem",
+      "desc": "Opens files and shows code context for analysis viewer items",
+      "inputs": "AnalysisItem with file path and line number information",
+      "outputs": "Promise<void> - displays code in editor with selection"
+    },
+    {
+      "name": "showItemDetails",
+      "desc": "Displays detailed information about functions, endpoints, or entry points in a menu",
+      "inputs": "ProductNavItem or EntryPoint with metadata like signature, description, parameters",
+      "outputs": "Promise<void> - shows quick pick panel with formatted details"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "ProductNavItem from productNavigator",
+    "AnalysisItem from analysisViewer",
+    "EntryPoint from analyzer"
+  ],
+  "intent": "This file exists to centralize all code navigation logic for the extension, separating navigation concerns from the main extension file. It solves the problem of providing consistent, user-friendly navigation across different types of code items (files, functions, endpoints, analysis results) while handling edge cases like missing files, relative paths, and function location resolution.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Handles navigation to files, functions, and endpoints within the workspace when users interact with the product navigator and analysis viewer.\",\n  \"userVisibleActions\": [\n    \"Opens source code files in the editor when clicking on file items\",\n    \"Navigates to specific functions in files and highlights the function definition\",\n    \"Shows error messages when files cannot be opened\",\n    \"Displays function details in a quick pick menu with signature, description, and metadata\",\n    \"Navigates to endpoint handlers when clicking on API endpoints\",\n    \"Navigates to function usage locations when clicking on references\",\n    \"Opens analysis items showing code context with syntax highlighting\",\n    \"Shows warnings when navigation targets cannot be found\"\n  ],\n  \"developerVisibleActions\": [\n    \"Converts relative file paths to absolute paths using workspace root\",\n    \"Opens VS Code text documents programmatically\",\n    \"Positions cursor at specific line numbers for functions and code locations\",\n    \"Searches through document content to find function definitions by name\",\n    \"Creates selection ranges to highlight code sections\",\n    \"Displays formatted information panels using VS Code quick pick interface\",\n    \"Handles multiple navigation types: files, functions, endpoints, and analysis items\",\n    \"Falls back to line numbers when function names cannot be located in files\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"navigateToProductItem\",\n      \"desc\": \"Opens files or navigates to functions/endpoints from product navigator items\",\n      \"inputs\": \"ProductNavItem containing file path, function name, and line number\",\n      \"outputs\": \"Promise<void> - opens editor at target location\"\n    },\n    {\n      \"name\": \"navigateToAnalysisItem\",\n      \"desc\": \"Opens files and shows code context for analysis viewer items\",\n      \"inputs\": \"AnalysisItem with file path and line number information\",\n      \"outputs\": \"Promise<void> - displays code in editor with selection\"\n    },\n    {\n      \"name\": \"showItemDetails\",\n      \"desc\": \"Displays detailed information about functions, endpoints, or entry points in a menu\",\n      \"inputs\": \"ProductNavItem or EntryPoint with metadata like signature, description, parameters\",\n      \"outputs\": \"Promise<void> - shows quick pick panel with formatted details\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"ProductNavItem from productNavigator\",\n    \"AnalysisItem from analysisViewer\",\n    \"EntryPoint from analyzer\"\n  ],\n  \"intent\": \"This file exists to centralize all code navigation logic for the extension, separating navigation concerns from the main extension file. It solves the problem of providing consistent, user-friendly navigation across different types of code items (files, functions, endpoints, analysis results) while handling edge cases like missing files, relative paths, and function location resolution.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:17:09.247Z"
+  }
+}

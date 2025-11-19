@@ -1,0 +1,69 @@
+{
+  "file": "src/fileWatcher.ts",
+  "role": "Core Logic",
+  "purpose": "Monitors file saves and automatically triggers code analysis when TypeScript files are saved",
+  "userVisibleActions": [
+    "Code is automatically analyzed when you save a TypeScript file",
+    "Analysis results appear in diagnostics and insights tree after file save",
+    "Duplicate analyses are prevented when saving files rapidly",
+    "Analysis can be throttled based on configuration settings"
+  ],
+  "developerVisibleActions": [
+    "File watcher automatically starts when extension activates if 'analyzeOnSave' is enabled",
+    "Debouncing mechanism prevents multiple analyses from running simultaneously",
+    "File saves trigger analysis pipeline: analyzer → insight generator → diagnostics → tree view",
+    "Analysis is skipped if already in progress or too soon after last analysis",
+    "Watcher can be started and stopped programmatically",
+    "Errors during analysis are handled and logged without crashing the extension"
+  ],
+  "keyFunctions": [
+    {
+      "name": "start",
+      "desc": "Starts watching for file saves and sets up automatic analysis",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "stop",
+      "desc": "Stops watching for file saves and cleans up resources",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "onFileSaved",
+      "desc": "Handles file save events and triggers analysis after debounce delay",
+      "inputs": "document: vscode.TextDocument",
+      "outputs": "void"
+    },
+    {
+      "name": "triggerAnalysis",
+      "desc": "Executes the analysis pipeline when conditions are met",
+      "inputs": "document: vscode.TextDocument",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up all resources and stops the file watcher",
+      "inputs": "none",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "CodeAnalyzer",
+    "InsightGenerator",
+    "DiagnosticsProvider",
+    "InsightsTreeProvider",
+    "ConfigurationManager",
+    "ErrorHandler",
+    "FileWatcherService"
+  ],
+  "intent": "This file exists to provide automatic code analysis triggered by file saves, giving users immediate feedback on their code without manual intervention. It solves the problem of having to manually trigger analysis after every code change by implementing intelligent debouncing and state management to ensure efficient, non-blocking analysis workflow.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Monitors file saves and automatically triggers code analysis when TypeScript files are saved\",\n  \"userVisibleActions\": [\n    \"Code is automatically analyzed when you save a TypeScript file\",\n    \"Analysis results appear in diagnostics and insights tree after file save\",\n    \"Duplicate analyses are prevented when saving files rapidly\",\n    \"Analysis can be throttled based on configuration settings\"\n  ],\n  \"developerVisibleActions\": [\n    \"File watcher automatically starts when extension activates if 'analyzeOnSave' is enabled\",\n    \"Debouncing mechanism prevents multiple analyses from running simultaneously\",\n    \"File saves trigger analysis pipeline: analyzer → insight generator → diagnostics → tree view\",\n    \"Analysis is skipped if already in progress or too soon after last analysis\",\n    \"Watcher can be started and stopped programmatically\",\n    \"Errors during analysis are handled and logged without crashing the extension\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"start\",\n      \"desc\": \"Starts watching for file saves and sets up automatic analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"stop\",\n      \"desc\": \"Stops watching for file saves and cleans up resources\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"onFileSaved\",\n      \"desc\": \"Handles file save events and triggers analysis after debounce delay\",\n      \"inputs\": \"document: vscode.TextDocument\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"triggerAnalysis\",\n      \"desc\": \"Executes the analysis pipeline when conditions are met\",\n      \"inputs\": \"document: vscode.TextDocument\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up all resources and stops the file watcher\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"DiagnosticsProvider\",\n    \"InsightsTreeProvider\",\n    \"ConfigurationManager\",\n    \"ErrorHandler\",\n    \"FileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide automatic code analysis triggered by file saves, giving users immediate feedback on their code without manual intervention. It solves the problem of having to manually trigger analysis after every code change by implementing intelligent debouncing and state management to ensure efficient, non-blocking analysis workflow.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:19:11.370Z"
+  }
+}

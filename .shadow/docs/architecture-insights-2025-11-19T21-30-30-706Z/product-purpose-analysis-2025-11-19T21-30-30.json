@@ -1,0 +1,43 @@
+{
+  "productPurpose": "Shadow Watch exists to make large, complex codebases immediately understandable and continuously documented through AI-powered analysis. Its core mission is to eliminate the cognitive burden of understanding unfamiliar code by automatically generating human-readable documentation, identifying quality issues, and providing navigational structures that mirror how developers think about features rather than file hierarchies. The product transforms code exploration from a manual, time-consuming archaeological dig into an instant, AI-guided tour of architecture, patterns, and functionality.",
+  "architectureRationale": "The architecture exists to support continuous, real-time analysis with persistent state across multiple interaction paradigms. The single entry point (extension.js) exists because this is exclusively a VS Code extension - users interact through VS Code's native UI components, not through CLI or API endpoints. The modular architecture with separate concerns (analysis, AI integration, UI providers, state management) exists because the product must coordinate multiple asynchronous workflows simultaneously: monitoring file changes, running expensive AI operations, caching results, displaying multiple synchronized views, and maintaining state across VS Code sessions. The multi-provider tree view architecture exists because developers need different mental models to explore the same codebase - sometimes by analysis metrics, sometimes by AI insights, sometimes by functional features, sometimes by test structure - and the product must support all these perspectives simultaneously. The persistent caching layer exists because AI operations are expensive and slow, so the product must maintain results across sessions to provide instant access without re-running costly analyses every time VS Code opens.",
+  "designDecisions": [
+    "Multiple specialized tree view providers - Reason: Developers need to view the same codebase through different lenses depending on their current task (debugging quality issues vs understanding architecture vs finding features vs reviewing test coverage), and VS Code's sidebar paradigm requires separate providers for each view",
+    "AST-based static analysis combined with AI interpretation - Reason: Static analysis provides objective, fast, deterministic metrics about code structure, while AI provides subjective, slow, context-aware insights about architectural patterns and documentation - combining both gives users factual data plus human-readable explanations",
+    "Persistent disk caching in .shadow directory with 24-hour expiration - Reason: AI operations cost money and take time, so caching prevents re-running expensive analyses while still ensuring staleness through expiration, and disk persistence means results survive VS Code restarts",
+    "Diagnostics integration with VS Code Problems panel - Reason: Developers already use the Problems panel as their central hub for code issues from linters and compilers, so integrating Shadow Watch findings there meets users where they already work rather than forcing them to context-switch to a custom view",
+    "File watcher with automatic re-analysis on save - Reason: Documentation that becomes stale is worse than no documentation, so the product must continuously monitor changes and regenerate insights to keep documentation synchronized with code reality",
+    "Provider abstraction for OpenAI and Anthropic - Reason: AI model capabilities and pricing change rapidly, so supporting multiple providers gives users flexibility and protects against vendor lock-in or service disruptions",
+    "Incremental analysis service with iterative context gathering - Reason: Large codebases cannot be analyzed in a single pass due to token limits and complexity, so the system must support multi-round workflows where it makes targeted file accesses and code searches until sufficient context is built",
+    "Product-centric navigation tree separate from file structure - Reason: Traditional file-based navigation reflects how code is organized on disk (by developer convenience) not how users think about functionality (by features and capabilities), so a separate functional view enables goal-directed exploration",
+    "Webview panels for rich HTML reports instead of plain markdown - Reason: Complex architectural documentation requires tables, diagrams, formatted sections, and visual hierarchy that plain text cannot provide, and webviews enable rich presentation while staying inside VS Code",
+    "Structured context generation for AI coding assistants - Reason: Generic LLMs lack codebase-specific knowledge, so generating structured summaries of architecture, patterns, and relationships helps AI assistants make better recommendations without requiring full codebase context in every prompt"
+  ],
+  "userGoals": [
+    "Understand what a large, unfamiliar codebase does without reading thousands of lines of code",
+    "Find specific functionality or features without knowing which files contain them",
+    "Identify code quality issues and technical debt before they cause production problems",
+    "Get actionable guidance on how to refactor complex files into maintainable components",
+    "Verify test coverage and find untested code paths that need test cases",
+    "Understand architectural patterns and design decisions that shaped the codebase",
+    "Generate up-to-date documentation that accurately reflects current code state",
+    "Help AI coding assistants understand project structure to get better code suggestions",
+    "Track code insights and documentation over time to see how the codebase evolves",
+    "Navigate codebases by what they do (features) rather than how they're organized (files)"
+  ],
+  "contextualFactors": [
+    "VS Code extension constraints - must work within VS Code's extension API, UI paradigm, and activation lifecycle",
+    "AI API cost and latency - expensive, slow operations require aggressive caching and incremental workflows to remain practical",
+    "Multiple user interaction patterns - developers need both on-demand analysis and continuous automated monitoring depending on workflow phase",
+    "TypeScript and JavaScript ecosystem complexity - dynamic typing, multiple module systems, and diverse patterns require sophisticated AST parsing",
+    "Real-time feedback requirements - users expect immediate visual feedback in sidebar trees and Problems panel as code changes",
+    "Session persistence needs - analysis results must survive VS Code restarts since re-running AI operations on every open is impractical",
+    "Multi-view synchronization - different sidebar trees must stay synchronized and reflect the same underlying analysis state",
+    "Large codebase scalability - must handle projects with thousands of files without overwhelming users or exhausting API rate limits",
+    "Documentation staleness problem - generated content must be continuously regenerated as code changes to remain accurate",
+    "AI model variability - different LLMs have different capabilities, token limits, and pricing requiring abstraction and provider flexibility"
+  ],
+  "_metadata": {
+    "savedAt": "2025-11-19T21:30:30.707Z"
+  }
+}

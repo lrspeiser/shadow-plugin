@@ -1,0 +1,93 @@
+{
+  "file": "src/llmService.ts",
+  "role": "Core Logic",
+  "purpose": "Orchestrates AI-powered code analysis by connecting to LLM providers (OpenAI/Claude) to generate intelligent insights, documentation, and test plans from codebase analysis.",
+  "userVisibleActions": [
+    "Receives AI-generated explanations of what the codebase does and why it exists",
+    "Gets intelligent insights about code architecture, patterns, and technical decisions",
+    "Views automatically generated product documentation describing the software's purpose",
+    "Sees AI-created unit test plans for code coverage",
+    "Receives refactoring suggestions with code improvements",
+    "Gets analysis of product purpose and architecture rationale"
+  ],
+  "developerVisibleActions": [
+    "Calls analyzeProductPurpose() to get AI analysis of what the product does and its architecture decisions",
+    "Invokes generateLLMInsights() to receive intelligent observations about code quality, patterns, and concerns",
+    "Uses generateProductDocumentation() to create comprehensive product documentation from file summaries",
+    "Triggers generateUnitTestPlan() to get AI-generated test strategies for specific files",
+    "Calls generateRefactoringSuggestions() to receive code improvement recommendations",
+    "Configures LLM provider settings (OpenAI, Claude, Ollama, OpenRouter) through configuration manager",
+    "Handles rate limiting, retries, and error recovery automatically during LLM interactions",
+    "Receives structured JSON responses parsed from LLM outputs",
+    "Triggers incremental analysis to update insights as code changes"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeProductPurpose",
+      "desc": "Analyzes the entire codebase to determine what the product does, its architecture rationale, user problems it solves, and technical approach",
+      "inputs": "analysisContext (file metadata, imports, entry points)",
+      "outputs": "ProductPurposeAnalysis with purpose, rationale, user problems, and technical approach"
+    },
+    {
+      "name": "generateLLMInsights",
+      "desc": "Generates intelligent insights about code patterns, architecture decisions, potential issues, and recommendations",
+      "inputs": "analysisContext, optional productPurpose",
+      "outputs": "Array of categorized insights (architecture, patterns, performance, maintenance, concerns)"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "desc": "Creates comprehensive product documentation by analyzing file summaries and module organization",
+      "inputs": "fileSummaries array, moduleSummaries array",
+      "outputs": "EnhancedProductDocumentation with overview, features, architecture, and module details"
+    },
+    {
+      "name": "generateUnitTestPlan",
+      "desc": "Creates a detailed test plan for a specific file including test cases, edge cases, and mocking strategies",
+      "inputs": "filePath, fileContent, codeAnalysis",
+      "outputs": "UnitTestPlan with test cases, coverage areas, dependencies, and recommendations"
+    },
+    {
+      "name": "generateRefactoringSuggestions",
+      "desc": "Analyzes functions and provides AI-powered refactoring recommendations with code examples",
+      "inputs": "filePath, fileContent, functions metadata, optional context",
+      "outputs": "Array of refactoring suggestions with priority, rationale, and code snippets"
+    },
+    {
+      "name": "callLLM",
+      "desc": "Central method that sends requests to configured LLM provider with rate limiting and retry logic",
+      "inputs": "prompt, systemMessage, schema, optional config",
+      "outputs": "Parsed JSON response from LLM"
+    },
+    {
+      "name": "getProviderInstance",
+      "desc": "Creates and configures the appropriate LLM provider based on user settings",
+      "inputs": "none (reads from configuration)",
+      "outputs": "Configured LLMProvider instance (OpenAI, Claude, Ollama, or OpenRouter)"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./fileDocumentation",
+    "./analyzer",
+    "./analysis/enhancedAnalyzer",
+    "./llmSchemas",
+    "./fileAccessHelper",
+    "./logger",
+    "./config/configurationManager",
+    "./ai/providers/providerFactory",
+    "./ai/llmResponseParser",
+    "./ai/llmRateLimiter",
+    "./ai/llmRetryHandler",
+    "./domain/prompts/promptBuilder",
+    "./domain/services/incrementalAnalysisService",
+    "./domain/prompts/refactoringPromptBuilder",
+    "./analysis/functionAnalyzer"
+  ],
+  "intent": "This file exists to bridge the gap between raw code analysis and human-understandable insights by leveraging Large Language Models. It solves the problem of developers needing to manually understand complex codebases by automatically generating intelligent documentation, architectural insights, test plans, and refactoring suggestions. It abstracts away the complexity of working with multiple LLM providers and handles the orchestration of prompts, responses, rate limiting, and error handling.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Orchestrates AI-powered code analysis by connecting to LLM providers (OpenAI/Claude) to generate intelligent insights, documentation, and test plans from codebase analysis.\",\n  \"userVisibleActions\": [\n    \"Receives AI-generated explanations of what the codebase does and why it exists\",\n    \"Gets intelligent insights about code architecture, patterns, and technical decisions\",\n    \"Views automatically generated product documentation describing the software's purpose\",\n    \"Sees AI-created unit test plans for code coverage\",\n    \"Receives refactoring suggestions with code improvements\",\n    \"Gets analysis of product purpose and architecture rationale\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls analyzeProductPurpose() to get AI analysis of what the product does and its architecture decisions\",\n    \"Invokes generateLLMInsights() to receive intelligent observations about code quality, patterns, and concerns\",\n    \"Uses generateProductDocumentation() to create comprehensive product documentation from file summaries\",\n    \"Triggers generateUnitTestPlan() to get AI-generated test strategies for specific files\",\n    \"Calls generateRefactoringSuggestions() to receive code improvement recommendations\",\n    \"Configures LLM provider settings (OpenAI, Claude, Ollama, OpenRouter) through configuration manager\",\n    \"Handles rate limiting, retries, and error recovery automatically during LLM interactions\",\n    \"Receives structured JSON responses parsed from LLM outputs\",\n    \"Triggers incremental analysis to update insights as code changes\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeProductPurpose\",\n      \"desc\": \"Analyzes the entire codebase to determine what the product does, its architecture rationale, user problems it solves, and technical approach\",\n      \"inputs\": \"analysisContext (file metadata, imports, entry points)\",\n      \"outputs\": \"ProductPurposeAnalysis with purpose, rationale, user problems, and technical approach\"\n    },\n    {\n      \"name\": \"generateLLMInsights\",\n      \"desc\": \"Generates intelligent insights about code patterns, architecture decisions, potential issues, and recommendations\",\n      \"inputs\": \"analysisContext, optional productPurpose\",\n      \"outputs\": \"Array of categorized insights (architecture, patterns, performance, maintenance, concerns)\"\n    },\n    {\n      \"name\": \"generateProductDocumentation\",\n      \"desc\": \"Creates comprehensive product documentation by analyzing file summaries and module organization\",\n      \"inputs\": \"fileSummaries array, moduleSummaries array\",\n      \"outputs\": \"EnhancedProductDocumentation with overview, features, architecture, and module details\"\n    },\n    {\n      \"name\": \"generateUnitTestPlan\",\n      \"desc\": \"Creates a detailed test plan for a specific file including test cases, edge cases, and mocking strategies\",\n      \"inputs\": \"filePath, fileContent, codeAnalysis\",\n      \"outputs\": \"UnitTestPlan with test cases, coverage areas, dependencies, and recommendations\"\n    },\n    {\n      \"name\": \"generateRefactoringSuggestions\",\n      \"desc\": \"Analyzes functions and provides AI-powered refactoring recommendations with code examples\",\n      \"inputs\": \"filePath, fileContent, functions metadata, optional context\",\n      \"outputs\": \"Array of refactoring suggestions with priority, rationale, and code snippets\"\n    },\n    {\n      \"name\": \"callLLM\",\n      \"desc\": \"Central method that sends requests to configured LLM provider with rate limiting and retry logic\",\n      \"inputs\": \"prompt, systemMessage, schema, optional config\",\n      \"outputs\": \"Parsed JSON response from LLM\"\n    },\n    {\n      \"name\": \"getProviderInstance\",\n      \"desc\": \"Creates and configures the appropriate LLM provider based on user settings\",\n      \"inputs\": \"none (reads from configuration)\",\n      \"outputs\": \"Configured LLMProvider instance (OpenAI, Claude, Ollama, or OpenRouter)\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./fileDocumentation\",\n    \"./analyzer\",\n    \"./analysis/enhancedAnalyzer\",\n    \"./llmSchemas\",\n    \"./fileAccessHelper\",\n    \"./logger\",\n    \"./config/configurationManager\",\n    \"./ai/providers/providerFactory\",\n    \"./ai/llmResponseParser\",\n    \"./ai/llmRateLimiter\",\n    \"./ai/llmRetryHandler\",\n    \"./domain/prompts/promptBuilder\",\n    \"./domain/services/incrementalAnalysisService\",\n    \"./domain/prompts/refactoringPromptBuilder\",\n    \"./analysis/functionAnalyzer\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between raw code analysis and human-understandable insights by leveraging Large Language Models. It solves the problem of developers needing to manually understand complex codebases by automatically generating intelligent documentation, architectural insights, test plans, and refactoring suggestions. It abstracts away the complexity of working with multiple LLM providers and handles the orchestration of prompts, responses, rate limiting, and error handling.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:21:54.539Z"
+  }
+}

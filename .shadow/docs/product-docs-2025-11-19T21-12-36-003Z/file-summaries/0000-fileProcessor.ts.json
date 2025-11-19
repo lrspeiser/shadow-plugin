@@ -1,0 +1,50 @@
+{
+  "file": "src/infrastructure/fileSystem/fileProcessor.ts",
+  "role": "Core Logic",
+  "purpose": "Provides a unified file processing system that filters, reads, and processes multiple files in parallel while handling errors consistently",
+  "userVisibleActions": [
+    "Files are automatically filtered to skip non-source directories (node_modules, .git, dist, build, etc.)",
+    "Multiple files are processed simultaneously for faster operations",
+    "Errors during file processing are caught and handled gracefully"
+  ],
+  "developerVisibleActions": [
+    "Developer provides an array of file paths and a processing function",
+    "System automatically filters out unwanted files based on patterns",
+    "Files are read and processed in parallel batches",
+    "Custom file filters can be provided to override default skip patterns",
+    "Custom file readers can be injected for testing or alternate file sources",
+    "Error context can be passed for better error tracking and debugging"
+  ],
+  "keyFunctions": [
+    {
+      "name": "shouldProcess",
+      "desc": "Determines if a file should be processed based on filter patterns",
+      "inputs": "filePath (string)",
+      "outputs": "boolean indicating whether to process the file"
+    },
+    {
+      "name": "readFile",
+      "desc": "Reads file content from the filesystem",
+      "inputs": "filePath (string)",
+      "outputs": "Promise<string> containing file content"
+    },
+    {
+      "name": "processFiles",
+      "desc": "Processes multiple files in parallel with filtering, reading, and custom processing logic",
+      "inputs": "files (string[]), processor function, optional error context",
+      "outputs": "Promise<T[]> containing processed results for each file"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "../../utils/errorHandler"
+  ],
+  "intent": "This file exists to eliminate duplicate file processing patterns scattered across the codebase by providing a single, reusable system for filtering files, reading them, and processing them in parallel. It solves the problem of inconsistent file handling, reduces code duplication, and provides a standardized way to process multiple files with built-in error handling and customizable filtering.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a unified file processing system that filters, reads, and processes multiple files in parallel while handling errors consistently\",\n  \"userVisibleActions\": [\n    \"Files are automatically filtered to skip non-source directories (node_modules, .git, dist, build, etc.)\",\n    \"Multiple files are processed simultaneously for faster operations\",\n    \"Errors during file processing are caught and handled gracefully\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer provides an array of file paths and a processing function\",\n    \"System automatically filters out unwanted files based on patterns\",\n    \"Files are read and processed in parallel batches\",\n    \"Custom file filters can be provided to override default skip patterns\",\n    \"Custom file readers can be injected for testing or alternate file sources\",\n    \"Error context can be passed for better error tracking and debugging\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"shouldProcess\",\n      \"desc\": \"Determines if a file should be processed based on filter patterns\",\n      \"inputs\": \"filePath (string)\",\n      \"outputs\": \"boolean indicating whether to process the file\"\n    },\n    {\n      \"name\": \"readFile\",\n      \"desc\": \"Reads file content from the filesystem\",\n      \"inputs\": \"filePath (string)\",\n      \"outputs\": \"Promise<string> containing file content\"\n    },\n    {\n      \"name\": \"processFiles\",\n      \"desc\": \"Processes multiple files in parallel with filtering, reading, and custom processing logic\",\n      \"inputs\": \"files (string[]), processor function, optional error context\",\n      \"outputs\": \"Promise<T[]> containing processed results for each file\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"../../utils/errorHandler\"\n  ],\n  \"intent\": \"This file exists to eliminate duplicate file processing patterns scattered across the codebase by providing a single, reusable system for filtering files, reading them, and processing them in parallel. It solves the problem of inconsistent file handling, reduces code duplication, and provides a standardized way to process multiple files with built-in error handling and customizable filtering.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:19:34.127Z"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "file": "src/ui/webview/baseWebviewProvider.ts",
+  "role": "GUI View",
+  "purpose": "Provides a base class for creating and managing webview panels in VSCode with shared functionality to reduce code duplication",
+  "userVisibleActions": [
+    "User sees webview panels appear or come to front when activated",
+    "User sees webview panels close and disappear when disposed",
+    "User sees webview content rendered with HTML through a template system"
+  ],
+  "developerVisibleActions": [
+    "Developer creates reusable webview panels with consistent configuration",
+    "Developer reveals existing panels instead of creating duplicates",
+    "Developer sets HTML content using template engine with options",
+    "Developer disposes webview panels programmatically by ID",
+    "Developer configures panel behavior (scripts, column placement, context retention)"
+  ],
+  "keyFunctions": [
+    {
+      "name": "createOrRevealPanel",
+      "desc": "Creates a new webview panel or reveals an existing one if it already exists",
+      "inputs": "id (string), title (string), options (BaseWebviewOptions with viewColumn, enableScripts, retainContextWhenHidden)",
+      "outputs": "vscode.WebviewPanel instance"
+    },
+    {
+      "name": "setPanelHtml",
+      "desc": "Sets the HTML content of a webview panel using the template engine",
+      "inputs": "panel (vscode.WebviewPanel), options (WebviewTemplateOptions)",
+      "outputs": "void"
+    },
+    {
+      "name": "disposePanel",
+      "desc": "Closes and removes a webview panel by its ID",
+      "inputs": "id (string)",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./webviewTemplateEngine"
+  ],
+  "intent": "This file exists to eliminate code duplication across different webview implementations by providing common functionality for creating, managing, and disposing webview panels with consistent behavior and configuration",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a base class for creating and managing webview panels in VSCode with shared functionality to reduce code duplication\",\n  \"userVisibleActions\": [\n    \"User sees webview panels appear or come to front when activated\",\n    \"User sees webview panels close and disappear when disposed\",\n    \"User sees webview content rendered with HTML through a template system\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer creates reusable webview panels with consistent configuration\",\n    \"Developer reveals existing panels instead of creating duplicates\",\n    \"Developer sets HTML content using template engine with options\",\n    \"Developer disposes webview panels programmatically by ID\",\n    \"Developer configures panel behavior (scripts, column placement, context retention)\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"createOrRevealPanel\",\n      \"desc\": \"Creates a new webview panel or reveals an existing one if it already exists\",\n      \"inputs\": \"id (string), title (string), options (BaseWebviewOptions with viewColumn, enableScripts, retainContextWhenHidden)\",\n      \"outputs\": \"vscode.WebviewPanel instance\"\n    },\n    {\n      \"name\": \"setPanelHtml\",\n      \"desc\": \"Sets the HTML content of a webview panel using the template engine\",\n      \"inputs\": \"panel (vscode.WebviewPanel), options (WebviewTemplateOptions)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"disposePanel\",\n      \"desc\": \"Closes and removes a webview panel by its ID\",\n      \"inputs\": \"id (string)\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./webviewTemplateEngine\"\n  ],\n  \"intent\": \"This file exists to eliminate code duplication across different webview implementations by providing common functionality for creating, managing, and disposing webview panels with consistent behavior and configuration\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:24:21.743Z"
+  }
+}

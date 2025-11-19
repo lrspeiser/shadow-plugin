@@ -1,0 +1,384 @@
+{
+  "overview": "Shadow Watch is a VS Code extension that provides AI-powered code intelligence and documentation capabilities for TypeScript and JavaScript projects. It analyzes your codebase to understand its structure, patterns, and quality, then generates comprehensive human-readable documentation automatically. The extension integrates with OpenAI GPT and Anthropic Claude models to transform raw code analysis into architectural insights, product documentation, and actionable recommendations. Users interact with Shadow Watch through multiple sidebar views, commands, and automated workflows that make understanding and documenting large codebases effortless.\n\nThe extension continuously monitors your workspace and can automatically analyze code as you save files, providing real-time feedback through VS Code's Problems panel. It identifies issues like orphaned files, circular dependencies, untested functions, code duplication, and complexity hotspots. All findings are presented with clickable diagnostics that navigate directly to problem locations. Shadow Watch also maintains a persistent cache of analysis results, so reopening your workspace provides instant access to previous insights without re-running expensive AI operations.\n\nBeyond analysis, Shadow Watch transforms how developers navigate and understand codebases. Instead of browsing by file structure, users can explore code through a product-centric view organized by features and capabilities. The extension generates multiple report types including workspace summaries, architecture diagrams, refactoring guides, and test documentation, all accessible through a unified reports dashboard. For teams working with AI coding assistants, Shadow Watch provides specialized context generation that helps LLMs understand your codebase structure and make better recommendations.",
+  "whatItDoes": [
+    "Automatically analyzes TypeScript and JavaScript codebases to identify quality issues, architectural patterns, and complexity metrics",
+    "Generates AI-powered documentation including product overviews, architecture insights, and feature descriptions",
+    "Provides multiple sidebar views for browsing code by functionality rather than file structure",
+    "Displays real-time diagnostics in VS Code's Problems panel with clickable navigation to issues",
+    "Creates comprehensive reports including workspace summaries, refactoring guides, and test documentation",
+    "Monitors file changes and can automatically re-analyze code on save for continuous feedback",
+    "Caches analysis results for 24 hours to provide instant access when reopening workspaces",
+    "Identifies code quality issues like orphaned files, circular dependencies, duplicate code, and untested functions",
+    "Generates structured context for AI coding assistants to improve their understanding of your codebase",
+    "Supports both manual on-demand analysis and automatic analysis triggered by file saves"
+  ],
+  "userPerspective": {
+    "gui": [
+      "Multiple tree view sidebars display analysis results, insights, product navigation, static analysis issues, and available reports",
+      "Analysis Viewer shows codebase statistics, file classifications, function listings, and entry points in an expandable tree structure",
+      "Insights Viewer displays AI-generated architectural analysis and documentation with automatic updates when files change",
+      "Product Navigator organizes code by features and capabilities instead of file structure, allowing functional exploration",
+      "Static Analysis Viewer categorizes issues by severity (errors, warnings, info) for easy browsing and navigation",
+      "Reports Viewer shows a dashboard of all generated reports with generation timestamps and clickable cards to open reports in browser",
+      "Status bar indicator displays current analysis state and provides quick access to commands",
+      "Problems panel integration shows all detected issues with clickable diagnostics that jump to source locations",
+      "Webview panels display rich HTML reports with formatted documentation, tables, and visual organization",
+      "Context menus on sidebar items provide actions like regenerating content, opening files, copying to clipboard, and navigating to code"
+    ],
+    "cli": [],
+    "api": [],
+    "cicd": []
+  },
+  "workflowIntegration": [
+    "Automatic code analysis workflow: Save TypeScript files → Extension analyzes changes → Updates diagnostics and views → Displays new insights",
+    "Documentation generation workflow: Trigger analysis command → Extension scans codebase → AI generates documentation → Reports saved and displayed",
+    "Code exploration workflow: Open Product Navigator → Browse features/modules → Click items → Navigate to source code → View function details",
+    "Issue investigation workflow: View problems in Problems panel → Click diagnostic → Navigate to issue location → Review context and recommendations",
+    "Report generation workflow: Trigger report command → AI analyzes codebase → Multiple report types generated → Access via Reports Viewer dashboard",
+    "Refactoring planning workflow: Analyze large files → Review refactoring suggestions → View extraction plans → Access step-by-step migration guides",
+    "Test documentation workflow: Analyze test files → Generate test plans → Review coverage gaps → Access recommendations for missing tests",
+    "AI assistant integration workflow: Export analysis context → Provide to AI coding assistant → Receive codebase-aware suggestions",
+    "Workspace initialization workflow: Open project → Load cached analysis → Display previous insights → Optionally trigger fresh analysis"
+  ],
+  "problemsSolved": [
+    "Eliminates manual effort required to understand large, unfamiliar codebases by automatically generating comprehensive documentation",
+    "Reduces time spent searching for specific functionality by providing product-centric navigation instead of file-based browsing",
+    "Identifies code quality issues and technical debt that might otherwise go unnoticed until they cause problems",
+    "Provides actionable refactoring guidance for large, complex files that need to be split or reorganized",
+    "Reveals gaps in test coverage by mapping functions to their tests and identifying untested code paths",
+    "Detects architectural problems like circular dependencies and orphaned files that impact maintainability",
+    "Creates documentation that stays synchronized with code through automatic regeneration workflows",
+    "Helps AI coding assistants understand project structure by generating structured context from code analysis",
+    "Eliminates need to read through thousands of lines of code to understand what an application does",
+    "Provides historical tracking of code insights and documentation through timestamped report preservation"
+  ],
+  "architecture": "Shadow Watch is built as a VS Code extension with a modular architecture centered around code analysis, AI integration, and persistent state management. The core analysis engine examines TypeScript and JavaScript code using Abstract Syntax Tree (AST) parsing to extract detailed metadata about functions, dependencies, complexity metrics, and relationships. This analysis feeds into an insight generation system that identifies patterns, issues, and opportunities for improvement. All analysis results are cached in memory with automatic expiration and persisted to disk in the .shadow directory for historical tracking.\n\nThe AI integration layer connects to either OpenAI GPT or Anthropic Claude models through a provider abstraction that handles rate limiting, retry logic, and response parsing. Prompts are constructed through specialized builders that format analysis results into LLM-optimized inputs, ensuring consistent, high-quality documentation generation. The AI responses are parsed into structured formats and transformed into markdown documentation through formatters that organize content by section and category.\n\nThe user interface consists of multiple tree view providers that display different perspectives on the codebase: analysis results, AI insights, product navigation, static analysis issues, test structure, and available reports. A diagnostics provider integrates with VS Code's Problems panel to surface issues with clickable navigation. State management coordinates data flow between components, persisting user preferences and generated content across sessions. A file watcher service monitors changes and triggers automatic re-analysis, while an incremental analysis service supports iterative workflows where the system makes multiple rounds of file access and code searches until sufficient context is gathered.",
+  "titles": [
+    "Shadow Watch Extension",
+    "Analysis Viewer",
+    "Insights Viewer",
+    "Product Navigator",
+    "Static Analysis Viewer",
+    "Reports Viewer",
+    "Unit Tests Navigator",
+    "AI-Powered Documentation Generation",
+    "Automatic Code Analysis",
+    "Code Quality Diagnostics",
+    "Refactoring Guidance",
+    "Test Coverage Analysis",
+    "LLM Integration",
+    "Codebase Context Generation",
+    "Product-Centric Navigation",
+    "Workspace Summary Reports",
+    "Architecture Insights",
+    "Function-Level Analysis",
+    "Dependency Mapping",
+    "Circular Dependency Detection",
+    "Orphaned File Detection",
+    "Duplicate Code Detection",
+    "Complexity Metrics",
+    "Iterative Analysis",
+    "Rate-Limited API Access",
+    "Retry Handling",
+    "Response Parsing",
+    "Progress Notifications",
+    "File System Monitoring",
+    "Incremental Storage",
+    "Analysis Result Caching"
+  ],
+  "descriptions": [
+    {
+      "title": "Shadow Watch Extension",
+      "description": "A VS Code extension that provides AI-powered code intelligence, automated documentation generation, and quality analysis for TypeScript and JavaScript projects. It transforms code analysis into human-readable insights and enables product-centric navigation of codebases.",
+      "category": "feature"
+    },
+    {
+      "title": "Analysis Viewer",
+      "description": "A sidebar tree view that displays comprehensive codebase statistics, file classifications, function listings, and entry points. Users can browse the analyzed code structure and click items to navigate to source locations.",
+      "category": "feature"
+    },
+    {
+      "title": "Insights Viewer",
+      "description": "A sidebar tree view that displays AI-generated architectural insights and documentation with automatic updates when insight files change. Shows the current state of documentation and provides actions to regenerate content.",
+      "category": "feature"
+    },
+    {
+      "title": "Product Navigator",
+      "description": "A sidebar view that organizes code by features and capabilities instead of file structure, allowing users to explore the codebase from a product perspective. Users can click on features, modules, or components to navigate to their implementations.",
+      "category": "feature"
+    },
+    {
+      "title": "Static Analysis Viewer",
+      "description": "A sidebar tree view that categorizes code quality issues by severity level (errors, warnings, info). Users can browse issues and click them to navigate directly to problem locations in the source code.",
+      "category": "feature"
+    },
+    {
+      "title": "Reports Viewer",
+      "description": "A unified dashboard that displays all generated reports with their availability status and generation timestamps. Users can click report cards to open HTML reports in their default browser.",
+      "category": "feature"
+    },
+    {
+      "title": "AI-Powered Documentation Generation",
+      "description": "Automatically generates comprehensive product documentation, architecture insights, and refactoring guides by analyzing code and using LLM models to create human-readable narratives about what the application does and how it's organized.",
+      "category": "feature"
+    },
+    {
+      "title": "Automatic Code Analysis",
+      "description": "Monitors file saves and automatically triggers code analysis when TypeScript files are modified, providing continuous feedback without manual intervention. Users can also trigger analysis on-demand through commands.",
+      "category": "feature"
+    },
+    {
+      "title": "Code Quality Diagnostics",
+      "description": "Integrates with VS Code's Problems panel to display detected issues like orphaned files, circular dependencies, untested functions, and code duplication. All diagnostics are clickable and navigate to the relevant source code location.",
+      "category": "feature"
+    },
+    {
+      "title": "Refactoring Guidance",
+      "description": "Analyzes large, complex files and generates detailed refactoring recommendations including extraction plans, step-by-step migration instructions, and before-and-after code examples to help developers improve code organization.",
+      "category": "feature"
+    },
+    {
+      "title": "Test Coverage Analysis",
+      "description": "Maps functions to their corresponding tests and identifies gaps in test coverage. Generates test documentation and recommendations for missing tests to improve code quality.",
+      "category": "feature"
+    },
+    {
+      "title": "LLM Integration",
+      "description": "Connects to OpenAI GPT or Anthropic Claude models through a flexible provider system that handles API communication, rate limiting, and response parsing. Supports switching between providers based on user configuration.",
+      "category": "component"
+    },
+    {
+      "title": "Codebase Context Generation",
+      "description": "Creates structured context from code analysis that's optimized for consumption by AI coding assistants, helping them understand project structure and make better recommendations.",
+      "category": "feature"
+    },
+    {
+      "title": "Product-Centric Navigation",
+      "description": "Organizes and displays code by what it does (features, capabilities, workflows) rather than how it's structured (files, folders), making it easier to understand application functionality.",
+      "category": "workflow"
+    },
+    {
+      "title": "Iterative Analysis",
+      "description": "Supports multi-round analysis workflows where the system automatically requests additional files and performs code searches across multiple iterations until sufficient context is gathered to complete documentation tasks.",
+      "category": "workflow"
+    },
+    {
+      "title": "Analysis Result Caching",
+      "description": "Stores analysis results in memory and on disk with automatic 24-hour expiration, providing instant access to previous insights when reopening workspaces without re-running expensive AI operations.",
+      "category": "component"
+    },
+    {
+      "title": "File System Monitoring",
+      "description": "Watches for file changes, creations, and deletions across the workspace, automatically updating views and triggering re-analysis when relevant files are modified.",
+      "category": "component"
+    },
+    {
+      "title": "Rate-Limited API Access",
+      "description": "Manages LLM API requests to prevent exceeding provider quotas by implementing intelligent throttling and request queuing based on provider-specific rate limits.",
+      "category": "component"
+    },
+    {
+      "title": "Progress Notifications",
+      "description": "Displays informative progress indicators during long-running operations like analysis and documentation generation, with support for cancellation and dynamic status updates.",
+      "category": "component"
+    },
+    {
+      "title": "Incremental Storage",
+      "description": "Saves analysis results and generated documentation with timestamps and version tracking, preserving historical data for audit trails and comparison over time.",
+      "category": "component"
+    }
+  ],
+  "relevantFunctions": [
+    {
+      "name": "activate",
+      "description": "Main extension entry point that initializes all components, registers commands, and sets up UI elements when the extension is activated in VS Code",
+      "file": "src/extension.ts"
+    },
+    {
+      "name": "analyzeWorkspace",
+      "description": "Triggers comprehensive analysis of the entire workspace, scanning all TypeScript and JavaScript files to generate insights and documentation",
+      "file": "src/extension.ts"
+    },
+    {
+      "name": "generateArchitectureInsights",
+      "description": "Uses AI to analyze code structure and generate architectural documentation describing what the application does, its components, and how they relate",
+      "file": "src/llmService.ts"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "description": "Creates user-facing product documentation from code analysis, describing features, capabilities, and workflows in human-readable format",
+      "file": "src/llmService.ts"
+    },
+    {
+      "name": "navigateToLocation",
+      "description": "Opens a file at a specific line and column position, highlights the relevant code section, and brings it into focus for the user",
+      "file": "src/domain/handlers/navigationHandler.ts"
+    },
+    {
+      "name": "performIncrementalAnalysis",
+      "description": "Executes multi-round analysis where the system iteratively requests files and performs searches until it has sufficient context to complete the task",
+      "file": "src/domain/services/incrementalAnalysisService.ts"
+    },
+    {
+      "name": "parseProductDocumentation",
+      "description": "Extracts structured product documentation from AI responses, handling both well-formed JSON and malformed text responses with fallback extraction",
+      "file": "src/ai/llmResponseParser.ts"
+    },
+    {
+      "name": "updateDiagnostics",
+      "description": "Updates the VS Code Problems panel with detected code quality issues, creating clickable diagnostics that navigate to problem locations",
+      "file": "src/diagnosticsProvider.ts"
+    },
+    {
+      "name": "generateRefactoringReport",
+      "description": "Analyzes large files and produces detailed refactoring guidance including extraction plans and step-by-step migration instructions",
+      "file": "src/llmService.ts"
+    },
+    {
+      "name": "getFileContent",
+      "description": "Reads and returns the content of a specified file, supporting iterative analysis workflows where AI agents request additional files to examine",
+      "file": "src/fileAccessHelper.ts"
+    },
+    {
+      "name": "performGrepSearch",
+      "description": "Executes regex-based code searches across the workspace, returning matching lines and locations to help AI agents explore and understand the codebase",
+      "file": "src/fileAccessHelper.ts"
+    }
+  ],
+  "relevantDataStructures": [
+    {
+      "name": "AnalysisResult",
+      "description": "Comprehensive structure containing all code analysis data including files, functions, dependencies, test mappings, duplications, and quality metrics",
+      "type": "interface",
+      "file": "src/analyzer.ts"
+    },
+    {
+      "name": "ProductDocumentation",
+      "description": "Structured documentation describing what the application does from a user perspective, including features, workflows, and problems solved",
+      "type": "interface",
+      "file": "src/fileDocumentation.ts"
+    },
+    {
+      "name": "ArchitectureInsights",
+      "description": "AI-generated insights about code architecture including high-level components, relationships, patterns, and recommendations",
+      "type": "interface"
+    },
+    {
+      "name": "InsightData",
+      "description": "Container for various types of insights including code quality issues, architectural patterns, complexity metrics, and refactoring opportunities",
+      "type": "interface"
+    },
+    {
+      "name": "FunctionMetadata",
+      "description": "Detailed information about a function including its signature, complexity, dependencies, state changes, and behavioral characteristics",
+      "type": "interface",
+      "file": "src/analyzer.ts"
+    },
+    {
+      "name": "RefactoringReport",
+      "description": "Comprehensive refactoring guidance for large files including extraction plans, migration steps, and code examples",
+      "type": "interface"
+    },
+    {
+      "name": "TestCoverageData",
+      "description": "Mapping between functions and their corresponding tests, identifying which functions lack test coverage",
+      "type": "interface"
+    },
+    {
+      "name": "DiagnosticInfo",
+      "description": "Structure representing a code quality issue with severity, location, message, and navigation information for display in Problems panel",
+      "type": "interface"
+    },
+    {
+      "name": "LLMProviderConfig",
+      "description": "Configuration for AI provider connections including API keys, model selection, and provider-specific settings",
+      "type": "interface"
+    },
+    {
+      "name": "NavigationItem",
+      "description": "Tree view item representing a navigable code element like a file, function, feature, or module with associated metadata and actions",
+      "type": "class"
+    }
+  ],
+  "relevantCodeFiles": [
+    {
+      "path": "src/extension.ts",
+      "description": "Main extension entry point that initializes Shadow Watch, registers all commands, and coordinates between analysis, AI services, and UI components",
+      "purpose": "Serves as the extension's activation point and orchestrates the initialization of all features and services",
+      "role": "Entry point and coordinator"
+    },
+    {
+      "path": "src/llmService.ts",
+      "description": "Orchestrates AI-powered analysis features including insights generation, documentation creation, and refactoring guidance by connecting to LLM providers",
+      "purpose": "Manages all AI-powered features that transform code analysis into human-readable documentation and insights",
+      "role": "AI orchestration service"
+    },
+    {
+      "path": "src/analyzer.ts",
+      "description": "Defines core data structures for code analysis results and provides interfaces for representing files, functions, dependencies, and quality metrics",
+      "purpose": "Establishes the type system and data models for representing analyzed code structure and metadata",
+      "role": "Data model definitions"
+    },
+    {
+      "path": "src/insightsTreeView.ts",
+      "description": "Implements the Insights Viewer sidebar that displays AI-generated documentation status with actions to regenerate or view content",
+      "purpose": "Provides the UI for viewing and managing AI-generated documentation and insights within VS Code",
+      "role": "UI component"
+    },
+    {
+      "path": "src/productNavigator.ts",
+      "description": "Implements the Product Navigator sidebar that organizes code by features and capabilities instead of file structure",
+      "purpose": "Enables product-centric code exploration where users browse by what the code does rather than where files are located",
+      "role": "UI component"
+    },
+    {
+      "path": "src/diagnosticsProvider.ts",
+      "description": "Manages the integration with VS Code's Problems panel, creating and updating diagnostics for detected code quality issues",
+      "purpose": "Surfaces code quality issues in VS Code's native Problems panel with clickable navigation to source locations",
+      "role": "Diagnostics integration"
+    },
+    {
+      "path": "src/domain/handlers/navigationHandler.ts",
+      "description": "Handles user navigation requests from tree views to source code, including opening files, jumping to functions, and highlighting code sections",
+      "purpose": "Implements all navigation workflows that allow users to jump from analysis views to source code locations",
+      "role": "Navigation logic"
+    },
+    {
+      "path": "src/ai/llmResponseParser.ts",
+      "description": "Parses AI responses into structured data formats, handling both well-formed JSON and malformed responses with fallback extraction",
+      "purpose": "Ensures reliable extraction of structured documentation from AI responses even when formats are inconsistent",
+      "role": "Response parsing"
+    },
+    {
+      "path": "src/domain/prompts/promptBuilder.ts",
+      "description": "Constructs specialized prompts for different AI analysis tasks including architecture documentation, product features, and code understanding",
+      "purpose": "Centralizes prompt generation to ensure consistent, high-quality inputs to AI models for all analysis tasks",
+      "role": "Prompt construction"
+    },
+    {
+      "path": "src/cache.ts",
+      "description": "Manages persistent storage and retrieval of analysis results with automatic 24-hour expiration to improve performance",
+      "purpose": "Provides fast access to previous analysis results without re-running expensive operations",
+      "role": "Caching layer"
+    },
+    {
+      "path": "src/domain/services/incrementalAnalysisService.ts",
+      "description": "Supports iterative analysis workflows where the system makes multiple rounds of file requests and code searches until sufficient context is gathered",
+      "purpose": "Enables AI agents to explore codebases incrementally by requesting files and performing searches across multiple iterations",
+      "role": "Iterative workflow support"
+    }
+  ],
+  "exampleInput": {
+    "description": "Example configuration and analysis request showing how users configure the extension and trigger analysis",
+    "json": "{\"configuration\":{\"llmProvider\":\"openai\",\"openaiApiKey\":\"sk-...\",\"model\":\"gpt-4\",\"autoAnalyzeOnSave\":true,\"severityThresholds\":{\"error\":8,\"warning\":5,\"info\":3}},\"analysisRequest\":{\"type\":\"workspace\",\"includeTests\":true,\"generateDocumentation\":true,\"documentationTypes\":[\"product\",\"architecture\",\"refactoring\"]}}"
+  },
+  "exampleOutput": {
+    "description": "Example analysis result showing detected issues, generated insights, and documentation structure",
+    "json": "{\"analysisResult\":{\"totalFiles\":127,\"totalFunctions\":843,\"issuesFound\":{\"errors\":3,\"warnings\":12,\"info\":8},\"insights\":[{\"type\":\"circular_dependency\",\"severity\":\"error\",\"message\":\"Circular dependency detected between UserService and AuthService\",\"locations\":[{\"file\":\"src/services/UserService.ts\",\"line\":15},{\"file\":\"src/services/AuthService.ts\",\"line\":23}]},{\"type\":\"untested_function\",\"severity\":\"warning\",\"message\":\"Function calculateDiscount has no test coverage\",\"location\":{\"file\":\"src/utils/pricing.ts\",\"line\":45}}],\"documentation\":{\"product\":{\"overview\":\"E-commerce platform that enables users to browse products, manage shopping carts, and complete purchases with integrated payment processing\",\"features\":[\"Product search and filtering\",\"Shopping cart management\",\"Secure checkout and payment\",\"Order tracking\"],\"generatedAt\":\"2024-01-15T14:30:00Z\"},\"architecture\":{\"components\":[{\"name\":\"API Layer\",\"purpose\":\"Handles HTTP requests and routes them to appropriate services\"},{\"name\":\"Service Layer\",\"purpose\":\"Contains business logic for cart management, orders, and payments\"}],\"generatedAt\":\"2024-01-15T14:32:00Z\"}},\"reports\":{\"workspace\":{\"available\":true,\"path\":\".shadow/reports/workspace-summary.html\",\"generatedAt\":\"2024-01-15T14:30:00Z\"},\"refactoring\":{\"available\":true,\"path\":\".shadow/reports/refactoring-guide.html\",\"generatedAt\":\"2024-01-15T14:35:00Z\"}}},\"cacheStatus\":{\"cached\":true,\"expiresAt\":\"2024-01-16T14:30:00Z\"}}"
+  },
+  "_metadata": {
+    "iteration": 1,
+    "maxIterations": 1,
+    "savedAt": "2025-11-19T21:29:53.919Z"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "file": "src/staticAnalysisViewer.ts",
+  "role": "GUI View",
+  "purpose": "Displays a tree view of static code analysis issues organized by severity (errors, warnings, info) for users to browse and navigate to problem locations.",
+  "userVisibleActions": [
+    "View static analysis issues organized by severity categories (errors, warnings, info)",
+    "See a summary count of total issues found",
+    "Click on an issue to navigate to the file and line where it was detected",
+    "See 'No static issues found' message when analysis finds no problems",
+    "View issue descriptions and affected file locations in the tree view",
+    "Expand/collapse severity categories to show/hide issues",
+    "See icons indicating issue severity (error, warning, info)"
+  ],
+  "developerVisibleActions": [
+    "Set insights data from analysis results to populate the tree view",
+    "Refresh the tree view to update displayed issues",
+    "Trigger 'Analyze Workspace' command to check for issues",
+    "Navigate to specific file locations when issues are selected",
+    "Organize issues into error, warning, and info severity categories",
+    "Display formatted file paths and line numbers for each issue"
+  ],
+  "keyFunctions": [
+    {
+      "name": "setInsights",
+      "desc": "Updates the tree view with new static analysis results",
+      "inputs": "Array of Insight objects containing issue data",
+      "outputs": "void (triggers tree refresh)"
+    },
+    {
+      "name": "refresh",
+      "desc": "Refreshes the tree view display to show current insights",
+      "inputs": "none",
+      "outputs": "void (fires tree data change event)"
+    },
+    {
+      "name": "getTreeItem",
+      "desc": "Returns the visual representation of a tree item",
+      "inputs": "StaticAnalysisItem element",
+      "outputs": "vscode.TreeItem for display"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Provides child items for tree hierarchy (categories and issues)",
+      "inputs": "Optional parent StaticAnalysisItem",
+      "outputs": "Promise of StaticAnalysisItem array"
+    },
+    {
+      "name": "getRootItems",
+      "desc": "Generates top-level tree items including summary and severity categories",
+      "inputs": "none",
+      "outputs": "Array of StaticAnalysisItem for root level"
+    },
+    {
+      "name": "getErrorItems",
+      "desc": "Retrieves all error-severity issues for display",
+      "inputs": "none",
+      "outputs": "Array of StaticAnalysisItem for errors"
+    },
+    {
+      "name": "getWarningItems",
+      "desc": "Retrieves all warning-severity issues for display",
+      "inputs": "none",
+      "outputs": "Array of StaticAnalysisItem for warnings"
+    },
+    {
+      "name": "getInfoItems",
+      "desc": "Retrieves all info-severity issues for display",
+      "inputs": "none",
+      "outputs": "Array of StaticAnalysisItem for info items"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "./insightGenerator"
+  ],
+  "intent": "Provides a structured, browsable tree view interface for developers to review static code analysis results, organized by severity level, with quick navigation to problem locations in the codebase.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Displays a tree view of static code analysis issues organized by severity (errors, warnings, info) for users to browse and navigate to problem locations.\",\n  \"userVisibleActions\": [\n    \"View static analysis issues organized by severity categories (errors, warnings, info)\",\n    \"See a summary count of total issues found\",\n    \"Click on an issue to navigate to the file and line where it was detected\",\n    \"See 'No static issues found' message when analysis finds no problems\",\n    \"View issue descriptions and affected file locations in the tree view\",\n    \"Expand/collapse severity categories to show/hide issues\",\n    \"See icons indicating issue severity (error, warning, info)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Set insights data from analysis results to populate the tree view\",\n    \"Refresh the tree view to update displayed issues\",\n    \"Trigger 'Analyze Workspace' command to check for issues\",\n    \"Navigate to specific file locations when issues are selected\",\n    \"Organize issues into error, warning, and info severity categories\",\n    \"Display formatted file paths and line numbers for each issue\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"setInsights\",\n      \"desc\": \"Updates the tree view with new static analysis results\",\n      \"inputs\": \"Array of Insight objects containing issue data\",\n      \"outputs\": \"void (triggers tree refresh)\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Refreshes the tree view display to show current insights\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void (fires tree data change event)\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Returns the visual representation of a tree item\",\n      \"inputs\": \"StaticAnalysisItem element\",\n      \"outputs\": \"vscode.TreeItem for display\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Provides child items for tree hierarchy (categories and issues)\",\n      \"inputs\": \"Optional parent StaticAnalysisItem\",\n      \"outputs\": \"Promise of StaticAnalysisItem array\"\n    },\n    {\n      \"name\": \"getRootItems\",\n      \"desc\": \"Generates top-level tree items including summary and severity categories\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of StaticAnalysisItem for root level\"\n    },\n    {\n      \"name\": \"getErrorItems\",\n      \"desc\": \"Retrieves all error-severity issues for display\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of StaticAnalysisItem for errors\"\n    },\n    {\n      \"name\": \"getWarningItems\",\n      \"desc\": \"Retrieves all warning-severity issues for display\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of StaticAnalysisItem for warnings\"\n    },\n    {\n      \"name\": \"getInfoItems\",\n      \"desc\": \"Retrieves all info-severity issues for display\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of StaticAnalysisItem for info items\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"Provides a structured, browsable tree view interface for developers to review static code analysis results, organized by severity level, with quick navigation to problem locations in the codebase.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:23:29.439Z"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "file": "src/insightsTreeView.ts",
+  "role": "GUI View",
+  "purpose": "Provides a tree view UI in VSCode that displays code analysis insights, documentation status, and generated reports with actions to regenerate or view content.",
+  "userVisibleActions": [
+    "View a tree hierarchy showing product documentation, insights, unit tests, and analysis reports",
+    "See status indicators (idle, generating, complete) for different analysis types",
+    "Click to regenerate product documentation for the codebase",
+    "Click to regenerate insights about the code",
+    "Click to regenerate unit tests",
+    "Click to regenerate various types of reports (workspace, product, architecture, unit test)",
+    "View timestamps showing when each analysis was last generated",
+    "Open generated reports in the editor by clicking on them",
+    "Copy insights text to clipboard",
+    "See progress indicators while content is being generated",
+    "Receive notifications when generation completes or fails",
+    "Configure LLM settings through the tree view",
+    "Search within insights using a search command"
+  ],
+  "developerVisibleActions": [
+    "Maintains state of all analysis artifacts (documentation, insights, reports)",
+    "Persists timestamps and file paths across VSCode sessions",
+    "Coordinates with LLMService to generate AI-powered content",
+    "Triggers tree view refresh when data changes",
+    "Handles user clicks on tree items to execute appropriate commands",
+    "Validates existence of generated files before displaying them",
+    "Provides context menu actions for regenerating content",
+    "Integrates with workspace state to remember generation history",
+    "Emits events when tree data changes to update the UI",
+    "Manages multiple report types (workspace, product, architecture, unit test)",
+    "Handles asynchronous generation workflows with status tracking"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getTreeItem",
+      "desc": "Converts a TreeItem into a vscode.TreeItem for display in the tree view",
+      "inputs": "element: TreeItem",
+      "outputs": "vscode.TreeItem"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Returns child nodes for the tree structure, creating the hierarchy of insights, docs, and reports",
+      "inputs": "element?: TreeItem",
+      "outputs": "TreeItem[] or Promise<TreeItem[]>"
+    },
+    {
+      "name": "setInsights",
+      "desc": "Updates the insights data and refreshes the tree view",
+      "inputs": "insights: Insight[]",
+      "outputs": "void"
+    },
+    {
+      "name": "setProductDocsStatus",
+      "desc": "Updates the status of product documentation generation and refreshes the view",
+      "inputs": "status: 'idle' | 'generating' | 'complete', timestamp?: number",
+      "outputs": "void"
+    },
+    {
+      "name": "setLLMInsights",
+      "desc": "Stores LLM-generated insights and updates the view",
+      "inputs": "insights: LLMInsights",
+      "outputs": "void"
+    },
+    {
+      "name": "setReportPath",
+      "desc": "Sets the path to a generated report file and updates the view",
+      "inputs": "path: string, timestamp: number",
+      "outputs": "void"
+    },
+    {
+      "name": "refresh",
+      "desc": "Triggers a refresh of the entire tree view UI",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "loadPersistedState",
+      "desc": "Loads previously saved timestamps and file paths from workspace storage",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "cleanupMissingFiles",
+      "desc": "Verifies that stored file paths still exist and clears invalid entries",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "getUnitTestStatus",
+      "desc": "Returns the current status of unit test generation",
+      "inputs": "none",
+      "outputs": "'idle' | 'generating' | 'complete'"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./insightGenerator",
+    "./llmFormatter",
+    "./llmService"
+  ],
+  "intent": "This file exists to create an interactive sidebar panel in VSCode where users can view, manage, and regenerate AI-generated code analysis artifacts including documentation, insights, unit tests, and various reports, while maintaining state persistence across sessions.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view UI in VSCode that displays code analysis insights, documentation status, and generated reports with actions to regenerate or view content.\",\n  \"userVisibleActions\": [\n    \"View a tree hierarchy showing product documentation, insights, unit tests, and analysis reports\",\n    \"See status indicators (idle, generating, complete) for different analysis types\",\n    \"Click to regenerate product documentation for the codebase\",\n    \"Click to regenerate insights about the code\",\n    \"Click to regenerate unit tests\",\n    \"Click to regenerate various types of reports (workspace, product, architecture, unit test)\",\n    \"View timestamps showing when each analysis was last generated\",\n    \"Open generated reports in the editor by clicking on them\",\n    \"Copy insights text to clipboard\",\n    \"See progress indicators while content is being generated\",\n    \"Receive notifications when generation completes or fails\",\n    \"Configure LLM settings through the tree view\",\n    \"Search within insights using a search command\"\n  ],\n  \"developerVisibleActions\": [\n    \"Maintains state of all analysis artifacts (documentation, insights, reports)\",\n    \"Persists timestamps and file paths across VSCode sessions\",\n    \"Coordinates with LLMService to generate AI-powered content\",\n    \"Triggers tree view refresh when data changes\",\n    \"Handles user clicks on tree items to execute appropriate commands\",\n    \"Validates existence of generated files before displaying them\",\n    \"Provides context menu actions for regenerating content\",\n    \"Integrates with workspace state to remember generation history\",\n    \"Emits events when tree data changes to update the UI\",\n    \"Manages multiple report types (workspace, product, architecture, unit test)\",\n    \"Handles asynchronous generation workflows with status tracking\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Converts a TreeItem into a vscode.TreeItem for display in the tree view\",\n      \"inputs\": \"element: TreeItem\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child nodes for the tree structure, creating the hierarchy of insights, docs, and reports\",\n      \"inputs\": \"element?: TreeItem\",\n      \"outputs\": \"TreeItem[] or Promise<TreeItem[]>\"\n    },\n    {\n      \"name\": \"setInsights\",\n      \"desc\": \"Updates the insights data and refreshes the tree view\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setProductDocsStatus\",\n      \"desc\": \"Updates the status of product documentation generation and refreshes the view\",\n      \"inputs\": \"status: 'idle' | 'generating' | 'complete', timestamp?: number\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setLLMInsights\",\n      \"desc\": \"Stores LLM-generated insights and updates the view\",\n      \"inputs\": \"insights: LLMInsights\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setReportPath\",\n      \"desc\": \"Sets the path to a generated report file and updates the view\",\n      \"inputs\": \"path: string, timestamp: number\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Triggers a refresh of the entire tree view UI\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"loadPersistedState\",\n      \"desc\": \"Loads previously saved timestamps and file paths from workspace storage\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"cleanupMissingFiles\",\n      \"desc\": \"Verifies that stored file paths still exist and clears invalid entries\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"getUnitTestStatus\",\n      \"desc\": \"Returns the current status of unit test generation\",\n      \"inputs\": \"none\",\n      \"outputs\": \"'idle' | 'generating' | 'complete'\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\",\n    \"./llmFormatter\",\n    \"./llmService\"\n  ],\n  \"intent\": \"This file exists to create an interactive sidebar panel in VSCode where users can view, manage, and regenerate AI-generated code analysis artifacts including documentation, insights, unit tests, and various reports, while maintaining state persistence across sessions.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:20:36.326Z"
+  }
+}

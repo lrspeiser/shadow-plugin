@@ -66,6 +66,15 @@ export function activate(context: vscode.ExtensionContext) {
         // Setup file watcher and configuration handlers
         ExtensionBootstrapper.setupFileWatcher(components.fileWatcher, context);
         
+        // Initialize Reports tree view with existing reports
+        (async () => {
+            try {
+                await llmIntegration.refreshReportsOnStartup();
+            } catch (error) {
+                console.error('Failed to refresh reports on startup:', error);
+            }
+        })();
+        
         // Handle clearAllData setting
         const configManager = getConfigurationManager();
         configManager.onConfigurationChange(() => {

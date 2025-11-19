@@ -1,0 +1,83 @@
+{
+  "file": "src/insightsViewer.ts",
+  "role": "GUI View",
+  "purpose": "Provides a tree view in VS Code that displays AI-generated architecture insights about the codebase, automatically updating when insight files change.",
+  "userVisibleActions": [
+    "View architecture insights in a tree structure in the sidebar",
+    "Browse different categories of insights (Components, Data Flow, Architecture Patterns, etc.)",
+    "Click on insight items to see detailed descriptions",
+    "Open related source code files by clicking on file references",
+    "See real-time updates when AI generates new insights",
+    "Refresh the insights view manually",
+    "Navigate to specific code locations from insight items",
+    "View purpose statements for individual files",
+    "See grouped insights by category and type"
+  ],
+  "developerVisibleActions": [
+    "Tree view automatically refreshes when .shadow/docs/ai-architecture-insights.json file changes",
+    "Tree view updates when .shadow/docs/purpose.json file changes",
+    "Clicking on file paths opens the corresponding source file in the editor",
+    "Tree provides hierarchical navigation of AI-generated insights",
+    "Insights are loaded from JSON files in the .shadow/docs directory",
+    "File watchers monitor for changes and trigger automatic updates",
+    "Purpose statements are displayed as additional insight items"
+  ],
+  "keyFunctions": [
+    {
+      "name": "refresh",
+      "desc": "Reloads insights from disk and updates the tree view display",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getTreeItem",
+      "desc": "Converts an insight item into a VS Code tree item for display",
+      "inputs": "InsightItem",
+      "outputs": "vscode.TreeItem"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Returns child items for the tree hierarchy (categories, subcategories, and individual insights)",
+      "inputs": "optional parent InsightItem",
+      "outputs": "Promise<InsightItem[]>"
+    },
+    {
+      "name": "loadInsights",
+      "desc": "Reads AI insights from the JSON file in .shadow/docs directory",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "loadPurposeStatements",
+      "desc": "Reads file purpose statements from purpose.json file",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "setupFileWatcher",
+      "desc": "Creates file system watchers to detect changes in insight files",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "openFile",
+      "desc": "Opens a source code file in the editor at a specific location",
+      "inputs": "file path and optional line number",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "llmService",
+    "path",
+    "fs",
+    "fileWatcherService"
+  ],
+  "intent": "This file exists to provide developers with an interactive, always-updated view of AI-generated architecture insights about their codebase. It solves the problem of making AI analysis results easily accessible and navigable within the VS Code interface, with automatic updates as the AI discovers new patterns or the code changes. It bridges the gap between AI analysis (stored in JSON files) and developer interaction (tree view UI).",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view in VS Code that displays AI-generated architecture insights about the codebase, automatically updating when insight files change.\",\n  \"userVisibleActions\": [\n    \"View architecture insights in a tree structure in the sidebar\",\n    \"Browse different categories of insights (Components, Data Flow, Architecture Patterns, etc.)\",\n    \"Click on insight items to see detailed descriptions\",\n    \"Open related source code files by clicking on file references\",\n    \"See real-time updates when AI generates new insights\",\n    \"Refresh the insights view manually\",\n    \"Navigate to specific code locations from insight items\",\n    \"View purpose statements for individual files\",\n    \"See grouped insights by category and type\"\n  ],\n  \"developerVisibleActions\": [\n    \"Tree view automatically refreshes when .shadow/docs/ai-architecture-insights.json file changes\",\n    \"Tree view updates when .shadow/docs/purpose.json file changes\",\n    \"Clicking on file paths opens the corresponding source file in the editor\",\n    \"Tree provides hierarchical navigation of AI-generated insights\",\n    \"Insights are loaded from JSON files in the .shadow/docs directory\",\n    \"File watchers monitor for changes and trigger automatic updates\",\n    \"Purpose statements are displayed as additional insight items\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Reloads insights from disk and updates the tree view display\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Converts an insight item into a VS Code tree item for display\",\n      \"inputs\": \"InsightItem\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for the tree hierarchy (categories, subcategories, and individual insights)\",\n      \"inputs\": \"optional parent InsightItem\",\n      \"outputs\": \"Promise<InsightItem[]>\"\n    },\n    {\n      \"name\": \"loadInsights\",\n      \"desc\": \"Reads AI insights from the JSON file in .shadow/docs directory\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"loadPurposeStatements\",\n      \"desc\": \"Reads file purpose statements from purpose.json file\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setupFileWatcher\",\n      \"desc\": \"Creates file system watchers to detect changes in insight files\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"openFile\",\n      \"desc\": \"Opens a source code file in the editor at a specific location\",\n      \"inputs\": \"file path and optional line number\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"llmService\",\n    \"path\",\n    \"fs\",\n    \"fileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide developers with an interactive, always-updated view of AI-generated architecture insights about their codebase. It solves the problem of making AI analysis results easily accessible and navigable within the VS Code interface, with automatic updates as the AI discovers new patterns or the code changes. It bridges the gap between AI analysis (stored in JSON files) and developer interaction (tree view UI).\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T21:20:54.379Z"
+  }
+}
