@@ -21,6 +21,8 @@ import { ProductNavItem } from '../../productNavigator';
 import { getConfigurationManager } from '../../config/configurationManager';
 import { ErrorHandler } from '../../utils/errorHandler';
 import { FileWatcherService } from '../../domain/services/fileWatcherService';
+import { ReportsViewer } from '../../ui/reportsViewer';
+import { getStateManager } from '../../state/llmStateManager';
 
 export interface ExtensionComponents {
     analyzer: CodeAnalyzer;
@@ -88,6 +90,11 @@ export class ExtensionBootstrapper {
             const unitTestsNavigator = new UnitTestsNavigatorProvider(context);
             llmIntegration.setUnitTestsNavigator(unitTestsNavigator);
             context.subscriptions.push(unitTestsNavigator); // Ensure proper disposal
+            
+            // Create reports viewer
+            const reportsViewer = new ReportsViewer(context);
+            getStateManager().setReportsViewer(reportsViewer);
+            context.subscriptions.push(reportsViewer); // Ensure proper disposal
             
             // Static analysis is now merged into insights tree view (no separate viewer needed)
             const staticAnalysisViewer = new StaticAnalysisViewerProvider();

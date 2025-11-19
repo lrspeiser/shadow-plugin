@@ -1585,6 +1585,36 @@ export async function generateUnitTests(): Promise<void> {
 
             SWLogger.log(`Unit test plan saved to: ${planFile}`);
             
+            // Auto-detect and setup test configuration before writing tests
+            reporter.report('Checking test configuration...');
+            const { TestConfigurationService } = await import('./domain/services/testConfigurationService');
+            const configStatus = TestConfigurationService.detectTestConfiguration(workspaceRoot);
+            
+            if (configStatus.setupRequired) {
+                reporter.report('Setting up test configuration...');
+                const setupResult = await TestConfigurationService.setupTestConfiguration(
+                    workspaceRoot,
+                    configStatus.framework === 'unknown' ? 'jest' : configStatus.framework
+                );
+                
+                if (setupResult.success) {
+                    SWLogger.log(`Test configuration setup: ${setupResult.message}`);
+                    if (setupResult.filesCreated.length > 0) {
+                        vscode.window.showInformationMessage(
+                            `✅ Auto-configured test setup. Created: ${setupResult.filesCreated.join(', ')}`
+                        );
+                    }
+                } else {
+                    SWLogger.log(`Warning: ${setupResult.message}`);
+                    const instructions = TestConfigurationService.generateSetupInstructions(configStatus);
+                    if (instructions) {
+                        SWLogger.log(`Setup instructions:\n${instructions}`);
+                    }
+                }
+            } else {
+                SWLogger.log('Test configuration already present, skipping auto-setup');
+            }
+            
             // Extract and write actual test files from the plan
             reporter.report('Writing test files...');
             const testFilesWritten = await writeTestFilesFromPlan(transformedPlan, workspaceRoot);
@@ -1850,13 +1880,15 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                 treeProvider.setReportPath(reportPath);
             }
 
-            // Open the report in VSCode
-            const reportUri = vscode.Uri.file(reportPath);
-            const document = await vscode.workspace.openTextDocument(reportUri);
-            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+            // Update Reports viewer and show it
+            await refreshReportsViewer();
+            const reportsViewer = stateManager.getReportsViewer();
+            if (reportsViewer) {
+                reportsViewer.show();
+            }
 
             vscode.window.showInformationMessage(
-                `✅ Comprehensive analysis complete! Report opened in editor.`
+                `✅ Comprehensive analysis complete! Refactoring report generated.`
             );
 
         } catch (error: any) {
@@ -1972,13 +2004,15 @@ export async function generateWorkspaceReport(): Promise<void> {
                 treeProvider.setWorkspaceReportPath(reportPath);
             }
 
-            // Open the report in VSCode
-            const reportUri = vscode.Uri.file(reportPath);
-            const document = await vscode.workspace.openTextDocument(reportUri);
-            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+            // Update Reports viewer and show it
+            await refreshReportsViewer();
+            const reportsViewer = stateManager.getReportsViewer();
+            if (reportsViewer) {
+                reportsViewer.show();
+            }
 
             vscode.window.showInformationMessage(
-                `✅ Workspace report generated! Report opened in editor.`
+                `✅ Workspace report generated!`
             );
 
         } catch (error: any) {
@@ -2080,13 +2114,15 @@ export async function generateProductReport(): Promise<void> {
                 treeProvider.setProductReportPath(reportPath);
             }
 
-            // Open the report in VSCode
-            const reportUri = vscode.Uri.file(reportPath);
-            const document = await vscode.workspace.openTextDocument(reportUri);
-            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+            // Update Reports viewer and show it
+            await refreshReportsViewer();
+            const reportsViewer = stateManager.getReportsViewer();
+            if (reportsViewer) {
+                reportsViewer.show();
+            }
 
             vscode.window.showInformationMessage(
-                `✅ Product report generated! Report opened in editor.`
+                `✅ Product report generated!`
             );
 
         } catch (error: any) {
@@ -2198,13 +2234,15 @@ export async function generateArchitectureReport(): Promise<void> {
                 treeProvider.setArchitectureReportPath(reportPath);
             }
 
-            // Open the report in VSCode
-            const reportUri = vscode.Uri.file(reportPath);
-            const document = await vscode.workspace.openTextDocument(reportUri);
-            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+            // Update Reports viewer and show it
+            await refreshReportsViewer();
+            const reportsViewer = stateManager.getReportsViewer();
+            if (reportsViewer) {
+                reportsViewer.show();
+            }
 
             vscode.window.showInformationMessage(
-                `✅ Architecture report generated! Report opened in editor.`
+                `✅ Architecture report generated!`
             );
 
         } catch (error: any) {
@@ -2222,6 +2260,42 @@ export async function generateArchitectureReport(): Promise<void> {
 /**
  * Run unit tests and generate a report using LLM
  */
+/**
+ * Refresh the Reports viewer with current report paths from tree provider
+ */
+async function refreshReportsViewer(): Promise<void> {
+    const treeProvider = stateManager.getTreeProvider();
+    const reportsViewer = stateManager.getReportsViewer();
+    
+    if (!treeProvider || !reportsViewer) {
+        return;
+    }
+    
+    const reportPaths = treeProvider.getAllReportPaths();
+    reportsViewer.setReports({
+        workspace: reportPaths.workspace,
+        product: reportPaths.product,
+        architecture: reportPaths.architecture,
+        refactoring: reportPaths.refactoring,
+        'unit-test': reportPaths.unitTest
+    });
+}
+
+/**
+ * Show the Reports pane
+ */
+export async function showReports(): Promise<void> {
+    // Refresh reports from tree provider first
+    await refreshReportsViewer();
+    
+    const reportsViewer = stateManager.getReportsViewer();
+    if (reportsViewer) {
+        reportsViewer.show();
+    } else {
+        vscode.window.showErrorMessage('Reports viewer not initialized');
+    }
+}
+
 export async function runUnitTests(): Promise<void> {
     const llmService = stateManager.getLLMService();
     const treeProvider = stateManager.getTreeProvider();
@@ -2447,13 +2521,16 @@ export async function runUnitTests(): Promise<void> {
                 treeProvider.setUnitTestReportPath(reportPath);
             }
             
+            // Update Reports viewer and show it
+            await refreshReportsViewer();
+            const reportsViewer = stateManager.getReportsViewer();
+            if (reportsViewer) {
+                reportsViewer.show();
+            }
+            
             vscode.window.showInformationMessage(
                 `✅ Unit tests completed! Report saved to ${path.relative(workspaceRoot, reportPath)}`
             );
-            
-            // Open the report
-            const doc = await vscode.workspace.openTextDocument(reportPath);
-            await vscode.window.showTextDocument(doc);
             
         } catch (error: any) {
             if (error.message === 'Cancelled by user') {

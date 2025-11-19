@@ -382,6 +382,40 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         return this.architectureReportPath;
     }
 
+    /**
+     * Get all report paths for the Reports viewer
+     */
+    getAllReportPaths(): {
+        workspace: { path: string | null; timestamp: number | null };
+        product: { path: string | null; timestamp: number | null };
+        architecture: { path: string | null; timestamp: number | null };
+        refactoring: { path: string | null; timestamp: number | null };
+        unitTest: { path: string | null; timestamp: number | null };
+    } {
+        return {
+            workspace: {
+                path: this.workspaceReportPath,
+                timestamp: this.workspaceReportTimestamp
+            },
+            product: {
+                path: this.productReportPath,
+                timestamp: this.productReportTimestamp
+            },
+            architecture: {
+                path: this.architectureReportPath,
+                timestamp: this.architectureReportTimestamp
+            },
+            refactoring: {
+                path: this.reportPath,
+                timestamp: this.reportTimestamp
+            },
+            unitTest: {
+                path: this.unitTestReportPath,
+                timestamp: this.unitTestReportTimestamp
+            }
+        };
+    }
+
     private getWorkspaceKey(): string | null {
         if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
             return null;

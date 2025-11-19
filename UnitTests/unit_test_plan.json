@@ -1,0 +1,667 @@
+{
+  "rationale": "This comprehensive unit test plan addresses the critical regression prevention needs identified in the codebase analysis. With 998 functions across 48 files and significant architectural debt (monolithic services, duplicate implementations, orphaned components), thorough testing is essential before refactoring. The test plan prioritizes: (1) Core analysis functions that form the foundation of the product's value proposition (entry point detection, circular dependency detection, god object detection, complexity analysis), (2) AI integration components where silent failures could waste API costs or provide incorrect documentation (LLM service, response parsing, rate limiting), (3) Critical infrastructure that enables performance (caching, incremental storage, file watching), (4) Error handling paths identified in the success/errors analysis where silent failures are most likely. Each test suite includes executable TypeScript test code using Jest with proper mocking strategies, covering success cases, edge cases, error scenarios, and the silent failure risks documented in the architecture analysis. The tests validate both current behavior and guard against regressions during the planned refactoring of monolithic components (llmService.ts 2,904 lines, llmIntegration.ts 2,637 lines) into the modular structure. Test organization follows the codebase structure with separate suites for analysis engine, AI integration, caching, file watching, insight generation, error handling, configuration, storage, provider abstraction, and UI components. This enables parallel test execution and clear failure isolation. The plan includes exact run instructions for both individual tests and full suites, making it immediately actionable for developers and CI/CD pipelines.",
+  "aggregated_plan": {
+    "unit_test_plan": {
+      "strategy": "Test-driven approach for TypeScript codebase focusing on isolation, dependency injection, and comprehensive coverage. Given the architecture issues identified (massive monolithic services, duplicate implementations, orphaned components), tests should validate both current behavior and guard against regressions during planned refactoring. Use Jest with ts-jest for TypeScript support, leveraging mocks to isolate units from VS Code APIs, file system, and external AI providers. Prioritize testing core analysis logic, AI integration, caching mechanisms, and error handling paths identified in the success/errors analysis.",
+      "testing_framework": "jest",
+      "mocking_approach": "Use Jest mocks (jest.mock(), jest.fn(), jest.spyOn()) to isolate components from external dependencies. Mock VS Code API using manual mocks in __mocks__/vscode.ts. Mock file system operations using jest.mock('fs') and jest.mock('path'). Mock AI providers by implementing test doubles of ILLMProvider interface. Use dependency injection where possible to inject mock instances. For classes with complex dependencies, use partial mocks to test individual methods while stubbing others.",
+      "isolation_strategy": "Test individual functions and methods in isolation by mocking all external dependencies (file system, VS Code API, network, AI providers). For pure functions (calculations, transformations), test with real inputs. For services with multiple dependencies, use constructor injection of mocks. Integration tests should be separate from unit tests and test component interactions without mocking internal boundaries."
+    },
+    "test_suites": [
+      {
+        "id": "analyzer-core",
+        "name": "Core Analyzer Tests",
+        "description": "Tests for src/analyzer.ts covering AST parsing, dependency detection, function analysis, and core analysis orchestration",
+        "test_file_path": "src/test/analyzer.test.ts",
+        "source_files": [
+          "src/analyzer.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "analyzer-001",
+            "name": "test_detect_entry_points_success",
+            "description": "Verifies entry point detection for package.json main field returns correct file path",
+            "target_function": "detectEntryPoints",
+            "target_file": "src/analyzer.ts",
+            "scenarios": [
+              "Valid package.json with main field",
+              "Multiple potential entry points",
+              "Standard Node.js entry patterns"
+            ],
+            "mocks": [
+              "File system read operations",
+              "Package.json parsing"
+            ],
+            "assertions": [
+              "Entry points array contains expected file path",
+              "Entry point type is correctly identified",
+              "No false positives for non-entry files"
+            ],
+            "priority": "high",
+            "test_code": "import { Analyzer } from '../analyzer';\nimport * as fs from 'fs';\nimport * as path from 'path';\n\njest.mock('fs');\njest.mock('path');\n\ndescribe('Analyzer - detectEntryPoints', () => {\n  let analyzer: Analyzer;\n  const mockWorkspaceRoot = '/mock/workspace';\n\n  beforeEach(() => {\n    analyzer = new Analyzer(mockWorkspaceRoot);\n    jest.clearAllMocks();\n  });\n\n  test('should detect entry point from package.json main field', () => {\n    const mockPackageJson = JSON.stringify({ main: './dist/extension.js' });\n    (fs.existsSync as jest.Mock).mockReturnValue(true);\n    (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);\n    (path.join as jest.Mock).mockImplementation((...args) => args.join('/'));\n    (path.resolve as jest.Mock).mockImplementation((...args) => args.join('/'));\n\n    const result = analyzer.detectEntryPoints();\n\n    expect(result).toContain('./dist/extension.js');\n    expect(fs.readFileSync).toHaveBeenCalledWith(\n      expect.stringContaining('package.json'),\n      'utf-8'\n    );\n  });\n\n  test('should handle missing package.json gracefully', () => {\n    (fs.existsSync as jest.Mock).mockReturnValue(false);\n\n    const result = analyzer.detectEntryPoints();\n\n    expect(result).toEqual([]);\n    expect(fs.readFileSync).not.toHaveBeenCalled();\n  });\n\n  test('should handle malformed package.json', () => {\n    (fs.existsSync as jest.Mock).mockReturnValue(true);\n    (fs.readFileSync as jest.Mock).mockReturnValue('invalid json');\n\n    const result = analyzer.detectEntryPoints();\n\n    expect(result).toEqual([]);\n  });\n});",
+            "run_instructions": "npm test -- analyzer.test.ts -t 'should detect entry point from package.json main field'"
+          },
+          {
+            "id": "analyzer-002",
+            "name": "test_detect_circular_dependencies",
+            "description": "Verifies circular dependency detection identifies dependency cycles in import graphs",
+            "target_function": "detectCircularDependencies",
+            "target_file": "src/analyzer.ts",
+            "scenarios": [
+              "Two-file circular dependency",
+              "Three-file circular chain",
+              "Self-referential imports",
+              "No circular dependencies"
+            ],
+            "mocks": [
+              "File system for reading source files",
+              "Import statement parsing"
+            ],
+            "assertions": [
+              "Circular dependencies are identified",
+              "Dependency chain is correctly reported",
+              "Non-circular imports are not flagged",
+              "Self-references are detected"
+            ],
+            "priority": "high",
+            "test_code": "import { Analyzer } from '../analyzer';\nimport * as fs from 'fs';\n\njest.mock('fs');\n\ndescribe('Analyzer - detectCircularDependencies', () => {\n  let analyzer: Analyzer;\n  const mockWorkspaceRoot = '/mock/workspace';\n\n  beforeEach(() => {\n    analyzer = new Analyzer(mockWorkspaceRoot);\n    jest.clearAllMocks();\n  });\n\n  test('should detect two-file circular dependency', () => {\n    const mockDependencies = {\n      'fileA.ts': ['fileB.ts'],\n      'fileB.ts': ['fileA.ts']\n    };\n\n    analyzer['dependencies'] = mockDependencies;\n\n    const result = analyzer.detectCircularDependencies();\n\n    expect(result.length).toBeGreaterThan(0);\n    const circularDep = result[0];\n    expect(circularDep.type).toBe('circular_dependency');\n    expect(circularDep.description).toContain('fileA.ts');\n    expect(circularDep.description).toContain('fileB.ts');\n  });\n\n  test('should detect three-file circular chain', () => {\n    const mockDependencies = {\n      'fileA.ts': ['fileB.ts'],\n      'fileB.ts': ['fileC.ts'],\n      'fileC.ts': ['fileA.ts']\n    };\n\n    analyzer['dependencies'] = mockDependencies;\n\n    const result = analyzer.detectCircularDependencies();\n\n    expect(result.length).toBeGreaterThan(0);\n    expect(result[0].description).toContain('fileA.ts');\n    expect(result[0].description).toContain('fileB.ts');\n    expect(result[0].description).toContain('fileC.ts');\n  });\n\n  test('should not flag non-circular dependencies', () => {\n    const mockDependencies = {\n      'fileA.ts': ['fileB.ts'],\n      'fileB.ts': ['fileC.ts'],\n      'fileC.ts': []\n    };\n\n    analyzer['dependencies'] = mockDependencies;\n\n    const result = analyzer.detectCircularDependencies();\n\n    expect(result).toEqual([]);\n  });\n\n  test('should handle empty dependency graph', () => {\n    analyzer['dependencies'] = {};\n\n    const result = analyzer.detectCircularDependencies();\n\n    expect(result).toEqual([]);\n  });\n});",
+            "run_instructions": "npm test -- analyzer.test.ts -t 'should detect two-file circular dependency'"
+          },
+          {
+            "id": "analyzer-003",
+            "name": "test_detect_god_objects",
+            "description": "Verifies god object detection identifies files exceeding size and complexity thresholds",
+            "target_function": "detectGodObjects",
+            "target_file": "src/analyzer.ts",
+            "scenarios": [
+              "File exceeding line threshold",
+              "File with excessive functions",
+              "Normal-sized files",
+              "Empty files"
+            ],
+            "mocks": [
+              "File system for reading file contents",
+              "Line counting logic"
+            ],
+            "assertions": [
+              "Files over 500 lines are flagged",
+              "Files with 50+ functions are flagged",
+              "Normal files are not flagged",
+              "Severity matches threshold exceeded"
+            ],
+            "priority": "high",
+            "test_code": "import { Analyzer } from '../analyzer';\nimport * as fs from 'fs';\n\njest.mock('fs');\n\ndescribe('Analyzer - detectGodObjects', () => {\n  let analyzer: Analyzer;\n  const mockWorkspaceRoot = '/mock/workspace';\n\n  beforeEach(() => {\n    analyzer = new Analyzer(mockWorkspaceRoot);\n    jest.clearAllMocks();\n  });\n\n  test('should detect file exceeding line threshold', () => {\n    const mockFileData = {\n      'largeFile.ts': {\n        lines: 1500,\n        functions: 30\n      }\n    };\n\n    analyzer['fileData'] = mockFileData;\n\n    const result = analyzer.detectGodObjects();\n\n    expect(result.length).toBeGreaterThan(0);\n    const godObject = result.find(i => i.file === 'largeFile.ts');\n    expect(godObject).toBeDefined();\n    expect(godObject?.severity).toBe('Error');\n    expect(godObject?.description).toContain('1500 lines');\n  });\n\n  test('should detect file with excessive functions', () => {\n    const mockFileData = {\n      'complexFile.ts': {\n        lines: 400,\n        functions: 75\n      }\n    };\n\n    analyzer['fileData'] = mockFileData;\n\n    const result = analyzer.detectGodObjects();\n\n    expect(result.length).toBeGreaterThan(0);\n    const godObject = result.find(i => i.file === 'complexFile.ts');\n    expect(godObject).toBeDefined();\n    expect(godObject?.description).toContain('75 functions');\n  });\n\n  test('should not flag normal-sized files', () => {\n    const mockFileData = {\n      'normalFile.ts': {\n        lines: 200,\n        functions: 15\n      }\n    };\n\n    analyzer['fileData'] = mockFileData;\n\n    const result = analyzer.detectGodObjects();\n\n    expect(result).toEqual([]);\n  });\n\n  test('should handle empty file data', () => {\n    analyzer['fileData'] = {};\n\n    const result = analyzer.detectGodObjects();\n\n    expect(result).toEqual([]);\n  });\n});",
+            "run_instructions": "npm test -- analyzer.test.ts -t 'should detect file exceeding line threshold'"
+          },
+          {
+            "id": "analyzer-004",
+            "name": "test_analyze_complexity",
+            "description": "Verifies cyclomatic complexity calculation for functions and identifies complex functions",
+            "target_function": "analyzeComplexity",
+            "target_file": "src/analyzer.ts",
+            "scenarios": [
+              "Simple function with low complexity",
+              "Function with multiple branches",
+              "Function with nested loops",
+              "Function with switch statements"
+            ],
+            "mocks": [
+              "AST parsing",
+              "Control flow analysis"
+            ],
+            "assertions": [
+              "Complexity score is calculated correctly",
+              "Functions over threshold are flagged",
+              "Complexity breakdown is provided",
+              "Line ranges are accurate"
+            ],
+            "priority": "high",
+            "test_code": "import { Analyzer } from '../analyzer';\n\ndescribe('Analyzer - analyzeComplexity', () => {\n  let analyzer: Analyzer;\n  const mockWorkspaceRoot = '/mock/workspace';\n\n  beforeEach(() => {\n    analyzer = new Analyzer(mockWorkspaceRoot);\n    jest.clearAllMocks();\n  });\n\n  test('should calculate low complexity for simple function', () => {\n    const mockFunctionData = {\n      name: 'simpleFunction',\n      startLine: 10,\n      endLine: 15,\n      branches: 1,\n      loops: 0,\n      conditions: 0\n    };\n\n    const complexity = analyzer.calculateComplexity(mockFunctionData);\n\n    expect(complexity).toBeLessThanOrEqual(5);\n  });\n\n  test('should calculate high complexity for function with multiple branches', () => {\n    const mockFunctionData = {\n      name: 'complexFunction',\n      startLine: 20,\n      endLine: 100,\n      branches: 15,\n      loops: 5,\n      conditions: 10\n    };\n\n    const complexity = analyzer.calculateComplexity(mockFunctionData);\n\n    expect(complexity).toBeGreaterThan(10);\n  });\n\n  test('should flag functions exceeding complexity threshold', () => {\n    const mockFileData = {\n      'testFile.ts': {\n        functions: [\n          {\n            name: 'highComplexityFunction',\n            startLine: 50,\n            endLine: 150,\n            complexity: 25\n          }\n        ]\n      }\n    };\n\n    analyzer['fileData'] = mockFileData;\n\n    const result = analyzer.analyzeComplexity();\n\n    expect(result.length).toBeGreaterThan(0);\n    const complexFunction = result[0];\n    expect(complexFunction.severity).toBe('Warning');\n    expect(complexFunction.description).toContain('complexity of 25');\n  });\n\n  test('should not flag functions below threshold', () => {\n    const mockFileData = {\n      'testFile.ts': {\n        functions: [\n          {\n            name: 'simpleFunction',\n            startLine: 10,\n            endLine: 20,\n            complexity: 3\n          }\n        ]\n      }\n    };\n\n    analyzer['fileData'] = mockFileData;\n\n    const result = analyzer.analyzeComplexity();\n\n    expect(result).toEqual([]);\n  });\n});",
+            "run_instructions": "npm test -- analyzer.test.ts -t 'should calculate low complexity for simple function'"
+          }
+        ]
+      },
+      {
+        "id": "llm-service-core",
+        "name": "LLM Service Core Tests",
+        "description": "Tests for src/llmService.ts covering AI provider communication, prompt building, response parsing, and rate limiting",
+        "test_file_path": "src/test/llmService.test.ts",
+        "source_files": [
+          "src/llmService.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "llm-001",
+            "name": "test_generate_documentation_success",
+            "description": "Verifies successful documentation generation from AI provider with valid response",
+            "target_function": "generateDocumentation",
+            "target_file": "src/llmService.ts",
+            "scenarios": [
+              "Valid analysis input",
+              "API returns properly formatted response",
+              "Response parsing succeeds",
+              "Documentation is cached"
+            ],
+            "mocks": [
+              "AI provider API call",
+              "Response parser",
+              "Cache storage"
+            ],
+            "assertions": [
+              "Documentation is generated",
+              "Response is parsed correctly",
+              "Result contains expected sections",
+              "Cache is updated"
+            ],
+            "priority": "high",
+            "test_code": "import { LLMService } from '../llmService';\nimport { ILLMProvider } from '../ai/providers/ILLMProvider';\n\ndescribe('LLMService - generateDocumentation', () => {\n  let llmService: LLMService;\n  let mockProvider: jest.Mocked;\n\n  beforeEach(() => {\n    mockProvider = {\n      generateCompletion: jest.fn(),\n      getModelName: jest.fn().mockReturnValue('gpt-4'),\n      validateApiKey: jest.fn().mockReturnValue(true),\n      estimateTokens: jest.fn().mockReturnValue(1000)\n    } as any;\n\n    llmService = new LLMService();\n    llmService['provider'] = mockProvider;\n    jest.clearAllMocks();\n  });\n\n  test('should generate documentation with valid response', async () => {\n    const mockAnalysis = {\n      files: ['file1.ts', 'file2.ts'],\n      functions: 50,\n      insights: []\n    };\n\n    const mockResponse = {\n      content: JSON.stringify({\n        overview: 'Application overview',\n        features: ['Feature 1', 'Feature 2'],\n        architecture: 'Architecture description'\n      }),\n      usage: { prompt_tokens: 500, completion_tokens: 300 }\n    };\n\n    mockProvider.generateCompletion.mockResolvedValue(mockResponse);\n\n    const result = await llmService.generateDocumentation(mockAnalysis);\n\n    expect(result).toBeDefined();\n    expect(result.overview).toBe('Application overview');\n    expect(result.features).toHaveLength(2);\n    expect(mockProvider.generateCompletion).toHaveBeenCalledTimes(1);\n  });\n\n  test('should handle API errors gracefully', async () => {\n    const mockAnalysis = {\n      files: ['file1.ts'],\n      functions: 10,\n      insights: []\n    };\n\n    mockProvider.generateCompletion.mockRejectedValue(\n      new Error('API rate limit exceeded')\n    );\n\n    await expect(llmService.generateDocumentation(mockAnalysis)).rejects.toThrow(\n      'API rate limit exceeded'\n    );\n  });\n\n  test('should handle malformed response', async () => {\n    const mockAnalysis = {\n      files: ['file1.ts'],\n      functions: 10,\n      insights: []\n    };\n\n    const mockResponse = {\n      content: 'invalid json',\n      usage: { prompt_tokens: 100, completion_tokens: 50 }\n    };\n\n    mockProvider.generateCompletion.mockResolvedValue(mockResponse);\n\n    await expect(llmService.generateDocumentation(mockAnalysis)).rejects.toThrow();\n  });\n});",
+            "run_instructions": "npm test -- llmService.test.ts -t 'should generate documentation with valid response'"
+          },
+          {
+            "id": "llm-002",
+            "name": "test_rate_limiter_enforcement",
+            "description": "Verifies rate limiting enforces request limits and queues requests appropriately",
+            "target_function": "executeWithRateLimit",
+            "target_file": "src/llmService.ts",
+            "scenarios": [
+              "Requests within rate limit",
+              "Requests exceeding rate limit",
+              "Queue overflow",
+              "Rate limit reset"
+            ],
+            "mocks": [
+              "Time functions",
+              "Provider API calls"
+            ],
+            "assertions": [
+              "Requests are queued when limit exceeded",
+              "Rate limit counters are updated",
+              "Requests execute after delay",
+              "Overflow throws error"
+            ],
+            "priority": "high",
+            "test_code": "import { LLMRateLimiter } from '../ai/llmRateLimiter';\n\njest.useFakeTimers();\n\ndescribe('LLMRateLimiter', () => {\n  let rateLimiter: LLMRateLimiter;\n\n  beforeEach(() => {\n    rateLimiter = new LLMRateLimiter({\n      requestsPerMinute: 3,\n      tokensPerMinute: 1000\n    });\n    jest.clearAllTimers();\n  });\n\n  afterEach(() => {\n    jest.useRealTimers();\n  });\n\n  test('should allow requests within rate limit', async () => {\n    const mockRequest = jest.fn().mockResolvedValue('response');\n\n    const result1 = await rateLimiter.executeWithRateLimit(mockRequest, 100);\n    const result2 = await rateLimiter.executeWithRateLimit(mockRequest, 100);\n    const result3 = await rateLimiter.executeWithRateLimit(mockRequest, 100);\n\n    expect(result1).toBe('response');\n    expect(result2).toBe('response');\n    expect(result3).toBe('response');\n    expect(mockRequest).toHaveBeenCalledTimes(3);\n  });\n\n  test('should queue requests exceeding rate limit', async () => {\n    const mockRequest = jest.fn().mockResolvedValue('response');\n\n    const promise1 = rateLimiter.executeWithRateLimit(mockRequest, 100);\n    const promise2 = rateLimiter.executeWithRateLimit(mockRequest, 100);\n    const promise3 = rateLimiter.executeWithRateLimit(mockRequest, 100);\n    const promise4 = rateLimiter.executeWithRateLimit(mockRequest, 100);\n\n    await promise1;\n    await promise2;\n    await promise3;\n\n    expect(mockRequest).toHaveBeenCalledTimes(3);\n\n    jest.advanceTimersByTime(60000);\n    await promise4;\n\n    expect(mockRequest).toHaveBeenCalledTimes(4);\n  });\n\n  test('should throw error on token limit exceeded', async () => {\n    const mockRequest = jest.fn().mockResolvedValue('response');\n\n    await expect(\n      rateLimiter.executeWithRateLimit(mockRequest, 2000)\n    ).rejects.toThrow('Token limit exceeded');\n  });\n});",
+            "run_instructions": "npm test -- llmService.test.ts -t 'should allow requests within rate limit'"
+          }
+        ]
+      },
+      {
+        "id": "llm-response-parser",
+        "name": "LLM Response Parser Tests",
+        "description": "Tests for src/ai/llmResponseParser.ts covering JSON parsing, schema validation, and error recovery",
+        "test_file_path": "src/test/llmResponseParser.test.ts",
+        "source_files": [
+          "src/ai/llmResponseParser.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "parser-001",
+            "name": "test_parse_valid_json_response",
+            "description": "Verifies parser extracts valid JSON from LLM response with various formats",
+            "target_function": "parseResponse",
+            "target_file": "src/ai/llmResponseParser.ts",
+            "scenarios": [
+              "Plain JSON response",
+              "JSON wrapped in markdown code blocks",
+              "JSON with leading/trailing text",
+              "Nested JSON structures"
+            ],
+            "mocks": [
+              "None - pure function"
+            ],
+            "assertions": [
+              "Valid JSON is extracted",
+              "Markdown wrappers are removed",
+              "Parsed object matches schema",
+              "No data loss during parsing"
+            ],
+            "priority": "high",
+            "test_code": "import { LLMResponseParser } from '../ai/llmResponseParser';\n\ndescribe('LLMResponseParser - parseResponse', () => {\n  let parser: LLMResponseParser;\n\n  beforeEach(() => {\n    parser = new LLMResponseParser();\n  });\n\n  test('should parse plain JSON response', () => {\n    const response = '{\"key\": \"value\", \"number\": 42}';\n\n    const result = parser.parseResponse(response);\n\n    expect(result).toEqual({ key: 'value', number: 42 });\n  });\n\n  test('should extract JSON from markdown code blocks', () => {\n    const response = '\\n{\"key\": \"value\"}\\n';\n\n    const result = parser.parseResponse(response);\n\n    expect(result).toEqual({ key: 'value' });\n  });\n\n  test('should handle JSON with leading text', () => {\n    const response = 'Here is the result:\\n{\"key\": \"value\"}';\n\n    const result = parser.parseResponse(response);\n\n    expect(result).toEqual({ key: 'value' });\n  });\n\n  test('should parse nested JSON structures', () => {\n    const response = '{\"outer\": {\"inner\": \"value\", \"array\": [1, 2, 3]}}';\n\n    const result = parser.parseResponse(response);\n\n    expect(result).toEqual({\n      outer: {\n        inner: 'value',\n        array: [1, 2, 3]\n      }\n    });\n  });\n\n  test('should throw error for invalid JSON', () => {\n    const response = 'not valid json at all';\n\n    expect(() => parser.parseResponse(response)).toThrow();\n  });\n\n  test('should handle empty response', () => {\n    const response = '';\n\n    expect(() => parser.parseResponse(response)).toThrow();\n  });\n});",
+            "run_instructions": "npm test -- llmResponseParser.test.ts -t 'should parse plain JSON response'"
+          },
+          {
+            "id": "parser-002",
+            "name": "test_validate_schema_compliance",
+            "description": "Verifies response validation against expected schema definitions",
+            "target_function": "validateSchema",
+            "target_file": "src/ai/llmResponseParser.ts",
+            "scenarios": [
+              "Response matches schema exactly",
+              "Missing required fields",
+              "Extra unexpected fields",
+              "Type mismatches"
+            ],
+            "mocks": [
+              "None - pure validation"
+            ],
+            "assertions": [
+              "Valid responses pass validation",
+              "Missing required fields throw error",
+              "Type mismatches are detected",
+              "Error messages are descriptive"
+            ],
+            "priority": "high",
+            "test_code": "import { LLMResponseParser } from '../ai/llmResponseParser';\n\ndescribe('LLMResponseParser - validateSchema', () => {\n  let parser: LLMResponseParser;\n\n  beforeEach(() => {\n    parser = new LLMResponseParser();\n  });\n\n  test('should validate response matching schema', () => {\n    const schema = {\n      type: 'object',\n      required: ['name', 'age'],\n      properties: {\n        name: { type: 'string' },\n        age: { type: 'number' }\n      }\n    };\n\n    const data = { name: 'John', age: 30 };\n\n    expect(() => parser.validateSchema(data, schema)).not.toThrow();\n  });\n\n  test('should reject response with missing required fields', () => {\n    const schema = {\n      type: 'object',\n      required: ['name', 'age'],\n      properties: {\n        name: { type: 'string' },\n        age: { type: 'number' }\n      }\n    };\n\n    const data = { name: 'John' };\n\n    expect(() => parser.validateSchema(data, schema)).toThrow('Missing required field: age');\n  });\n\n  test('should detect type mismatches', () => {\n    const schema = {\n      type: 'object',\n      properties: {\n        age: { type: 'number' }\n      }\n    };\n\n    const data = { age: 'thirty' };\n\n    expect(() => parser.validateSchema(data, schema)).toThrow('Type mismatch');\n  });\n\n  test('should allow extra fields when additionalProperties true', () => {\n    const schema = {\n      type: 'object',\n      required: ['name'],\n      properties: {\n        name: { type: 'string' }\n      },\n      additionalProperties: true\n    };\n\n    const data = { name: 'John', extra: 'field' };\n\n    expect(() => parser.validateSchema(data, schema)).not.toThrow();\n  });\n});",
+            "run_instructions": "npm test -- llmResponseParser.test.ts -t 'should validate response matching schema'"
+          }
+        ]
+      },
+      {
+        "id": "cache-management",
+        "name": "Cache Management Tests",
+        "description": "Tests for src/cache.ts and src/infrastructure/fileSystem/fileCache.ts covering cache operations, invalidation, and persistence",
+        "test_file_path": "src/test/cache.test.ts",
+        "source_files": [
+          "src/cache.ts",
+          "src/infrastructure/fileSystem/fileCache.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "cache-001",
+            "name": "test_cache_hit_returns_cached_result",
+            "description": "Verifies cache returns stored results on subsequent requests with same key",
+            "target_function": "get",
+            "target_file": "src/cache.ts",
+            "scenarios": [
+              "First request misses cache",
+              "Second request hits cache",
+              "Cache returns exact stored value",
+              "Cache access is fast"
+            ],
+            "mocks": [
+              "None - testing cache behavior"
+            ],
+            "assertions": [
+              "Cache miss on first access",
+              "Cache hit on second access",
+              "Returned value matches stored value",
+              "Access time is under threshold"
+            ],
+            "priority": "high",
+            "test_code": "import { Cache } from '../cache';\n\ndescribe('Cache - get and set operations', () => {\n  let cache: Cache;\n\n  beforeEach(() => {\n    cache = new Cache();\n  });\n\n  test('should return null on cache miss', () => {\n    const result = cache.get('nonexistent-key');\n\n    expect(result).toBeNull();\n  });\n\n  test('should return cached value on cache hit', () => {\n    const key = 'test-key';\n    const value = { data: 'test data', timestamp: Date.now() };\n\n    cache.set(key, value);\n    const result = cache.get(key);\n\n    expect(result).toEqual(value);\n  });\n\n  test('should handle multiple cache entries', () => {\n    cache.set('key1', { value: 1 });\n    cache.set('key2', { value: 2 });\n    cache.set('key3', { value: 3 });\n\n    expect(cache.get('key1')).toEqual({ value: 1 });\n    expect(cache.get('key2')).toEqual({ value: 2 });\n    expect(cache.get('key3')).toEqual({ value: 3 });\n  });\n\n  test('should overwrite existing cache entry', () => {\n    const key = 'test-key';\n    cache.set(key, { value: 'old' });\n    cache.set(key, { value: 'new' });\n\n    const result = cache.get(key);\n\n    expect(result).toEqual({ value: 'new' });\n  });\n});",
+            "run_instructions": "npm test -- cache.test.ts -t 'should return cached value on cache hit'"
+          },
+          {
+            "id": "cache-002",
+            "name": "test_cache_invalidation_on_file_change",
+            "description": "Verifies cache entries are invalidated when source files are modified",
+            "target_function": "invalidate",
+            "target_file": "src/cache.ts",
+            "scenarios": [
+              "File modification triggers invalidation",
+              "Multiple file changes",
+              "Selective invalidation by pattern",
+              "Full cache clear"
+            ],
+            "mocks": [
+              "File system watcher",
+              "File modification events"
+            ],
+            "assertions": [
+              "Modified file cache is cleared",
+              "Unmodified file cache remains",
+              "Invalidation is selective",
+              "Cache statistics are updated"
+            ],
+            "priority": "high",
+            "test_code": "import { Cache } from '../cache';\n\ndescribe('Cache - invalidation', () => {\n  let cache: Cache;\n\n  beforeEach(() => {\n    cache = new Cache();\n  });\n\n  test('should invalidate specific cache entry', () => {\n    cache.set('key1', { value: 1 });\n    cache.set('key2', { value: 2 });\n\n    cache.invalidate('key1');\n\n    expect(cache.get('key1')).toBeNull();\n    expect(cache.get('key2')).toEqual({ value: 2 });\n  });\n\n  test('should clear all cache entries', () => {\n    cache.set('key1', { value: 1 });\n    cache.set('key2', { value: 2 });\n    cache.set('key3', { value: 3 });\n\n    cache.clear();\n\n    expect(cache.get('key1')).toBeNull();\n    expect(cache.get('key2')).toBeNull();\n    expect(cache.get('key3')).toBeNull();\n  });\n\n  test('should invalidate entries matching pattern', () => {\n    cache.set('file:src/test1.ts', { value: 1 });\n    cache.set('file:src/test2.ts', { value: 2 });\n    cache.set('analysis:workspace', { value: 3 });\n\n    cache.invalidatePattern(/^file:/);\n\n    expect(cache.get('file:src/test1.ts')).toBeNull();\n    expect(cache.get('file:src/test2.ts')).toBeNull();\n    expect(cache.get('analysis:workspace')).toEqual({ value: 3 });\n  });\n});",
+            "run_instructions": "npm test -- cache.test.ts -t 'should invalidate specific cache entry'"
+          }
+        ]
+      },
+      {
+        "id": "file-watcher-service",
+        "name": "File Watcher Service Tests",
+        "description": "Tests for src/fileWatcher.ts and src/domain/services/fileWatcherService.ts covering file change detection and analysis triggering",
+        "test_file_path": "src/test/fileWatcher.test.ts",
+        "source_files": [
+          "src/fileWatcher.ts",
+          "src/domain/services/fileWatcherService.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "watcher-001",
+            "name": "test_file_save_triggers_analysis",
+            "description": "Verifies file save events trigger incremental analysis",
+            "target_function": "onFileChange",
+            "target_file": "src/fileWatcher.ts",
+            "scenarios": [
+              "Single file save",
+              "Multiple rapid saves",
+              "Save in monitored directory",
+              "Save in excluded directory"
+            ],
+            "mocks": [
+              "VS Code file system watcher",
+              "Analyzer service",
+              "Debounce timer"
+            ],
+            "assertions": [
+              "Analysis is triggered on save",
+              "Debounce prevents excessive analysis",
+              "Excluded files are ignored",
+              "Analysis uses correct file path"
+            ],
+            "priority": "high",
+            "test_code": "import { FileWatcher } from '../fileWatcher';\nimport * as vscode from 'vscode';\n\njest.mock('vscode');\n\ndescribe('FileWatcher - onFileChange', () => {\n  let fileWatcher: FileWatcher;\n  let mockAnalyzer: any;\n  let mockWatcher: any;\n\n  beforeEach(() => {\n    mockAnalyzer = {\n      analyzeFile: jest.fn().mockResolvedValue({ insights: [] })\n    };\n\n    mockWatcher = {\n      onDidChange: jest.fn(),\n      onDidCreate: jest.fn(),\n      onDidDelete: jest.fn()\n    };\n\n    (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue(mockWatcher);\n\n    fileWatcher = new FileWatcher('/workspace', mockAnalyzer);\n    jest.clearAllMocks();\n  });\n\n  test('should trigger analysis on file save', async () => {\n    const mockUri = { fsPath: '/workspace/src/test.ts' } as vscode.Uri;\n\n    await fileWatcher.onFileChange(mockUri);\n\n    expect(mockAnalyzer.analyzeFile).toHaveBeenCalledWith('/workspace/src/test.ts');\n  });\n\n  test('should debounce rapid consecutive saves', async () => {\n    jest.useFakeTimers();\n    const mockUri = { fsPath: '/workspace/src/test.ts' } as vscode.Uri;\n\n    fileWatcher.onFileChange(mockUri);\n    fileWatcher.onFileChange(mockUri);\n    fileWatcher.onFileChange(mockUri);\n\n    jest.advanceTimersByTime(1000);\n\n    expect(mockAnalyzer.analyzeFile).toHaveBeenCalledTimes(1);\n\n    jest.useRealTimers();\n  });\n\n  test('should ignore excluded file patterns', async () => {\n    const mockUri = { fsPath: '/workspace/node_modules/test.js' } as vscode.Uri;\n\n    await fileWatcher.onFileChange(mockUri);\n\n    expect(mockAnalyzer.analyzeFile).not.toHaveBeenCalled();\n  });\n});",
+            "run_instructions": "npm test -- fileWatcher.test.ts -t 'should trigger analysis on file save'"
+          }
+        ]
+      },
+      {
+        "id": "insight-generator",
+        "name": "Insight Generator Tests",
+        "description": "Tests for src/insightGenerator.ts covering insight generation, categorization, and prioritization",
+        "test_file_path": "src/test/insightGenerator.test.ts",
+        "source_files": [
+          "src/insightGenerator.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "insight-001",
+            "name": "test_generate_insights_from_analysis",
+            "description": "Verifies insight generation produces categorized insights from analysis results",
+            "target_function": "generateInsights",
+            "target_file": "src/insightGenerator.ts",
+            "scenarios": [
+              "Analysis with multiple issue types",
+              "Empty analysis",
+              "High severity issues",
+              "Mixed severity levels"
+            ],
+            "mocks": [
+              "Analysis result data"
+            ],
+            "assertions": [
+              "Insights are categorized correctly",
+              "Severity levels are assigned",
+              "Descriptions are generated",
+              "Suggestions are provided"
+            ],
+            "priority": "high",
+            "test_code": "import { InsightGenerator } from '../insightGenerator';\nimport { AnalysisResult } from '../analyzer';\n\ndescribe('InsightGenerator - generateInsights', () => {\n  let generator: InsightGenerator;\n\n  beforeEach(() => {\n    generator = new InsightGenerator();\n  });\n\n  test('should generate insights from analysis with issues', () => {\n    const mockAnalysis: Partial = {\n      godObjects: [\n        {\n          file: 'largeFile.ts',\n          lines: 1500,\n          functions: 75\n        }\n      ],\n      circularDependencies: [\n        {\n          files: ['fileA.ts', 'fileB.ts']\n        }\n      ],\n      complexFunctions: []\n    };\n\n    const insights = generator.generateInsights(mockAnalysis as AnalysisResult);\n\n    expect(insights.length).toBeGreaterThan(0);\n    expect(insights.some(i => i.category === 'organization')).toBe(true);\n    expect(insights.some(i => i.category === 'dependencies')).toBe(true);\n  });\n\n  test('should return empty array for clean analysis', () => {\n    const mockAnalysis: Partial = {\n      godObjects: [],\n      circularDependencies: [],\n      complexFunctions: [],\n      deadCode: []\n    };\n\n    const insights = generator.generateInsights(mockAnalysis as AnalysisResult);\n\n    expect(insights).toEqual([]);\n  });\n\n  test('should assign correct severity levels', () => {\n    const mockAnalysis: Partial = {\n      godObjects: [\n        {\n          file: 'massiveFile.ts',\n          lines: 3000,\n          functions: 150\n        }\n      ]\n    };\n\n    const insights = generator.generateInsights(mockAnalysis as AnalysisResult);\n\n    const godObjectInsight = insights.find(i => i.category === 'organization');\n    expect(godObjectInsight?.severity).toBe('Error');\n  });\n\n  test('should provide actionable suggestions', () => {\n    const mockAnalysis: Partial = {\n      complexFunctions: [\n        {\n          file: 'complex.ts',\n          function: 'processData',\n          complexity: 25,\n          line: 50\n        }\n      ]\n    };\n\n    const insights = generator.generateInsights(mockAnalysis as AnalysisResult);\n\n    const complexityInsight = insights.find(i => i.category === 'complexity');\n    expect(complexityInsight?.suggestion).toContain('refactor');\n  });\n});",
+            "run_instructions": "npm test -- insightGenerator.test.ts -t 'should generate insights from analysis with issues'"
+          }
+        ]
+      },
+      {
+        "id": "error-handler",
+        "name": "Error Handler Tests",
+        "description": "Tests for src/utils/errorHandler.ts covering error classification, user messaging, and recovery strategies",
+        "test_file_path": "src/test/errorHandler.test.ts",
+        "source_files": [
+          "src/utils/errorHandler.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "error-001",
+            "name": "test_classify_error_by_type",
+            "description": "Verifies error handler correctly classifies different error types",
+            "target_function": "classifyError",
+            "target_file": "src/utils/errorHandler.ts",
+            "scenarios": [
+              "Network errors",
+              "API errors",
+              "File system errors",
+              "Parse errors",
+              "Unknown errors"
+            ],
+            "mocks": [
+              "None - pure error classification"
+            ],
+            "assertions": [
+              "Errors are classified correctly",
+              "Error codes are assigned",
+              "User messages are friendly",
+              "Recovery strategies are suggested"
+            ],
+            "priority": "high",
+            "test_code": "import { ErrorHandler, ErrorCategory } from '../utils/errorHandler';\n\ndescribe('ErrorHandler - classifyError', () => {\n  let errorHandler: ErrorHandler;\n\n  beforeEach(() => {\n    errorHandler = new ErrorHandler();\n  });\n\n  test('should classify network timeout error', () => {\n    const error = new Error('Network timeout after 30s');\n    error.name = 'NetworkTimeoutError';\n\n    const classified = errorHandler.classifyError(error);\n\n    expect(classified.category).toBe(ErrorCategory.Network);\n    expect(classified.isRetryable).toBe(true);\n    expect(classified.userMessage).toContain('network');\n  });\n\n  test('should classify API rate limit error', () => {\n    const error = new Error('Rate limit exceeded');\n    error.name = 'RateLimitError';\n\n    const classified = errorHandler.classifyError(error);\n\n    expect(classified.category).toBe(ErrorCategory.RateLimit);\n    expect(classified.isRetryable).toBe(true);\n    expect(classified.retryAfter).toBeGreaterThan(0);\n  });\n\n  test('should classify file system error', () => {\n    const error = new Error('ENOENT: no such file or directory');\n    error.name = 'FileSystemError';\n\n    const classified = errorHandler.classifyError(error);\n\n    expect(classified.category).toBe(ErrorCategory.FileSystem);\n    expect(classified.isRetryable).toBe(false);\n  });\n\n  test('should classify parse error', () => {\n    const error = new SyntaxError('Unexpected token');\n\n    const classified = errorHandler.classifyError(error);\n\n    expect(classified.category).toBe(ErrorCategory.Parse);\n    expect(classified.isRetryable).toBe(false);\n  });\n\n  test('should handle unknown error types', () => {\n    const error = new Error('Unknown error occurred');\n\n    const classified = errorHandler.classifyError(error);\n\n    expect(classified.category).toBe(ErrorCategory.Unknown);\n    expect(classified.userMessage).toBeDefined();\n  });\n});",
+            "run_instructions": "npm test -- errorHandler.test.ts -t 'should classify network timeout error'"
+          },
+          {
+            "id": "error-002",
+            "name": "test_error_recovery_strategies",
+            "description": "Verifies error handler provides appropriate recovery strategies for different error types",
+            "target_function": "getRecoveryStrategy",
+            "target_file": "src/utils/errorHandler.ts",
+            "scenarios": [
+              "Retryable errors",
+              "Non-retryable errors",
+              "Fallback strategies",
+              "User intervention required"
+            ],
+            "mocks": [
+              "None - pure strategy determination"
+            ],
+            "assertions": [
+              "Retry strategy for transient errors",
+              "Fallback for non-critical errors",
+              "User notification for critical errors",
+              "Recovery steps are clear"
+            ],
+            "priority": "medium",
+            "test_code": "import { ErrorHandler, RecoveryStrategy } from '../utils/errorHandler';\n\ndescribe('ErrorHandler - getRecoveryStrategy', () => {\n  let errorHandler: ErrorHandler;\n\n  beforeEach(() => {\n    errorHandler = new ErrorHandler();\n  });\n\n  test('should provide retry strategy for network errors', () => {\n    const error = new Error('Network timeout');\n    const classified = errorHandler.classifyError(error);\n\n    const strategy = errorHandler.getRecoveryStrategy(classified);\n\n    expect(strategy.action).toBe(RecoveryStrategy.Retry);\n    expect(strategy.maxRetries).toBeGreaterThan(0);\n    expect(strategy.backoffMs).toBeGreaterThan(0);\n  });\n\n  test('should provide fallback strategy for API errors', () => {\n    const error = new Error('API unavailable');\n    const classified = errorHandler.classifyError(error);\n\n    const strategy = errorHandler.getRecoveryStrategy(classified);\n\n    expect(strategy.action).toBe(RecoveryStrategy.Fallback);\n    expect(strategy.fallbackAction).toBeDefined();\n  });\n\n  test('should require user intervention for auth errors', () => {\n    const error = new Error('Invalid API key');\n    const classified = errorHandler.classifyError(error);\n\n    const strategy = errorHandler.getRecoveryStrategy(classified);\n\n    expect(strategy.action).toBe(RecoveryStrategy.UserIntervention);\n    expect(strategy.userInstructions).toBeDefined();\n  });\n});",
+            "run_instructions": "npm test -- errorHandler.test.ts -t 'should provide retry strategy for network errors'"
+          }
+        ]
+      },
+      {
+        "id": "configuration-manager",
+        "name": "Configuration Manager Tests",
+        "description": "Tests for src/config/configurationManager.ts covering configuration loading, validation, and change notifications",
+        "test_file_path": "src/test/configurationManager.test.ts",
+        "source_files": [
+          "src/config/configurationManager.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "config-001",
+            "name": "test_load_configuration_with_defaults",
+            "description": "Verifies configuration loads correctly with default values for missing settings",
+            "target_function": "getConfiguration",
+            "target_file": "src/config/configurationManager.ts",
+            "scenarios": [
+              "All settings present",
+              "Some settings missing",
+              "No user configuration",
+              "Invalid configuration values"
+            ],
+            "mocks": [
+              "VS Code workspace configuration"
+            ],
+            "assertions": [
+              "Configuration object is complete",
+              "Default values applied",
+              "Invalid values rejected",
+              "Configuration is validated"
+            ],
+            "priority": "high",
+            "test_code": "import { ConfigurationManager } from '../config/configurationManager';\nimport * as vscode from 'vscode';\n\njest.mock('vscode');\n\ndescribe('ConfigurationManager - getConfiguration', () => {\n  let configManager: ConfigurationManager;\n  let mockWorkspaceConfig: any;\n\n  beforeEach(() => {\n    mockWorkspaceConfig = {\n      get: jest.fn()\n    };\n\n    (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockWorkspaceConfig);\n    configManager = new ConfigurationManager();\n    jest.clearAllMocks();\n  });\n\n  test('should load configuration with all settings present', () => {\n    mockWorkspaceConfig.get.mockImplementation((key: string) => {\n      const config: any = {\n        'shadowWatch.llmProvider': 'openai',\n        'shadowWatch.openaiApiKey': 'test-key',\n        'shadowWatch.analysisThreshold': 500\n      };\n      return config[`shadowWatch.${key}`];\n    });\n\n    const config = configManager.getConfiguration();\n\n    expect(config.llmProvider).toBe('openai');\n    expect(config.openaiApiKey).toBe('test-key');\n    expect(config.analysisThreshold).toBe(500);\n  });\n\n  test('should apply default values for missing settings', () => {\n    mockWorkspaceConfig.get.mockReturnValue(undefined);\n\n    const config = configManager.getConfiguration();\n\n    expect(config.llmProvider).toBeDefined();\n    expect(config.analysisThreshold).toBeDefined();\n  });\n\n  test('should validate configuration values', () => {\n    mockWorkspaceConfig.get.mockImplementation((key: string) => {\n      if (key === 'analysisThreshold') return -100;\n      return undefined;\n    });\n\n    expect(() => configManager.getConfiguration()).toThrow('Invalid configuration');\n  });\n});",
+            "run_instructions": "npm test -- configurationManager.test.ts -t 'should load configuration with all settings present'"
+          }
+        ]
+      },
+      {
+        "id": "incremental-storage",
+        "name": "Incremental Storage Tests",
+        "description": "Tests for src/storage/incrementalStorage.ts covering partial result persistence and retrieval",
+        "test_file_path": "src/test/incrementalStorage.test.ts",
+        "source_files": [
+          "src/storage/incrementalStorage.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "storage-001",
+            "name": "test_save_and_retrieve_partial_results",
+            "description": "Verifies incremental storage can save and retrieve partial analysis results",
+            "target_function": "savePartialResults",
+            "target_file": "src/storage/incrementalStorage.ts",
+            "scenarios": [
+              "Save single file result",
+              "Save multiple partial results",
+              "Retrieve partial results",
+              "Merge partial results"
+            ],
+            "mocks": [
+              "File system write operations",
+              "VS Code workspace storage"
+            ],
+            "assertions": [
+              "Partial results are saved",
+              "Results can be retrieved",
+              "Data integrity maintained",
+              "Concurrent access handled"
+            ],
+            "priority": "high",
+            "test_code": "import { IncrementalStorage } from '../storage/incrementalStorage';\nimport * as fs from 'fs';\n\njest.mock('fs');\n\ndescribe('IncrementalStorage - savePartialResults', () => {\n  let storage: IncrementalStorage;\n  const mockStoragePath = '/mock/storage';\n\n  beforeEach(() => {\n    storage = new IncrementalStorage(mockStoragePath);\n    jest.clearAllMocks();\n  });\n\n  test('should save partial results to storage', async () => {\n    const partialResult = {\n      file: 'test.ts',\n      insights: [{ type: 'warning', message: 'Test warning' }],\n      timestamp: Date.now()\n    };\n\n    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});\n\n    await storage.savePartialResults('test.ts', partialResult);\n\n    expect(fs.writeFileSync).toHaveBeenCalledWith(\n      expect.stringContaining('test.ts'),\n      expect.any(String)\n    );\n  });\n\n  test('should retrieve saved partial results', async () => {\n    const savedResult = {\n      file: 'test.ts',\n      insights: [{ type: 'warning', message: 'Test warning' }],\n      timestamp: Date.now()\n    };\n\n    (fs.existsSync as jest.Mock).mockReturnValue(true);\n    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(savedResult));\n\n    const retrieved = await storage.getPartialResults('test.ts');\n\n    expect(retrieved).toEqual(savedResult);\n  });\n\n  test('should handle missing storage file', async () => {\n    (fs.existsSync as jest.Mock).mockReturnValue(false);\n\n    const result = await storage.getPartialResults('nonexistent.ts');\n\n    expect(result).toBeNull();\n  });\n\n  test('should merge multiple partial results', async () => {\n    const results = [\n      { file: 'file1.ts', insights: [{ type: 'error' }] },\n      { file: 'file2.ts', insights: [{ type: 'warning' }] },\n      { file: 'file3.ts', insights: [{ type: 'info' }] }\n    ];\n\n    const merged = storage.mergePartialResults(results);\n\n    expect(merged.insights).toHaveLength(3);\n    expect(merged.files).toHaveLength(3);\n  });\n});",
+            "run_instructions": "npm test -- incrementalStorage.test.ts -t 'should save partial results to storage'"
+          }
+        ]
+      },
+      {
+        "id": "provider-abstraction",
+        "name": "Provider Abstraction Tests",
+        "description": "Tests for src/ai/providers/providerFactory.ts and provider implementations covering provider selection and API communication",
+        "test_file_path": "src/test/providerFactory.test.ts",
+        "source_files": [
+          "src/ai/providers/providerFactory.ts",
+          "src/ai/providers/openAIProvider.ts",
+          "src/ai/providers/anthropicProvider.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "provider-001",
+            "name": "test_create_provider_by_name",
+            "description": "Verifies provider factory creates correct provider instance based on configuration",
+            "target_function": "createProvider",
+            "target_file": "src/ai/providers/providerFactory.ts",
+            "scenarios": [
+              "Create OpenAI provider",
+              "Create Anthropic provider",
+              "Invalid provider name",
+              "Missing API key"
+            ],
+            "mocks": [
+              "Configuration manager",
+              "API key validation"
+            ],
+            "assertions": [
+              "Correct provider instance created",
+              "Provider is initialized",
+              "API key is validated",
+              "Error on invalid provider"
+            ],
+            "priority": "high",
+            "test_code": "import { ProviderFactory } from '../ai/providers/providerFactory';\nimport { OpenAIProvider } from '../ai/providers/openAIProvider';\nimport { AnthropicProvider } from '../ai/providers/anthropicProvider';\n\njest.mock('../ai/providers/openAIProvider');\njest.mock('../ai/providers/anthropicProvider');\n\ndescribe('ProviderFactory - createProvider', () => {\n  beforeEach(() => {\n    jest.clearAllMocks();\n  });\n\n  test('should create OpenAI provider', () => {\n    const config = {\n      provider: 'openai',\n      apiKey: 'test-openai-key'\n    };\n\n    const provider = ProviderFactory.createProvider(config);\n\n    expect(provider).toBeInstanceOf(OpenAIProvider);\n    expect(OpenAIProvider).toHaveBeenCalledWith('test-openai-key');\n  });\n\n  test('should create Anthropic provider', () => {\n    const config = {\n      provider: 'anthropic',\n      apiKey: 'test-anthropic-key'\n    };\n\n    const provider = ProviderFactory.createProvider(config);\n\n    expect(provider).toBeInstanceOf(AnthropicProvider);\n    expect(AnthropicProvider).toHaveBeenCalledWith('test-anthropic-key');\n  });\n\n  test('should throw error for invalid provider name', () => {\n    const config = {\n      provider: 'invalid-provider',\n      apiKey: 'test-key'\n    };\n\n    expect(() => ProviderFactory.createProvider(config)).toThrow('Unknown provider');\n  });\n\n  test('should throw error for missing API key', () => {\n    const config = {\n      provider: 'openai',\n      apiKey: ''\n    };\n\n    expect(() => ProviderFactory.createProvider(config)).toThrow('API key required');\n  });\n});",
+            "run_instructions": "npm test -- providerFactory.test.ts -t 'should create OpenAI provider'"
+          },
+          {
+            "id": "provider-002",
+            "name": "test_openai_provider_api_call",
+            "description": "Verifies OpenAI provider makes correct API calls and handles responses",
+            "target_function": "generateCompletion",
+            "target_file": "src/ai/providers/openAIProvider.ts",
+            "scenarios": [
+              "Successful API call",
+              "Rate limit error",
+              "Network timeout",
+              "Invalid response"
+            ],
+            "mocks": [
+              "OpenAI SDK client",
+              "HTTP requests"
+            ],
+            "assertions": [
+              "API called with correct parameters",
+              "Response parsed correctly",
+              "Errors handled appropriately",
+              "Token usage tracked"
+            ],
+            "priority": "high",
+            "test_code": "import { OpenAIProvider } from '../ai/providers/openAIProvider';\nimport OpenAI from 'openai';\n\njest.mock('openai');\n\ndescribe('OpenAIProvider - generateCompletion', () => {\n  let provider: OpenAIProvider;\n  let mockOpenAI: jest.Mocked;\n\n  beforeEach(() => {\n    mockOpenAI = {\n      chat: {\n        completions: {\n          create: jest.fn()\n        }\n      }\n    } as any;\n\n    (OpenAI as jest.MockedClass).mockImplementation(() => mockOpenAI);\n    provider = new OpenAIProvider('test-api-key');\n    jest.clearAllMocks();\n  });\n\n  test('should make successful API call', async () => {\n    const mockResponse = {\n      choices: [{ message: { content: 'Test response' } }],\n      usage: { prompt_tokens: 100, completion_tokens: 50 }\n    };\n\n    mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse as any);\n\n    const result = await provider.generateCompletion({\n      prompt: 'Test prompt',\n      model: 'gpt-4',\n      maxTokens: 1000\n    });\n\n    expect(result.content).toBe('Test response');\n    expect(result.usage.prompt_tokens).toBe(100);\n    expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith(\n      expect.objectContaining({\n        model: 'gpt-4',\n        messages: expect.arrayContaining([\n          expect.objectContaining({ content: 'Test prompt' })\n        ])\n      })\n    );\n  });\n\n  test('should handle rate limit error', async () => {\n    const rateLimitError = new Error('Rate limit exceeded');\n    rateLimitError.name = 'RateLimitError';\n\n    mockOpenAI.chat.completions.create.mockRejectedValue(rateLimitError);\n\n    await expect(provider.generateCompletion({\n      prompt: 'Test prompt',\n      model: 'gpt-4'\n    })).rejects.toThrow('Rate limit exceeded');\n  });\n\n  test('should handle network timeout', async () => {\n    const timeoutError = new Error('Request timeout');\n    timeoutError.name = 'TimeoutError';\n\n    mockOpenAI.chat.completions.create.mockRejectedValue(timeoutError);\n\n    await expect(provider.generateCompletion({\n      prompt: 'Test prompt',\n      model: 'gpt-4'\n    })).rejects.toThrow('Request timeout');\n  });\n});",
+            "run_instructions": "npm test -- providerFactory.test.ts -t 'should make successful API call'"
+          }
+        ]
+      },
+      {
+        "id": "insights-tree-view",
+        "name": "Insights Tree View Tests",
+        "description": "Tests for src/insightsTreeView.ts covering tree rendering, navigation, and user interactions",
+        "test_file_path": "src/test/insightsTreeView.test.ts",
+        "source_files": [
+          "src/insightsTreeView.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "tree-001",
+            "name": "test_render_insights_tree_structure",
+            "description": "Verifies tree view renders insights in correct hierarchical structure",
+            "target_function": "getChildren",
+            "target_file": "src/insightsTreeView.ts",
+            "scenarios": [
+              "Empty insights",
+              "Single category",
+              "Multiple categories",
+              "Nested insights"
+            ],
+            "mocks": [
+              "VS Code tree data provider",
+              "Insight data"
+            ],
+            "assertions": [
+              "Tree structure is correct",
+              "Categories are rendered",
+              "Insights are grouped",
+              "Icons are assigned"
+            ],
+            "priority": "medium",
+            "test_code": "import { InsightsTreeView } from '../insightsTreeView';\nimport * as vscode from 'vscode';\n\njest.mock('vscode');\n\ndescribe('InsightsTreeView - getChildren', () => {\n  let treeView: InsightsTreeView;\n\n  beforeEach(() => {\n    treeView = new InsightsTreeView();\n    jest.clearAllMocks();\n  });\n\n  test('should return empty array for no insights', async () => {\n    treeView.updateInsights([]);\n\n    const children = await treeView.getChildren();\n\n    expect(children).toEqual([]);\n  });\n\n  test('should render category nodes for insights', async () => {\n    const mockInsights = [\n      { category: 'dependencies', severity: 'Error', description: 'Circular dependency' },\n      { category: 'complexity', severity: 'Warning', description: 'Complex function' }\n    ];\n\n    treeView.updateInsights(mockInsights);\n\n    const children = await treeView.getChildren();\n\n    expect(children.length).toBe(2);\n    expect(children.some((c: any) => c.label === 'Dependencies')).toBe(true);\n    expect(children.some((c: any) => c.label === 'Complexity')).toBe(true);\n  });\n\n  test('should group insights by category', async () => {\n    const mockInsights = [\n      { category: 'dependencies', severity: 'Error', description: 'Issue 1' },\n      { category: 'dependencies', severity: 'Warning', description: 'Issue 2' },\n      { category: 'complexity', severity: 'Error', description: 'Issue 3' }\n    ];\n\n    treeView.updateInsights(mockInsights);\n\n    const categoryChildren = await treeView.getChildren();\n    const dependencyNode = categoryChildren.find((c: any) => c.label === 'Dependencies');\n    const dependencyInsights = await treeView.getChildren(dependencyNode);\n\n    expect(dependencyInsights.length).toBe(2);\n  });\n});",
+            "run_instructions": "npm test -- insightsTreeView.test.ts -t 'should return empty array for no insights'"
+          }
+        ]
+      },
+      {
+        "id": "extension-bootstrap",
+        "name": "Extension Bootstrap Tests",
+        "description": "Tests for src/extension.ts and src/domain/bootstrap/extensionBootstrapper.ts covering extension activation and initialization",
+        "test_file_path": "src/test/extension.test.ts",
+        "source_files": [
+          "src/extension.ts",
+          "src/domain/bootstrap/extensionBootstrapper.ts"
+        ],
+        "test_cases": [
+          {
+            "id": "bootstrap-001",
+            "name": "test_activate_extension_success",
+            "description": "Verifies extension activates successfully and initializes all services",
+            "target_function": "activate",
+            "target_file": "src/extension.ts",
+            "scenarios": [
+              "First activation",
+              "Activation with saved state",
+              "Activation failure recovery",
+              "Command registration"
+            ],
+            "mocks": [
+              "VS Code extension context",
+              "Service dependencies",
+              "Configuration"
+            ],
+            "assertions": [
+              "All services initialized",
+              "Commands registered",
+              "UI components created",
+              "No errors thrown"
+            ],
+            "priority": "high",
+            "test_code": "import { activate } from '../extension';\nimport * as vscode from 'vscode';\n\njest.mock('vscode');\njest.mock('../analyzer');\njest.mock('../llmIntegration');\njest.mock('../insightsTreeView');\n\ndescribe('Extension - activate', () => {\n  let mockContext: vscode.ExtensionContext;\n\n  beforeEach(() => {\n    mockContext = {\n      subscriptions: [],\n      extensionPath: '/mock/extension/path',\n      globalState: {\n        get: jest.fn(),\n        update: jest.fn()\n      },\n      workspaceState: {\n        get: jest.fn(),\n        update: jest.fn()\n      }\n    } as any;\n\n    jest.clearAllMocks();\n  });\n\n  test('should activate extension successfully', async () => {\n    await activate(mockContext);\n\n    expect(mockContext.subscriptions.length).toBeGreaterThan(0);\n  });\n\n  test('should register all commands', async () => {\n    const mockRegisterCommand = jest.fn();\n    (vscode.commands.registerCommand as jest.Mock) = mockRegisterCommand;\n\n    await activate(mockContext);\n\n    expect(mockRegisterCommand).toHaveBeenCalledWith(\n      'shadowWatch.analyzeWorkspace',\n      expect.any(Function)\n    );\n    expect(mockRegisterCommand).toHaveBeenCalledWith(\n      'shadowWatch.analyzeCurrentFile',\n      expect.any(Function)\n    );\n  });\n\n  test('should handle activation errors gracefully', async () => {\n    const mockError = new Error('Initialization failed');\n    jest.spyOn(console, 'error').mockImplementation();\n\n    (vscode.workspace.getConfiguration as jest.Mock).mockImplementation(() => {\n      throw mockError;\n    });\n\n    await expect(activate(mockContext)).rejects.toThrow('Initialization failed');\n  });\n});",
+            "run_instructions": "npm test -- extension.test.ts -t 'should activate extension successfully'"
+          }
+        ]
+      }
+    ],
+    "read_write_test_suites": [],
+    "user_workflow_test_suites": []
+  }
+}
