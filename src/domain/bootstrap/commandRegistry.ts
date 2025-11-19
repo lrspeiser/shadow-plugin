@@ -26,6 +26,7 @@ export interface CommandHandlers {
     clearAllData: () => Promise<void>;
     showSettings: () => Promise<void>;
     openLatestReport: () => Promise<void>;
+    openLatestUnitTestReport: () => Promise<void>;
     switchProvider: () => Promise<void>;
     copyMenuStructure: () => Promise<void>;
     showProviderStatus: () => Promise<void>;
@@ -106,6 +107,7 @@ export class CommandRegistry {
                 vscode.commands.executeCommand('shadowWatch.insights.focus');
             }),
             vscode.commands.registerCommand('shadowWatch.openLatestReport', handlers.openLatestReport),
+            vscode.commands.registerCommand('shadowWatch.openLatestUnitTestReport', handlers.openLatestUnitTestReport),
             vscode.commands.registerCommand('shadowWatch.openDocsFolder', async () => {
                 if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
                     vscode.window.showErrorMessage('No workspace folder open');

@@ -1,71 +1,108 @@
-import { InsightGenerator } from '../insightGenerator';
+import { generateInsights } from '../insightGenerator';
+import { detectDesignPatterns } from '../insightGenerator';
 
-// Test: test_generateInsights_formatsCorrectly
-// Verifies insight generator formats analysis results into human-readable insights
-import { InsightGenerator } from '../insightGenerator';
+// Test: test_generateInsights_produces_architecture_analysis
+// Verifies insight generation from analysis results
+import { generateInsights } from '../insightGenerator';
 
-describe('InsightGenerator.generateInsights', () => {
-  let generator: InsightGenerator;
-
-  beforeEach(() => {
-    generator = new InsightGenerator();
-  });
-
-  test('formats god object insights correctly', () => {
-    const issues = [
-      {
-        type: 'god-object',
-        filePath: 'src/large.ts',
-        lineCount: 1500,
-        severity: 'error'
+describe('insightGenerator.generateInsights', () => {
+  test('generates insights from analysis results', () => {
+    const analysisResult = {
+      files: [
+        { path: 'src/module1.ts', lines: 500, functions: ['func1', 'func2'] },
+        { path: 'src/module2.ts', lines: 300, functions: ['func3'] }
+      ],
+      issues: [
+        { severity: 'error', category: 'Code Organization', description: 'God object' }
+      ],
+      healthScore: 75,
+      statistics: {
+        totalFiles: 2,
+        totalLines: 800,
+        totalFunctions: 3
       }
-    ];
-
-    const insights = generator.generateInsights(issues);
-
-    expect(insights).toHaveLength(1);
-    expect(insights[0].description).toContain('large');
-    expect(insights[0].severity).toBe('error');
-    expect(insights[0].file).toBe('src/large.ts');
+    };
+    
+    const insights = generateInsights(analysisResult);
+    
+    expect(insights).toHaveProperty('patterns');
+    expect(insights).toHaveProperty('metrics');
+    expect(insights.patterns.length).toBeGreaterThan(0);
   });
 
-  test('formats circular dependency insights', () => {
-    const issues = [
-      {
-        type: 'circular-dependency',
-        cycle: ['src/a.ts', 'src/b.ts', 'src/a.ts'],
-        severity: 'error'
-      }
-    ];
-
-    const insights = generator.generateInsights(issues);
-
-    expect(insights).toHaveLength(1);
-    expect(insights[0].description).toContain('circular');
-    expect(insights[0].description).toContain('src/a.ts');
+  test('detects architecture patterns', () => {
+    const analysisResult = {
+      files: [
+        { path: 'src/controllers/userController.ts', lines: 200, functions: [] },
+        { path: 'src/services/userService.ts', lines: 150, functions: [] },
+        { path: 'src/models/user.ts', lines: 100, functions: [] }
+      ],
+      issues: [],
+      healthScore: 90,
+      statistics: { totalFiles: 3, totalLines: 450, totalFunctions: 0 }
+    };
+    
+    const insights = generateInsights(analysisResult);
+    
+    expect(insights.patterns).toContain(expect.stringMatching(/MVC|layered/i));
   });
 
-  test('formats complexity insights with actionable suggestions', () => {
-    const issues = [
-      {
-        type: 'complexity',
-        filePath: 'src/complex.ts',
-        functionName: 'processData',
-        complexity: 15,
-        severity: 'warning'
-      }
+  test('calculates architecture metrics', () => {
+    const analysisResult = {
+      files: [{ path: 'src/test.ts', lines: 100, functions: [] }],
+      issues: [],
+      healthScore: 100,
+      statistics: { totalFiles: 1, totalLines: 100, totalFunctions: 0 }
+    };
+    
+    const insights = generateInsights(analysisResult);
+    
+    expect(insights.metrics).toHaveProperty('averageFileSize');
+    expect(insights.metrics).toHaveProperty('complexityScore');
+  });
+});
+
+// Test: test_detectDesignPatterns_identifies_common_patterns
+// Verifies design pattern detection from file structure and naming
+import { detectDesignPatterns } from '../insightGenerator';
+
+describe('insightGenerator.detectDesignPatterns', () => {
+  test('detects MVC pattern from file structure', () => {
+    const files = [
+      'src/controllers/homeController.ts',
+      'src/views/homeView.ts',
+      'src/models/home.ts'
     ];
-
-    const insights = generator.generateInsights(issues);
-
-    expect(insights).toHaveLength(1);
-    expect(insights[0].description).toContain('complex');
-    expect(insights[0].severity).toBe('warning');
+    
+    const patterns = detectDesignPatterns(files);
+    
+    expect(patterns).toContain(expect.objectContaining({
+      name: 'MVC',
+      confidence: expect.any(Number)
+    }));
   });
 
-  test('handles empty issues array', () => {
-    const insights = generator.generateInsights([]);
+  test('detects factory pattern from naming', () => {
+    const files = [
+      'src/factories/userFactory.ts',
+      'src/factories/productFactory.ts'
+    ];
+    
+    const patterns = detectDesignPatterns(files);
+    
+    expect(patterns).toContain(expect.objectContaining({
+      name: expect.stringMatching(/factory/i)
+    }));
+  });
 
-    expect(insights).toHaveLength(0);
+  test('returns empty array for unstructured codebase', () => {
+    const files = [
+      'src/random1.ts',
+      'src/random2.ts'
+    ];
+    
+    const patterns = detectDesignPatterns(files);
+    
+    expect(patterns.length).toBe(0);
   });
 });

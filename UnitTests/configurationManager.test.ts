@@ -1,58 +1,54 @@
-import { ConfigurationManager } from '../config/configurationManager';
+import { ConfigurationManager } from '../../config/configurationManager';
 import * as vscode from 'vscode';
 
-// Test: test_configManager_retrievesSettings
-// Verifies configuration manager retrieves settings correctly
-import { ConfigurationManager } from '../config/configurationManager';
+// Test: test_getActiveProvider_returns_configured_provider
+// Verifies configuration manager returns active AI provider setting
+import { ConfigurationManager } from '../../config/configurationManager';
 import * as vscode from 'vscode';
 
 jest.mock('vscode');
 
-const mockWorkspace = {
-  getConfiguration: jest.fn().mockReturnValue({
-    get: jest.fn((key: string, defaultValue: any) => {
-      const config: any = {
-        'shadowWatch.provider': 'openai',
-        'shadowWatch.openaiApiKey': 'test-key',
-        'shadowWatch.maxTokens': 4000
-      };
-      return config[key] || defaultValue;
-    })
-  })
-};
-
-(vscode.workspace as any) = mockWorkspace;
-
-describe('ConfigurationManager', () => {
+describe('ConfigurationManager.getActiveProvider', () => {
   let configManager: ConfigurationManager;
+  let mockConfig: any;
 
   beforeEach(() => {
-    configManager = ConfigurationManager.getInstance();
-    jest.clearAllMocks();
+    mockConfig = {
+      get: jest.fn()
+    };
+    
+    (vscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue(mockConfig);
+    
+    configManager = new ConfigurationManager();
   });
 
-  test('retrieves provider setting correctly', () => {
-    const provider = configManager.getCurrentProvider();
-
+  test('returns OpenAI when configured', () => {
+    mockConfig.get.mockReturnValue('openai');
+    
+    const provider = configManager.getActiveProvider();
+    
     expect(provider).toBe('openai');
   });
 
-  test('retrieves API key correctly', () => {
-    const apiKey = configManager.getOpenAIKey();
-
-    expect(apiKey).toBe('test-key');
+  test('returns Anthropic when configured', () => {
+    mockConfig.get.mockReturnValue('anthropic');
+    
+    const provider = configManager.getActiveProvider();
+    
+    expect(provider).toBe('anthropic');
   });
 
-  test('returns default when setting not configured', () => {
-    const maxTokens = configManager.getMaxTokens();
-
-    expect(maxTokens).toBeDefined();
-    expect(typeof maxTokens).toBe('number');
+  test('returns default provider when not configured', () => {
+    mockConfig.get.mockReturnValue(undefined);
+    
+    const provider = configManager.getActiveProvider();
+    
+    expect(provider).toBe('openai');
   });
 
-  test('validates configuration values', () => {
-    const isValid = configManager.validateConfiguration();
-
-    expect(typeof isValid).toBe('boolean');
+  test('validates provider name', () => {
+    mockConfig.get.mockReturnValue('invalid-provider');
+    
+    expect(() => configManager.getActiveProvider()).toThrow();
   });
 });

@@ -1,55 +1,65 @@
-import { LLMRetryHandler } from '../ai/llmRetryHandler';
+import { RetryHandler } from '../ai/llmRetryHandler';
 
-// Test: test_retryHandler_retriesTransientFailures
-// Verifies retry handler retries transient failures appropriately
-import { LLMRetryHandler } from '../ai/llmRetryHandler';
+// Test: test_retry_handles_transient_failures
+// Verifies retry handler retries transient failures with backoff
+import { RetryHandler } from '../ai/llmRetryHandler';
 
-describe('LLMRetryHandler.executeWithRetry', () => {
-  let retryHandler: LLMRetryHandler;
+jest.useFakeTimers();
+
+describe('RetryHandler - retry', () => {
+  let retryHandler: RetryHandler;
 
   beforeEach(() => {
-    retryHandler = new LLMRetryHandler({ maxRetries: 3, initialDelay: 100 });
-  });
-
-  test('retries on transient network errors', async () => {
-    let attempts = 0;
-    const operation = jest.fn(async () => {
-      attempts++;
-      if (attempts  {
-    const operation = jest.fn(async () => {
-      throw new Error('Persistent error');
-    });
-
-    await expect(retryHandler.executeWithRetry(operation)).rejects.toThrow('Persistent error');
-    expect(operation).toHaveBeenCalledTimes(4);
+    retryHandler = new RetryHandler(3, 100);
+    jest.clearAllTimers();
   });
 
   test('succeeds on first attempt without retry', async () => {
-    const operation = jest.fn(async () => 'immediate success');
+    const operation = jest.fn().mockResolvedValue('success');
 
-    const result = await retryHandler.executeWithRetry(operation);
+    const result = await retryHandler.retry(operation);
 
-    expect(result).toBe('immediate success');
+    expect(result).toBe('success');
     expect(operation).toHaveBeenCalledTimes(1);
   });
 
-  test('applies exponential backoff between retries', async () => {
-    let attempts = 0;
-    const timestamps: number[] = [];
-    const operation = jest.fn(async () => {
-      timestamps.push(Date.now());
-      attempts++;
-      if (attempts < 3) {
-        throw new Error('Retry me');
-      }
-      return 'success';
-    });
+  test('retries on transient failure', async () => {
+    const operation = jest.fn()
+      .mockRejectedValueOnce(new Error('Transient failure'))
+      .mockResolvedValue('success');
 
-    await retryHandler.executeWithRetry(operation);
+    const promise = retryHandler.retry(operation);
+    jest.advanceTimersByTime(200);
+    const result = await promise;
 
-    expect(timestamps.length).toBe(3);
-    const delay1 = timestamps[1] - timestamps[0];
-    const delay2 = timestamps[2] - timestamps[1];
-    expect(delay2).toBeGreaterThan(delay1);
+    expect(result).toBe('success');
+    expect(operation).toHaveBeenCalledTimes(2);
+  });
+
+  test('throws after max retries exceeded', async () => {
+    const operation = jest.fn().mockRejectedValue(new Error('Persistent failure'));
+
+    const promise = retryHandler.retry(operation);
+    jest.advanceTimersByTime(1000);
+
+    await expect(promise).rejects.toThrow('Persistent failure');
+    expect(operation).toHaveBeenCalledTimes(4);
+  });
+
+  test('uses exponential backoff', async () => {
+    const operation = jest.fn()
+      .mockRejectedValueOnce(new Error('Fail 1'))
+      .mockRejectedValueOnce(new Error('Fail 2'))
+      .mockResolvedValue('success');
+
+    const promise = retryHandler.retry(operation);
+
+    jest.advanceTimersByTime(100);
+    expect(operation).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(200);
+    expect(operation).toHaveBeenCalledTimes(3);
+
+    await promise;
   });
 });

@@ -105,6 +105,7 @@ function createCommandHandlers(components: ExtensionComponents): CommandHandlers
         clearAllData: () => clearAllData(),
         showSettings: () => showSettings(),
         openLatestReport: () => openLatestReport(),
+        openLatestUnitTestReport: () => openLatestUnitTestReport(),
         switchProvider: () => switchProvider(),
         copyMenuStructure: () => copyMenuStructure(),
         showProviderStatus: () => showProviderStatus(),
@@ -641,6 +642,10 @@ function getSettingsHtml(currentProvider: string): string {
 }
 
 async function openLatestReport(): Promise<void> {
+    const { getStateManager } = await import('./state/llmStateManager');
+    const stateManager = getStateManager();
+    const treeProvider = stateManager.getTreeProvider();
+    
     if (!treeProvider) {
         vscode.window.showErrorMessage('Tree provider not initialized');
         return;
@@ -664,6 +669,37 @@ async function openLatestReport(): Promise<void> {
         await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to open report: ${error}`);
+    }
+}
+
+async function openLatestUnitTestReport(): Promise<void> {
+    const { getStateManager } = await import('./state/llmStateManager');
+    const stateManager = getStateManager();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!treeProvider) {
+        vscode.window.showErrorMessage('Tree provider not initialized');
+        return;
+    }
+
+    const reportPath = treeProvider.getUnitTestReportPath();
+    if (!reportPath) {
+        vscode.window.showWarningMessage('No unit test report found. Run unit tests first to generate a report.');
+        return;
+    }
+
+    const fs = require('fs');
+    if (!fs.existsSync(reportPath)) {
+        vscode.window.showWarningMessage('Unit test report file not found. It may have been deleted.');
+        return;
+    }
+
+    try {
+        const reportUri = vscode.Uri.file(reportPath);
+        const document = await vscode.workspace.openTextDocument(reportUri);
+        await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to open unit test report: ${error}`);
     }
 }
 

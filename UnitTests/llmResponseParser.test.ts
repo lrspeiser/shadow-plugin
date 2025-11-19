@@ -1,77 +1,141 @@
-import { LLMResponseParser } from '../ai/llmResponseParser';
+import { parseProductDocsResponse } from '../../ai/llmResponseParser';
+import { parseArchitectureInsights } from '../../ai/llmResponseParser';
 
-// Test: test_parseResponse_validatesAgainstSchema
-// Verifies parser validates responses against provided JSON schemas
-import { LLMResponseParser } from '../ai/llmResponseParser';
+// Test: test_parseProductDocsResponse_validates_schema
+// Verifies parseProductDocsResponse correctly parses and validates AI-generated product documentation against schema
+import { parseProductDocsResponse } from '../../ai/llmResponseParser';
 
-describe('LLMResponseParser.parseResponse', () => {
-  let parser: LLMResponseParser;
-
-  beforeEach(() => {
-    parser = new LLMResponseParser();
+describe('parseProductDocsResponse', () => {
+  it('parses valid product documentation JSON', () => {
+    const validResponse = JSON.stringify({
+      overview: 'Product overview text',
+      features: ['Feature 1', 'Feature 2'],
+      userWorkflows: ['Workflow 1'],
+      architecture: 'Architecture description'
+    });
+    
+    const result = parseProductDocsResponse(validResponse);
+    
+    expect(result.overview).toBe('Product overview text');
+    expect(result.features).toHaveLength(2);
+    expect(result.features[0]).toBe('Feature 1');
+    expect(result.architecture).toBe('Architecture description');
   });
-
-  test('validates response against schema successfully', () => {
-    const schema = {
-      type: 'object',
-      properties: {
-        result: { type: 'string' },
-        count: { type: 'number' }
-      },
-      required: ['result']
-    };
-    const response = { result: 'success', count: 42 };
-
-    const parsed = parser.parseResponse(JSON.stringify(response), schema);
-
-    expect(parsed.result).toBe('success');
-    expect(parsed.count).toBe(42);
+  
+  it('throws error for malformed JSON', () => {
+    const malformedResponse = '{ invalid json';
+    
+    expect(() => parseProductDocsResponse(malformedResponse)).toThrow();
   });
-
-  test('rejects response with missing required fields', () => {
-    const schema = {
-      type: 'object',
-      properties: {
-        required_field: { type: 'string' }
-      },
-      required: ['required_field']
-    };
-    const response = { optional_field: 'value' };
-
-    expect(() => parser.parseResponse(JSON.stringify(response), schema)).toThrow();
+  
+  it('validates required fields are present', () => {
+    const missingFields = JSON.stringify({
+      overview: 'Overview only'
+    });
+    
+    expect(() => parseProductDocsResponse(missingFields)).toThrow(
+      expect.stringContaining('required')
+    );
   });
-
-  test('rejects response with wrong types', () => {
-    const schema = {
-      type: 'object',
-      properties: {
-        count: { type: 'number' }
-      },
-      required: ['count']
-    };
-    const response = { count: 'not a number' };
-
-    expect(() => parser.parseResponse(JSON.stringify(response), schema)).toThrow();
+  
+  it('handles optional fields gracefully', () => {
+    const minimalValid = JSON.stringify({
+      overview: 'Overview',
+      features: [],
+      userWorkflows: [],
+      architecture: 'Arch'
+    });
+    
+    const result = parseProductDocsResponse(minimalValid);
+    
+    expect(result.features).toEqual([]);
+    expect(result.userWorkflows).toEqual([]);
   });
+  
+  it('extracts nested documentation sections', () => {
+    const nestedResponse = JSON.stringify({
+      overview: 'Overview',
+      features: [
+        { name: 'Feature A', description: 'Desc A' },
+        { name: 'Feature B', description: 'Desc B' }
+      ],
+      userWorkflows: ['Workflow'],
+      architecture: 'Arch'
+    });
+    
+    const result = parseProductDocsResponse(nestedResponse);
+    
+    expect(result.features[0]).toHaveProperty('name');
+    expect(result.features[0]).toHaveProperty('description');
+  });
+});
 
-  test('handles nested object validation', () => {
-    const schema = {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'object',
-          properties: {
-            nested: { type: 'string' }
-          },
-          required: ['nested']
+// Test: test_parseArchitectureInsights_validates_patterns
+// Verifies parseArchitectureInsights correctly parses AI-generated architecture analysis
+import { parseArchitectureInsights } from '../../ai/llmResponseParser';
+
+describe('parseArchitectureInsights', () => {
+  it('parses valid architecture insights JSON', () => {
+    const validResponse = JSON.stringify({
+      patterns: [
+        { name: 'MVC', confidence: 0.9 },
+        { name: 'Repository', confidence: 0.8 }
+      ],
+      issues: ['Tight coupling in module A'],
+      recommendations: ['Implement dependency injection']
+    });
+    
+    const result = parseArchitectureInsights(validResponse);
+    
+    expect(result.patterns).toHaveLength(2);
+    expect(result.patterns[0].name).toBe('MVC');
+    expect(result.patterns[0].confidence).toBe(0.9);
+    expect(result.issues).toContain('Tight coupling in module A');
+  });
+  
+  it('handles empty insights response', () => {
+    const emptyResponse = JSON.stringify({
+      patterns: [],
+      issues: [],
+      recommendations: []
+    });
+    
+    const result = parseArchitectureInsights(emptyResponse);
+    
+    expect(result.patterns).toEqual([]);
+    expect(result.issues).toEqual([]);
+    expect(result.recommendations).toEqual([]);
+  });
+  
+  it('validates pattern confidence values', () => {
+    const invalidConfidence = JSON.stringify({
+      patterns: [{ name: 'MVC', confidence: 1.5 }],
+      issues: [],
+      recommendations: []
+    });
+    
+    expect(() => parseArchitectureInsights(invalidConfidence)).toThrow(
+      expect.stringContaining('confidence')
+    );
+  });
+  
+  it('extracts detailed recommendations', () => {
+    const detailedResponse = JSON.stringify({
+      patterns: [],
+      issues: [],
+      recommendations: [
+        {
+          priority: 'high',
+          description: 'Extract service layer',
+          rationale: 'Improve testability'
         }
-      },
-      required: ['data']
-    };
-    const response = { data: { nested: 'value' } };
-
-    const parsed = parser.parseResponse(JSON.stringify(response), schema);
-
-    expect(parsed.data.nested).toBe('value');
+      ]
+    });
+    
+    const result = parseArchitectureInsights(detailedResponse);
+    
+    expect(result.recommendations[0]).toHaveProperty('priority');
+    expect(result.recommendations[0]).toHaveProperty('description');
+    expect(result.recommendations[0]).toHaveProperty('rationale');
   });
 });

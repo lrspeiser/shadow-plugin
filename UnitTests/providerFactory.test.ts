@@ -1,54 +1,50 @@
-import { ProviderFactory } from '../ai/providers/providerFactory';
-import { ConfigurationManager } from '../config/configurationManager';
+import { createProvider } from '../../../ai/providers/providerFactory';
+import { OpenAIProvider } from '../../../ai/providers/openAIProvider';
+import { AnthropicProvider } from '../../../ai/providers/anthropicProvider';
+import { ConfigurationManager } from '../../../config/configurationManager';
 
-// Test: test_createProvider_returnsCorrectProvider
-// Verifies factory creates correct provider based on configuration
-import { ProviderFactory } from '../ai/providers/providerFactory';
-import { ConfigurationManager } from '../config/configurationManager';
+// Test: test_createProvider_instantiates_correct_provider
+// Verifies provider factory creates correct provider instance based on configuration
+import { createProvider } from '../../../ai/providers/providerFactory';
+import { OpenAIProvider } from '../../../ai/providers/openAIProvider';
+import { AnthropicProvider } from '../../../ai/providers/anthropicProvider';
+import { ConfigurationManager } from '../../../config/configurationManager';
 
-jest.mock('../config/configurationManager');
+jest.mock('../../../config/configurationManager');
 
-const mockConfig = {
-  getCurrentProvider: jest.fn(),
-  getOpenAIKey: jest.fn().mockReturnValue('test-key'),
-  getClaudeKey: jest.fn().mockReturnValue('test-key'),
-  getMaxTokens: jest.fn().mockReturnValue(4000)
-} as any;
+describe('providerFactory.createProvider', () => {
+  let mockConfig: jest.Mocked;
 
-describe('ProviderFactory.createProvider', () => {
   beforeEach(() => {
-    (ConfigurationManager.getInstance as jest.Mock).mockReturnValue(mockConfig);
-    jest.clearAllMocks();
+    mockConfig = {
+      getOpenAIApiKey: jest.fn().mockReturnValue('test-key'),
+      getClaudeApiKey: jest.fn().mockReturnValue('test-key'),
+      getCustomEndpoint: jest.fn().mockReturnValue('https://api.example.com')
+    } as any;
   });
 
   test('creates OpenAI provider when configured', () => {
-    mockConfig.getCurrentProvider.mockReturnValue('openai');
-
-    const provider = ProviderFactory.createProvider();
-
-    expect(provider).toBeDefined();
+    const provider = createProvider('openai', mockConfig);
+    
+    expect(provider).toBeInstanceOf(OpenAIProvider);
     expect(provider.getName()).toBe('openai');
   });
 
   test('creates Anthropic provider when configured', () => {
-    mockConfig.getCurrentProvider.mockReturnValue('anthropic');
-
-    const provider = ProviderFactory.createProvider();
-
-    expect(provider).toBeDefined();
+    const provider = createProvider('anthropic', mockConfig);
+    
+    expect(provider).toBeInstanceOf(AnthropicProvider);
     expect(provider.getName()).toBe('anthropic');
   });
 
-  test('throws error for unknown provider', () => {
-    mockConfig.getCurrentProvider.mockReturnValue('unknown-provider');
-
-    expect(() => ProviderFactory.createProvider()).toThrow();
+  test('throws error for invalid provider name', () => {
+    expect(() => createProvider('invalid-provider', mockConfig)).toThrow();
   });
 
-  test('validates configuration before creating provider', () => {
-    mockConfig.getCurrentProvider.mockReturnValue('openai');
-    mockConfig.getOpenAIKey.mockReturnValue('');
-
-    expect(() => ProviderFactory.createProvider()).toThrow();
+  test('passes configuration to provider', () => {
+    const provider = createProvider('openai', mockConfig);
+    
+    expect(mockConfig.getOpenAIApiKey).toHaveBeenCalled();
+    expect(provider.isConfigured()).toBe(true);
   });
 });

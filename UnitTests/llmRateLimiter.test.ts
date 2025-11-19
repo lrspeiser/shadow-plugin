@@ -1,35 +1,49 @@
-import { LLMRateLimiter } from '../ai/llmRateLimiter';
+import { RateLimiter } from '../ai/llmRateLimiter';
 
-// Test: test_rateLimiter_throttlesRequests
-// Verifies rate limiter properly throttles API requests
-import { LLMRateLimiter } from '../ai/llmRateLimiter';
+// Test: test_acquire_enforces_limits
+// Verifies rate limiter enforces request limits per time window
+import { RateLimiter } from '../ai/llmRateLimiter';
 
-describe('LLMRateLimiter.throttle', () => {
-  let rateLimiter: LLMRateLimiter;
+jest.useFakeTimers();
+
+describe('RateLimiter - acquire', () => {
+  let rateLimiter: RateLimiter;
 
   beforeEach(() => {
-    rateLimiter = new LLMRateLimiter({ requestsPerMinute: 10, tokensPerMinute: 100000 });
+    rateLimiter = new RateLimiter(3, 1000);
+    jest.clearAllTimers();
   });
 
-  test('allows requests when under limit', async () => {
-    const start = Date.now();
+  test('allows requests under limit', async () => {
+    const promise1 = rateLimiter.acquire();
+    const promise2 = rateLimiter.acquire();
+    const promise3 = rateLimiter.acquire();
 
-    await rateLimiter.throttle();
-
-    const duration = Date.now() - start;
-    expect(duration).toBeLessThan(100);
+    await expect(promise1).resolves.toBeUndefined();
+    await expect(promise2).resolves.toBeUndefined();
+    await expect(promise3).resolves.toBeUndefined();
   });
 
-  test('tracks request count correctly', async () => {
-    for (let i = 0; i  {
-    const limit = 3;
-    const limiter = new LLMRateLimiter({ requestsPerMinute: limit, tokensPerMinute: 100000 });
+  test('delays requests over limit', async () => {
+    await rateLimiter.acquire();
+    await rateLimiter.acquire();
+    await rateLimiter.acquire();
 
-    for (let i = 0; i  {
-    await rateLimiter.throttle(1000);
-    await rateLimiter.throttle(2000);
+    const promise4 = rateLimiter.acquire();
+    expect(promise4).toBeInstanceOf(Promise);
 
-    const stats = rateLimiter.getStats();
-    expect(stats.tokenCount).toBe(3000);
+    jest.advanceTimersByTime(1000);
+    await expect(promise4).resolves.toBeUndefined();
+  });
+
+  test('resets limit after time window', async () => {
+    await rateLimiter.acquire();
+    await rateLimiter.acquire();
+    await rateLimiter.acquire();
+
+    jest.advanceTimersByTime(1100);
+
+    const promise = rateLimiter.acquire();
+    await expect(promise).resolves.toBeUndefined();
   });
 });

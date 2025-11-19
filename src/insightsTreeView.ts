@@ -19,6 +19,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
     private analysisTimestamp: number | null = null;
     private reportPath: string | null = null;
     private reportTimestamp: number | null = null;
+    private unitTestReportPath: string | null = null;
+    private unitTestReportTimestamp: number | null = null;
     private staticAnalysisViewer: any = null;
 
     constructor(
@@ -108,6 +110,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             analysisTimestamp?: number;
             reportPath?: string;
             reportTimestamp?: number;
+            unitTestReportPath?: string;
+            unitTestReportTimestamp?: number;
             productDocsStatus?: 'idle' | 'generating' | 'complete';
             insightsStatus?: 'idle' | 'generating' | 'complete';
             analysisStatus?: 'idle' | 'complete';
@@ -119,6 +123,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             this.analysisTimestamp = saved.analysisTimestamp || null;
             this.reportPath = saved.reportPath || null;
             this.reportTimestamp = saved.reportTimestamp || null;
+            this.unitTestReportPath = saved.unitTestReportPath || null;
+            this.unitTestReportTimestamp = saved.unitTestReportTimestamp || null;
             if (saved.productDocsStatus) this.productDocsStatus = saved.productDocsStatus;
             if (saved.insightsStatus) this.insightsStatus = saved.insightsStatus;
             if (saved.analysisStatus) this.analysisStatus = saved.analysisStatus;
@@ -282,6 +288,8 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             analysisTimestamp: this.analysisTimestamp,
             reportPath: this.reportPath,
             reportTimestamp: this.reportTimestamp,
+            unitTestReportPath: this.unitTestReportPath,
+            unitTestReportTimestamp: this.unitTestReportTimestamp,
             productDocsStatus: this.productDocsStatus,
             insightsStatus: this.insightsStatus,
             analysisStatus: this.analysisStatus
@@ -304,6 +312,17 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
     getReportPath(): string | null {
         return this.reportPath;
+    }
+
+    setUnitTestReportPath(reportPath: string): void {
+        this.unitTestReportPath = reportPath;
+        this.unitTestReportTimestamp = Date.now();
+        this.savePersistedState();
+        this.refresh();
+    }
+
+    getUnitTestReportPath(): string | null {
+        return this.unitTestReportPath;
     }
 
     private getWorkspaceKey(): string | null {
@@ -527,6 +546,23 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
                     title: 'Open Latest Report'
                 };
                 items.push(openReportBtn);
+            }
+        }
+
+        // Open Latest Unit Test Report button (if report exists)
+        if (this.unitTestReportPath) {
+            const fs = require('fs');
+            if (fs.existsSync(this.unitTestReportPath)) {
+                const openUnitTestReportBtn = new TreeItem('📊 Open Latest Unit Test Report', vscode.TreeItemCollapsibleState.None);
+                openUnitTestReportBtn.type = 'action';
+                openUnitTestReportBtn.iconPath = new vscode.ThemeIcon('beaker');
+                const lastRun = this.formatTimestamp(this.unitTestReportTimestamp);
+                openUnitTestReportBtn.description = lastRun ? `Last run: ${lastRun}` : 'Click to open';
+                openUnitTestReportBtn.command = {
+                    command: 'shadowWatch.openLatestUnitTestReport',
+                    title: 'Open Latest Unit Test Report'
+                };
+                items.push(openUnitTestReportBtn);
             }
         }
 

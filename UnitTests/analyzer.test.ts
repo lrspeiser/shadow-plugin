@@ -1,224 +1,259 @@
 import { Analyzer } from '../analyzer';
+import { Cache } from '../cache';
 import * as fs from 'fs';
 
-// Test: test_detectGodObjects_identifiesLargeFiles
-// Verifies detectGodObjects correctly identifies files exceeding line count threshold as god objects
+// Test: test_detectGodObjects_identifies_large_files
+// Verifies that detectGodObjects correctly identifies files exceeding line threshold as god objects
+import { Analyzer } from '../analyzer';
+import { Cache } from '../cache';
+import * as fs from 'fs';
+
+jest.mock('fs');
+jest.mock('../cache');
+
+describe('Analyzer.detectGodObjects', () => {
+  let analyzer: Analyzer;
+  let mockCache: jest.Mocked;
+
+  beforeEach(() => {
+    mockCache = new Cache('test') as jest.Mocked;
+    mockCache.get = jest.fn().mockReturnValue(null);
+    mockCache.set = jest.fn();
+    analyzer = new Analyzer('test-workspace');
+  });
+
+  test('identifies files exceeding line threshold as god objects', () => {
+    const files = [
+      { path: 'src/large.ts', lines: 1500, functions: [] },
+      { path: 'src/small.ts', lines: 100, functions: [] }
+    ];
+    const godObjects = analyzer.detectGodObjects(files, 1000);
+    
+    expect(godObjects.length).toBe(1);
+    expect(godObjects[0].file).toBe('src/large.ts');
+    expect(godObjects[0].severity).toBe('error');
+    expect(godObjects[0].category).toBe('Code Organization');
+  });
+
+  test('returns empty array when no files exceed threshold', () => {
+    const files = [
+      { path: 'src/small1.ts', lines: 100, functions: [] },
+      { path: 'src/small2.ts', lines: 200, functions: [] }
+    ];
+    const godObjects = analyzer.detectGodObjects(files, 1000);
+    
+    expect(godObjects.length).toBe(0);
+  });
+
+  test('handles empty file list', () => {
+    const files: any[] = [];
+    const godObjects = analyzer.detectGodObjects(files, 1000);
+    
+    expect(godObjects).toEqual([]);
+  });
+});
+
+// Test: test_findCircularDependencies_detects_cycles
+// Verifies circular dependency detection correctly identifies import cycles between modules
 import { Analyzer } from '../analyzer';
 import * as fs from 'fs';
 
 jest.mock('fs');
 
-const mockFs = fs as jest.Mocked;
-
-describe('Analyzer.detectGodObjects', () => {
-  let analyzer: Analyzer;
-
-  beforeEach(() => {
-    analyzer = new Analyzer();
-    jest.clearAllMocks();
-  });
-
-  test('identifies files exceeding line count threshold', () => {
-    const mockFileAnalysis = [
-      { filePath: '/src/large.ts', lineCount: 1000, functions: [], imports: [], exports: [] },
-      { filePath: '/src/small.ts', lineCount: 300, functions: [], imports: [], exports: [] },
-      { filePath: '/src/empty.ts', lineCount: 0, functions: [], imports: [], exports: [] }
-    ];
-
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue('mock content');
-
-    const result = analyzer.detectGodObjects(mockFileAnalysis);
-
-    expect(result).toHaveLength(1);
-    expect(result[0].filePath).toBe('/src/large.ts');
-    expect(result[0].lineCount).toBe(1000);
-    expect(result[0].severity).toBe('error');
-  });
-
-  test('returns empty array when no files exceed threshold', () => {
-    const mockFileAnalysis = [
-      { filePath: '/src/small1.ts', lineCount: 100, functions: [], imports: [], exports: [] },
-      { filePath: '/src/small2.ts', lineCount: 200, functions: [], imports: [], exports: [] }
-    ];
-
-    const result = analyzer.detectGodObjects(mockFileAnalysis);
-
-    expect(result).toHaveLength(0);
-  });
-
-  test('handles empty file analysis array', () => {
-    const result = analyzer.detectGodObjects([]);
-
-    expect(result).toHaveLength(0);
-  });
-});
-
-// Test: test_findCircularDependencies_detectsCycles
-// Verifies findCircularDependencies correctly identifies circular import chains
-import { Analyzer } from '../analyzer';
-
 describe('Analyzer.findCircularDependencies', () => {
   let analyzer: Analyzer;
 
   beforeEach(() => {
-    analyzer = new Analyzer();
+    analyzer = new Analyzer('test-workspace');
   });
 
-  test('detects simple A->B->A circular dependency', () => {
-    const mockFileAnalysis = [
-      { filePath: '/src/a.ts', imports: ['/src/b.ts'], exports: [], functions: [], lineCount: 10 },
-      { filePath: '/src/b.ts', imports: ['/src/a.ts'], exports: [], functions: [], lineCount: 10 }
-    ];
-
-    const result = analyzer.findCircularDependencies(mockFileAnalysis);
-
-    expect(result.length).toBeGreaterThan(0);
-    expect(result[0].cycle).toContain('/src/a.ts');
-    expect(result[0].cycle).toContain('/src/b.ts');
-    expect(result[0].severity).toBe('error');
+  test('detects direct circular dependency', () => {
+    const dependencyGraph = {
+      'moduleA.ts': ['moduleB.ts'],
+      'moduleB.ts': ['moduleA.ts']
+    };
+    const cycles = analyzer.findCircularDependencies(dependencyGraph);
+    
+    expect(cycles.length).toBeGreaterThan(0);
+    expect(cycles[0].severity).toBe('warning');
+    expect(cycles[0].category).toBe('Dependencies');
   });
 
-  test('detects complex A->B->C->A circular dependency', () => {
-    const mockFileAnalysis = [
-      { filePath: '/src/a.ts', imports: ['/src/b.ts'], exports: [], functions: [], lineCount: 10 },
-      { filePath: '/src/b.ts', imports: ['/src/c.ts'], exports: [], functions: [], lineCount: 10 },
-      { filePath: '/src/c.ts', imports: ['/src/a.ts'], exports: [], functions: [], lineCount: 10 }
-    ];
-
-    const result = analyzer.findCircularDependencies(mockFileAnalysis);
-
-    expect(result.length).toBeGreaterThan(0);
-    const cycle = result[0].cycle;
-    expect(cycle).toContain('/src/a.ts');
-    expect(cycle).toContain('/src/b.ts');
-    expect(cycle).toContain('/src/c.ts');
+  test('detects transitive circular dependency', () => {
+    const dependencyGraph = {
+      'moduleA.ts': ['moduleB.ts'],
+      'moduleB.ts': ['moduleC.ts'],
+      'moduleC.ts': ['moduleA.ts']
+    };
+    const cycles = analyzer.findCircularDependencies(dependencyGraph);
+    
+    expect(cycles.length).toBeGreaterThan(0);
   });
 
-  test('returns empty array when no circular dependencies exist', () => {
-    const mockFileAnalysis = [
-      { filePath: '/src/a.ts', imports: ['/src/b.ts'], exports: [], functions: [], lineCount: 10 },
-      { filePath: '/src/b.ts', imports: [], exports: [], functions: [], lineCount: 10 }
-    ];
-
-    const result = analyzer.findCircularDependencies(mockFileAnalysis);
-
-    expect(result).toHaveLength(0);
+  test('returns empty array for acyclic graph', () => {
+    const dependencyGraph = {
+      'moduleA.ts': ['moduleB.ts'],
+      'moduleB.ts': ['moduleC.ts'],
+      'moduleC.ts': []
+    };
+    const cycles = analyzer.findCircularDependencies(dependencyGraph);
+    
+    expect(cycles).toEqual([]);
   });
 });
 
-// Test: test_calculateComplexity_computesCyclomaticComplexity
-// Verifies calculateComplexity correctly computes cyclomatic complexity for functions
+// Test: test_identifyDeadCode_finds_unused_functions
+// Verifies dead code detection identifies unused functions, classes, and imports
 import { Analyzer } from '../analyzer';
+
+jest.mock('fs');
+
+describe('Analyzer.identifyDeadCode', () => {
+  let analyzer: Analyzer;
+
+  beforeEach(() => {
+    analyzer = new Analyzer('test-workspace');
+  });
+
+  test('identifies unused exported functions', () => {
+    const codebase = {
+      files: [
+        { path: 'src/utils.ts', functions: [{ name: 'unusedHelper', line: 10, references: 0 }] }
+      ]
+    };
+    const deadCode = analyzer.identifyDeadCode(codebase);
+    
+    expect(deadCode.length).toBeGreaterThan(0);
+    expect(deadCode[0].description).toContain('unusedHelper');
+    expect(deadCode[0].severity).toBe('info');
+    expect(deadCode[0].category).toBe('Dead Code');
+  });
+
+  test('excludes functions with references', () => {
+    const codebase = {
+      files: [
+        { path: 'src/utils.ts', functions: [{ name: 'usedHelper', line: 10, references: 5 }] }
+      ]
+    };
+    const deadCode = analyzer.identifyDeadCode(codebase);
+    
+    expect(deadCode.length).toBe(0);
+  });
+
+  test('handles empty codebase', () => {
+    const codebase = { files: [] };
+    const deadCode = analyzer.identifyDeadCode(codebase);
+    
+    expect(deadCode).toEqual([]);
+  });
+});
+
+// Test: test_calculateComplexity_measures_cyclomatic_complexity
+// Verifies cyclomatic complexity calculation for functions with branches and loops
+import { Analyzer } from '../analyzer';
+
+jest.mock('fs');
 
 describe('Analyzer.calculateComplexity', () => {
   let analyzer: Analyzer;
 
   beforeEach(() => {
-    analyzer = new Analyzer();
+    analyzer = new Analyzer('test-workspace');
   });
 
-  test('simple function returns complexity 1', () => {
+  test('calculates complexity for simple function', () => {
     const functionNode = {
-      name: 'simpleFunc',
-      startLine: 1,
-      endLine: 3,
-      body: 'return true;'
+      type: 'FunctionDeclaration',
+      body: { type: 'BlockStatement', body: [] }
     };
-
     const complexity = analyzer.calculateComplexity(functionNode);
-
+    
     expect(complexity).toBe(1);
   });
 
-  test('function with if statement increases complexity', () => {
+  test('increases complexity for if statements', () => {
     const functionNode = {
-      name: 'conditionalFunc',
-      startLine: 1,
-      endLine: 5,
-      body: 'if (x > 0) { return x; } return 0;'
+      type: 'FunctionDeclaration',
+      body: {
+        type: 'BlockStatement',
+        body: [
+          { type: 'IfStatement' },
+          { type: 'IfStatement' }
+        ]
+      }
     };
-
     const complexity = analyzer.calculateComplexity(functionNode);
-
-    expect(complexity).toBeGreaterThanOrEqual(2);
+    
+    expect(complexity).toBeGreaterThan(1);
   });
 
-  test('function with multiple branches returns higher complexity', () => {
+  test('increases complexity for loops', () => {
     const functionNode = {
-      name: 'complexFunc',
-      startLine: 1,
-      endLine: 10,
-      body: 'if (a) {} else if (b) {} for (let i = 0; i  {
-    const functionNode = {
-      name: 'emptyFunc',
-      startLine: 1,
-      endLine: 1,
-      body: ''
+      type: 'FunctionDeclaration',
+      body: {
+        type: 'BlockStatement',
+        body: [
+          { type: 'ForStatement' },
+          { type: 'WhileStatement' }
+        ]
+      }
     };
-
     const complexity = analyzer.calculateComplexity(functionNode);
-
-    expect(complexity).toBe(1);
+    
+    expect(complexity).toBeGreaterThan(2);
   });
 });
 
-// Test: test_calculateHealthScore_computesAccurateScore
-// Verifies calculateHealthScore computes accurate health percentage based on issues
+// Test: test_calculateHealthScore_computes_codebase_health
+// Verifies health score calculation based on issue severity and count
 import { Analyzer } from '../analyzer';
+
+jest.mock('fs');
 
 describe('Analyzer.calculateHealthScore', () => {
   let analyzer: Analyzer;
 
   beforeEach(() => {
-    analyzer = new Analyzer();
+    analyzer = new Analyzer('test-workspace');
   });
 
-  test('no issues returns 100% health score', () => {
-    const issues = [];
-
+  test('returns perfect score with no issues', () => {
+    const issues: any[] = [];
     const score = analyzer.calculateHealthScore(issues);
-
+    
     expect(score).toBe(100);
   });
 
-  test('critical errors significantly reduce score', () => {
+  test('reduces score for error issues', () => {
     const issues = [
-      { severity: 'error', category: 'god-object', description: 'Large file', file: 'a.ts' },
-      { severity: 'error', category: 'circular-dependency', description: 'Cycle', file: 'b.ts' },
-      { severity: 'error', category: 'dead-code', description: 'Unused', file: 'c.ts' }
+      { severity: 'error', category: 'Code Organization' },
+      { severity: 'error', category: 'Dependencies' }
     ];
-
     const score = analyzer.calculateHealthScore(issues);
-
-    expect(score).toBeLessThan(70);
+    
+    expect(score).toBeLessThan(100);
     expect(score).toBeGreaterThanOrEqual(0);
   });
 
-  test('warnings reduce score less than errors', () => {
-    const errorIssues = [
-      { severity: 'error', category: 'complexity', description: 'Complex', file: 'a.ts' }
-    ];
-    const warningIssues = [
-      { severity: 'warning', category: 'complexity', description: 'Complex', file: 'a.ts' }
-    ];
-
+  test('reduces score less for warnings than errors', () => {
+    const errorIssues = [{ severity: 'error', category: 'Code Organization' }];
+    const warningIssues = [{ severity: 'warning', category: 'Code Organization' }];
+    
     const errorScore = analyzer.calculateHealthScore(errorIssues);
     const warningScore = analyzer.calculateHealthScore(warningIssues);
-
+    
     expect(warningScore).toBeGreaterThan(errorScore);
   });
 
-  test('mix of errors and warnings calculated correctly', () => {
+  test('handles mixed severity issues', () => {
     const issues = [
-      { severity: 'error', category: 'god-object', description: 'Large', file: 'a.ts' },
-      { severity: 'warning', category: 'complexity', description: 'Complex', file: 'b.ts' },
-      { severity: 'info', category: 'style', description: 'Format', file: 'c.ts' }
+      { severity: 'error', category: 'Code Organization' },
+      { severity: 'warning', category: 'Dependencies' },
+      { severity: 'info', category: 'Style' }
     ];
-
     const score = analyzer.calculateHealthScore(issues);
-
-    expect(score).toBeGreaterThan(0);
-    expect(score).toBeLessThan(100);
+    
+    expect(score).toBeGreaterThanOrEqual(0);
+    expect(score).toBeLessThanOrEqual(100);
   });
 });

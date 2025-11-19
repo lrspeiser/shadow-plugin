@@ -1,113 +1,223 @@
 import { LLMService } from '../llmService';
 import { ILLMProvider } from '../ai/providers/ILLMProvider';
 import { ConfigurationManager } from '../config/configurationManager';
+import { LLMRateLimiter } from '../ai/llmRateLimiter';
+import { LLMRetryHandler } from '../ai/llmRetryHandler';
 
-// Test: test_sendRequest_formatsAndSendsCorrectly
-// Verifies sendRequest properly formats prompts and sends to configured provider
+// Test: test_generateProductDocumentation_calls_provider
+// Verifies product documentation generation orchestrates LLM provider correctly
 import { LLMService } from '../llmService';
 import { ILLMProvider } from '../ai/providers/ILLMProvider';
 import { ConfigurationManager } from '../config/configurationManager';
 
 jest.mock('../config/configurationManager');
 
-const mockProvider: ILLMProvider = {
-  getName: jest.fn().mockReturnValue('openai'),
-  sendRequest: jest.fn().mockResolvedValue({ content: '{"result": "success"}', usage: { totalTokens: 100 } }),
-  validateConfiguration: jest.fn().mockReturnValue(true)
-};
-
-const mockConfig = {
-  getCurrentProvider: jest.fn().mockReturnValue('openai'),
-  getOpenAIKey: jest.fn().mockReturnValue('test-key'),
-  getMaxTokens: jest.fn().mockReturnValue(4000)
-} as any;
-
-describe('LLMService.sendRequest', () => {
+describe('LLMService.generateProductDocumentation', () => {
   let llmService: LLMService;
+  let mockProvider: jest.Mocked;
+  let mockConfig: jest.Mocked;
 
   beforeEach(() => {
-    (ConfigurationManager.getInstance as jest.Mock).mockReturnValue(mockConfig);
-    llmService = new LLMService(mockProvider);
+    mockProvider = {
+      generateCompletion: jest.fn(),
+      getName: jest.fn().mockReturnValue('test-provider'),
+      isConfigured: jest.fn().mockReturnValue(true)
+    } as any;
+    
+    mockConfig = {
+      getActiveProvider: jest.fn().mockReturnValue('openai'),
+      getOpenAIApiKey: jest.fn().mockReturnValue('test-key')
+    } as any;
+    
+    llmService = new LLMService(mockProvider, mockConfig);
   });
 
-  test('formats and sends request to provider correctly', async () => {
-    const prompt = 'Analyze this code';
-    const schema = { type: 'object', properties: { result: { type: 'string' } } };
-
-    const result = await llmService.sendRequest(prompt, schema, 2000);
-
-    expect(mockProvider.sendRequest).toHaveBeenCalled();
-    const callArgs = (mockProvider.sendRequest as jest.Mock).mock.calls[0][0];
-    expect(callArgs.messages).toBeDefined();
-    expect(callArgs.messages.length).toBeGreaterThan(0);
-    expect(result).toBeDefined();
+  test('calls provider with correct prompt for documentation generation', async () => {
+    const mockResponse = JSON.stringify({
+      product_overview: 'Test product',
+      what_it_does: ['Feature 1', 'Feature 2']
+    });
+    mockProvider.generateCompletion.mockResolvedValue(mockResponse);
+    
+    const codebaseStats = {
+      totalFiles: 10,
+      totalLines: 1000,
+      languages: ['typescript']
+    };
+    
+    const result = await llmService.generateProductDocumentation(codebaseStats);
+    
+    expect(mockProvider.generateCompletion).toHaveBeenCalledTimes(1);
+    expect(result).toHaveProperty('product_overview');
+    expect(result).toHaveProperty('what_it_does');
   });
 
-  test('includes token budget in request', async () => {
-    const prompt = 'Test prompt';
-    const tokenBudget = 3000;
-
-    await llmService.sendRequest(prompt, {}, tokenBudget);
-
-    expect(mockProvider.sendRequest).toHaveBeenCalled();
-    const callArgs = (mockProvider.sendRequest as jest.Mock).mock.calls[0][0];
-    expect(callArgs.maxTokens).toBeLessThanOrEqual(tokenBudget);
+  test('handles provider failure with error', async () => {
+    mockProvider.generateCompletion.mockRejectedValue(new Error('API Error'));
+    
+    const codebaseStats = { totalFiles: 10, totalLines: 1000, languages: ['typescript'] };
+    
+    await expect(llmService.generateProductDocumentation(codebaseStats)).rejects.toThrow();
   });
 
-  test('handles provider errors gracefully', async () => {
-    (mockProvider.sendRequest as jest.Mock).mockRejectedValue(new Error('API Error'));
-
-    await expect(llmService.sendRequest('prompt', {}, 1000)).rejects.toThrow();
+  test('validates response against schema', async () => {
+    const invalidResponse = JSON.stringify({ invalid: 'data' });
+    mockProvider.generateCompletion.mockResolvedValue(invalidResponse);
+    
+    const codebaseStats = { totalFiles: 10, totalLines: 1000, languages: ['typescript'] };
+    
+    await expect(llmService.generateProductDocumentation(codebaseStats)).rejects.toThrow();
   });
 });
 
-// Test: test_parseResponse_handlesValidAndInvalidJSON
-// Verifies response parsing handles valid JSON, malformed JSON, and non-JSON responses
+// Test: test_generateArchitectureInsights_analyzes_codebase
+// Verifies architecture insights generation processes codebase structure correctly
 import { LLMService } from '../llmService';
+import { ILLMProvider } from '../ai/providers/ILLMProvider';
 
-describe('LLMService.parseResponse', () => {
+jest.mock('../config/configurationManager');
+
+describe('LLMService.generateArchitectureInsights', () => {
   let llmService: LLMService;
+  let mockProvider: jest.Mocked;
 
   beforeEach(() => {
-    const mockProvider = {
-      getName: jest.fn().mockReturnValue('test'),
-      sendRequest: jest.fn(),
-      validateConfiguration: jest.fn().mockReturnValue(true)
+    mockProvider = {
+      generateCompletion: jest.fn(),
+      getName: jest.fn().mockReturnValue('test-provider'),
+      isConfigured: jest.fn().mockReturnValue(true)
+    } as any;
+    
+    llmService = new LLMService(mockProvider, {} as any);
+  });
+
+  test('generates architecture insights with valid response', async () => {
+    const mockInsights = JSON.stringify({
+      overall_assessment: 'Well-structured codebase',
+      strengths: ['Good separation of concerns'],
+      critical_issues: [],
+      recommendations: ['Consider adding tests']
+    });
+    mockProvider.generateCompletion.mockResolvedValue(mockInsights);
+    
+    const analysisResult = {
+      files: ['src/test.ts'],
+      issues: [],
+      statistics: { totalFiles: 1 }
     };
-    llmService = new LLMService(mockProvider as any);
+    
+    const insights = await llmService.generateArchitectureInsights(analysisResult);
+    
+    expect(insights).toHaveProperty('overall_assessment');
+    expect(insights).toHaveProperty('strengths');
+    expect(insights).toHaveProperty('recommendations');
   });
 
-  test('parses valid JSON response correctly', () => {
-    const validJSON = '{"analysis": {"result": "success"}, "confidence": 0.95}';
+  test('handles large codebase by chunking requests', async () => {
+    mockProvider.generateCompletion.mockResolvedValue(JSON.stringify({ overall_assessment: 'Test' }));
+    
+    const largeAnalysisResult = {
+      files: new Array(1000).fill('src/file.ts'),
+      issues: [],
+      statistics: { totalFiles: 1000 }
+    };
+    
+    await llmService.generateArchitectureInsights(largeAnalysisResult);
+    
+    expect(mockProvider.generateCompletion).toHaveBeenCalled();
+  });
+});
 
-    const result = llmService.parseResponse(validJSON);
+// Test: test_rateLimiting_throttles_requests
+// Verifies rate limiting prevents exceeding provider API limits
+import { LLMRateLimiter } from '../ai/llmRateLimiter';
 
-    expect(result).toEqual({ analysis: { result: 'success' }, confidence: 0.95 });
+jest.useFakeTimers();
+
+describe('LLMRateLimiter.throttle', () => {
+  let rateLimiter: LLMRateLimiter;
+
+  beforeEach(() => {
+    rateLimiter = new LLMRateLimiter({
+      maxRequestsPerMinute: 10,
+      maxTokensPerMinute: 10000
+    });
   });
 
-  test('extracts JSON from markdown code blocks', () => {
-    const markdownJSON = '\n{"data": "value"}\n';
-
-    const result = llmService.parseResponse(markdownJSON);
-
-    expect(result).toEqual({ data: 'value' });
+  test('allows requests within rate limit', async () => {
+    const request = async () => 'success';
+    
+    const result = await rateLimiter.throttle(request, 100);
+    
+    expect(result).toBe('success');
   });
 
-  test('throws error for malformed JSON', () => {
-    const malformedJSON = '{invalid json';
-
-    expect(() => llmService.parseResponse(malformedJSON)).toThrow();
+  test('delays requests exceeding rate limit', async () => {
+    for (let i = 0; i  'ok', 100);
+    }
+    
+    const delayedRequest = rateLimiter.throttle(async () => 'delayed', 100);
+    
+    jest.advanceTimersByTime(6000);
+    
+    const result = await delayedRequest;
+    expect(result).toBe('delayed');
   });
 
-  test('handles non-JSON text response', () => {
-    const textResponse = 'This is plain text without JSON';
-
-    expect(() => llmService.parseResponse(textResponse)).toThrow();
+  test('tracks token consumption', async () => {
+    await rateLimiter.throttle(async () => 'ok', 5000);
+    await rateLimiter.throttle(async () => 'ok', 5000);
+    
+    const stats = rateLimiter.getStats();
+    expect(stats.tokensUsed).toBe(10000);
   });
 
-  test('handles empty response', () => {
-    const emptyResponse = '';
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+});
 
-    expect(() => llmService.parseResponse(emptyResponse)).toThrow();
+// Test: test_retryHandler_retries_failed_requests
+// Verifies retry logic handles transient failures with exponential backoff
+import { LLMRetryHandler } from '../ai/llmRetryHandler';
+
+jest.useFakeTimers();
+
+describe('LLMRetryHandler.retryWithBackoff', () => {
+  let retryHandler: LLMRetryHandler;
+
+  beforeEach(() => {
+    retryHandler = new LLMRetryHandler({ maxRetries: 3, baseDelay: 1000 });
+  });
+
+  test('retries request on transient failure', async () => {
+    let attempts = 0;
+    const operation = jest.fn(async () => {
+      attempts++;
+      if (attempts  {
+    const operation = jest.fn(async () => {
+      throw new Error('Persistent error');
+    });
+    
+    await expect(retryHandler.retryWithBackoff(operation)).rejects.toThrow();
+    expect(operation).toHaveBeenCalledTimes(4);
+  });
+
+  test('uses exponential backoff', async () => {
+    const delays: number[] = [];
+    const operation = jest.fn(async () => {
+      delays.push(Date.now());
+      throw new Error('Error');
+    });
+    
+    retryHandler.retryWithBackoff(operation).catch(() => {});
+    
+    jest.advanceTimersByTime(1000);
+    jest.advanceTimersByTime(2000);
+    jest.advanceTimersByTime(4000);
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
   });
 });

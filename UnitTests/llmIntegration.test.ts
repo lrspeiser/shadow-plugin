@@ -1,140 +1,178 @@
-import { generateProductDocs } from '../llmIntegration';
-import { LLMService } from '../llmService';
+import { setApiKey } from '../llmIntegration';
 import * as vscode from 'vscode';
-import { generateLLMInsights } from '../llmIntegration';
-
-// Test: test_generateProductDocs_createsComprehensiveDocs
-// Verifies generateProductDocs orchestrates LLM calls to create complete product documentation
-import { generateProductDocs } from '../llmIntegration';
+import { ConfigurationManager } from '../config/configurationManager';
+import { generateUnitTests } from '../llmIntegration';
 import { LLMService } from '../llmService';
-import * as vscode from 'vscode';
+import * as fs from 'fs';
+import { clearAllData } from '../llmIntegration';
 
-jest.mock('../llmService');
+// Test: test_setApiKey_stores_openai_key
+// Verifies OpenAI API key storage and validation
+import { setApiKey } from '../llmIntegration';
+import * as vscode from 'vscode';
+import { ConfigurationManager } from '../config/configurationManager';
+
 jest.mock('vscode');
+jest.mock('../config/configurationManager');
 
-const mockLLMService = {
-  sendRequest: jest.fn().mockResolvedValue({
-    product_name: 'Test App',
-    product_overview: 'A test application',
-    key_features: ['Feature 1', 'Feature 2']
-  })
-};
+describe('llmIntegration.setApiKey', () => {
+  let mockSecrets: any;
+  let mockConfig: jest.Mocked;
 
-const mockWindow = {
-  showInformationMessage: jest.fn(),
-  showErrorMessage: jest.fn(),
-  withProgress: jest.fn((options, task) => task({ report: jest.fn() }))
-};
-
-(vscode.window as any) = mockWindow;
-
-describe('generateProductDocs', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockSecrets = {
+      store: jest.fn().mockResolvedValue(undefined)
+    };
+    
+    (vscode.window.showInputBox as jest.Mock) = jest.fn().mockResolvedValue('sk-test-key-123');
+    
+    mockConfig = {
+      setOpenAIApiKey: jest.fn()
+    } as any;
   });
 
-  test('creates comprehensive product documentation', async () => {
-    const mockAnalysis = {
-      files: [{ filePath: 'src/main.ts', lineCount: 100, functions: [] }],
-      statistics: { totalFiles: 1, totalLines: 100 }
-    };
-
-    await generateProductDocs(mockAnalysis as any, mockLLMService as any);
-
-    expect(mockLLMService.sendRequest).toHaveBeenCalled();
-    const promptArg = (mockLLMService.sendRequest as jest.Mock).mock.calls[0][0];
-    expect(promptArg).toContain('product');
+  test('stores valid API key securely', async () => {
+    await setApiKey();
+    
+    expect(vscode.window.showInputBox).toHaveBeenCalled();
+    expect(mockSecrets.store).toHaveBeenCalledWith('openai-api-key', 'sk-test-key-123');
   });
 
-  test('handles LLM service errors gracefully', async () => {
-    mockLLMService.sendRequest.mockRejectedValue(new Error('LLM API Error'));
-
-    const mockAnalysis = {
-      files: [],
-      statistics: { totalFiles: 0, totalLines: 0 }
-    };
-
-    await generateProductDocs(mockAnalysis as any, mockLLMService as any);
-
-    expect(mockWindow.showErrorMessage).toHaveBeenCalled();
+  test('validates API key format', async () => {
+    (vscode.window.showInputBox as jest.Mock).mockResolvedValue('invalid-key');
+    
+    await setApiKey();
+    
+    expect(vscode.window.showErrorMessage).toHaveBeenCalled();
   });
 
-  test('shows progress indicator during generation', async () => {
-    const mockAnalysis = {
-      files: [],
-      statistics: { totalFiles: 0, totalLines: 0 }
-    };
-
-    await generateProductDocs(mockAnalysis as any, mockLLMService as any);
-
-    expect(mockWindow.withProgress).toHaveBeenCalled();
+  test('handles user cancellation', async () => {
+    (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
+    
+    await setApiKey();
+    
+    expect(mockSecrets.store).not.toHaveBeenCalled();
   });
 });
 
-// Test: test_generateLLMInsights_producesArchitecturalInsights
-// Verifies generateLLMInsights creates architectural analysis and design pattern insights
-import { generateLLMInsights } from '../llmIntegration';
+// Test: test_generateUnitTests_creates_test_plan
+// Verifies unit test plan generation from codebase analysis
+import { generateUnitTests } from '../llmIntegration';
 import { LLMService } from '../llmService';
-import * as vscode from 'vscode';
+import * as fs from 'fs';
 
 jest.mock('../llmService');
-jest.mock('vscode');
+jest.mock('fs');
 
-const mockLLMService = {
-  sendRequest: jest.fn().mockResolvedValue({
-    overall_assessment: 'Architecture is sound',
-    strengths: ['Good separation', 'Clear modules'],
-    critical_issues: [],
-    design_patterns: ['Factory', 'Observer']
-  })
-};
+describe('llmIntegration.generateUnitTests', () => {
+  let mockLLMService: jest.Mocked;
 
-const mockWindow = {
-  showInformationMessage: jest.fn(),
-  showErrorMessage: jest.fn(),
-  withProgress: jest.fn((options, task) => task({ report: jest.fn() }))
-};
-
-(vscode.window as any) = mockWindow;
-
-describe('generateLLMInsights', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockLLMService = {
+      generateCompletion: jest.fn().mockResolvedValue(JSON.stringify({
+        unit_test_strategy: {
+          overall_approach: 'Jest-based testing',
+          testing_frameworks: ['jest'],
+          mocking_strategy: 'Use jest.mock()',
+          isolation_level: 'Full isolation'
+        },
+        test_suites: [{
+          id: 'suite-1',
+          name: 'Test Suite',
+          description: 'Tests functionality',
+          test_file_path: 'src/test/example.test.ts',
+          source_files: ['src/example.ts'],
+          test_cases: [{
+            id: 'test-1',
+            name: 'test_example',
+            description: 'Tests example function',
+            target_function: 'example',
+            target_file: 'src/example.ts',
+            priority: 'high',
+            test_code: 'test("example", () => { expect(true).toBe(true); });',
+            run_instructions: 'npm test'
+          }]
+        }],
+        rationale: 'Comprehensive coverage'
+      }))
+    } as any;
   });
 
-  test('produces comprehensive architectural insights', async () => {
-    const mockAnalysis = {
-      files: [{ filePath: 'src/service.ts', lineCount: 200, functions: [] }],
-      dependencies: [],
-      statistics: { totalFiles: 1, totalLines: 200 }
+  test('generates complete test plan', async () => {
+    const analysisResult = {
+      files: ['src/example.ts'],
+      statistics: { totalFiles: 1 }
     };
-
-    await generateLLMInsights(mockAnalysis as any, mockLLMService as any);
-
-    expect(mockLLMService.sendRequest).toHaveBeenCalled();
-    const promptArg = (mockLLMService.sendRequest as jest.Mock).mock.calls[0][0];
-    expect(promptArg).toContain('architecture');
+    
+    const testPlan = await generateUnitTests(analysisResult);
+    
+    expect(testPlan).toHaveProperty('unit_test_strategy');
+    expect(testPlan).toHaveProperty('test_suites');
+    expect(testPlan.test_suites.length).toBeGreaterThan(0);
   });
 
-  test('identifies design patterns in codebase', async () => {
-    const mockAnalysis = {
-      files: [],
-      statistics: { totalFiles: 0, totalLines: 0 }
-    };
-
-    const result = await generateLLMInsights(mockAnalysis as any, mockLLMService as any);
-
-    expect(mockLLMService.sendRequest).toHaveBeenCalled();
+  test('validates test plan schema', async () => {
+    mockLLMService.generateCompletion.mockResolvedValue(JSON.stringify({ invalid: 'schema' }));
+    
+    const analysisResult = { files: ['src/example.ts'], statistics: { totalFiles: 1 } };
+    
+    await expect(generateUnitTests(analysisResult)).rejects.toThrow();
   });
 
-  test('handles empty codebase analysis', async () => {
-    const emptyAnalysis = {
-      files: [],
-      statistics: { totalFiles: 0, totalLines: 0 }
-    };
+  test('writes test files to file system', async () => {
+    const analysisResult = { files: ['src/example.ts'], statistics: { totalFiles: 1 } };
+    
+    await generateUnitTests(analysisResult);
+    
+    expect(fs.writeFileSync).toHaveBeenCalled();
+  });
+});
 
-    await generateLLMInsights(emptyAnalysis as any, mockLLMService as any);
+// Test: test_clearAllData_removes_cached_results
+// Verifies clearing all cached analysis results and stored data
+import { clearAllData } from '../llmIntegration';
+import * as vscode from 'vscode';
+import * as fs from 'fs';
 
-    expect(mockLLMService.sendRequest).toHaveBeenCalled();
+jest.mock('vscode');
+jest.mock('fs');
+
+describe('llmIntegration.clearAllData', () => {
+  beforeEach(() => {
+    (vscode.window.showWarningMessage as jest.Mock) = jest.fn().mockResolvedValue('Yes');
+    (fs.existsSync as jest.Mock) = jest.fn().mockReturnValue(true);
+    (fs.rmSync as jest.Mock) = jest.fn();
+  });
+
+  test('prompts user for confirmation', async () => {
+    await clearAllData();
+    
+    expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
+      expect.stringContaining('clear all data'),
+      expect.any(String),
+      expect.any(String)
+    );
+  });
+
+  test('deletes cache files on confirmation', async () => {
+    await clearAllData();
+    
+    expect(fs.rmSync).toHaveBeenCalled();
+  });
+
+  test('does not delete files if user cancels', async () => {
+    (vscode.window.showWarningMessage as jest.Mock).mockResolvedValue('No');
+    
+    await clearAllData();
+    
+    expect(fs.rmSync).not.toHaveBeenCalled();
+  });
+
+  test('shows success message after clearing', async () => {
+    await clearAllData();
+    
+    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+      expect.stringContaining('cleared')
+    );
   });
 });

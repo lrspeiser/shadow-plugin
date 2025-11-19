@@ -2047,6 +2047,15 @@ export async function runUnitTests(): Promise<void> {
             fs.writeFileSync(reportPath, testReport, 'utf-8');
             
             SWLogger.log(`Test report saved to: ${reportPath}`);
+            
+            // Track report path in tree provider
+            const { getStateManager } = await import('./state/llmStateManager');
+            const stateManager = getStateManager();
+            const treeProvider = stateManager.getTreeProvider();
+            if (treeProvider) {
+                treeProvider.setUnitTestReportPath(reportPath);
+            }
+            
             vscode.window.showInformationMessage(
                 `✅ Unit tests completed! Report saved to ${path.relative(workspaceRoot, reportPath)}`
             );
