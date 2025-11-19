@@ -1623,7 +1623,7 @@ Please proceed with reorganization, moving one file at a time.
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
-                        return llmResponse.content || llmResponse.text || '';
+                        return llmResponse;
                     }
                 );
 
@@ -1655,7 +1655,7 @@ Please proceed with reorganization, moving one file at a time.
                         });
                         
                         this.rateLimiter.recordRequest('openai');
-                        return llmResponse.content || llmResponse.text || '';
+                        return llmResponse;
                     }
                 );
 
@@ -1727,7 +1727,7 @@ Please proceed with reorganization, moving one file at a time.
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
-                        return llmResponse.content || llmResponse.text || '';
+                        return llmResponse;
                     }
                 );
 
@@ -1754,7 +1754,7 @@ Please proceed with reorganization, moving one file at a time.
                         });
                         
                         this.rateLimiter.recordRequest('openai');
-                        return llmResponse.content || llmResponse.text || '';
+                        return llmResponse;
                     }
                 );
 
