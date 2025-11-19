@@ -4,6 +4,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ILLMProvider, LLMRequestOptions, LLMResponse, StructuredOutputResponse } from './ILLMProvider';
 import { getConfigurationManager } from '../../config/configurationManager';
+import { extractJSON } from '../../utils/jsonExtractor';
 
 export class AnthropicProvider implements ILLMProvider {
     private client: Anthropic | null = null;
@@ -110,16 +111,38 @@ export class AnthropicProvider implements ILLMProvider {
             throw new Error('No text content in Claude response');
         }
 
-        // Claude structured outputs return valid JSON directly
-        const parsed = JSON.parse(textContent) as T;
-
-        // Extract requests if present
-        const requests = (parsed as any).requests;
-
-        return {
-            data: parsed,
-            requests: requests
-        };
+        // Claude structured outputs SHOULD return valid JSON directly,
+        // but we use extractJSON as a defensive measure
+        try {
+            // First try direct parse since Claude structured outputs are reliable
+            const parsed = JSON.parse(textContent) as T;
+            
+            // Extract requests if present
+            const requests = (parsed as any).requests;
+            
+            return {
+                data: parsed,
+                requests: requests
+            };
+        } catch (error) {
+            // Fallback to robust extraction if direct parsing fails
+            console.warn('Claude structured output failed direct JSON.parse, using extractJSON fallback');
+            const parsed = extractJSON(textContent);
+            if (parsed === null) {
+                console.error('Failed to extract JSON from Claude response');
+                console.error('Response content (first 1000 chars):', textContent.substring(0, 1000));
+                console.error('Response content (last 1000 chars):', textContent.substring(Math.max(0, textContent.length - 1000)));
+                throw new Error('Failed to extract valid JSON from Claude response');
+            }
+            
+            // Extract requests if present
+            const requests = (parsed as any).requests;
+            
+            return {
+                data: parsed as T,
+                requests: requests
+            };
+        }
     }
 }
 
