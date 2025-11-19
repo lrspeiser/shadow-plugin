@@ -253,11 +253,34 @@ export class EnhancedAnalyzer {
                 condition,
                 lineNumber
             });
-        } else if (ts.isForStatement(node) || ts.isForInStatement(node) || ts.isForOfStatement(node) || ts.isWhileStatement(node)) {
-            const condition = node.condition?.getText() || 'true';
+        } else if (ts.isWhileStatement(node)) {
+            const condition = node.expression.getText();
             branches.push({
                 type: 'loop',
-                condition: `loop (${condition})`,
+                condition: `while (${condition})`,
+                lineNumber
+            });
+        } else if (ts.isForStatement(node)) {
+            const init = node.initializer?.getText() || '';
+            const condition = node.condition?.getText() || '';
+            const increment = node.incrementor?.getText() || '';
+            branches.push({
+                type: 'loop',
+                condition: `for (${init}; ${condition}; ${increment})`,
+                lineNumber
+            });
+        } else if (ts.isForInStatement(node)) {
+            const expression = node.expression.getText();
+            branches.push({
+                type: 'loop',
+                condition: `for...in (${expression})`,
+                lineNumber
+            });
+        } else if (ts.isForOfStatement(node)) {
+            const expression = node.expression.getText();
+            branches.push({
+                type: 'loop',
+                condition: `for...of (${expression})`,
                 lineNumber
             });
         } else if (ts.isTryStatement(node)) {

@@ -1628,7 +1628,7 @@ Please proceed with reorganization, moving one file at a time.
                 );
 
                 // Parse JSON from response
-                const content = response.content || response.text || '';
+                const content = response.content || '';
                 const jsonMatch = content.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     return JSON.parse(jsonMatch[0]);
@@ -1651,7 +1651,7 @@ Please proceed with reorganization, moving one file at a time.
                             }],
                             maxTokens: 16000,
                             temperature: 0.3,
-                            response_format: { type: 'json_object' }
+                            responseFormat: { type: 'json_object' }
                         });
                         
                         this.rateLimiter.recordRequest('openai');
@@ -1659,7 +1659,7 @@ Please proceed with reorganization, moving one file at a time.
                     }
                 );
 
-                const content = response.content || response.text || '';
+                const content = response.content || '';
                 try {
                     return JSON.parse(content);
                 } catch (e) {
@@ -1731,7 +1731,7 @@ Please proceed with reorganization, moving one file at a time.
                     }
                 );
 
-                const content = response.content || response.text || '';
+                const content = response.content || '';
                 // Remove markdown code blocks if present
                 return content.replace(/```[\w]*\n?/g, '').trim();
             } else {
@@ -1758,7 +1758,7 @@ Please proceed with reorganization, moving one file at a time.
                     }
                 );
 
-                const content = response.content || response.text || '';
+                const content = response.content || '';
                 // Remove markdown code blocks if present
                 return content.replace(/```[\w]*\n?/g, '').trim();
             }
