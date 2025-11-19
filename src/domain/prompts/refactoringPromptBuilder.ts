@@ -2,7 +2,8 @@
  * Enhanced Refactoring Prompt Builder
  * Provides detailed, prescriptive refactoring instructions
  */
-import { AnalysisContext, CodeAnalysis, FileInfo, FunctionMetadata } from '../../analyzer';
+import { CodeAnalysis, FileInfo, FunctionMetadata } from '../../analyzer';
+import { AnalysisContext } from '../../llmService';
 import { EnhancedProductDocumentation } from '../../fileDocumentation';
 import { LLMInsights } from '../../llmService';
 
@@ -82,7 +83,7 @@ export class RefactoringPromptBuilder {
 - Very Large Files (>1000 lines): ${this.countLargeFiles(context.files)}
 
 ## Entry Points
-${context.entryPoints.map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
+${context.entryPoints.map((ep: { path: string; type: string; reason: string }) => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
 
 ## Large Files Requiring Decomposition
 ${this.formatLargeFiles(context.files, codeAnalysis)}
