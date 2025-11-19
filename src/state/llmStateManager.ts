@@ -12,6 +12,7 @@ import { InsightsViewerProvider } from '../insightsViewer';
 import { AnalysisViewerProvider } from '../analysisViewer';
 import { UnitTestsNavigatorProvider } from '../unitTestsNavigator';
 import { ReportsViewer } from '../ui/reportsViewer';
+import { ReportsTreeProvider } from '../reportsTreeProvider';
 
 export class LLMStateManager {
     private llmService: LLMService | null = null;
@@ -26,6 +27,7 @@ export class LLMStateManager {
     private analysisViewer: AnalysisViewerProvider | null = null;
     private unitTestsNavigator: UnitTestsNavigatorProvider | null = null;
     private reportsViewer: ReportsViewer | null = null;
+    private reportsTreeProvider: ReportsTreeProvider | null = null;
     private outputChannel: vscode.OutputChannel | null = null;
 
     // LLM Service
@@ -165,6 +167,15 @@ export class LLMStateManager {
 
     setReportsViewer(viewer: ReportsViewer): void {
         this.reportsViewer = viewer;
+    }
+
+    // Reports Tree Provider
+    getReportsTreeProvider(): ReportsTreeProvider | null {
+        return this.reportsTreeProvider;
+    }
+
+    setReportsTreeProvider(provider: ReportsTreeProvider): void {
+        this.reportsTreeProvider = provider;
     }
 
     // Output Channel

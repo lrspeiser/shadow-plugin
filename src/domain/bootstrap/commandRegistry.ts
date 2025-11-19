@@ -153,6 +153,15 @@ export class CommandRegistry {
             }),
             vscode.commands.registerCommand('shadowWatch.showReports', async () => {
                 await llmIntegration.showReports();
+            }),
+            vscode.commands.registerCommand('shadowWatch.openReport', async (filePath: string) => {
+                try {
+                    const uri = vscode.Uri.file(filePath);
+                    const document = await vscode.workspace.openTextDocument(uri);
+                    await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+                } catch (error) {
+                    vscode.window.showErrorMessage(`Failed to open report: ${error instanceof Error ? error.message : String(error)}`);
+                }
             })
         );
 
@@ -181,7 +190,8 @@ export class CommandRegistry {
             components.productNavigatorView,
             components.analysisViewerView,
             components.insightsViewerView,
-            components.unitTestsNavigatorView
+            components.unitTestsNavigatorView,
+            components.reportsViewerView
         );
 
         return disposables;

@@ -22,6 +22,7 @@ import { getConfigurationManager } from '../../config/configurationManager';
 import { ErrorHandler } from '../../utils/errorHandler';
 import { FileWatcherService } from '../../domain/services/fileWatcherService';
 import { ReportsViewer } from '../../ui/reportsViewer';
+import { ReportsTreeProvider, ReportTreeItem } from '../../reportsTreeProvider';
 import { getStateManager } from '../../state/llmStateManager';
 
 export interface ExtensionComponents {
@@ -39,9 +40,11 @@ export interface ExtensionComponents {
     insightsViewerView: vscode.TreeView<InsightItem>;
     staticAnalysisViewerView: vscode.TreeView<StaticAnalysisItem>;
     unitTestsNavigatorView: vscode.TreeView<UnitTestItem>;
+    reportsViewerView: vscode.TreeView<ReportTreeItem>;
     analysisViewer: AnalysisViewerProvider;
     insightsViewer: InsightsViewerProvider;
     staticAnalysisViewer: StaticAnalysisViewerProvider;
+    reportsTreeProvider: ReportsTreeProvider;
     treeView: vscode.TreeView<any>;
 }
 
@@ -91,7 +94,11 @@ export class ExtensionBootstrapper {
             llmIntegration.setUnitTestsNavigator(unitTestsNavigator);
             context.subscriptions.push(unitTestsNavigator); // Ensure proper disposal
             
-            // Create reports viewer
+            // Create reports tree provider (new tree view for reports)
+            const reportsTreeProvider = new ReportsTreeProvider();
+            llmIntegration.setReportsTreeProvider(reportsTreeProvider);
+            
+            // Keep the old webview-based reports viewer for compatibility
             const reportsViewer = new ReportsViewer(context);
             getStateManager().setReportsViewer(reportsViewer);
             context.subscriptions.push(reportsViewer); // Ensure proper disposal
@@ -139,6 +146,12 @@ export class ExtensionBootstrapper {
                 showCollapseAll: true
             });
 
+            // Register reports tree view
+            const reportsViewerView = vscode.window.createTreeView('shadowWatch.reportsViewer', {
+                treeDataProvider: reportsTreeProvider,
+                showCollapseAll: false
+            });
+
             // Create status bar item
             const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
             statusBarItem.command = 'shadowWatch.analyze';
@@ -161,9 +174,11 @@ export class ExtensionBootstrapper {
                 insightsViewerView,
                 staticAnalysisViewerView,
                 unitTestsNavigatorView,
+                reportsViewerView,
                 analysisViewer,
                 insightsViewer,
                 staticAnalysisViewer,
+                reportsTreeProvider,
                 treeView
             };
         } catch (error) {

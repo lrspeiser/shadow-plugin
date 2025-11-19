@@ -1,0 +1,379 @@
+{
+  "overview": "Shadow Watch is a Visual Studio Code extension that provides intelligent code analysis and documentation generation powered by AI language models. Users can analyze their codebase to automatically generate comprehensive documentation, architectural insights, and code quality assessments without manually writing documentation. The extension integrates directly into the VS Code interface, allowing developers to trigger analysis with simple commands and view results in dedicated panels within their editor. Shadow Watch supports multiple AI providers including OpenAI and Anthropic, enabling users to choose their preferred language model for analysis. The tool is designed to help development teams maintain up-to-date documentation, understand complex codebases, and identify areas for improvement through automated analysis that would otherwise require significant manual effort.",
+  "whatItDoes": [
+    "Analyzes codebases to automatically generate product documentation describing what applications do from a user perspective",
+    "Provides architectural insights showing how code components relate and interact with each other",
+    "Generates code quality assessments identifying potential issues, technical debt, and improvement opportunities",
+    "Creates function-level documentation explaining what each function does and its purpose",
+    "Produces module and file-level analysis breaking down codebase structure and organization",
+    "Offers refactoring suggestions with AI-generated recommendations for code improvements",
+    "Enables incremental analysis that only processes changed files rather than re-analyzing entire projects",
+    "Supports multiple AI model providers allowing users to switch between OpenAI and Anthropic models",
+    "Generates test documentation and identifies gaps in test coverage",
+    "Provides navigation interfaces to browse analysis results and jump to specific code locations"
+  ],
+  "userPerspective": {
+    "gui": [
+      "Access analysis commands through VS Code command palette or menu items",
+      "View comprehensive analysis results in dedicated webview panels within the editor",
+      "Browse architectural insights through an interactive tree view showing components and relationships",
+      "Navigate through product documentation panels displaying generated user-facing descriptions",
+      "Review code quality reports with identified issues and improvement suggestions",
+      "Examine function documentation in organized views showing purpose and usage",
+      "Monitor analysis progress through VS Code progress indicators",
+      "Switch between different analysis views using panel navigation controls",
+      "Jump directly to code locations from analysis results by clicking on items",
+      "Configure extension settings through VS Code settings interface"
+    ],
+    "cli": [
+      "Trigger full codebase analysis using command palette commands",
+      "Initiate incremental analysis for changed files only",
+      "Generate product documentation through dedicated commands",
+      "Create architectural insight reports via CLI commands",
+      "Request refactoring suggestions for selected code",
+      "Generate test documentation and coverage analysis",
+      "Switch AI model providers through configuration commands",
+      "Clear analysis cache when needed",
+      "Export analysis results to files"
+    ],
+    "api": [
+      "Integration with OpenAI API for GPT model analysis",
+      "Integration with Anthropic API for Claude model analysis",
+      "Extensible provider interface allowing additional AI model integrations",
+      "State management API for tracking analysis progress and results",
+      "Cache management for optimizing analysis performance",
+      "File watching API for detecting code changes and triggering incremental updates"
+    ],
+    "cicd": [
+      "Can be integrated into build pipelines to generate documentation automatically",
+      "Supports automated analysis runs as part of continuous integration workflows",
+      "Enables documentation verification in pull request checks",
+      "Provides programmatic access to analysis results for quality gates",
+      "Supports batch processing of multiple projects or modules"
+    ]
+  },
+  "workflowIntegration": [
+    "New developer onboarding: Generate comprehensive documentation to help new team members understand the codebase quickly",
+    "Documentation maintenance: Automatically update documentation as code changes are made",
+    "Code review preparation: Generate analysis reports before reviews to identify potential issues",
+    "Architecture documentation: Create and maintain up-to-date architectural diagrams and descriptions",
+    "Refactoring planning: Identify refactoring opportunities and generate improvement suggestions",
+    "Technical debt tracking: Continuously monitor code quality and identify areas needing attention",
+    "Test coverage analysis: Identify untested code and generate test documentation",
+    "Legacy code understanding: Analyze unfamiliar or legacy codebases to understand their structure and purpose",
+    "API documentation: Generate user-facing API documentation from code analysis",
+    "Release documentation: Create release notes and documentation updates automatically"
+  ],
+  "problemsSolved": [
+    "Eliminates the manual effort required to write and maintain code documentation",
+    "Reduces time spent understanding unfamiliar or complex codebases",
+    "Prevents documentation from becoming outdated as code evolves",
+    "Helps teams maintain consistent documentation standards across projects",
+    "Identifies code quality issues that might be missed in manual reviews",
+    "Accelerates onboarding for new developers by providing comprehensive codebase overviews",
+    "Provides objective analysis of code structure and potential improvements",
+    "Enables teams to understand architectural patterns and dependencies",
+    "Helps maintain technical documentation without dedicated technical writers",
+    "Surfaces hidden technical debt and improvement opportunities that might otherwise go unnoticed"
+  ],
+  "architecture": "Shadow Watch is built as a VS Code extension with a modular architecture centered around AI-powered analysis. The core system consists of several key layers: an extension activation layer that bootstraps commands and UI components, an analysis engine that processes code files and generates structured data, an AI integration layer that communicates with language model providers, and a presentation layer that renders results in VS Code webviews. The extension uses a state management system to track analysis progress and cache results, ensuring efficient operation even with large codebases. File watching capabilities enable incremental analysis, detecting changes and updating only affected portions of the documentation. The architecture supports pluggable AI providers through a factory pattern, allowing seamless switching between OpenAI and Anthropic models. Results are persisted using a repository pattern that stores analysis data for quick retrieval and comparison. The system uses JSON schemas to define expected AI response formats, ensuring consistent and parseable output from language models. Rate limiting and retry mechanisms protect against API failures and usage limits. The UI layer consists of multiple specialized viewers (analysis viewer, insights viewer, reports viewer) that present different aspects of the analysis in user-friendly formats. Navigation handlers coordinate between these views and enable jumping to specific code locations from analysis results.",
+  "titles": [
+    "AI-Powered Code Analysis",
+    "Product Documentation Generation",
+    "Architectural Insights",
+    "Code Quality Assessment",
+    "Function Documentation",
+    "Module Analysis",
+    "Refactoring Suggestions",
+    "Incremental Analysis",
+    "Multi-Provider AI Support",
+    "Analysis Result Viewer",
+    "Insights Tree View",
+    "Reports Viewer",
+    "File Watcher",
+    "Analysis Cache",
+    "State Management",
+    "Provider Factory",
+    "Rate Limiter",
+    "Retry Handler",
+    "Response Parser",
+    "Navigation Handler",
+    "Command Registry",
+    "Configuration Manager",
+    "Progress Service",
+    "Documentation Formatter",
+    "Prompt Builder",
+    "Test Configuration",
+    "Storage Repository",
+    "Webview Provider",
+    "Template Engine",
+    "Error Handler"
+  ],
+  "descriptions": [
+    {
+      "title": "AI-Powered Code Analysis",
+      "description": "Uses large language models to analyze code and generate human-readable documentation and insights about what the code does, how it's structured, and where improvements could be made",
+      "category": "feature"
+    },
+    {
+      "title": "Product Documentation Generation",
+      "description": "Automatically creates user-facing product documentation that describes what an application does from an end-user perspective, focusing on features and functionality rather than implementation details",
+      "category": "feature"
+    },
+    {
+      "title": "Architectural Insights",
+      "description": "Generates high-level architectural analysis showing how different components and modules relate to each other, identifying patterns and structural relationships",
+      "category": "feature"
+    },
+    {
+      "title": "Code Quality Assessment",
+      "description": "Analyzes code to identify potential issues, technical debt, code smells, and improvement opportunities with AI-generated recommendations",
+      "category": "feature"
+    },
+    {
+      "title": "Incremental Analysis",
+      "description": "Watches for file changes and only re-analyzes modified portions of the codebase rather than running full analysis each time, improving performance",
+      "category": "feature"
+    },
+    {
+      "title": "Multi-Provider Support",
+      "description": "Allows users to choose between different AI model providers (OpenAI GPT models or Anthropic Claude models) based on their preferences and API access",
+      "category": "feature"
+    },
+    {
+      "title": "Analysis Result Viewer",
+      "description": "Interactive panel within VS Code that displays comprehensive analysis results with navigation, filtering, and the ability to jump to specific code locations",
+      "category": "component"
+    },
+    {
+      "title": "Insights Tree View",
+      "description": "Hierarchical tree structure in VS Code sidebar showing analysis results organized by type, allowing users to browse and navigate insights",
+      "category": "component"
+    },
+    {
+      "title": "Rate Limiting",
+      "description": "Manages API request rates to prevent exceeding provider limits and ensures smooth operation even with large analysis workloads",
+      "category": "module"
+    },
+    {
+      "title": "Retry Handler",
+      "description": "Automatically retries failed AI API requests with exponential backoff to handle transient failures and rate limits gracefully",
+      "category": "module"
+    },
+    {
+      "title": "Response Parser",
+      "description": "Extracts and validates JSON responses from AI models, handling various response formats and ensuring data consistency",
+      "category": "module"
+    },
+    {
+      "title": "State Management",
+      "description": "Tracks analysis progress, maintains current state of ongoing operations, and persists results for retrieval across extension sessions",
+      "category": "module"
+    },
+    {
+      "title": "Configuration Manager",
+      "description": "Manages user preferences and extension settings including AI provider selection, API keys, analysis options, and output preferences",
+      "category": "module"
+    },
+    {
+      "title": "Documentation Formatter",
+      "description": "Transforms raw analysis results into well-formatted, readable documentation in various output formats",
+      "category": "module"
+    },
+    {
+      "title": "Prompt Builder",
+      "description": "Constructs optimized prompts for AI models that include necessary context, instructions, and formatting requirements to generate quality analysis",
+      "category": "module"
+    }
+  ],
+  "relevantFunctions": [
+    {
+      "name": "analyzeCodebase",
+      "description": "Main entry point that triggers full codebase analysis, coordinating file processing and AI analysis",
+      "file": "src/analyzer.ts"
+    },
+    {
+      "name": "generateProductDocs",
+      "description": "Generates user-facing product documentation from code analysis results",
+      "file": "src/llmIntegration.ts"
+    },
+    {
+      "name": "generateArchitectureInsights",
+      "description": "Creates architectural analysis showing component relationships and patterns",
+      "file": "src/llmIntegration.ts"
+    },
+    {
+      "name": "analyzeFunction",
+      "description": "Analyzes individual functions to generate documentation about their purpose and behavior",
+      "file": "src/analysis/functionAnalyzer.ts"
+    },
+    {
+      "name": "processIncrementalChanges",
+      "description": "Handles incremental analysis by processing only changed files",
+      "file": "src/domain/services/incrementalAnalysisService.ts"
+    },
+    {
+      "name": "generateRefactoringSuggestions",
+      "description": "Uses AI to identify refactoring opportunities and generate improvement recommendations",
+      "file": "src/llmIntegration.ts"
+    },
+    {
+      "name": "switchProvider",
+      "description": "Allows users to switch between different AI model providers at runtime",
+      "file": "src/ai/providers/providerFactory.ts"
+    },
+    {
+      "name": "parseResponse",
+      "description": "Extracts and validates JSON data from AI model responses",
+      "file": "src/ai/llmResponseParser.ts"
+    },
+    {
+      "name": "retryWithBackoff",
+      "description": "Implements retry logic with exponential backoff for failed API requests",
+      "file": "src/ai/llmRetryHandler.ts"
+    },
+    {
+      "name": "buildPrompt",
+      "description": "Constructs optimized prompts for AI models based on analysis type and context",
+      "file": "src/domain/prompts/promptBuilder.ts"
+    },
+    {
+      "name": "formatDocumentation",
+      "description": "Transforms analysis results into formatted documentation output",
+      "file": "src/domain/formatters/documentationFormatter.ts"
+    },
+    {
+      "name": "navigateToDefinition",
+      "description": "Handles navigation from analysis results to specific code locations in the editor",
+      "file": "src/domain/handlers/navigationHandler.ts"
+    }
+  ],
+  "relevantDataStructures": [
+    {
+      "name": "AnalysisResult",
+      "description": "Contains complete analysis output including documentation, insights, and quality assessments",
+      "type": "interface"
+    },
+    {
+      "name": "ModuleAnalysis",
+      "description": "Represents analysis results for a specific module including its capabilities and dependencies",
+      "type": "interface"
+    },
+    {
+      "name": "FunctionAnalysis",
+      "description": "Contains documentation and metadata about an analyzed function",
+      "type": "interface"
+    },
+    {
+      "name": "ArchitectureInsight",
+      "description": "Represents architectural analysis findings about component relationships",
+      "type": "interface"
+    },
+    {
+      "name": "RefactoringSuggestion",
+      "description": "Contains AI-generated recommendations for code improvements",
+      "type": "interface"
+    },
+    {
+      "name": "LLMRequest",
+      "description": "Defines structure for requests sent to AI model providers",
+      "type": "interface"
+    },
+    {
+      "name": "LLMResponse",
+      "description": "Defines expected structure of responses from AI models",
+      "type": "interface"
+    },
+    {
+      "name": "ProviderConfig",
+      "description": "Configuration data for AI provider settings including API keys and model selection",
+      "type": "interface"
+    },
+    {
+      "name": "AnalysisCache",
+      "description": "Stores cached analysis results to avoid redundant processing",
+      "type": "class"
+    },
+    {
+      "name": "AnalysisState",
+      "description": "Tracks current state of analysis operations including progress and errors",
+      "type": "class"
+    }
+  ],
+  "relevantCodeFiles": [
+    {
+      "path": "src/extension.ts",
+      "description": "Extension activation entry point that initializes all commands and features",
+      "purpose": "Bootstraps the entire extension when VS Code activates it",
+      "role": "Entry point"
+    },
+    {
+      "path": "src/analyzer.ts",
+      "description": "Core analysis engine that processes code files and coordinates analysis workflow",
+      "purpose": "Orchestrates codebase analysis and generates structured analysis data"
+    },
+    {
+      "path": "src/llmIntegration.ts",
+      "description": "Main integration with AI language models for generating documentation and insights",
+      "purpose": "Communicates with AI providers to generate analysis results"
+    },
+    {
+      "path": "src/llmService.ts",
+      "description": "Service layer managing AI model interactions and response processing",
+      "purpose": "Handles all AI API communication and result parsing"
+    },
+    {
+      "path": "src/analysisViewer.ts",
+      "description": "Webview component displaying comprehensive analysis results to users",
+      "purpose": "Presents analysis findings in an interactive interface within VS Code"
+    },
+    {
+      "path": "src/insightsTreeView.ts",
+      "description": "Tree view component showing hierarchical organization of analysis insights",
+      "purpose": "Enables browsing and navigation of analysis results in VS Code sidebar"
+    },
+    {
+      "path": "src/productNavigator.ts",
+      "description": "Navigation interface for browsing product documentation",
+      "purpose": "Allows users to explore generated product documentation"
+    },
+    {
+      "path": "src/ai/providers/providerFactory.ts",
+      "description": "Factory for creating AI provider instances based on user configuration",
+      "purpose": "Enables switching between different AI model providers"
+    },
+    {
+      "path": "src/domain/services/incrementalAnalysisService.ts",
+      "description": "Manages incremental analysis workflow for changed files",
+      "purpose": "Optimizes analysis by processing only modified code"
+    },
+    {
+      "path": "src/domain/prompts/promptBuilder.ts",
+      "description": "Constructs prompts for AI models with appropriate context and instructions",
+      "purpose": "Ensures AI models receive properly formatted analysis requests"
+    },
+    {
+      "path": "src/infrastructure/persistence/analysisResultRepository.ts",
+      "description": "Persists and retrieves analysis results from storage",
+      "purpose": "Manages storage and retrieval of analysis data"
+    },
+    {
+      "path": "src/ui/webview/baseWebviewProvider.ts",
+      "description": "Base class for creating webview panels that display analysis results",
+      "purpose": "Provides common webview functionality for result presentation"
+    }
+  ],
+  "exampleInput": {
+    "description": "Configuration and context provided when requesting codebase analysis",
+    "json": "{\"analysisType\":\"product-documentation\",\"files\":[{\"path\":\"src/api/userController.ts\",\"content\":\"export class UserController { async createUser(req: Request) { ... } }\",\"language\":\"typescript\"}],\"options\":{\"includeArchitecture\":true,\"includeQualityAssessment\":true,\"detailLevel\":\"comprehensive\"},\"provider\":\"openai\",\"model\":\"gpt-4\"}"
+  },
+  "exampleOutput": {
+    "description": "Generated product documentation and analysis results returned to the user",
+    "json": "{\"overview\":\"User management system that allows administrators to create, update, and manage user accounts through a REST API.\",\"features\":[\"Create new user accounts with validation\",\"Update user profile information\",\"Delete user accounts\",\"Search and filter users\"],\"architecture\":{\"components\":[{\"name\":\"UserController\",\"type\":\"REST API Controller\",\"responsibilities\":[\"Handle user CRUD operations\",\"Validate user input\",\"Return formatted responses\"]}]},\"qualityScore\":85,\"suggestions\":[\"Add input validation middleware\",\"Implement rate limiting\"],\"documentation\":{\"endpoints\":[{\"path\":\"/api/users\",\"method\":\"POST\",\"description\":\"Creates a new user account\"}]}}"
+  },
+  "_metadata": {
+    "iteration": 1,
+    "maxIterations": 1,
+    "savedAt": "2025-11-19T19:38:53.984Z"
+  }
+}

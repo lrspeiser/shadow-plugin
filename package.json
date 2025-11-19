@@ -128,6 +128,10 @@
         "icon": "$(file-text)"
       },
       {
+        "command": "shadowWatch.openReport",
+        "title": "Open Report"
+      },
+      {
         "command": "shadowWatch.showProductItemDetails",
         "title": "Show Product Item Details"
       },
@@ -194,6 +198,10 @@
         {
           "id": "shadowWatch.staticAnalysisViewer",
           "name": "Static Analysis"
+        },
+        {
+          "id": "shadowWatch.reportsViewer",
+          "name": "Reports"
         }
       ]
     },

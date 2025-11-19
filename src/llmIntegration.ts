@@ -159,6 +159,10 @@ export function setAnalysisViewer(provider: AnalysisViewerProvider) {
     stateManager.setAnalysisViewer(provider);
 }
 
+export function setReportsTreeProvider(provider: any) {
+    stateManager.setReportsTreeProvider(provider);
+}
+
 export function setCodeAnalysis(analysis: CodeAnalysis) {
     stateManager.setCodeAnalysis(analysis);
     // Convert CodeAnalysis to AnalysisContext and save it
@@ -1893,15 +1897,11 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                 treeProvider.setReportPath(reportPath);
             }
 
-            // Update Reports viewer and show it
+            // Update Reports viewer (both webview and tree view)
             await refreshReportsViewer();
-            const reportsViewer = stateManager.getReportsViewer();
-            if (reportsViewer) {
-                reportsViewer.show();
-            }
 
             vscode.window.showInformationMessage(
-                `✅ Comprehensive analysis complete! Refactoring report generated.`
+                `✅ Comprehensive analysis complete! Refactoring report generated. View it in the Reports pane.`
             );
 
         } catch (error: any) {
@@ -2017,15 +2017,11 @@ export async function generateWorkspaceReport(): Promise<void> {
                 treeProvider.setWorkspaceReportPath(reportPath);
             }
 
-            // Update Reports viewer and show it
+            // Update Reports viewer (both webview and tree view)
             await refreshReportsViewer();
-            const reportsViewer = stateManager.getReportsViewer();
-            if (reportsViewer) {
-                reportsViewer.show();
-            }
 
             vscode.window.showInformationMessage(
-                `✅ Workspace report generated!`
+                `✅ Workspace report generated! View it in the Reports pane.`
             );
 
         } catch (error: any) {
@@ -2127,15 +2123,11 @@ export async function generateProductReport(): Promise<void> {
                 treeProvider.setProductReportPath(reportPath);
             }
 
-            // Update Reports viewer and show it
+            // Update Reports viewer (both webview and tree view)
             await refreshReportsViewer();
-            const reportsViewer = stateManager.getReportsViewer();
-            if (reportsViewer) {
-                reportsViewer.show();
-            }
 
             vscode.window.showInformationMessage(
-                `✅ Product report generated!`
+                `✅ Product report generated! View it in the Reports pane.`
             );
 
         } catch (error: any) {
@@ -2247,15 +2239,11 @@ export async function generateArchitectureReport(): Promise<void> {
                 treeProvider.setArchitectureReportPath(reportPath);
             }
 
-            // Update Reports viewer and show it
+            // Update Reports viewer (both webview and tree view)
             await refreshReportsViewer();
-            const reportsViewer = stateManager.getReportsViewer();
-            if (reportsViewer) {
-                reportsViewer.show();
-            }
 
             vscode.window.showInformationMessage(
-                `✅ Architecture report generated!`
+                `✅ Architecture report generated! View it in the Reports pane.`
             );
 
         } catch (error: any) {
@@ -2279,19 +2267,35 @@ export async function generateArchitectureReport(): Promise<void> {
 async function refreshReportsViewer(): Promise<void> {
     const treeProvider = stateManager.getTreeProvider();
     const reportsViewer = stateManager.getReportsViewer();
+    const reportsTreeProvider = stateManager.getReportsTreeProvider();
     
-    if (!treeProvider || !reportsViewer) {
+    if (!treeProvider) {
         return;
     }
     
     const reportPaths = treeProvider.getAllReportPaths();
-    reportsViewer.setReports({
-        workspace: { path: reportPaths.workspace.path, timestamp: reportPaths.workspace.timestamp },
-        product: { path: reportPaths.product.path, timestamp: reportPaths.product.timestamp },
-        architecture: { path: reportPaths.architecture.path, timestamp: reportPaths.architecture.timestamp },
-        refactoring: { path: reportPaths.refactoring.path, timestamp: reportPaths.refactoring.timestamp },
-        'unit-test': { path: reportPaths.unitTest.path, timestamp: reportPaths.unitTest.timestamp }
-    });
+    
+    // Update the webview-based reports viewer (if initialized)
+    if (reportsViewer) {
+        reportsViewer.setReports({
+            workspace: { path: reportPaths.workspace.path, timestamp: reportPaths.workspace.timestamp },
+            product: { path: reportPaths.product.path, timestamp: reportPaths.product.timestamp },
+            architecture: { path: reportPaths.architecture.path, timestamp: reportPaths.architecture.timestamp },
+            refactoring: { path: reportPaths.refactoring.path, timestamp: reportPaths.refactoring.timestamp },
+            'unit-test': { path: reportPaths.unitTest.path, timestamp: reportPaths.unitTest.timestamp }
+        });
+    }
+    
+    // Update the tree view provider (always available)
+    if (reportsTreeProvider) {
+        reportsTreeProvider.setReports({
+            workspace: { path: reportPaths.workspace.path, timestamp: reportPaths.workspace.timestamp },
+            product: { path: reportPaths.product.path, timestamp: reportPaths.product.timestamp },
+            architecture: { path: reportPaths.architecture.path, timestamp: reportPaths.architecture.timestamp },
+            refactoring: { path: reportPaths.refactoring.path, timestamp: reportPaths.refactoring.timestamp },
+            'unit-test': { path: reportPaths.unitTest.path, timestamp: reportPaths.unitTest.timestamp }
+        });
+    }
 }
 
 /**
@@ -2301,11 +2305,17 @@ export async function showReports(): Promise<void> {
     // Refresh reports from tree provider first
     await refreshReportsViewer();
     
-    const reportsViewer = stateManager.getReportsViewer();
-    if (reportsViewer) {
-        reportsViewer.show();
-    } else {
-        vscode.window.showErrorMessage('Reports viewer not initialized');
+    // Focus on the Reports tree view in sidebar
+    try {
+        await vscode.commands.executeCommand('shadowWatch.reportsViewer.focus');
+    } catch (error) {
+        // If focus fails, show the old webview as fallback
+        const reportsViewer = stateManager.getReportsViewer();
+        if (reportsViewer) {
+            reportsViewer.show();
+        } else {
+            vscode.window.showErrorMessage('Reports viewer not initialized');
+        }
     }
 }
 
