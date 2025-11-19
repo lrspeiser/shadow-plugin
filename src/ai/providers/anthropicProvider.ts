@@ -53,7 +53,7 @@ export class AnthropicProvider implements ILLMProvider {
             model: options.model || 'claude-sonnet-4-5',
             system: options.systemPrompt,
             messages: claudeMessages as any,
-            max_tokens: options.maxTokens || 4096
+            max_tokens: options.maxTokens || 8192 // Claude Sonnet max is 8192
         });
 
         // Handle different content block types
@@ -92,6 +92,7 @@ export class AnthropicProvider implements ILLMProvider {
             betas: ['structured-outputs-2025-11-13'],
             system: options.systemPrompt,
             messages: claudeMessages,
+            max_tokens: options.maxTokens || 8192, // Claude Sonnet max is 8192
             output_format: {
                 type: 'json_schema',
                 schema: schema
