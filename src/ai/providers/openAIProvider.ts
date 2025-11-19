@@ -4,6 +4,7 @@
 import { OpenAI } from 'openai';
 import { ILLMProvider, LLMRequestOptions, LLMResponse, StructuredOutputResponse } from './ILLMProvider';
 import { getConfigurationManager } from '../../config/configurationManager';
+import { extractJSON } from '../../utils/jsonExtractor';
 
 export class OpenAIProvider implements ILLMProvider {
     private client: OpenAI | null = null;
@@ -81,12 +82,24 @@ export class OpenAIProvider implements ILLMProvider {
             }
         });
 
+        // Use robust JSON extraction utility to handle malformed JSON from LLM
+        // This fixes unterminated strings and other common JSON errors
         try {
-            const parsed = JSON.parse(response.content) as T;
+            const parsed = extractJSON(response.content);
+            if (parsed === null) {
+                console.error('Failed to extract JSON from OpenAI response');
+                console.error('Response content (first 1000 chars):', response.content.substring(0, 1000));
+                console.error('Response content (last 1000 chars):', response.content.substring(Math.max(0, response.content.length - 1000)));
+                throw new Error('Failed to extract valid JSON from OpenAI response');
+            }
             return {
-                data: parsed
+                data: parsed as T
             };
         } catch (error) {
+            console.error('OpenAI JSON parsing error:', error);
+            console.error('Response length:', response.content.length);
+            console.error('Response content (first 1000 chars):', response.content.substring(0, 1000));
+            console.error('Response content (last 1000 chars):', response.content.substring(Math.max(0, response.content.length - 1000)));
             throw new Error(`Failed to parse OpenAI JSON response: ${error}`);
         }
     }

@@ -249,6 +249,22 @@ When AI suggests folder reorganization:
 - Ensure you're using the latest version
 - Check language is supported
 
+### "Failed to complete analysis: Unterminated string in JSON"
+
+This error occurs when the LLM (OpenAI/Claude) returns malformed JSON. The extension now includes robust JSON extraction that automatically fixes common issues:
+
+**What was fixed:**
+- OpenAI provider now uses `extractJSON()` utility instead of direct `JSON.parse()`
+- The utility handles unterminated strings, escaped characters, and malformed JSON
+- Error logs now show the first and last 1000 characters of the response for debugging
+
+**If you still encounter this error:**
+- Check the Debug Console for detailed error logs
+- The error logs will show where the JSON parsing failed
+- Try running the analysis again - sometimes LLM responses vary
+- Switch between OpenAI and Claude providers in settings
+- See: `src/utils/jsonExtractor.ts` for the robust JSON extraction logic
+
 ## Contributing
 
 Shadow Watch is part of the larger Shadow Watch testing framework. Contributions welcome!
