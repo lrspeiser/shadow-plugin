@@ -1304,19 +1304,20 @@ async function writeTestFilesFromPlan(
             // Since we're using structured outputs, test_code should already be clean
             const testCodeParts: string[] = [];
             const seenImports = new Set<string>();
+            const seenMocks = new Set<string>();
             const seenTestNames = new Set<string>();
             
+            // First pass: Extract all imports and mocks from all test cases
             for (const { suite, testCases } of suites) {
                 if (testCases.length === 0) continue;
                 
-                // Extract imports from all test cases
                 for (const testCase of testCases) {
                     if (!testCase.test_code) continue;
                     
                     const lines = testCase.test_code.split('\n');
                     for (const line of lines) {
                         const trimmed = line.trim();
-                        // Collect import statements (should be clean from structured output)
+                        // Collect import statements
                         if (trimmed.startsWith('import ') || 
                             trimmed.startsWith('require(') || 
                             trimmed.startsWith('using ') ||
@@ -1326,10 +1327,23 @@ async function writeTestFilesFromPlan(
                                 seenImports.add(trimmed);
                             }
                         }
+                        // Collect jest.mock() statements
+                        else if (trimmed.startsWith('jest.mock(') || 
+                                 trimmed.startsWith('vi.mock(') ||
+                                 trimmed.startsWith('mockito.when(')) {
+                            if (!seenMocks.has(trimmed)) {
+                                testCodeParts.push(line);
+                                seenMocks.add(trimmed);
+                            }
+                        }
                     }
                 }
+            }
+            
+            // Second pass: Add test code from each test case, stripping imports and mocks
+            for (const { suite, testCases } of suites) {
+                if (testCases.length === 0) continue;
                 
-                // Add test code from each test case
                 for (const testCase of testCases) {
                     if (!testCase.test_code || !testCase.test_code.trim()) {
                         continue;
@@ -1340,6 +1354,31 @@ async function writeTestFilesFromPlan(
                     
                     // Safety: Remove any markdown code blocks that might have slipped through
                     code = code.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim();
+                    
+                    // Strip import statements and jest.mock() calls from test code blocks
+                    // since we've already collected them at the top
+                    const lines = code.split('\n');
+                    const filteredLines: string[] = [];
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        // Skip import statements
+                        if (trimmed.startsWith('import ') || 
+                            trimmed.startsWith('require(') || 
+                            trimmed.startsWith('using ') ||
+                            trimmed.startsWith('#include')) {
+                            continue;
+                        }
+                        // Skip jest.mock() and other mock statements
+                        if (trimmed.startsWith('jest.mock(') || 
+                            trimmed.startsWith('vi.mock(') ||
+                            trimmed.startsWith('mockito.when(')) {
+                            continue;
+                        }
+                        // Keep everything else
+                        filteredLines.push(line);
+                    }
+                    
+                    code = filteredLines.join('\n').trim();
                     
                     if (code.length > 0) {
                         // Check for duplicate test names and add comment if needed
