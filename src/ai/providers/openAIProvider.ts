@@ -54,7 +54,6 @@ export class OpenAIProvider implements ILLMProvider {
                 role: msg.role,
                 content: msg.content
             })),
-            max_completion_tokens: options.maxTokens || 40000,
             temperature: options.temperature,
             response_format: options.responseFormat
         });

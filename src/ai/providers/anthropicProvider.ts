@@ -51,7 +51,6 @@ export class AnthropicProvider implements ILLMProvider {
 
         const response = await this.client.messages.create({
             model: options.model || 'claude-sonnet-4-5',
-            max_tokens: options.maxTokens || 40000,
             temperature: options.temperature,
             system: options.systemPrompt,
             messages: claudeMessages as any
@@ -90,7 +89,6 @@ export class AnthropicProvider implements ILLMProvider {
 
         const response = await (this.client as any).beta.messages.create({
             model: options.model || 'claude-sonnet-4-5',
-            max_tokens: options.maxTokens || 40000,
             betas: ['structured-outputs-2025-11-13'],
             system: options.systemPrompt,
             messages: claudeMessages,

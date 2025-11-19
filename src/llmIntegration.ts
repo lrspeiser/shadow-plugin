@@ -2588,7 +2588,6 @@ Format the report as markdown with clear sections and subsections. Be specific a
                             role: 'user',
                             content: prompt
                         }],
-                        maxTokens: 8000,
                         systemPrompt: 'You are an expert test analyst who generates comprehensive, actionable test reports.'
                     });
                     return llmResponse.content;
@@ -2602,7 +2601,6 @@ Format the report as markdown with clear sections and subsections. Be specific a
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8000
                         },
                         ['gpt-5.1', 'gpt-5', 'gpt-4o']
                     );

@@ -301,7 +301,6 @@ export class LLMService {
                             content: prompt
                         }
                     ],
-                    maxTokens: 40000
                 });
                 
                 // Record request for rate limiting
@@ -367,7 +366,6 @@ export class LLMService {
                                     content: prompt
                                 }
                             ],
-                            maxTokens: 40000
                         });
                         
                         // Record request for rate limiting
@@ -471,7 +469,6 @@ export class LLMService {
                                 model: 'claude-sonnet-4-5',
                                 systemPrompt: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic.',
                                 messages: messages,
-                                maxTokens: 40000
                             },
                             productDocumentationSchema
                         );
@@ -484,7 +481,6 @@ export class LLMService {
                                 model: 'gpt-5.1',
                                 systemPrompt: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic. You MUST respond with valid JSON only, no markdown, no code blocks.',
                                 messages: messages,
-                                maxTokens: 40000
                             },
                             productDocumentationSchema
                         );
@@ -564,7 +560,6 @@ export class LLMService {
                             content: prompt
                         }
                     ],
-                    maxTokens: 40000
                 });
                 
                 // Record request for rate limiting
@@ -624,7 +619,6 @@ export class LLMService {
                                         content: prompt
                                     }
                                 ],
-                                maxTokens: 8000
                             },
                             productPurposeAnalysisSchema
                         );
@@ -653,7 +647,6 @@ export class LLMService {
                                         content: prompt
                                     }
                                 ],
-                                maxTokens: 8000
                             },
                             ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
                         );
@@ -771,7 +764,6 @@ export class LLMService {
                                     model: 'claude-sonnet-4-5',
                                     systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
                                     messages: messages,
-                                    maxTokens: 40000
                                 },
                                 llmInsightsSchema
                             );
@@ -801,7 +793,6 @@ export class LLMService {
                                     model: 'gpt-5.1',
                                     systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
                                     messages: messages,
-                                    maxTokens: 40000
                                 },
                                 ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
                             );
@@ -1523,7 +1514,6 @@ Please proceed with reorganization, moving one file at a time.
                                     role: 'user',
                                     content: prompt
                                 }],
-                                maxTokens: 40000
                             },
                             unitTestPlanSchema
                         );
@@ -1560,7 +1550,7 @@ Please proceed with reorganization, moving one file at a time.
                                     role: 'user',
                                     content: prompt
                                 }],
-                                maxTokens: 40000,
+,
                                 temperature: 0.3
                             },
                             unitTestPlanSchema
@@ -1643,7 +1633,6 @@ Please proceed with reorganization, moving one file at a time.
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 16000
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -1673,7 +1662,7 @@ Please proceed with reorganization, moving one file at a time.
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 16000,
+,
                             temperature: 0.3,
                             responseFormat: { type: 'json_object' }
                         });
@@ -1747,7 +1736,6 @@ Please proceed with reorganization, moving one file at a time.
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8000
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -1773,7 +1761,7 @@ Please proceed with reorganization, moving one file at a time.
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8000,
+,
                             temperature: 0.2
                         });
                         
@@ -2152,7 +2140,6 @@ Return ONLY the JSON object, no other text.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         // Record request for rate limiting
@@ -2180,7 +2167,6 @@ Return ONLY the JSON object, no other text.`;
                             {
                                 model: 'gpt-4o',
                                 messages: [{ role: 'user', content: prompt }],
-                                maxTokens: 16384,  // Increased for comprehensive reports (GPT-4o supports up to 16,384)
                                 temperature: 0.7
                             },
                             ['gpt-4o', 'gpt-4-turbo', 'gpt-4']
@@ -2423,7 +2409,6 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -2449,7 +2434,6 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -2502,7 +2486,6 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -2528,7 +2511,6 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -2580,7 +2562,6 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
@@ -2606,7 +2587,6 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                                 role: 'user',
                                 content: prompt
                             }],
-                            maxTokens: 8192
                         });
                         
                         this.rateLimiter.recordRequest(provider.getName() as any);
