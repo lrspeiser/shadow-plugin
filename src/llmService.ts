@@ -633,23 +633,20 @@ export class LLMService {
                 console.log('✅ [Product Purpose] Claude structured output received (no parsing needed)');
                 return structuredResponse.data as ProductPurposeAnalysis;
             } else {
-                // Use OpenAI with fallback models
+                // Use OpenAI
                 const openaiProvider = this.providerFactory.getProvider('openai');
                 const response = await this.retryHandler.executeWithRetry(
                     async () => {
-                        const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
-                            {
-                                model: 'gpt-5.1',
-                                systemPrompt: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
-                                messages: [
-                                    {
-                                        role: 'user',
-                                        content: prompt
-                                    }
-                                ],
-                            },
-                            ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
-                        );
+                        const llmResponse = await openaiProvider.sendRequest({
+                            model: 'gpt-5.1',
+                            systemPrompt: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
+                            messages: [
+                                {
+                                    role: 'user',
+                                    content: prompt
+                                }
+                            ],
+                        });
                         
                         // Record request for rate limiting
                         this.rateLimiter.recordRequest('openai');
@@ -784,18 +781,15 @@ export class LLMService {
                         issuesCount: insights.issues.length
                     });
                 } else {
-                    // Use OpenAI with fallback models
+                    // Use OpenAI
                     const openaiProvider = this.providerFactory.getProvider('openai');
                     const response = await this.retryHandler.executeWithRetry(
                         async () => {
-                            const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
-                                {
-                                    model: 'gpt-5.1',
-                                    systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
-                                    messages: messages,
-                                },
-                                ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
-                            );
+                            const llmResponse = await openaiProvider.sendRequest({
+                                model: 'gpt-5.1',
+                                systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
+                                messages: messages,
+                            });
                             
                             // Record request for rate limiting
                             this.rateLimiter.recordRequest('openai');
@@ -2149,7 +2143,7 @@ Return ONLY the JSON object, no other text.`;
 
                 return response.content;
             } else {
-                // OpenAI fallback
+                // OpenAI
                 const openaiProvider = this.providerFactory.getProvider('openai');
                 const response = await this.retryHandler.executeWithRetry(
                     async () => {
@@ -2157,13 +2151,10 @@ Return ONLY the JSON object, no other text.`;
                             throw new Error('Cancelled by user');
                         }
                         
-                        const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
-                            {
-                                model: 'gpt-5.1',
-                                messages: [{ role: 'user', content: prompt }],
-                            },
-                            ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
-                        );
+                        const llmResponse = await openaiProvider.sendRequest({
+                            model: 'gpt-5.1',
+                            messages: [{ role: 'user', content: prompt }],
+                        });
                         
                         // Record request for rate limiting
                         this.rateLimiter.recordRequest('openai');

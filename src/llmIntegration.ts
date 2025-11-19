@@ -2673,17 +2673,14 @@ Format the report as markdown with clear sections and subsections. Be specific a
                     return llmResponse.content;
                 } else {
                     const openaiProvider = llmService['providerFactory'].getProvider('openai');
-                    const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
-                        {
-                            model: 'gpt-5.1',
-                            systemPrompt: 'You are an expert test analyst who generates comprehensive, actionable test reports.',
-                            messages: [{
-                                role: 'user',
-                                content: prompt
-                            }],
-                        },
-                        ['gpt-5.1', 'gpt-5', 'gpt-4o']
-                    );
+                    const llmResponse = await openaiProvider.sendRequest({
+                        model: 'gpt-5.1',
+                        systemPrompt: 'You are an expert test analyst who generates comprehensive, actionable test reports.',
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                    });
                     return llmResponse.content;
                 }
             }
