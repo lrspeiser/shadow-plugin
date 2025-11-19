@@ -1796,8 +1796,13 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                     treeProvider.setInsightsStatus('generating');
                 }
 
+                // Defensive check to ensure all required data is available
+                if (!lastAnalysisContext) {
+                    throw new Error('Analysis context is not available. Cannot generate architecture insights.');
+                }
+
                 const insights = await llmService.generateArchitectureInsights(
-                    lastAnalysisContext!,
+                    lastAnalysisContext,
                     lastCodeAnalysis || undefined,
                     lastEnhancedProductDocs || undefined,
                     {
@@ -1848,8 +1853,13 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
             reporter.report('Step 4/4: Generating comprehensive report...', 25);
             SWLogger.log('Generating comprehensive report...');
 
+            // Defensive check to ensure all required data is available
+            if (!lastAnalysisContext) {
+                throw new Error('Analysis context is not available. Cannot generate comprehensive report.');
+            }
+
             const report = await llmService.generateComprehensiveReport(
-                lastAnalysisContext!,
+                lastAnalysisContext,
                 lastCodeAnalysis || undefined,
                 lastEnhancedProductDocs || undefined,
                 lastLLMInsights || undefined,

@@ -1,7 +1,7 @@
 {
   "totalFiles": 54,
-  "totalLines": 22934,
-  "totalFunctions": 1095,
+  "totalLines": 22970,
+  "totalFunctions": 1098,
   "largeFiles": 11,
   "files": [
     {
@@ -36,14 +36,14 @@
     },
     {
       "path": "src/ai/providers/anthropicProvider.ts",
-      "lines": 126,
-      "functions": 8,
+      "lines": 149,
+      "functions": 10,
       "language": "typescript"
     },
     {
       "path": "src/ai/providers/openAIProvider.ts",
-      "lines": 129,
-      "functions": 5,
+      "lines": 142,
+      "functions": 6,
       "language": "typescript"
     },
     {
@@ -365,6 +365,12 @@
       "language": "md"
     },
     {
+      "path": "PROVIDER_SWITCHING.md",
+      "lines": 174,
+      "functions": 0,
+      "language": "md"
+    },
+    {
       "path": "QUICK_START.md",
       "lines": 162,
       "functions": 0,
@@ -372,7 +378,7 @@
     },
     {
       "path": "README.md",
-      "lines": 270,
+      "lines": 286,
       "functions": 0,
       "language": "md"
     },
@@ -397,6 +403,12 @@
     {
       "path": "TEST_GENERATION_ENHANCEMENT_PLAN.md",
       "lines": 517,
+      "functions": 0,
+      "language": "md"
+    },
+    {
+      "path": "WARP.md",
+      "lines": 259,
       "functions": 0,
       "language": "md"
     },
@@ -456,7 +468,7 @@
     },
     {
       "path": "shadow-watch-1.0.0.vsix",
-      "lines": 5848,
+      "lines": 5825,
       "functions": 0,
       "language": "vsix"
     },
@@ -853,104 +865,128 @@
     {
       "name": "constructor",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 13,
-      "endLine": 15,
+      "startLine": 14,
+      "endLine": 16,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 19,
-      "endLine": 25,
+      "startLine": 20,
+      "endLine": 26,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 40,
-      "endLine": 42,
+      "startLine": 41,
+      "endLine": 43,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 62,
-      "endLine": 64,
+      "startLine": 63,
+      "endLine": 65,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 78,
-      "endLine": 80,
+      "startLine": 79,
+      "endLine": 81,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 105,
-      "endLine": 107,
+      "startLine": 106,
+      "endLine": 108,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 109,
-      "endLine": 111,
+      "startLine": 110,
+      "endLine": 112,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "requests",
       "file": "src/ai/providers/anthropicProvider.ts",
-      "startLine": 117,
-      "endLine": 122,
+      "startLine": 121,
+      "endLine": 126,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/ai/providers/anthropicProvider.ts",
+      "startLine": 131,
+      "endLine": 136,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "requests",
+      "file": "src/ai/providers/anthropicProvider.ts",
+      "startLine": 139,
+      "endLine": 144,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "constructor",
       "file": "src/ai/providers/openAIProvider.ts",
-      "startLine": 13,
-      "endLine": 15,
+      "startLine": 14,
+      "endLine": 16,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/openAIProvider.ts",
-      "startLine": 19,
-      "endLine": 25,
+      "startLine": 20,
+      "endLine": 26,
       "lines": 7,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/openAIProvider.ts",
-      "startLine": 40,
-      "endLine": 42,
+      "startLine": 41,
+      "endLine": 43,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/ai/providers/openAIProvider.ts",
-      "startLine": 101,
-      "endLine": 103,
+      "startLine": 89,
+      "endLine": 94,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/ai/providers/openAIProvider.ts",
+      "startLine": 114,
+      "endLine": 116,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/ai/providers/openAIProvider.ts",
-      "startLine": 107,
-      "endLine": 120,
+      "startLine": 120,
+      "endLine": 133,
       "lines": 14,
       "language": "javascript"
     },
@@ -9248,12 +9284,14 @@
     "src/ai/providers/anthropicProvider.ts": [
       "@anthropic-ai/sdk",
       "./ILLMProvider",
-      "../../config/configurationManager"
+      "../../config/configurationManager",
+      "../../utils/jsonExtractor"
     ],
     "src/ai/providers/openAIProvider.ts": [
       "openai",
       "./ILLMProvider",
-      "../../config/configurationManager"
+      "../../config/configurationManager",
+      "../../utils/jsonExtractor"
     ],
     "src/ai/providers/providerFactory.ts": [
       "./ILLMProvider",
@@ -9571,6 +9609,7 @@
     "src/llmService.ts",
     "src/ai/providers/ILLMProvider.ts",
     "src/config/configurationManager.ts",
+    "src/utils/jsonExtractor.ts",
     "src/ai/providers/openAIProvider.ts",
     "src/ai/providers/anthropicProvider.ts",
     "src/analyzer.ts",
@@ -9601,7 +9640,6 @@
     "src/domain/handlers/navigationHandler.ts",
     "src/domain/formatters/documentationFormatter.ts",
     "src/storage/incrementalStorage.ts",
-    "src/utils/jsonExtractor.ts",
     "src/context/analysisContextBuilder.ts",
     "src/infrastructure/persistence/analysisResultRepository.ts",
     "src/analysis/enhancedAnalyzer.ts",
@@ -9632,7 +9670,7 @@
     }
   ],
   "_metadata": {
-    "generatedAt": "2025-11-19T17:53:36.288Z",
-    "generatedAtLocal": "11/19/2025, 9:53:36 AM"
+    "generatedAt": "2025-11-19T18:36:26.765Z",
+    "generatedAtLocal": "11/19/2025, 10:36:26 AM"
   }
 }

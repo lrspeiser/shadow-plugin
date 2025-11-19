@@ -1,0 +1,41 @@
+{
+  "productPurpose": "Shadow Watch aims to solve the chronic documentation problem in software development by automatically generating and maintaining comprehensive, accurate documentation directly from codebases using AI analysis. Its core mission is to eliminate the manual burden of writing documentation that quickly becomes outdated, accelerate developer understanding of complex systems, and preserve institutional knowledge that would otherwise exist only in developers' minds. The product transforms code into human-readable insights covering product functionality, architectural design, and module-level details.",
+  "architectureRationale": "The architecture exists as a single entry point (VS Code extension) because Shadow Watch serves one primary user type: developers working within their IDE environment. Unlike products that need CLI for automation or APIs for integration, Shadow Watch's value proposition is deeply embedded in the development workflow—developers need documentation insights while actively reading and writing code. The modular separation (analysis engine, AI providers, state management, UI layer) exists because the product must coordinate multiple complex concerns: expensive AI API calls that need caching and rate limiting, multiple AI provider options for user flexibility, incremental file watching to keep documentation current, and rich interactive UI for browsing hierarchical documentation. The architecture prioritizes responsiveness (through caching), reliability (through provider abstraction and error handling), and developer experience (through reactive UI updates and progress tracking).",
+  "designDecisions": [
+    "Modular architecture with separated concerns - Reason: Allows independent evolution of AI provider integrations, caching strategies, and UI components as the product scales and user needs change",
+    "AI provider abstraction layer - Reason: Users have different AI service preferences and cost constraints; abstraction allows supporting OpenAI and Anthropic through common interface without coupling core analysis logic to specific providers",
+    "Local caching of analysis results - Reason: AI API calls are expensive in cost and time; caching enables instant retrieval of previously analyzed modules, making the product practical for daily use on large codebases",
+    "File watching with incremental updates - Reason: Documentation must stay current as code evolves; watching for changes and updating only affected modules keeps documentation synchronized without full re-analysis overhead",
+    "Staged analysis pipeline (discovery, static analysis, AI analysis, formatting) - Reason: Breaking analysis into stages allows showing progress to users, handling failures at specific stages gracefully, and optimizing which stages need AI calls versus local processing",
+    "Multiple UI views (tree navigation, report viewers, diagnostic panels) - Reason: Different user goals require different information densities—tree for quick navigation, detailed reports for deep understanding, diagnostics for actionable improvements",
+    "Rate limiting and retry logic - Reason: AI APIs have usage constraints; graceful handling prevents user frustration and ensures reliable operation within API provider limits",
+    "Configuration management centralization - Reason: Users need control over AI provider choice, API keys, and analysis scope; centralized configuration makes the product adaptable to different team workflows and constraints"
+  ],
+  "userGoals": [
+    "Understand what an unfamiliar codebase does without reading every file manually",
+    "Onboard new team members quickly by providing comprehensive system overviews",
+    "Make informed refactoring decisions based on current architecture understanding",
+    "Identify technical debt and code quality issues automatically",
+    "Maintain up-to-date documentation without manual writing effort",
+    "Bridge communication between technical and non-technical stakeholders with product documentation",
+    "Preserve system knowledge when team members leave or rotate",
+    "Navigate complex codebases efficiently through structured documentation hierarchy",
+    "Get consistent documentation quality across all modules and components",
+    "Access documentation insights while actively coding without context switching"
+  ],
+  "contextualFactors": [
+    "IDE-native integration requirement: Documentation tools must live where developers work, not as separate applications",
+    "AI API cost and latency constraints: Expensive AI calls necessitate aggressive caching and incremental updates",
+    "Codebase scale variation: Must handle small projects and large monorepos efficiently through modular analysis",
+    "Multi-provider AI landscape: Different teams have different AI service relationships and preferences",
+    "Real-time documentation currency needs: Code changes frequently; documentation must update incrementally without full re-analysis",
+    "Developer workflow integration: Must fit naturally into existing development processes without disrupting flow",
+    "Knowledge preservation urgency: Teams lose institutional knowledge when members leave; automated documentation mitigates this risk",
+    "Hierarchical code organization: Codebases are naturally hierarchical (modules, files, functions); UI must reflect this structure",
+    "Progressive disclosure needs: Users sometimes need quick overviews, other times deep technical details",
+    "Error resilience requirements: AI API failures and rate limits must not break the developer experience"
+  ],
+  "_metadata": {
+    "savedAt": "2025-11-19T18:38:50.201Z"
+  }
+}

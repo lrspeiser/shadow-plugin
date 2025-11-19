@@ -777,8 +777,8 @@ export class LLMService {
                     
                     console.log('✅ Claude structured output received (no parsing needed):', {
                         hasOverall: !!insights.overallAssessment,
-                        strengthsCount: insights.strengths.length,
-                        issuesCount: insights.issues.length
+                        strengthsCount: insights.strengths?.length || 0,
+                        issuesCount: insights.issues?.length || 0
                     });
                 } else {
                     // Use OpenAI
@@ -873,12 +873,12 @@ export class LLMService {
             console.log('Architecture Insights:', {
                 provider: isClaude ? 'Claude (structured)' : 'OpenAI (parsed)',
                 hasOverall: !!insights.overallAssessment,
-                strengthsCount: insights.strengths.length,
-                issuesCount: insights.issues.length,
+                strengthsCount: insights.strengths?.length || 0,
+                issuesCount: insights.issues?.length || 0,
                 hasOrganization: !!insights.organization,
                 hasReorganization: !!insights.folderReorganization,
-                recommendationsCount: insights.recommendations.length,
-                prioritiesCount: insights.priorities.length
+                recommendationsCount: insights.recommendations?.length || 0,
+                prioritiesCount: insights.priorities?.length || 0
             });
             
             return insights;

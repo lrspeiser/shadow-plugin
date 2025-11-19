@@ -1,0 +1,35 @@
+{
+  "module": "src/ui/webview",
+  "moduleType": "gui",
+  "capabilities": [],
+  "summary": "Module analysis failed: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: gpt-5.1\"},\"request_id\":\"req_011CVHjRgjDnQjrquYh26Nvi\"}",
+  "files": [
+    {
+      "file": "src/ui/webview/baseWebviewProvider.ts",
+      "role": "GUI View",
+      "purpose": "Analysis failed: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: gpt-5.1\"},\"request_id\":\"req_011CVHjRNtvSh8n2tspXW3Ur\"}",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file. Error: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: gpt-5.1\"},\"request_id\":\"req_011CVHjRNtvSh8n2tspXW3Ur\"}",
+      "rawContent": "Error during analysis: {\n  \"file\": \"src/ui/webview/baseWebviewProvider.ts\",\n  \"errorType\": \"u\",\n  \"message\": \"404 {\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"not_found_error\\\",\\\"message\\\":\\\"model: gpt-5.1\\\"},\\\"request_id\\\":\\\"req_011CVHjRNtvSh8n2tspXW3Ur\\\"}\",\n  \"stack\": \"Error: 404 {\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"not_found_error\\\",\\\"message\\\":\\\"model: gpt-5.1\\\"},\\\"request_id\\\":\\\"req_011CVHjRNtvSh8n2tspXW3Ur\\\"}\\n\\tat o.generate (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:852549)\\n\\tat E.makeStatusError (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:7:2594886)\\n\\tat E.makeRequest (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:7:2598565)\\n\\tat process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n\\tat async t.AnthropicProvider.sendRequest (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:7:2589084)\\n\\tat async /Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:863135\\n\\tat async t.RetryHandler.executeWithRetry (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:523765)\\n\\tat async t.LLMService.analyzeFile (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:863076)\\n\\tat async t.LLMService.generateEnhancedProductDocs (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:861667)\\n\\tat async /Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:757104\\n\\tat async /Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:952634\"\n}"
+    },
+    {
+      "file": "src/ui/webview/webviewTemplateEngine.ts",
+      "role": "GUI View",
+      "purpose": "Analysis failed: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: gpt-5.1\"},\"request_id\":\"req_011CVHjRPcLBKBE23zF2ohzz\"}",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file. Error: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: gpt-5.1\"},\"request_id\":\"req_011CVHjRPcLBKBE23zF2ohzz\"}",
+      "rawContent": "Error during analysis: {\n  \"file\": \"src/ui/webview/webviewTemplateEngine.ts\",\n  \"errorType\": \"u\",\n  \"message\": \"404 {\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"not_found_error\\\",\\\"message\\\":\\\"model: gpt-5.1\\\"},\\\"request_id\\\":\\\"req_011CVHjRPcLBKBE23zF2ohzz\\\"}\",\n  \"stack\": \"Error: 404 {\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"not_found_error\\\",\\\"message\\\":\\\"model: gpt-5.1\\\"},\\\"request_id\\\":\\\"req_011CVHjRPcLBKBE23zF2ohzz\\\"}\\n\\tat o.generate (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:852549)\\n\\tat E.makeStatusError (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:7:2594886)\\n\\tat E.makeRequest (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:7:2598565)\\n\\tat process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n\\tat async t.AnthropicProvider.sendRequest (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:7:2589084)\\n\\tat async /Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:863135\\n\\tat async t.RetryHandler.executeWithRetry (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:523765)\\n\\tat async t.LLMService.analyzeFile (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:863076)\\n\\tat async t.LLMService.generateEnhancedProductDocs (/Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:861667)\\n\\tat async /Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:757104\\n\\tat async /Users/leonardspeiser/.cursor/extensions/shadow-watch.shadow-watch-1.0.0/dist/extension.js:2:952634\"\n}"
+    }
+  ],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T18:36:40.785Z"
+  }
+}
