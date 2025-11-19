@@ -51,7 +51,6 @@ export class AnthropicProvider implements ILLMProvider {
 
         const response = await this.client.messages.create({
             model: options.model || 'claude-sonnet-4-5',
-            temperature: options.temperature,
             system: options.systemPrompt,
             messages: claudeMessages as any
         });

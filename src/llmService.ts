@@ -293,7 +293,7 @@ export class LLMService {
         const response = await this.retryHandler.executeWithRetry(
             async () => {
                 const llmResponse = await provider.sendRequest({
-                    model: 'gpt-4o',
+                    model: 'gpt-5.1',
                     systemPrompt: 'You are an expert code analyst who extracts user-facing and developer-facing behavior from code files. Focus on WHAT the code does from a user perspective, not implementation details.',
                     messages: [
                         {
@@ -358,7 +358,7 @@ export class LLMService {
                 const response = await this.retryHandler.executeWithRetry(
                     async () => {
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-4o',
+                            model: 'gpt-5.1',
                             systemPrompt: 'You are an expert technical writer who creates module-level summaries from file-level documentation. Focus on user-facing capabilities and workflows.',
                             messages: [
                                 {
@@ -1551,7 +1551,6 @@ Please proceed with reorganization, moving one file at a time.
                                     content: prompt
                                 }],
 ,
-                                temperature: 0.3
                             },
                             unitTestPlanSchema
                         );
@@ -1663,7 +1662,6 @@ Please proceed with reorganization, moving one file at a time.
                                 content: prompt
                             }],
 ,
-                            temperature: 0.3,
                             responseFormat: { type: 'json_object' }
                         });
                         
@@ -1762,7 +1760,6 @@ Please proceed with reorganization, moving one file at a time.
                                 content: prompt
                             }],
 ,
-                            temperature: 0.2
                         });
                         
                         this.rateLimiter.recordRequest('openai');
@@ -2165,11 +2162,10 @@ Return ONLY the JSON object, no other text.`;
                         
                         const llmResponse = await (openaiProvider as any).sendRequestWithFallback(
                             {
-                                model: 'gpt-4o',
+                                model: 'gpt-5.1',
                                 messages: [{ role: 'user', content: prompt }],
-                                temperature: 0.7
                             },
-                            ['gpt-4o', 'gpt-4-turbo', 'gpt-4']
+                            ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
                         );
                         
                         // Record request for rate limiting
@@ -2429,7 +2425,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-4o',
+                            model: 'gpt-5.1',
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2506,7 +2502,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-4o',
+                            model: 'gpt-5.1',
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2582,7 +2578,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-4o',
+                            model: 'gpt-5.1',
                             messages: [{
                                 role: 'user',
                                 content: prompt

@@ -49,12 +49,11 @@ export class OpenAIProvider implements ILLMProvider {
             : options.messages;
 
         const response = await this.client.chat.completions.create({
-            model: options.model || 'gpt-4o',
+            model: options.model || 'gpt-5.1',
             messages: messages.map(msg => ({
                 role: msg.role,
                 content: msg.content
             })),
-            temperature: options.temperature,
             response_format: options.responseFormat
         });
 
