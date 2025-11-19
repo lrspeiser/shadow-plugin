@@ -133,6 +133,26 @@
       {
         "command": "shadowWatch.copyInsightItem",
         "title": "Copy Insight Item"
+      },
+      {
+        "command": "shadowWatch.generateWorkspaceReport",
+        "title": "Shadow Watch: Generate Workspace Report",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "shadowWatch.generateProductReport",
+        "title": "Shadow Watch: Generate Product Report",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "shadowWatch.generateArchitectureReport",
+        "title": "Shadow Watch: Generate Architecture Report",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "shadowWatch.runComprehensiveAnalysis",
+        "title": "Shadow Watch: Generate Refactoring Report",
+        "icon": "$(file-text)"
       }
     ],
     "viewsContainers": {

@@ -138,6 +138,18 @@ export class CommandRegistry {
             }),
             vscode.commands.registerCommand('shadowWatch.showProductDocs', async () => {
                 await llmIntegration.showProductDocs();
+            }),
+            vscode.commands.registerCommand('shadowWatch.generateWorkspaceReport', async () => {
+                await llmIntegration.generateWorkspaceReport();
+            }),
+            vscode.commands.registerCommand('shadowWatch.generateProductReport', async () => {
+                await llmIntegration.generateProductReport();
+            }),
+            vscode.commands.registerCommand('shadowWatch.generateArchitectureReport', async () => {
+                await llmIntegration.generateArchitectureReport();
+            }),
+            vscode.commands.registerCommand('shadowWatch.runComprehensiveAnalysis', async () => {
+                await llmIntegration.runComprehensiveAnalysis();
             })
         );
 

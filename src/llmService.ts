@@ -2316,5 +2316,588 @@ Return ONLY the Markdown report, no additional text or explanations.`;
 
         return prompt;
     }
+
+    /**
+     * Generate product documentation report
+     */
+    public async generateProductReport(
+        productDocs: EnhancedProductDocumentation,
+        context?: AnalysisContext,
+        cancellationToken?: vscode.CancellationToken
+    ): Promise<string> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+        
+        const isClaude = provider.getName() === 'claude';
+        const prompt = this.buildProductReportPrompt(productDocs, context);
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
+            if (isClaude) {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'claude-sonnet-4-5',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse;
+                    }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                return response.content;
+            } else {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'gpt-4o',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse;
+                    }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                return response.content;
+            }
+        } catch (error: any) {
+            SWLogger.log(`Error generating product report: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate architecture insights report
+     */
+    public async generateArchitectureReport(
+        architectureInsights: LLMInsights,
+        context?: AnalysisContext,
+        codeAnalysis?: CodeAnalysis,
+        cancellationToken?: vscode.CancellationToken
+    ): Promise<string> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+        
+        const isClaude = provider.getName() === 'claude';
+        const prompt = this.buildArchitectureReportPrompt(architectureInsights, context, codeAnalysis);
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
+            if (isClaude) {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'claude-sonnet-4-5',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse;
+                    }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                return response.content;
+            } else {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'gpt-4o',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse;
+                    }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                return response.content;
+            }
+        } catch (error: any) {
+            SWLogger.log(`Error generating architecture report: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate workspace analysis report
+     */
+    public async generateWorkspaceReport(
+        context: AnalysisContext,
+        codeAnalysis: CodeAnalysis,
+        cancellationToken?: vscode.CancellationToken
+    ): Promise<string> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+        
+        const isClaude = provider.getName() === 'claude';
+        const prompt = this.buildWorkspaceReportPrompt(context, codeAnalysis);
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+            
+            if (isClaude) {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'claude-sonnet-4-5',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse;
+                    }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                return response.content;
+            } else {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'gpt-4o',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8192
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse;
+                    }
+                );
+
+                if (cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                return response.content;
+            }
+        } catch (error: any) {
+            SWLogger.log(`Error generating workspace report: ${error.message}`);
+            throw error;
+        }
+    }
+
+    private buildProductReportPrompt(
+        productDocs: EnhancedProductDocumentation,
+        context?: AnalysisContext
+    ): string {
+        let prompt = `You are an expert technical writer and product documentation specialist. Generate a comprehensive product documentation report in **Markdown format** (NOT HTML) that consolidates and presents all product information in a clear, structured way.
+
+## Product Documentation Data
+
+### Overview
+${productDocs.overview || 'N/A'}
+
+### What It Does
+${productDocs.whatItDoes?.map(item => `- ${item}`).join('\n') || 'N/A'}
+
+### User Perspective
+${productDocs.userPerspective ? `
+- GUI: ${productDocs.userPerspective.gui?.join(', ') || 'N/A'}
+- CLI: ${productDocs.userPerspective.cli?.join(', ') || 'N/A'}
+- API: ${productDocs.userPerspective.api?.join(', ') || 'N/A'}
+- CI/CD: ${productDocs.userPerspective.cicd?.join(', ') || 'N/A'}
+` : 'N/A'}
+
+### Problems Solved
+${productDocs.problemsSolved?.map(p => `- ${p}`).join('\n') || 'N/A'}
+
+### Architecture
+${productDocs.architecture || 'N/A'}
+
+${productDocs.componentDiagram ? `### Component Diagram\n\`\`\`mermaid\n${productDocs.componentDiagram}\n\`\`\`\n` : ''}
+${productDocs.flowDiagram ? `### Flow Diagram\n\`\`\`mermaid\n${productDocs.flowDiagram}\n\`\`\`\n` : ''}
+
+### Key Features & Modules
+${productDocs.descriptions?.map(d => `- **${d.title}**${d.category ? ` (${d.category})` : ''}: ${d.description}`).join('\n') || productDocs.features?.map(f => `- ${f}`).join('\n') || 'N/A'}
+
+### Relevant Functions
+${productDocs.relevantFunctions?.map(f => `- **${f.name}**${f.file ? ` (${f.file})` : ''}: ${f.description}`).join('\n') || 'N/A'}
+
+### Relevant Data Structures
+${productDocs.relevantDataStructures?.map(d => `- **${d.name}**${d.type ? ` (${d.type})` : ''}${d.file ? ` in ${d.file}` : ''}: ${d.description}`).join('\n') || 'N/A'}
+
+### Code Files
+${productDocs.relevantCodeFiles?.map(f => `- **${f.path}**: ${f.description}${f.purpose ? ` - Purpose: ${f.purpose}` : ''}${f.role ? ` - Role: ${f.role}` : ''}`).join('\n') || 'N/A'}
+
+### Modules
+${productDocs.modules?.map(m => `
+#### ${m.module}
+- Type: ${m.moduleType}
+- Summary: ${m.summary}
+- Capabilities: ${m.capabilities?.join(', ') || 'N/A'}
+- Files: ${m.files?.length || 0} files
+`).join('\n') || 'N/A'}
+
+${context ? `### Workspace Context
+- Total Files: ${context.totalFiles}
+- Total Lines: ${context.totalLines}
+- Total Functions: ${context.totalFunctions}
+` : ''}
+
+## Your Task
+
+Generate a comprehensive product documentation report in **Markdown format** that:
+
+1. **Consolidates** all the product information above into a well-organized report
+2. **Explains** what the product does from a user's perspective
+3. **Documents** the architecture and key components
+4. **Describes** workflows and integration points
+5. **Lists** key features, functions, and data structures
+6. **Provides** clear navigation through modules and components
+
+## Report Structure
+
+Your report should be in Markdown format with the following sections:
+
+# Product Documentation Report
+
+## Executive Summary
+(Brief overview of what the product is and what it does)
+
+## Product Overview
+(Detailed description of the product, its purpose, and value proposition)
+
+## What It Does
+(Comprehensive list of capabilities and features)
+
+## User Perspective
+(How users interact with the product - GUI, CLI, API, CI/CD)
+
+## Problems Solved
+(Key problems and challenges the product addresses)
+
+## Architecture Overview
+(High-level architecture description and diagrams)
+
+## Key Components & Modules
+(Detailed breakdown of modules, their purposes, and relationships)
+
+## Key Functions & Data Structures
+(Important functions and data structures with their purposes)
+
+## Workflows & Integration
+(How the product integrates into user workflows)
+
+## File Organization
+(Overview of code file organization and their roles)
+
+---
+
+**IMPORTANT**: 
+- Use Markdown formatting (headers, lists, code blocks, etc.)
+- Do NOT use HTML tags
+- Include all relevant information from the data above
+- Organize information logically and clearly
+- Make it easy to navigate and understand
+
+Return ONLY the Markdown report, no additional text or explanations.`;
+
+        return prompt;
+    }
+
+    private buildArchitectureReportPrompt(
+        architectureInsights: LLMInsights,
+        context?: AnalysisContext,
+        codeAnalysis?: CodeAnalysis
+    ): string {
+        let prompt = `You are an expert software architect. Generate a comprehensive architecture analysis report in **Markdown format** (NOT HTML) that consolidates and presents all architectural insights in a clear, structured way.
+
+## Architecture Insights Data
+
+### Overall Assessment
+${architectureInsights.overallAssessment || 'N/A'}
+
+### Strengths
+${architectureInsights.strengths?.map(s => `- ${s}`).join('\n') || 'N/A'}
+
+### Issues
+${this.formatInsightItems(architectureInsights.issues)}
+
+### Organization
+${architectureInsights.organization || 'N/A'}
+
+### Entry Points Analysis
+${architectureInsights.entryPointsAnalysis || 'N/A'}
+
+### Orphaned Files Analysis
+${architectureInsights.orphanedFilesAnalysis || 'N/A'}
+
+### Folder Reorganization
+${architectureInsights.folderReorganization || 'N/A'}
+
+### Recommendations
+${this.formatInsightItems(architectureInsights.recommendations)}
+
+### Priorities
+${this.formatInsightItems(architectureInsights.priorities)}
+
+${context ? `### Workspace Context
+- Total Files: ${context.totalFiles}
+- Total Lines: ${context.totalLines}
+- Total Functions: ${context.totalFunctions}
+- Large Files: ${context.largeFiles}
+- Entry Points: ${context.entryPoints.length}
+- Orphaned Files: ${context.orphanedFiles.length}
+` : ''}
+
+${codeAnalysis ? `### Code Analysis Summary
+- Total Files Analyzed: ${codeAnalysis.totalFiles}
+- Total Lines: ${codeAnalysis.totalLines}
+- Total Functions: ${codeAnalysis.totalFunctions}
+- Large Files (>500 lines): ${codeAnalysis.largeFiles}
+- Circular Dependencies: ${codeAnalysis.imports ? Object.keys(codeAnalysis.imports).length : 0} files with imports
+` : ''}
+
+## Your Task
+
+Generate a comprehensive architecture analysis report in **Markdown format** that:
+
+1. **Assesses** the overall architecture quality and health
+2. **Identifies** architectural strengths and patterns
+3. **Documents** architectural issues and concerns
+4. **Provides** specific recommendations for improvement
+5. **Prioritizes** architectural work based on impact
+6. **Suggests** organizational improvements
+
+## Report Structure
+
+Your report should be in Markdown format with the following sections:
+
+# Architecture Analysis Report
+
+## Executive Summary
+(Brief overview of architecture health, key strengths, and critical issues)
+
+## Overall Assessment
+(Comprehensive assessment of the architecture)
+
+## Architectural Strengths
+(Key strengths, patterns, and well-designed aspects)
+
+## Architectural Issues & Concerns
+(Detailed list of issues with specific files, functions, and impacts)
+
+## Organization Analysis
+(Analysis of code organization and structure)
+
+## Entry Points & Dependencies
+(Analysis of entry points and dependency structure)
+
+## Recommendations
+(Specific, actionable recommendations for architectural improvements)
+
+## Prioritized Action Plan
+(Ranked list of architectural improvements with priorities)
+
+## Folder Reorganization Suggestions
+(Specific suggestions for improving folder structure)
+
+---
+
+**IMPORTANT**: 
+- Use Markdown formatting (headers, lists, code blocks, etc.)
+- Do NOT use HTML tags
+- Be specific with file paths and function names
+- Provide actionable recommendations
+- Prioritize by impact and feasibility
+
+Return ONLY the Markdown report, no additional text or explanations.`;
+
+        return prompt;
+    }
+
+    private buildWorkspaceReportPrompt(
+        context: AnalysisContext,
+        codeAnalysis: CodeAnalysis
+    ): string {
+        let prompt = `You are an expert code analyst. Generate a comprehensive workspace analysis report in **Markdown format** (NOT HTML) that presents codebase statistics and analysis in a clear, structured way.
+
+## Workspace Analysis Data
+
+### Statistics
+- Total Files: ${context.totalFiles}
+- Total Lines: ${context.totalLines}
+- Total Functions: ${context.totalFunctions}
+- Large Files (>500 lines): ${context.largeFiles}
+
+### Files
+${context.files.slice(0, 50).map(f => `- **${f.path}**: ${f.lines} lines, ${f.functions} functions (${f.language})`).join('\n')}
+${context.files.length > 50 ? `\n... and ${context.files.length - 50} more files\n` : ''}
+
+### Entry Points
+${context.entryPoints.map(ep => `- **${ep.path}** (${ep.type}): ${ep.reason}`).join('\n') || 'N/A'}
+
+### Orphaned Files
+${context.orphanedFiles.length > 0 ? context.orphanedFiles.map(f => `- ${f}`).join('\n') : 'None detected'}
+
+### Import Dependencies
+${Object.entries(context.imports).slice(0, 20).map(([file, deps]) => `- **${file}** imports: ${deps.slice(0, 5).join(', ')}${deps.length > 5 ? ` ... and ${deps.length - 5} more` : ''}`).join('\n')}
+${Object.keys(context.imports).length > 20 ? `\n... and ${Object.keys(context.imports).length - 20} more files with imports\n` : ''}
+
+### Code Analysis Details
+- Total Files Analyzed: ${codeAnalysis.totalFiles}
+- Total Lines: ${codeAnalysis.totalLines}
+- Total Functions: ${codeAnalysis.totalFunctions}
+- Large Files: ${codeAnalysis.largeFiles}
+
+### Large Files
+${codeAnalysis.files.filter(f => f.lines > 500).slice(0, 20).map(f => `- **${f.path}**: ${f.lines} lines, ${f.functions} functions`).join('\n')}
+${codeAnalysis.files.filter(f => f.lines > 500).length > 20 ? `\n... and ${codeAnalysis.files.filter(f => f.lines > 500).length - 20} more large files\n` : ''}
+
+### Functions
+${codeAnalysis.functions.slice(0, 30).map(f => `- **${f.name}** in ${f.file}: ${f.lines} lines (${f.startLine}-${f.endLine})`).join('\n')}
+${codeAnalysis.functions.length > 30 ? `\n... and ${codeAnalysis.functions.length - 30} more functions\n` : ''}
+
+## Your Task
+
+Generate a comprehensive workspace analysis report in **Markdown format** that:
+
+1. **Summarizes** codebase statistics and metrics
+2. **Identifies** large files and complexity hotspots
+3. **Documents** entry points and their purposes
+4. **Analyzes** dependency structure
+5. **Highlights** orphaned files and potential issues
+6. **Provides** insights into code organization
+
+## Report Structure
+
+Your report should be in Markdown format with the following sections:
+
+# Workspace Analysis Report
+
+## Executive Summary
+(Brief overview of codebase size, complexity, and key findings)
+
+## Codebase Statistics
+(Total files, lines, functions, and key metrics)
+
+## File Analysis
+(Overview of files, languages, and sizes)
+
+## Large Files & Complexity
+(Identification of large files and complexity hotspots)
+
+## Entry Points
+(Analysis of entry points and their purposes)
+
+## Dependency Structure
+(Analysis of import dependencies and relationships)
+
+## Orphaned Files
+(Identification and analysis of orphaned files)
+
+## Code Organization Insights
+(Insights into code organization and structure)
+
+## Recommendations
+(Suggestions for improving code organization and reducing complexity)
+
+---
+
+**IMPORTANT**: 
+- Use Markdown formatting (headers, lists, code blocks, etc.)
+- Do NOT use HTML tags
+- Be specific with file paths and metrics
+- Provide actionable insights
+
+Return ONLY the Markdown report, no additional text or explanations.`;
+
+        return prompt;
+    }
+
+    private formatInsightItems(items: (LLMInsightItem | string)[] | undefined): string {
+        if (!items || items.length === 0) return 'N/A';
+        
+        return items.map(item => {
+            if (typeof item === 'string') {
+                return `- ${item}`;
+            } else {
+                let formatted = `- **${item.title}**: ${item.description}`;
+                if (item.relevantFiles && item.relevantFiles.length > 0) {
+                    formatted += `\n  - Files: ${item.relevantFiles.join(', ')}`;
+                }
+                if (item.relevantFunctions && item.relevantFunctions.length > 0) {
+                    formatted += `\n  - Functions: ${item.relevantFunctions.join(', ')}`;
+                }
+                return formatted;
+            }
+        }).join('\n');
+    }
 }
 

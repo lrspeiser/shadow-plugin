@@ -1879,6 +1879,347 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
 }
 
 /**
+ * Generate workspace analysis report
+ */
+export async function generateWorkspaceReport(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        const result = await vscode.window.showWarningMessage(
+            'LLM API key not configured. Would you like to set it now?',
+            'Set API Key',
+            'Cancel'
+        );
+        
+        if (result === 'Set API Key') {
+            await setApiKey();
+            if (!llmService.isConfigured()) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    // Load analysis context and code analysis
+    let lastAnalysisContext = stateManager.getAnalysisContext();
+    if (!lastAnalysisContext) {
+        await loadSavedCodeAnalysis();
+        lastAnalysisContext = stateManager.getAnalysisContext();
+        if (!lastAnalysisContext) {
+            vscode.window.showErrorMessage('Please run "Analyze Workspace" first');
+            return;
+        }
+    }
+
+    let lastCodeAnalysis = stateManager.getCodeAnalysis();
+    if (!lastCodeAnalysis) {
+        const analysis = await loadSavedCodeAnalysisFromFile();
+        if (analysis) {
+            stateManager.setCodeAnalysis(analysis);
+            lastCodeAnalysis = analysis;
+        }
+    }
+
+    if (!lastCodeAnalysis) {
+        vscode.window.showErrorMessage('Please run "Analyze Workspace" first');
+        return;
+    }
+
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgress('Generating Workspace Report...', async (reporter) => {
+        try {
+            reporter.report('Generating workspace report with AI...');
+            
+            const report = await llmService.generateWorkspaceReport(
+                lastAnalysisContext!,
+                lastCodeAnalysis!,
+                reporter.cancellationToken
+            );
+
+            if (reporter.cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            // Save report to file
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            
+            if (!fs.existsSync(shadowDir)) {
+                fs.mkdirSync(shadowDir, { recursive: true });
+            }
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const reportPath = path.join(docsDir, `workspace-report-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+
+            SWLogger.log(`Workspace report saved to: ${reportPath}`);
+
+            // Track report path in tree provider
+            if (treeProvider) {
+                treeProvider.setWorkspaceReportPath(reportPath);
+            }
+
+            // Open the report in VSCode
+            const reportUri = vscode.Uri.file(reportPath);
+            const document = await vscode.workspace.openTextDocument(reportUri);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+
+            vscode.window.showInformationMessage(
+                `✅ Workspace report generated! Report opened in editor.`
+            );
+
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Report generation cancelled by user');
+            } else {
+                const errorMessage = error.message || String(error);
+                SWLogger.log(`ERROR: Workspace report generation failed: ${errorMessage}`);
+                vscode.window.showErrorMessage(`Failed to generate workspace report: ${errorMessage}`);
+            }
+        }
+    });
+}
+
+/**
+ * Generate product documentation report
+ */
+export async function generateProductReport(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        const result = await vscode.window.showWarningMessage(
+            'LLM API key not configured. Would you like to set it now?',
+            'Set API Key',
+            'Cancel'
+        );
+        
+        if (result === 'Set API Key') {
+            await setApiKey();
+            if (!llmService.isConfigured()) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    // Load product docs
+    let lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
+    if (!lastEnhancedProductDocs) {
+        await loadSavedProductDocs();
+        lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
+        if (!lastEnhancedProductDocs) {
+            vscode.window.showErrorMessage('Please run "Generate Product Documentation" first');
+            return;
+        }
+    }
+
+    // Load analysis context for additional context
+    let lastAnalysisContext = stateManager.getAnalysisContext();
+    if (!lastAnalysisContext) {
+        await loadSavedCodeAnalysis();
+        lastAnalysisContext = stateManager.getAnalysisContext();
+    }
+
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgress('Generating Product Report...', async (reporter) => {
+        try {
+            reporter.report('Generating product report with AI...');
+            
+            const report = await llmService.generateProductReport(
+                lastEnhancedProductDocs!,
+                lastAnalysisContext || undefined,
+                reporter.cancellationToken
+            );
+
+            if (reporter.cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            // Save report to file
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            
+            if (!fs.existsSync(shadowDir)) {
+                fs.mkdirSync(shadowDir, { recursive: true });
+            }
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const reportPath = path.join(docsDir, `product-report-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+
+            SWLogger.log(`Product report saved to: ${reportPath}`);
+
+            // Track report path in tree provider
+            if (treeProvider) {
+                treeProvider.setProductReportPath(reportPath);
+            }
+
+            // Open the report in VSCode
+            const reportUri = vscode.Uri.file(reportPath);
+            const document = await vscode.workspace.openTextDocument(reportUri);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+
+            vscode.window.showInformationMessage(
+                `✅ Product report generated! Report opened in editor.`
+            );
+
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Report generation cancelled by user');
+            } else {
+                const errorMessage = error.message || String(error);
+                SWLogger.log(`ERROR: Product report generation failed: ${errorMessage}`);
+                vscode.window.showErrorMessage(`Failed to generate product report: ${errorMessage}`);
+            }
+        }
+    });
+}
+
+/**
+ * Generate architecture insights report
+ */
+export async function generateArchitectureReport(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        const result = await vscode.window.showWarningMessage(
+            'LLM API key not configured. Would you like to set it now?',
+            'Set API Key',
+            'Cancel'
+        );
+        
+        if (result === 'Set API Key') {
+            await setApiKey();
+            if (!llmService.isConfigured()) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    // Load architecture insights
+    let lastLLMInsights = stateManager.getLLMInsights();
+    if (!lastLLMInsights) {
+        await loadSavedInsights();
+        lastLLMInsights = stateManager.getLLMInsights();
+        if (!lastLLMInsights) {
+            vscode.window.showErrorMessage('Please run "Generate AI Architecture Insights" first');
+            return;
+        }
+    }
+
+    // Load analysis context and code analysis for additional context
+    let lastAnalysisContext = stateManager.getAnalysisContext();
+    if (!lastAnalysisContext) {
+        await loadSavedCodeAnalysis();
+        lastAnalysisContext = stateManager.getAnalysisContext();
+    }
+
+    let lastCodeAnalysis = stateManager.getCodeAnalysis();
+    if (!lastCodeAnalysis) {
+        const analysis = await loadSavedCodeAnalysisFromFile();
+        if (analysis) {
+            stateManager.setCodeAnalysis(analysis);
+            lastCodeAnalysis = analysis;
+        }
+    }
+
+    const { progressService } = await import('./infrastructure/progressService');
+    
+    await progressService.withProgress('Generating Architecture Report...', async (reporter) => {
+        try {
+            reporter.report('Generating architecture report with AI...');
+            
+            const report = await llmService.generateArchitectureReport(
+                lastLLMInsights!,
+                lastAnalysisContext || undefined,
+                lastCodeAnalysis || undefined,
+                reporter.cancellationToken
+            );
+
+            if (reporter.cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            // Save report to file
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            
+            if (!fs.existsSync(shadowDir)) {
+                fs.mkdirSync(shadowDir, { recursive: true });
+            }
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const reportPath = path.join(docsDir, `architecture-report-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+
+            SWLogger.log(`Architecture report saved to: ${reportPath}`);
+
+            // Track report path in tree provider
+            if (treeProvider) {
+                treeProvider.setArchitectureReportPath(reportPath);
+            }
+
+            // Open the report in VSCode
+            const reportUri = vscode.Uri.file(reportPath);
+            const document = await vscode.workspace.openTextDocument(reportUri);
+            await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+
+            vscode.window.showInformationMessage(
+                `✅ Architecture report generated! Report opened in editor.`
+            );
+
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Report generation cancelled by user');
+            } else {
+                const errorMessage = error.message || String(error);
+                SWLogger.log(`ERROR: Architecture report generation failed: ${errorMessage}`);
+                vscode.window.showErrorMessage(`Failed to generate architecture report: ${errorMessage}`);
+            }
+        }
+    });
+}
+
+/**
  * Run unit tests and generate a report using LLM
  */
 export async function runUnitTests(): Promise<void> {

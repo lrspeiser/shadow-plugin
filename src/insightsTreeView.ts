@@ -19,6 +19,12 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
     private analysisTimestamp: number | null = null;
     private reportPath: string | null = null;
     private reportTimestamp: number | null = null;
+    private workspaceReportPath: string | null = null;
+    private workspaceReportTimestamp: number | null = null;
+    private productReportPath: string | null = null;
+    private productReportTimestamp: number | null = null;
+    private architectureReportPath: string | null = null;
+    private architectureReportTimestamp: number | null = null;
     private unitTestReportPath: string | null = null;
     private unitTestReportTimestamp: number | null = null;
     private staticAnalysisViewer: any = null;
@@ -110,6 +116,12 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             analysisTimestamp?: number;
             reportPath?: string;
             reportTimestamp?: number;
+            workspaceReportPath?: string;
+            workspaceReportTimestamp?: number;
+            productReportPath?: string;
+            productReportTimestamp?: number;
+            architectureReportPath?: string;
+            architectureReportTimestamp?: number;
             unitTestReportPath?: string;
             unitTestReportTimestamp?: number;
             productDocsStatus?: 'idle' | 'generating' | 'complete';
@@ -123,6 +135,12 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             this.analysisTimestamp = saved.analysisTimestamp || null;
             this.reportPath = saved.reportPath || null;
             this.reportTimestamp = saved.reportTimestamp || null;
+            this.workspaceReportPath = saved.workspaceReportPath || null;
+            this.workspaceReportTimestamp = saved.workspaceReportTimestamp || null;
+            this.productReportPath = saved.productReportPath || null;
+            this.productReportTimestamp = saved.productReportTimestamp || null;
+            this.architectureReportPath = saved.architectureReportPath || null;
+            this.architectureReportTimestamp = saved.architectureReportTimestamp || null;
             this.unitTestReportPath = saved.unitTestReportPath || null;
             this.unitTestReportTimestamp = saved.unitTestReportTimestamp || null;
             if (saved.productDocsStatus) this.productDocsStatus = saved.productDocsStatus;
@@ -288,6 +306,12 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             analysisTimestamp: this.analysisTimestamp,
             reportPath: this.reportPath,
             reportTimestamp: this.reportTimestamp,
+            workspaceReportPath: this.workspaceReportPath,
+            workspaceReportTimestamp: this.workspaceReportTimestamp,
+            productReportPath: this.productReportPath,
+            productReportTimestamp: this.productReportTimestamp,
+            architectureReportPath: this.architectureReportPath,
+            architectureReportTimestamp: this.architectureReportTimestamp,
             unitTestReportPath: this.unitTestReportPath,
             unitTestReportTimestamp: this.unitTestReportTimestamp,
             productDocsStatus: this.productDocsStatus,
@@ -323,6 +347,39 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
     getUnitTestReportPath(): string | null {
         return this.unitTestReportPath;
+    }
+
+    setWorkspaceReportPath(reportPath: string): void {
+        this.workspaceReportPath = reportPath;
+        this.workspaceReportTimestamp = Date.now();
+        this.savePersistedState();
+        this.refresh();
+    }
+
+    getWorkspaceReportPath(): string | null {
+        return this.workspaceReportPath;
+    }
+
+    setProductReportPath(reportPath: string): void {
+        this.productReportPath = reportPath;
+        this.productReportTimestamp = Date.now();
+        this.savePersistedState();
+        this.refresh();
+    }
+
+    getProductReportPath(): string | null {
+        return this.productReportPath;
+    }
+
+    setArchitectureReportPath(reportPath: string): void {
+        this.architectureReportPath = reportPath;
+        this.architectureReportTimestamp = Date.now();
+        this.savePersistedState();
+        this.refresh();
+    }
+
+    getArchitectureReportPath(): string | null {
+        return this.architectureReportPath;
     }
 
     private getWorkspaceKey(): string | null {
