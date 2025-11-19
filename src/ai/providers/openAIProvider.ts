@@ -50,7 +50,7 @@ export class OpenAIProvider implements ILLMProvider {
             : options.messages;
 
         const response = await this.client.chat.completions.create({
-            model: options.model || 'gpt-5.1',
+            model: options.model || 'gpt-4o',
             messages: messages.map(msg => ({
                 role: msg.role,
                 content: msg.content
@@ -109,7 +109,7 @@ export class OpenAIProvider implements ILLMProvider {
      */
     async sendRequestWithFallback(
         options: LLMRequestOptions,
-        models: string[] = ['gpt-5.1', 'gpt-5', 'gpt-4o', 'gpt-4-turbo']
+        models: string[] = ['gpt-5.1', 'gpt-4o', 'gpt-4-turbo']
     ): Promise<LLMResponse> {
         if (!this.client) {
             throw new Error('OpenAI API key not configured');

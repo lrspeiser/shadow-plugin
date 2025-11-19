@@ -125,6 +125,15 @@ export class LLMService {
         return this.configManager.llmProvider;
     }
 
+    /**
+     * Get the correct model name for the current provider
+     * Centralizes model selection logic to avoid hardcoding model names throughout the code
+     */
+    public getModelForProvider(providerName?: string): string {
+        const provider = providerName || this.providerFactory.getCurrentProvider().getName();
+        return provider === 'claude' ? 'claude-sonnet-4-5' : 'gpt-5.1';
+    }
+
     public async promptForApiKey(provider?: LLMProvider): Promise<boolean> {
         const targetProvider = provider || this.getProvider();
         const isClaude = targetProvider === 'claude';
@@ -293,7 +302,7 @@ export class LLMService {
         const response = await this.retryHandler.executeWithRetry(
             async () => {
                 const llmResponse = await provider.sendRequest({
-                    model: 'gpt-5.1',
+                    model: this.getModelForProvider(provider.getName()),
                     systemPrompt: 'You are an expert code analyst who extracts user-facing and developer-facing behavior from code files. Focus on WHAT the code does from a user perspective, not implementation details.',
                     messages: [
                         {
@@ -358,7 +367,7 @@ export class LLMService {
                 const response = await this.retryHandler.executeWithRetry(
                     async () => {
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider(provider.getName()),
                             systemPrompt: 'You are an expert technical writer who creates module-level summaries from file-level documentation. Focus on user-facing capabilities and workflows.',
                             messages: [
                                 {
@@ -466,7 +475,7 @@ export class LLMService {
                         console.log('[Product Documentation] Using Claude with structured outputs...');
                         const response = await provider.sendStructuredRequest(
                             {
-                                model: 'claude-sonnet-4-5',
+                                model: this.getModelForProvider('claude'),
                                 systemPrompt: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic.',
                                 messages: messages,
                             },
@@ -478,7 +487,7 @@ export class LLMService {
                         // Use OpenAI with JSON mode
                         const response = await provider.sendStructuredRequest(
                             {
-                                model: 'gpt-5.1',
+                                model: this.getModelForProvider('openai'),
                                 systemPrompt: 'You are an expert product documentation writer who creates user-facing product documentation from code analysis. Your job is to describe what THIS SPECIFIC application does for users, not how it\'s built. NEVER mention file paths, folder structures, or technical implementation details. Focus on user functionality, workflows, and problems solved. Be specific to the application being analyzed, not generic. You MUST respond with valid JSON only, no markdown, no code blocks.',
                                 messages: messages,
                             },
@@ -552,7 +561,7 @@ export class LLMService {
         const response = await this.retryHandler.executeWithRetry(
             async () => {
                 const llmResponse = await provider.sendRequest({
-                    model: 'gpt-5.1',
+                    model: this.getModelForProvider(provider.getName()),
                     systemPrompt: 'You are an expert technical writer who creates clear, comprehensive product documentation from code analysis.',
                     messages: [
                         {
@@ -611,7 +620,7 @@ export class LLMService {
                     async () => {
                         const response = await provider.sendStructuredRequest(
                             {
-                                model: 'claude-sonnet-4-5',
+                                model: this.getModelForProvider('claude'),
                                 systemPrompt: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
                                 messages: [
                                     {
@@ -638,7 +647,7 @@ export class LLMService {
                 const response = await this.retryHandler.executeWithRetry(
                     async () => {
                         const llmResponse = await openaiProvider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             systemPrompt: 'You are an expert software architect who understands how product goals and user needs shape architecture decisions.',
                             messages: [
                                 {
@@ -758,7 +767,7 @@ export class LLMService {
                         async () => {
                             const response = await provider.sendStructuredRequest(
                                 {
-                                    model: 'claude-sonnet-4-5',
+                                    model: this.getModelForProvider('claude'),
                                     systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
                                     messages: messages,
                                 },
@@ -778,15 +787,42 @@ export class LLMService {
                     console.log('✅ Claude structured output received (no parsing needed):', {
                         hasOverall: !!insights.overallAssessment,
                         strengthsCount: insights.strengths?.length || 0,
-                        issuesCount: insights.issues?.length || 0
+                        issuesCount: insights.issues?.length || 0,
+                        hasOrganization: !!insights.organization,
+                        hasEntryPointsAnalysis: !!insights.entryPointsAnalysis,
+                        hasOrphanedFilesAnalysis: !!insights.orphanedFilesAnalysis,
+                        hasFolderReorganization: !!insights.folderReorganization,
+                        recommendationsCount: insights.recommendations?.length || 0,
+                        prioritiesCount: insights.priorities?.length || 0,
+                        hasSuccessErrors: !!insights.successErrors,
+                        actualKeys: Object.keys(insights)
                     });
+                    
+                    // Validate required fields
+                    const missingFields: string[] = [];
+                    if (!insights.overallAssessment) missingFields.push('overallAssessment');
+                    if (!insights.strengths || insights.strengths.length === 0) missingFields.push('strengths');
+                    if (!insights.issues || insights.issues.length === 0) missingFields.push('issues');
+                    if (!insights.organization) missingFields.push('organization');
+                    if (!insights.entryPointsAnalysis) missingFields.push('entryPointsAnalysis');
+                    if (!insights.orphanedFilesAnalysis) missingFields.push('orphanedFilesAnalysis');
+                    if (!insights.folderReorganization) missingFields.push('folderReorganization');
+                    if (!insights.recommendations || insights.recommendations.length === 0) missingFields.push('recommendations');
+                    if (!insights.priorities || insights.priorities.length === 0) missingFields.push('priorities');
+                    if (!insights.successErrors) missingFields.push('successErrors');
+                    
+                    if (missingFields.length > 0) {
+                        console.error('❌ Claude structured output is MISSING required fields:', missingFields);
+                        console.error('   This violates the schema requirements!');
+                        console.error('   Full response data:', JSON.stringify(finalResult, null, 2));
+                    }
                 } else {
                     // Use OpenAI
                     const openaiProvider = this.providerFactory.getProvider('openai');
                     const response = await this.retryHandler.executeWithRetry(
                         async () => {
                             const llmResponse = await openaiProvider.sendRequest({
-                                model: 'gpt-5.1',
+                                model: this.getModelForProvider('openai'),
                                 systemPrompt: 'You are an expert software architect who provides clear, actionable insights about code architecture.',
                                 messages: messages,
                             });
@@ -1502,7 +1538,7 @@ Please proceed with reorganization, moving one file at a time.
                     async () => {
                         const response = await provider.sendStructuredRequest(
                             {
-                                model: 'claude-sonnet-4-5',
+                                model: this.getModelForProvider('claude'),
                                 systemPrompt: 'You are an expert test architect who creates comprehensive unit test plans.',
                                 messages: [{
                                     role: 'user',
@@ -1538,7 +1574,7 @@ Please proceed with reorganization, moving one file at a time.
                         
                         const response = await openaiProvider.sendStructuredRequest(
                             {
-                                model: 'gpt-5.1',
+                                model: this.getModelForProvider('openai'),
                                 systemPrompt: 'You are an expert test architect who creates comprehensive unit test plans. Return ONLY valid JSON matching the schema, no markdown, no code blocks, no other text.',
                                 messages: [{
                                     role: 'user',
@@ -1620,7 +1656,7 @@ Please proceed with reorganization, moving one file at a time.
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'claude-sonnet-4-5',
+                            model: this.getModelForProvider('claude'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -1649,7 +1685,7 @@ Please proceed with reorganization, moving one file at a time.
                         }
                         
                         const llmResponse = await openaiProvider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -1721,7 +1757,7 @@ Please proceed with reorganization, moving one file at a time.
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'claude-sonnet-4-5',
+                            model: this.getModelForProvider('claude'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -1746,7 +1782,7 @@ Please proceed with reorganization, moving one file at a time.
                         }
                         
                         const llmResponse = await openaiProvider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2123,7 +2159,7 @@ Return ONLY the JSON object, no other text.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'claude-sonnet-4-5',
+                            model: this.getModelForProvider('claude'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2152,7 +2188,7 @@ Return ONLY the JSON object, no other text.`;
                         }
                         
                         const llmResponse = await openaiProvider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             messages: [{ role: 'user', content: prompt }],
                         });
                         
@@ -2388,7 +2424,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'claude-sonnet-4-5',
+                            model: this.getModelForProvider('claude'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2413,7 +2449,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2465,7 +2501,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'claude-sonnet-4-5',
+                            model: this.getModelForProvider('claude'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2490,7 +2526,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2541,7 +2577,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'claude-sonnet-4-5',
+                            model: this.getModelForProvider('claude'),
                             messages: [{
                                 role: 'user',
                                 content: prompt
@@ -2566,7 +2602,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                         }
                         
                         const llmResponse = await provider.sendRequest({
-                            model: 'gpt-5.1',
+                            model: this.getModelForProvider('openai'),
                             messages: [{
                                 role: 'user',
                                 content: prompt

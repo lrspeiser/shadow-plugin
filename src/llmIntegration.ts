@@ -2683,7 +2683,7 @@ Format the report as markdown with clear sections and subsections. Be specific a
                 if (isClaude) {
                     const providerInstance = llmService['providerFactory'].getCurrentProvider();
                     const llmResponse = await providerInstance.sendRequest({
-                        model: 'claude-sonnet-4-5',
+                        model: llmService.getModelForProvider('claude'),
                         messages: [{
                             role: 'user',
                             content: prompt
@@ -2694,7 +2694,7 @@ Format the report as markdown with clear sections and subsections. Be specific a
                 } else {
                     const openaiProvider = llmService['providerFactory'].getProvider('openai');
                     const llmResponse = await openaiProvider.sendRequest({
-                        model: 'gpt-5.1',
+                        model: llmService.getModelForProvider('openai'),
                         systemPrompt: 'You are an expert test analyst who generates comprehensive, actionable test reports.',
                         messages: [{
                             role: 'user',
