@@ -1174,6 +1174,17 @@ export async function clearAllData(): Promise<void> {
                             console.error(`Error deleting architecture insights directory ${file}:`, dirError);
                         }
                     }
+                    
+                    // Delete product-docs-* directories
+                    if (file.startsWith('product-docs-') && fs.statSync(path.join(docsDir, file)).isDirectory()) {
+                        const dirPath = path.join(docsDir, file);
+                        try {
+                            fs.rmSync(dirPath, { recursive: true, force: true });
+                            console.log(`Deleted product docs directory: ${file}`);
+                        } catch (dirError) {
+                            console.error(`Error deleting product docs directory ${file}:`, dirError);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error deleting .shadow/docs files:', error);
@@ -1202,10 +1213,10 @@ export async function clearAllData(): Promise<void> {
         treeProvider.refresh();
     }
 
-    // Clear product navigator
+    // Clear product navigator (clears both productDocs and incrementalFiles)
     const productNavigator = stateManager.getProductNavigator();
     if (productNavigator) {
-        productNavigator.setProductDocs(null);
+        productNavigator.clearState();
     }
 
     // Clear insights viewer
