@@ -23,11 +23,16 @@ module.exports = {
           /node_modules/,
           /__mocks__/,
           /\.test\.ts$/,
-          /\.spec\.ts$/
+          /\.spec\.ts$/,
+          /UnitTests/,
+          /src\/test\//
         ],
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true // Faster compilation, skip type checking
+            }
           }
         ]
       }

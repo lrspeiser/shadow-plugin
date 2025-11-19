@@ -1351,7 +1351,7 @@ Please reorganize the codebase following these steps:
 - Preserve all code logic
 - Update all imports automatically
 - Create __init__.py files for Python packages
-- Use \`git mv\` to preserve git history
+- Use git mv to preserve git history
 - Update configuration files
 
 ## Verification
@@ -1549,8 +1549,7 @@ Please proceed with reorganization, moving one file at a time.
                                 messages: [{
                                     role: 'user',
                                     content: prompt
-                                }],
-,
+                                }]
                             },
                             unitTestPlanSchema
                         );
@@ -1661,7 +1660,6 @@ Please proceed with reorganization, moving one file at a time.
                                 role: 'user',
                                 content: prompt
                             }],
-,
                             responseFormat: { type: 'json_object' }
                         });
                         
@@ -1758,8 +1756,7 @@ Please proceed with reorganization, moving one file at a time.
                             messages: [{
                                 role: 'user',
                                 content: prompt
-                            }],
-,
+                            }]
                         });
                         
                         this.rateLimiter.recordRequest('openai');

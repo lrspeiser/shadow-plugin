@@ -113,7 +113,7 @@ export class TestConfigurationService {
      */
     static async setupTestConfiguration(
         workspaceRoot: string,
-        framework: 'jest' | 'vitest' | 'mocha' = 'jest'
+        framework: 'jest' | 'vitest' | 'mocha' | 'pytest' = 'jest'
     ): Promise<{ success: boolean; message: string; filesCreated: string[] }> {
         const filesCreated: string[] = [];
 
@@ -134,6 +134,7 @@ export class TestConfigurationService {
                 }
 
                 // Create VS Code mock if TypeScript and doesn't exist
+                const hasTypeScript = this.hasTypeScriptFiles(workspaceRoot);
                 if (hasTypeScript) {
                     const vscodeMockPath = path.join(workspaceRoot, 'src', 'test', '__mocks__', 'vscode.ts');
                     if (!fs.existsSync(vscodeMockPath)) {

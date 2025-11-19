@@ -17,24 +17,32 @@ export const window = {
   showInformationMessage: createMockFn(),
   showErrorMessage: createMockFn(),
   showWarningMessage: createMockFn(),
-  createOutputChannel: createMockFn(() => ({
-    appendLine: createMockFn(),
-    clear: createMockFn(),
-    dispose: createMockFn(),
-    show: createMockFn()
-  })),
+  createOutputChannel: (() => {
+    const fn = createMockFn();
+    fn.mockReturnValue({
+      appendLine: createMockFn(),
+      clear: createMockFn(),
+      dispose: createMockFn(),
+      show: createMockFn()
+    });
+    return fn;
+  })(),
   showTextDocument: createMockFn(),
   createTextEditorDecorationType: createMockFn(),
   activeTextEditor: undefined
 };
 
 export const workspace = {
-  getConfiguration: createMockFn(() => ({
-    get: createMockFn(),
-    has: createMockFn(),
-    update: createMockFn(),
-    inspect: createMockFn()
-  })),
+  getConfiguration: (() => {
+    const fn = createMockFn();
+    fn.mockReturnValue({
+      get: createMockFn(),
+      has: createMockFn(),
+      update: createMockFn(),
+      inspect: createMockFn()
+    });
+    return fn;
+  })(),
   workspaceFolders: [],
   onDidChangeConfiguration: createMockFn(),
   onDidChangeWorkspaceFolders: createMockFn(),
@@ -74,7 +82,11 @@ export class ExtensionContext {
     setKeysForSync: createMockFn()
   };
   extensionPath: string = '';
-  asAbsolutePath: any = createMockFn((path: string) => path);
+  asAbsolutePath: any = (() => {
+    const mockFn = createMockFn();
+    mockFn.mockImplementation((path: string) => path);
+    return mockFn;
+  })();
 }
 
 export const ViewColumn = {

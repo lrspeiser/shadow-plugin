@@ -52,7 +52,8 @@ export class AnthropicProvider implements ILLMProvider {
         const response = await this.client.messages.create({
             model: options.model || 'claude-sonnet-4-5',
             system: options.systemPrompt,
-            messages: claudeMessages as any
+            messages: claudeMessages as any,
+            max_tokens: options.maxTokens || 4096
         });
 
         // Handle different content block types

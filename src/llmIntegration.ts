@@ -1592,9 +1592,12 @@ export async function generateUnitTests(): Promise<void> {
             
             if (configStatus.setupRequired) {
                 reporter.report('Setting up test configuration...');
+                const framework = configStatus.framework === 'unknown' || configStatus.framework === 'pytest' 
+                    ? 'jest' 
+                    : configStatus.framework;
                 const setupResult = await TestConfigurationService.setupTestConfiguration(
                     workspaceRoot,
-                    configStatus.framework === 'unknown' ? 'jest' : configStatus.framework
+                    framework
                 );
                 
                 if (setupResult.success) {
@@ -2273,11 +2276,11 @@ async function refreshReportsViewer(): Promise<void> {
     
     const reportPaths = treeProvider.getAllReportPaths();
     reportsViewer.setReports({
-        workspace: reportPaths.workspace,
-        product: reportPaths.product,
-        architecture: reportPaths.architecture,
-        refactoring: reportPaths.refactoring,
-        'unit-test': reportPaths.unitTest
+        workspace: { path: reportPaths.workspace.path, timestamp: reportPaths.workspace.timestamp },
+        product: { path: reportPaths.product.path, timestamp: reportPaths.product.timestamp },
+        architecture: { path: reportPaths.architecture.path, timestamp: reportPaths.architecture.timestamp },
+        refactoring: { path: reportPaths.refactoring.path, timestamp: reportPaths.refactoring.timestamp },
+        'unit-test': { path: reportPaths.unitTest.path, timestamp: reportPaths.unitTest.timestamp }
     });
 }
 
