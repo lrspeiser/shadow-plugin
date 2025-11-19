@@ -4,7 +4,7 @@
  * Extracted from llmService.ts to eliminate duplication
  */
 import { AnalysisContext, ProductPurposeAnalysis } from '../../llmService';
-import { CodeAnalysis, FileInfo } from '../../analyzer';
+import { CodeAnalysis, FileInfo, FunctionMetadata, TestMapping } from '../../analyzer';
 import { EnhancedProductDocumentation, FileSummary, ModuleSummary } from '../../fileDocumentation';
 import { FileAccessHelper } from '../../fileAccessHelper';
 
@@ -33,6 +33,24 @@ export interface IPromptBuilder {
         moduleSummaries: ModuleSummary[],
         analysis: CodeAnalysis,
         fileAccessHelper: FileAccessHelper
+    ): string;
+    
+    buildPerFileTestPlanPrompt(
+        filePath: string,
+        fileContent: string,
+        functionMetadata: FunctionMetadata[],
+        existingTests: string[],
+        language: string,
+        testFramework: string,
+        projectSummary?: string
+    ): string;
+    
+    buildTestCodeGenerationPrompt(
+        testPlanItem: any,
+        sourceCode: string,
+        functionCode: string,
+        language: string,
+        testFramework: string
     ): string;
 }
 
@@ -728,6 +746,226 @@ GOOD EXAMPLE (DO THIS):
     private getLanguages(files: Array<{ language: string }>): string {
         const langs = new Set(files.map(f => f.language));
         return Array.from(langs).join(', ');
+    }
+
+    buildPerFileTestPlanPrompt(
+        filePath: string,
+        fileContent: string,
+        functionMetadata: FunctionMetadata[],
+        existingTests: string[],
+        language: string,
+        testFramework: string,
+        projectSummary?: string
+    ): string {
+        // Build symbol table
+        const symbolTable = functionMetadata.map(f => ({
+            name: f.symbolName,
+            parameters: f.parameters.map(p => ({
+                name: p.name,
+                type: p.type || 'unknown',
+                defaultValue: p.defaultValue,
+                optional: p.optional
+            })),
+            returnType: f.returnType || 'unknown',
+            visibility: f.visibility,
+            docstring: f.docstring || undefined
+        }));
+
+        // Build branch summary
+        const branchSummary = functionMetadata.map(f => ({
+            symbol: f.symbolName,
+            branches: f.branches.map(b => ({
+                type: b.type,
+                condition: b.condition,
+                lineNumber: b.lineNumber
+            }))
+        }));
+
+        // Build dependency profile
+        const dependencyProfile = functionMetadata.map(f => ({
+            symbol: f.symbolName,
+            dependencies: f.dependencies.map(d => ({
+                name: d.name,
+                type: d.type,
+                isInternal: d.isInternal,
+                lineNumber: d.lineNumber
+            }))
+        }));
+
+        // Build existing tests summary
+        const existingTestsSummary = existingTests.length > 0 
+            ? existingTests.map(test => ({ testFile: test, testNames: [] }))
+            : [];
+
+        return `SYSTEM:
+
+You are an automated test planner for a multi-language codebase.
+
+Your job is to analyze a single source file and propose a COMPLETE,
+STRUCTURED test plan that a separate tool will later turn into real
+test code.
+
+You must:
+- Work with ANY programming language (you'll be told which).
+- Focus on UNIT tests only (no end-to-end or integration tests).
+- Cover the following test categories when appropriate:
+
+  1) happy_path: normal use-cases that succeed
+  2) error_path: exceptions, error returns, invalid inputs
+  3) boundary_conditions: null/None, empty collections, 0, max/min values
+  4) dependency_mocks: behavior when external services/IO are involved
+  5) state_mutation: before/after object state changes
+  6) algorithmic_branches: different logical branches, cases, and loops
+  7) serialization_conversion: JSON/DTO/struct conversion where applicable
+  8) regression_lockin: weird or non-obvious behavior the current code exhibits
+
+Your output is a JSON object ONLY, with no explanation text.
+
+Use this schema:
+
+{
+  "file_path": "<string>",
+  "language": "<string>",
+  "test_framework": "<string>",
+  "summary": "<1-3 sentence summary of what this file does>",
+  "targets": [
+    {
+      "symbol_name": "<function_or_method_name>",
+      "kind": "function | method | class | module",
+      "reason_to_test": "<short text>",
+      "risk_level": "high | medium | low",
+      "dependencies": [
+        {
+          "name": "<dependency or API>",
+          "type": "db | http | filesystem | message_queue | cache | time | random | other",
+          "treatment": "mock | stub | real_in_unit_test"
+        }
+      ],
+      "coverage_goals": {
+        "branches_to_cover": [
+          "<human-readable description of each important branch/condition>"
+        ],
+        "error_paths_to_cover": [
+          "<conditions under which errors/exceptions should occur>"
+        ],
+        "state_changes_to_verify": [
+          "<which fields or globals should be checked before/after>"
+        ]
+      },
+      "planned_tests": [
+        {
+          "id": "<stable identifier like symbol_name_case_001>",
+          "category": "happy_path | error_path | boundary_conditions | dependency_mocks | state_mutation | algorithmic_branches | serialization_conversion | regression_lockin",
+          "description": "<1-2 sentence natural-language description of the test scenario>",
+          "given": {
+            "inputs": "<concise description of inputs/arguments>",
+            "preconditions": "<any necessary setup or initial state>",
+            "mocks": "<which dependencies are mocked and how they behave>"
+          },
+          "when": "<what function/method is called and with which key parameters>",
+          "then": {
+            "assertions": [
+              "<expected return value or exception>",
+              "<expected object state changes>",
+              "<expected interactions with dependencies (e.g., 'repository.save called once with X')>"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "<optional global notes about constraints, config, or things that should NOT be tested>"
+  ]
+}
+
+If something is not applicable (e.g., no serialization), simply omit tests in that category
+rather than forcing irrelevant test cases.
+
+Avoid duplicating essentially identical tests; instead, choose a small set of tests that,
+together, cover all important behavior and branches in the file.
+
+END SYSTEM
+
+USER:
+
+Here is the project context:
+
+- Language: ${language}
+- Preferred unit test framework: ${testFramework}  (if unknown, suggest one but still produce a generic plan)
+- Project summary: ${projectSummary || 'N/A'}  (short text, optional)
+
+Here is the static analysis for this file:
+
+- File path: ${filePath}
+- Symbol table:
+
+${JSON.stringify(symbolTable, null, 2)}
+
+- Branches per symbol:
+
+${JSON.stringify(branchSummary, null, 2)}
+
+- Dependency profile per symbol:
+
+${JSON.stringify(dependencyProfile, null, 2)}
+
+- Existing tests mapped to this file:
+
+${JSON.stringify(existingTestsSummary, null, 2)}
+
+Now here is the FULL SOURCE CODE of this file:
+
+\`\`\`${language}
+${fileContent}
+\`\`\`
+
+Using ALL of the above, generate the JSON test plan described in the system message.
+
+Do NOT generate any test code, only the plan.`;
+    }
+
+    buildTestCodeGenerationPrompt(
+        testPlanItem: any,
+        sourceCode: string,
+        functionCode: string,
+        language: string,
+        testFramework: string
+    ): string {
+        return `Generate executable test code for this test plan item.
+
+Test Plan:
+${JSON.stringify(testPlanItem, null, 2)}
+
+Source Function:
+\`\`\`${language}
+${functionCode}
+\`\`\`
+
+Full Source File (for context):
+\`\`\`${language}
+${sourceCode.substring(0, 2000)}${sourceCode.length > 2000 ? '\n... (truncated)' : ''}
+\`\`\`
+
+Requirements:
+- Language: ${language}
+- Framework: ${testFramework}
+- Test ID: ${testPlanItem.id}
+- Category: ${testPlanItem.category}
+- Return ONLY plain source code text (NO markdown, NO HTML, NO triple backticks)
+- Include all imports and setup
+- Use proper mocking for dependencies listed in the test plan
+- Include all assertions from the plan
+- Make the test code complete and immediately runnable
+- Follow ${testFramework} best practices for ${language}
+
+The test code should:
+1. Set up any necessary mocks based on the "given.mocks" field
+2. Arrange test data based on "given.inputs" and "given.preconditions"
+3. Execute the function call as described in "when"
+4. Assert all expected outcomes from "then.assertions"
+
+Return ONLY the test code, no explanations or markdown formatting.`;
     }
 }
 

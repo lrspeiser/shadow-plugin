@@ -14,6 +14,64 @@ export interface CodeAnalysis {
     orphanedFiles: string[];
     entryPoints: EntryPoint[];
     duplicates?: DuplicateGroup[];
+    // Enhanced metadata (optional, populated by EnhancedAnalyzer)
+    functionMetadata?: Map<string, FunctionMetadata>;
+    testMapping?: TestMapping;
+}
+
+export interface FunctionMetadata {
+    symbolName: string;
+    file: string;
+    parameters: ParameterInfo[];
+    returnType?: string;
+    visibility: 'public' | 'private' | 'protected';
+    docstring?: string;
+    branches: BranchInfo[];
+    dependencies: DependencyInfo[];
+    stateMutations: StateMutationInfo[];
+    riskLevel: 'high' | 'medium' | 'low';
+    startLine: number;
+    endLine: number;
+}
+
+export interface ParameterInfo {
+    name: string;
+    type?: string;
+    defaultValue?: string;
+    optional: boolean;
+}
+
+export interface BranchInfo {
+    type: 'if' | 'elif' | 'else' | 'switch' | 'case' | 'loop' | 'exception' | 'try' | 'catch' | 'finally';
+    condition: string; // Human-readable description
+    lineNumber: number;
+}
+
+export interface DependencyInfo {
+    name: string;
+    type: 'db' | 'http' | 'filesystem' | 'message_queue' | 'cache' | 'time' | 'random' | 'other' | 'internal';
+    isInternal: boolean; // Internal function call vs external
+    lineNumber?: number;
+}
+
+export interface StateMutationInfo {
+    target: string; // Field/property name or 'return' or 'argument'
+    mutationType: 'assign' | 'modify' | 'delete' | 'read';
+    lineNumber: number;
+}
+
+export interface TestMapping {
+    sourceFileToTests: Map<string, string[]>; // source file -> test files
+    functionToTests: Map<string, string[]>; // function -> test names
+    uncoveredFunctions: string[]; // Functions with no tests
+    uncoveredBranches: Map<string, BranchInfo[]>; // Function -> untested branches
+}
+
+export interface BehavioralHints {
+    intendedBehavior?: string;
+    constraints?: string[];
+    errorConditions?: string[];
+    invariants?: string[];
 }
 
 export interface FileInfo {

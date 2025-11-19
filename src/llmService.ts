@@ -4,7 +4,8 @@
  */
 import * as vscode from 'vscode';
 import { FileSummary, ModuleSummary, EnhancedProductDocumentation, detectFileRole, groupFilesByModule, detectModuleType, readFileContent } from './fileDocumentation';
-import { CodeAnalysis, FileInfo } from './analyzer';
+import { CodeAnalysis, FileInfo, FunctionMetadata } from './analyzer';
+import { EnhancedAnalyzer } from './analysis/enhancedAnalyzer';
 import { productPurposeAnalysisSchema, llmInsightsSchema, productDocumentationSchema, unitTestPlanSchema } from './llmSchemas';
 import { FileAccessHelper, LLMRequest } from './fileAccessHelper';
 import { SWLogger } from './logger';
@@ -1561,6 +1562,209 @@ Please proceed with reorganization, moving one file at a time.
         } catch (error: any) {
             console.error('Error in generateUnitTestPlan:', error);
             throw new Error(`Failed to generate unit test plan: ${error.message || error}`);
+        }
+    }
+
+    /**
+     * Generate per-file test plan using enhanced analysis (two-stage approach)
+     * This is the new enhanced method that uses AST parsing and detailed metadata
+     */
+    public async generatePerFileTestPlan(
+        filePath: string,
+        fileContent: string,
+        functionMetadata: FunctionMetadata[],
+        existingTests: string[],
+        language: string,
+        testFramework: string,
+        projectSummary?: string,
+        cancellationToken?: vscode.CancellationToken
+    ): Promise<any> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+        
+        const isClaude = provider.getName() === 'claude';
+
+        SWLogger.section('Per-File Test Plan Generation');
+        SWLogger.log(`Generating test plan for: ${filePath}`);
+
+        const prompt = this.promptBuilder.buildPerFileTestPlanPrompt(
+            filePath,
+            fileContent,
+            functionMetadata,
+            existingTests,
+            language,
+            testFramework,
+            projectSummary
+        );
+
+        try {
+            if (cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+            if (isClaude) {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'claude-sonnet-4-5',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 16000
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse.content || llmResponse.text || '';
+                    }
+                );
+
+                // Parse JSON from response
+                const content = response.content || response.text || '';
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
+                }
+                throw new Error('No JSON found in response');
+            } else {
+                // OpenAI
+                const openaiProvider = this.providerFactory.getProvider('openai');
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await openaiProvider.sendRequest({
+                            model: 'gpt-5.1',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 16000,
+                            temperature: 0.3,
+                            response_format: { type: 'json_object' }
+                        });
+                        
+                        this.rateLimiter.recordRequest('openai');
+                        return llmResponse.content || llmResponse.text || '';
+                    }
+                );
+
+                const content = response.content || response.text || '';
+                try {
+                    return JSON.parse(content);
+                } catch (e) {
+                    // Try to extract JSON from markdown code blocks
+                    const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[1]);
+                    }
+                    throw new Error('Failed to parse JSON from response');
+                }
+            }
+        } catch (error: any) {
+            console.error('Error in generatePerFileTestPlan:', error);
+            throw new Error(`Failed to generate per-file test plan: ${error.message || error}`);
+        }
+    }
+
+    /**
+     * Generate test code from a test plan item (second stage of two-stage approach)
+     */
+    public async generateTestCodeFromPlan(
+        testPlanItem: any,
+        sourceCode: string,
+        functionCode: string,
+        language: string,
+        testFramework: string,
+        cancellationToken?: vscode.CancellationToken
+    ): Promise<string> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+        
+        const isClaude = provider.getName() === 'claude';
+
+        const prompt = this.promptBuilder.buildTestCodeGenerationPrompt(
+            testPlanItem,
+            sourceCode,
+            functionCode,
+            language,
+            testFramework
+        );
+
+        try {
+            if (cancellationToken?.isCancellationRequested) {
+                throw new Error('Cancelled by user');
+            }
+
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+            if (isClaude) {
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await provider.sendRequest({
+                            model: 'claude-sonnet-4-5',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8000
+                        });
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return llmResponse.content || llmResponse.text || '';
+                    }
+                );
+
+                const content = response.content || response.text || '';
+                // Remove markdown code blocks if present
+                return content.replace(/```[\w]*\n?/g, '').trim();
+            } else {
+                // OpenAI
+                const openaiProvider = this.providerFactory.getProvider('openai');
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        if (cancellationToken?.isCancellationRequested) {
+                            throw new Error('Cancelled by user');
+                        }
+                        
+                        const llmResponse = await openaiProvider.sendRequest({
+                            model: 'gpt-5.1',
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }],
+                            maxTokens: 8000,
+                            temperature: 0.2
+                        });
+                        
+                        this.rateLimiter.recordRequest('openai');
+                        return llmResponse.content || llmResponse.text || '';
+                    }
+                );
+
+                const content = response.content || response.text || '';
+                // Remove markdown code blocks if present
+                return content.replace(/```[\w]*\n?/g, '').trim();
+            }
+        } catch (error: any) {
+            console.error('Error in generateTestCodeFromPlan:', error);
+            throw new Error(`Failed to generate test code: ${error.message || error}`);
         }
     }
 
