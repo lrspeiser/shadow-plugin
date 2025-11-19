@@ -16,6 +16,8 @@ import { RateLimiter } from './ai/llmRateLimiter';
 import { RetryHandler } from './ai/llmRetryHandler';
 import { PromptBuilder } from './domain/prompts/promptBuilder';
 import { IncrementalAnalysisService } from './domain/services/incrementalAnalysisService';
+import { RefactoringPromptBuilder, FunctionAnalysis } from './domain/prompts/refactoringPromptBuilder';
+import { FunctionAnalyzer } from './analysis/functionAnalyzer';
 
 export interface AnalysisContext {
     files: Array<{
@@ -86,6 +88,8 @@ export class LLMService {
     private rateLimiter: RateLimiter;
     private retryHandler: RetryHandler;
     private promptBuilder: PromptBuilder;
+    private refactoringPromptBuilder: RefactoringPromptBuilder;
+    private functionAnalyzer: FunctionAnalyzer;
     private incrementalAnalysisService: IncrementalAnalysisService | null = null;
     private onConfigurationChange: (() => void) | null = null;
     private configManager = getConfigurationManager();
@@ -96,6 +100,8 @@ export class LLMService {
         this.rateLimiter = new RateLimiter();
         this.retryHandler = new RetryHandler();
         this.promptBuilder = new PromptBuilder();
+        this.refactoringPromptBuilder = new RefactoringPromptBuilder();
+        this.functionAnalyzer = new FunctionAnalyzer();
         
         // Listen for configuration changes via ConfigurationManager
         this.configManager.onConfigurationChange(() => {
@@ -2091,7 +2097,25 @@ Return ONLY the JSON object, no other text.`;
         
         const isClaude = provider.getName() === 'claude';
 
-        const prompt = this.buildComprehensiveReportPrompt(context, codeAnalysis, productDocs, architectureInsights);
+        // Analyze functions for detailed refactoring information
+        let functionAnalyses;
+        if (codeAnalysis) {
+            try {
+                functionAnalyses = await this.functionAnalyzer.analyzeFunctions(codeAnalysis);
+                SWLogger.log(`Analyzed ${functionAnalyses.length} functions for refactoring report`);
+            } catch (error) {
+                console.warn('Failed to analyze functions, proceeding without detailed function data:', error);
+                functionAnalyses = undefined;
+            }
+        }
+
+        const prompt = this.buildComprehensiveReportPrompt(
+            context, 
+            codeAnalysis, 
+            productDocs, 
+            architectureInsights,
+            functionAnalyses
+        );
 
         try {
             // Wait for rate limit if needed
@@ -2167,6 +2191,38 @@ Return ONLY the JSON object, no other text.`;
     }
 
     private buildComprehensiveReportPrompt(
+        context: AnalysisContext,
+        codeAnalysis?: CodeAnalysis,
+        productDocs?: EnhancedProductDocumentation,
+        architectureInsights?: LLMInsights,
+        functionAnalyses?: FunctionAnalysis[]
+    ): string {
+        // Use the enhanced refactoring prompt builder
+        return this.refactoringPromptBuilder.buildDetailedRefactoringPrompt(
+            context,
+            codeAnalysis || {
+                totalFiles: context.totalFiles,
+                totalLines: context.totalLines,
+                totalFunctions: context.totalFunctions,
+                largeFiles: context.largeFiles,
+                files: context.files,
+                functions: [],
+                imports: context.imports,
+                importedFiles: context.importedFiles,
+                orphanedFiles: context.orphanedFiles,
+                entryPoints: context.entryPoints
+            },
+            productDocs,
+            architectureInsights,
+            functionAnalyses
+        );
+    }
+
+    /**
+     * Legacy prompt builder (kept for backward compatibility)
+     * @deprecated Use RefactoringPromptBuilder instead
+     */
+    private buildComprehensiveReportPromptLegacy(
         context: AnalysisContext,
         codeAnalysis?: CodeAnalysis,
         productDocs?: EnhancedProductDocumentation,

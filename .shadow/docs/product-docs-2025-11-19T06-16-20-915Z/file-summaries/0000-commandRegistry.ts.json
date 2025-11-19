@@ -1,0 +1,15 @@
+{
+  "file": "src/domain/bootstrap/commandRegistry.ts",
+  "role": "Core Logic",
+  "purpose": "Analysis failed",
+  "userVisibleActions": [],
+  "developerVisibleActions": [],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Could not analyze this file",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T06:16:23.648Z"
+  }
+}

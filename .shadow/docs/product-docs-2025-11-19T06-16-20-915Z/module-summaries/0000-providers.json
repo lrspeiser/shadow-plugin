@@ -1,0 +1,53 @@
+{
+  "module": "src/ai/providers",
+  "moduleType": "other",
+  "capabilities": [],
+  "summary": "Module analysis failed",
+  "files": [
+    {
+      "file": "src/ai/providers/ILLMProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Analysis failed",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file"
+    },
+    {
+      "file": "src/ai/providers/anthropicProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Analysis failed",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file"
+    },
+    {
+      "file": "src/ai/providers/openAIProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Analysis failed",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file"
+    },
+    {
+      "file": "src/ai/providers/providerFactory.ts",
+      "role": "Core Logic",
+      "purpose": "Analysis failed",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file"
+    }
+  ],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T06:16:31.375Z"
+  }
+}

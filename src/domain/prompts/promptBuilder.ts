@@ -438,7 +438,48 @@ Generate product documentation in MARKDOWN format (NOT HTML) using EXACTLY these
 [Continue with more features]
 
 ## Architecture
-[Describe the architecture here - at least 2-3 paragraphs]
+[Describe the architecture here - at least 2-3 paragraphs. Include:
+- Architectural style (Layered, Clean Architecture, MVC, MVP, Domain-Driven Design, etc.)
+- How layers are organized
+- Key architectural patterns in use
+- Design principles followed (SOLID, DRY, KISS, etc.)]
+
+## Architectural Patterns
+[Identify and document the architectural patterns used:
+- **Layered Architecture**: [if applicable, describe layers]
+- **Clean Architecture**: [if applicable, describe boundaries]
+- **Domain-Driven Design**: [if applicable, describe domain model]
+- **MVC/MVP/MVVM**: [if applicable, describe separation]
+- **Other Patterns**: [Factory, Strategy, Observer, Repository, etc.]
+
+For each pattern, explain:
+- Where it's used in the codebase
+- How it benefits the architecture
+- Any variations or customizations]
+
+## Layer Boundaries
+[If the architecture uses layers, clearly define:
+- **Presentation Layer**: [What belongs here - UI, views, templates, rendering]
+- **Application/Business Logic Layer**: [What belongs here - use cases, orchestration, business rules]
+- **Data/Integration Layer**: [What belongs here - data access, external APIs, file I/O]
+- **Infrastructure Layer**: [What belongs here - config, utilities, cross-cutting concerns]
+- **Domain Layer**: [If applicable - domain models, entities, value objects]
+
+For each layer, specify:
+- Which directories/files belong to it
+- What responsibilities it has
+- How it interacts with other layers]
+
+## Design Principles
+[Document which design principles are followed:
+- **SOLID Principles**: [Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion]
+- **DRY (Don't Repeat Yourself)**: [How code reuse is achieved]
+- **KISS (Keep It Simple, Stupid)**: [How simplicity is maintained]
+- **YAGNI (You Aren't Gonna Need It)**: [How unnecessary complexity is avoided]
+
+For each principle, note:
+- Where it's applied in the codebase
+- Any violations or areas for improvement]
 
 ## Tech Stack
 - Technology 1
@@ -458,7 +499,8 @@ IMPORTANT:
 - Use MARKDOWN format (NOT HTML) - the content will be rendered in VSCode
 - Use the EXACT section headers shown above (## Overview, ## Key Features, etc.)
 - Start each section immediately after the header
-- Do NOT include HTML tags like <div>, <p>, <br>, etc. - use markdown syntax instead`;
+- Do NOT include HTML tags like <div>, <p>, <br>, etc. - use markdown syntax instead
+- Be specific about architectural patterns and layer boundaries - this information will be used for refactoring guidance`;
     }
 
     buildProductPurposePrompt(

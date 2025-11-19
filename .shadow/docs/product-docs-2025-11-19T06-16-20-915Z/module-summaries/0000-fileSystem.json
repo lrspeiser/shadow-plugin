@@ -1,0 +1,33 @@
+{
+  "module": "src/infrastructure/fileSystem",
+  "moduleType": "other",
+  "capabilities": [],
+  "summary": "Module analysis failed",
+  "files": [
+    {
+      "file": "src/infrastructure/fileSystem/fileCache.ts",
+      "role": "Core Logic",
+      "purpose": "Analysis failed",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file"
+    },
+    {
+      "file": "src/infrastructure/fileSystem/fileProcessor.ts",
+      "role": "Core Logic",
+      "purpose": "Analysis failed",
+      "userVisibleActions": [],
+      "developerVisibleActions": [],
+      "keyFunctions": [],
+      "dependencies": [],
+      "intent": "Could not analyze this file"
+    }
+  ],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-19T06:16:34.408Z"
+  }
+}
