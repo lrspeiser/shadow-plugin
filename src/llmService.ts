@@ -782,6 +782,44 @@ export class LLMService {
                     );
 
                     finalResult = structuredResponse.data;
+                    
+                    // Validate structure - Claude sometimes returns array instead of proper object
+                    if (Array.isArray(finalResult) || (typeof finalResult === 'object' && '0' in finalResult && !('overallAssessment' in finalResult))) {
+                        console.error('❌ Claude returned invalid structure (array instead of object)');
+                        console.error('   Received keys:', Object.keys(finalResult));
+                        console.error('   Expected object with overallAssessment, strengths, issues, etc.');
+                        console.error('   Attempting to reconstruct proper structure...');
+                        
+                        // Extract any valid data from malformed response
+                        const strengths = Array.isArray(finalResult) 
+                            ? finalResult 
+                            : Object.entries(finalResult)
+                                .filter(([key, val]) => !isNaN(Number(key)) && typeof val === 'string')
+                                .map(([_, val]) => val as string);
+                        
+                        // Preserve productPurposeAnalysis if present
+                        const productPurposeAnalysis = (finalResult as any).productPurposeAnalysis;
+                        
+                        // Reconstruct minimal valid structure
+                        finalResult = {
+                            overallAssessment: strengths.length > 0 
+                                ? `Architecture analysis identified ${strengths.length} key strengths. See strengths section for details.`
+                                : 'Unable to generate complete architecture assessment due to malformed LLM response.',
+                            strengths: strengths,
+                            issues: [],
+                            organization: 'Analysis incomplete due to malformed LLM response.',
+                            entryPointsAnalysis: '',
+                            orphanedFilesAnalysis: '',
+                            folderReorganization: '',
+                            recommendations: [],
+                            priorities: [],
+                            successErrors: '',
+                            productPurposeAnalysis: productPurposeAnalysis
+                        };
+                        
+                        console.log('⚠️ Reconstructed minimal insights structure with', strengths.length, 'strengths');
+                    }
+                    
                     insights = finalResult as LLMInsights;
                     
                     console.log('✅ Claude structured output received (no parsing needed):', {
