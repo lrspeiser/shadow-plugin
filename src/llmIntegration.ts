@@ -1630,12 +1630,12 @@ export async function generateUnitTests(): Promise<void> {
                         
                         if (attempts >= MAX_SYNTAX_FIX_ATTEMPTS) {
                             SWLogger.log(`[Phase 3] ❌ Giving up on function '${funcName}' (${testFilePath}) after ${MAX_SYNTAX_FIX_ATTEMPTS} failed fix attempts`);
-                            SWLogger.log(`[Phase 3] Final syntax error: ${syntaxCheck.error}`);
+                            SWLogger.log(`[Phase 3] Final syntax error for '${funcName}': ${syntaxCheck.error}`);
                             break;
                         }
                         
                         SWLogger.log(`[Phase 3] Syntax error in function '${funcName}' (${testFilePath}), attempting fix (${attempts}/${MAX_SYNTAX_FIX_ATTEMPTS})...`);
-                        SWLogger.log(`[Phase 3] Error: ${syntaxCheck.error}`);
+                        SWLogger.log(`[Phase 3] Error for '${funcName}': ${syntaxCheck.error}`);
                         SWLogger.log(`[Phase 3] Target function: ${funcName}`);
                         
                         

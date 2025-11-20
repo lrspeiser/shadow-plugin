@@ -184,7 +184,16 @@ export class LLMTestGenerationService {
             }
 
         } catch (error: any) {
-            SWLogger.log(`[TestGeneration] Error fixing syntax: ${error.message}`);
+            // Try to extract function name even in error case
+            let funcNameForLog = 'unknown';
+            try {
+                const testCode = fs.readFileSync(testFilePath, 'utf-8');
+                const match = testCode.match(/describe\(['"](.+?)['"]/);
+                funcNameForLog = match ? match[1] : 'unknown';
+            } catch (e) {
+                // Ignore
+            }
+            SWLogger.log(`[TestGeneration] Error fixing syntax for '${funcNameForLog}': ${error.message}`);
             return { success: false, error: error.message };
         }
     }
