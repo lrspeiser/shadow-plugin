@@ -147,6 +147,8 @@ export class LLMTestGenerationService {
             // Extract original function name from test file
             const functionMatch = testCode.match(/describe\(['"](.+?)['"]/);
             const functionName = functionMatch ? functionMatch[1] : 'unknown';
+            
+            SWLogger.log(`[TestGeneration] Fixing test for function: '${functionName}'`);
 
             // Try to read source code (best effort)
             let sourceCode = '// Source code not available';
@@ -165,19 +167,19 @@ export class LLMTestGenerationService {
             if (fixResult.status === 'pass' && fixResult.fixed_code) {
                 // Write fixed code
                 fs.writeFileSync(testFilePath, fixResult.fixed_code, 'utf-8');
-                SWLogger.log(`[TestGeneration] Applied LLM fix: ${fixResult.explanation}`);
+                SWLogger.log(`[TestGeneration] Applied LLM fix for '${functionName}': ${fixResult.explanation}`);
                 
                 // Re-validate syntax to confirm fix worked
                 const revalidation = await TestExecutionService.validateSyntax(workspaceRoot, testFilePath);
                 if (revalidation.valid) {
-                    SWLogger.log(`[TestGeneration] ✅ Syntax fix verified successfully`);
+                    SWLogger.log(`[TestGeneration] ✅ Syntax fix verified for '${functionName}'`);
                     return { success: true, fixedCode: fixResult.fixed_code };
                 } else {
-                    SWLogger.log(`[TestGeneration] ❌ Syntax fix failed re-validation: ${revalidation.error}`);
+                    SWLogger.log(`[TestGeneration] ❌ Syntax fix failed re-validation for '${functionName}': ${revalidation.error}`);
                     return { success: false, error: `Fix applied but syntax still invalid: ${revalidation.error}` };
                 }
             } else {
-                SWLogger.log(`[TestGeneration] LLM could not fix syntax error: ${fixResult.explanation}`);
+                SWLogger.log(`[TestGeneration] LLM could not fix syntax error for '${functionName}': ${fixResult.explanation}`);
                 return { success: false, error: fixResult.explanation };
             }
 

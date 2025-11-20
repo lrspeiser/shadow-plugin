@@ -1602,7 +1602,7 @@ export async function generateUnitTests(): Promise<void> {
                     
                     // Check if we've already processed this file
                     if (generatedFilePaths.has(testFilePath)) {
-                        SWLogger.log(`[Phase 3] Skipping duplicate file: ${testFilePath}`);
+                        SWLogger.log(`[Phase 3] Skipping duplicate file for function '${funcName}': ${testFilePath}`);
                         continue;
                     }
                     
@@ -1619,7 +1619,7 @@ export async function generateUnitTests(): Promise<void> {
                         if (syntaxCheck.valid) {
                             syntaxValid = true;
                             if (attempts > 0) {
-                                SWLogger.log(`[Phase 3] ✅ Syntax valid after ${attempts} fix attempt(s)`);
+                                SWLogger.log(`[Phase 3] ✅ Syntax valid for '${funcName}' after ${attempts} fix attempt(s)`);
                             }
                             break;
                         }
@@ -1629,13 +1629,15 @@ export async function generateUnitTests(): Promise<void> {
                         syntaxFixAttempts.set(testFilePath, currentAttempts + 1);
                         
                         if (attempts >= MAX_SYNTAX_FIX_ATTEMPTS) {
-                            SWLogger.log(`[Phase 3] ❌ Giving up on ${testFilePath} after ${MAX_SYNTAX_FIX_ATTEMPTS} failed fix attempts`);
+                            SWLogger.log(`[Phase 3] ❌ Giving up on function '${funcName}' (${testFilePath}) after ${MAX_SYNTAX_FIX_ATTEMPTS} failed fix attempts`);
                             SWLogger.log(`[Phase 3] Final syntax error: ${syntaxCheck.error}`);
                             break;
                         }
                         
-                        SWLogger.log(`[Phase 3] Syntax error in ${testFilePath}, attempting fix (${attempts}/${MAX_SYNTAX_FIX_ATTEMPTS})...`);
+                        SWLogger.log(`[Phase 3] Syntax error in function '${funcName}' (${testFilePath}), attempting fix (${attempts}/${MAX_SYNTAX_FIX_ATTEMPTS})...`);
                         SWLogger.log(`[Phase 3] Error: ${syntaxCheck.error}`);
+                        SWLogger.log(`[Phase 3] Target function: ${funcName}`);
+                        
                         
                         const fixResult = await LLMTestGenerationService.fixSyntaxError(
                             testFilePath,
@@ -1645,9 +1647,9 @@ export async function generateUnitTests(): Promise<void> {
                         );
                         
                         if (fixResult.success) {
-                            SWLogger.log(`[Phase 3] LLM applied fix, re-validating...`);
+                            SWLogger.log(`[Phase 3] LLM applied fix for '${funcName}', re-validating...`);
                         } else {
-                            SWLogger.log(`[Phase 3] ❌ LLM fix failed: ${fixResult.error}`);
+                            SWLogger.log(`[Phase 3] ❌ LLM fix failed for '${funcName}': ${fixResult.error}`);
                             break; // No point continuing if LLM can't fix it
                         }
                     }

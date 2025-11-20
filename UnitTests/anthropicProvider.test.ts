@@ -1,105 +1,148 @@
 import { AnthropicProvider } from '../anthropicProvider';
-import { ConfigManager } from '../../../config/configManager';
-import Anthropic from '@anthropic-ai/sdk';
+import type { Message, ProviderConfig } from '../../types';
 
-// Mocks
-jest.mock('@anthropic-ai/sdk');
-jest.mock('../../../config/configManager');
-
-describe('AnthropicProvider - validateConfig', () => {
-  let mockConfigManager: jest.Mocked<ConfigManager>;
-  let anthropicProvider: AnthropicProvider;
-  let mockAnthropicConstructor: jest.Mock;
+describe('AnthropicProvider - formatRequest text extraction', () => {
+  let provider: AnthropicProvider;
+  let config: ProviderConfig;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockAnthropicConstructor = Anthropic as unknown as jest.Mock;
-    mockAnthropicConstructor.mockImplementation(() => ({
-      messages: { create: jest.fn() }
-    }));
-    
-    mockConfigManager = {
-      claudeApiKey: '',
-      get: jest.fn(),
-      update: jest.fn()
-    } as any;
+    config = {
+      apiKey: 'test-api-key',
+      model: 'claude-3-opus-20240229',
+      maxTokens: 1000
+    };
+    provider = new AnthropicProvider(config);
   });
 
-  test('should initialize client when valid API key is provided', () => {
-    const validApiKey = 'sk-ant-api03-valid-key-12345';
-    mockConfigManager.claudeApiKey = validApiKey;
+  test('should extract text from firstBlock when text property exists', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'Hello, this is a test message'
+          }
+        ]
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(anthropicProvider['apiKey']).toBe(validApiKey);
-    expect(anthropicProvider['client']).toBeDefined();
-    expect(mockAnthropicConstructor).toHaveBeenCalledWith({
-      apiKey: validApiKey,
-      timeout: 300000
-    });
+    expect(formattedRequest.messages).toBeDefined();
+    expect(formattedRequest.messages[0].content).toEqual(messages[0].content);
   });
 
-  test('should set apiKey to null when API key is empty string', () => {
-    mockConfigManager.claudeApiKey = '';
+  test('should handle empty text content in firstBlock', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: ''
+          }
+        ]
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(anthropicProvider['apiKey']).toBeNull();
-    expect(anthropicProvider['client']).toBeUndefined();
-    expect(mockAnthropicConstructor).not.toHaveBeenCalled();
+    expect(formattedRequest.messages).toBeDefined();
+    expect(formattedRequest.messages[0].content).toEqual(messages[0].content);
   });
 
-  test('should set apiKey to null when API key is undefined', () => {
-    mockConfigManager.claudeApiKey = undefined as any;
+  test('should handle firstBlock without text property', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: 'image/png',
+              data: 'base64data'
+            }
+          }
+        ]
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(anthropicProvider['apiKey']).toBeNull();
-    expect(anthropicProvider['client']).toBeUndefined();
-    expect(mockAnthropicConstructor).not.toHaveBeenCalled();
+    expect(formattedRequest.messages).toBeDefined();
+    expect(formattedRequest.messages[0].content).toEqual(messages[0].content);
   });
 
-  test('should set apiKey to null when API key is null', () => {
-    mockConfigManager.claudeApiKey = null as any;
+  test('should handle undefined or null firstBlock', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: []
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(anthropicProvider['apiKey']).toBeNull();
-    expect(anthropicProvider['client']).toBeUndefined();
-    expect(mockAnthropicConstructor).not.toHaveBeenCalled();
+    expect(formattedRequest.messages).toBeDefined();
+    expect(formattedRequest.messages[0].content).toEqual([]);
   });
 
-  test('should initialize client with correct timeout value', () => {
-    const validApiKey = 'sk-ant-api03-test-key';
-    mockConfigManager.claudeApiKey = validApiKey;
+  test('should handle multiple content blocks with text in first block', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'First text block'
+          },
+          {
+            type: 'text',
+            text: 'Second text block'
+          }
+        ]
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(mockAnthropicConstructor).toHaveBeenCalledWith(
-      expect.objectContaining({
-        timeout: 300000
-      })
-    );
+    expect(formattedRequest.messages).toBeDefined();
+    expect(formattedRequest.messages[0].content).toEqual(messages[0].content);
   });
 
-  test('should handle whitespace-only API key as invalid', () => {
-    mockConfigManager.claudeApiKey = '   ';
+  test('should handle string content instead of array', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: 'Simple string message'
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(anthropicProvider['apiKey']).toBe('   ');
-    expect(anthropicProvider['client']).toBeDefined();
-    expect(mockAnthropicConstructor).toHaveBeenCalled();
+    expect(formattedRequest.messages).toBeDefined();
   });
 
-  test('should initialize client when API key has length greater than zero', () => {
-    const shortApiKey = 'x';
-    mockConfigManager.claudeApiKey = shortApiKey;
+  test('should preserve message structure in formatted request', () => {
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'Test message with special characters: !@#$%^&*()'
+          }
+        ]
+      }
+    ];
+
+    const formattedRequest = (provider as any).formatRequest(messages, config.model, config.maxTokens);
     
-    anthropicProvider = new AnthropicProvider(mockConfigManager);
-    
-    expect(anthropicProvider['apiKey']).toBe(shortApiKey);
-    expect(anthropicProvider['client']).toBeDefined();
-    expect(mockAnthropicConstructor).toHaveBeenCalledTimes(1);
+    expect(formattedRequest.model).toBe(config.model);
+    expect(formattedRequest.max_tokens).toBe(config.maxTokens);
+    expect(formattedRequest.messages).toBeDefined();
+    expect(formattedRequest.messages.length).toBe(1);
   });
 });
