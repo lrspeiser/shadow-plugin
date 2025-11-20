@@ -444,7 +444,7 @@ export class LLMService {
         const incrementalService = new IncrementalAnalysisService(fileAccessHelper);
         const basePrompt = this.promptBuilder.buildProductLevelPrompt(fileSummaries, moduleSummaries, analysis, fileAccessHelper);
         const messages: any[] = [];
-        const maxIterations = 3;
+        const maxIterations = 1;
         let finalResult: any = null;
 
         for (let iteration = 1; iteration <= maxIterations; iteration++) {
@@ -733,7 +733,7 @@ export class LLMService {
         try {
             let insights: LLMInsights | null = null;
             const messages: any[] = [];
-            const maxIterations = 3;
+            const maxIterations = 1;
             let finalResult: any = null;
             
             for (let iteration = 1; iteration <= maxIterations; iteration++) {
