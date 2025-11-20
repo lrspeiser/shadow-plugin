@@ -1,0 +1,29 @@
+{
+  "file": "src/domain/services/testing/types/testResultTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type definitions for test generation, validation, execution results, and reporting",
+  "userVisibleActions": [
+    "View test generation results showing which test files were created with their imports and mocks",
+    "See test validation status indicating whether tests passed, failed, or encountered errors",
+    "Review test execution results showing how many tests passed, failed, or had errors with duration",
+    "Read test reports with summaries, pass rates, and recommendations for improvement",
+    "Examine error details including test names, error messages, and stack traces when tests fail"
+  ],
+  "developerVisibleActions": [
+    "Define structure for test generation output including file paths, imports, mocks, and test code",
+    "Specify test validation results with status, fixed code, and remaining issues",
+    "Structure test execution results with pass/fail counts and timing information",
+    "Create test reports with summaries and recommendations",
+    "Define mock statement format with explanations for generated test mocks",
+    "Capture setup and teardown code for test initialization and cleanup"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides a strongly-typed contract for test generation and validation workflows, ensuring consistent data structures across test creation, execution, and reporting phases. Enables type-safe handling of test results, error details, and test report generation throughout the testing service.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type definitions for test generation, validation, execution results, and reporting\",\n  \"userVisibleActions\": [\n    \"View test generation results showing which test files were created with their imports and mocks\",\n    \"See test validation status indicating whether tests passed, failed, or encountered errors\",\n    \"Review test execution results showing how many tests passed, failed, or had errors with duration\",\n    \"Read test reports with summaries, pass rates, and recommendations for improvement\",\n    \"Examine error details including test names, error messages, and stack traces when tests fail\"\n  ],\n  \"developerVisibleActions\": [\n    \"Define structure for test generation output including file paths, imports, mocks, and test code\",\n    \"Specify test validation results with status, fixed code, and remaining issues\",\n    \"Structure test execution results with pass/fail counts and timing information\",\n    \"Create test reports with summaries and recommendations\",\n    \"Define mock statement format with explanations for generated test mocks\",\n    \"Capture setup and teardown code for test initialization and cleanup\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides a strongly-typed contract for test generation and validation workflows, ensuring consistent data structures across test creation, execution, and reporting phases. Enables type-safe handling of test results, error details, and test report generation throughout the testing service.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:41:53.758Z"
+  }
+}

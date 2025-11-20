@@ -1,0 +1,97 @@
+{
+  "file": "src/llmService.ts",
+  "role": "Core Logic",
+  "purpose": "Provides AI-powered code analysis and documentation generation by coordinating LLM providers (OpenAI/Claude) to generate insights, summaries, and test plans for codebases.",
+  "userVisibleActions": [
+    "Generate intelligent product purpose analysis from codebase",
+    "Create comprehensive documentation with architecture insights",
+    "Generate unit test plans for code files",
+    "Receive AI-powered refactoring suggestions for functions",
+    "Get incremental analysis updates as code changes",
+    "View module-level summaries and insights",
+    "See file role classifications (entry point, core logic, etc.)",
+    "Receive budget-aware analysis notifications"
+  ],
+  "developerVisibleActions": [
+    "Call analyzeChatRequest() to get AI insights for chat interactions",
+    "Use analyzeCodebase() to generate full codebase analysis with LLM insights",
+    "Invoke analyzeProductPurpose() to extract high-level product goals",
+    "Generate documentation via generateEnhancedProductDocumentation()",
+    "Request test plans with generateUnitTestPlan()",
+    "Get refactoring suggestions through analyzeForRefactoring()",
+    "Configure LLM provider (OpenAI, Claude, Gemini) through settings",
+    "Monitor token budget consumption across analysis operations",
+    "Handle rate limiting and retry logic automatically",
+    "Access parsed JSON responses from LLM outputs",
+    "Receive structured analysis results with metadata"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeChatRequest",
+      "desc": "Processes user chat requests and generates AI-powered responses about the codebase",
+      "inputs": "userMessage (string), codebaseContext (analysis data), chatHistory (conversation array)",
+      "outputs": "AI-generated response string addressing the user's question"
+    },
+    {
+      "name": "analyzeCodebase",
+      "desc": "Performs comprehensive codebase analysis using LLM to extract insights, patterns, and documentation",
+      "inputs": "CodeAnalysis object with file structure and metadata",
+      "outputs": "LLMInsights object with architectural patterns, tech stack, risks, and recommendations"
+    },
+    {
+      "name": "analyzeProductPurpose",
+      "desc": "Determines the high-level purpose and goals of the product from code analysis",
+      "inputs": "CodeAnalysis with file summaries and structure",
+      "outputs": "ProductPurposeAnalysis with purpose, rationale, and key capabilities"
+    },
+    {
+      "name": "generateEnhancedProductDocumentation",
+      "desc": "Creates detailed product documentation including purpose, architecture, and module descriptions",
+      "inputs": "CodeAnalysis and optional ProductPurposeAnalysis",
+      "outputs": "EnhancedProductDocumentation with comprehensive project documentation"
+    },
+    {
+      "name": "generateUnitTestPlan",
+      "desc": "Generates test plans with specific test cases for a code file",
+      "inputs": "file path, file content, file role, module context",
+      "outputs": "UnitTestPlan with test scenarios, coverage areas, and suggested test cases"
+    },
+    {
+      "name": "analyzeForRefactoring",
+      "desc": "Analyzes functions and provides refactoring suggestions to improve code quality",
+      "inputs": "file path, file content, function metadata",
+      "outputs": "RefactoringAnalysis with suggestions for improvements, complexity reduction, and best practices"
+    },
+    {
+      "name": "callLLM",
+      "desc": "Core method that handles all LLM API calls with rate limiting, retries, and response parsing",
+      "inputs": "prompt, schema definition, token budget, provider selection",
+      "outputs": "Parsed JSON response matching the requested schema"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./fileDocumentation",
+    "./analyzer",
+    "./analysis/enhancedAnalyzer",
+    "./llmSchemas",
+    "./fileAccessHelper",
+    "./logger",
+    "./config/configurationManager",
+    "./ai/providers/providerFactory",
+    "./ai/llmResponseParser",
+    "./ai/llmRateLimiter",
+    "./ai/llmRetryHandler",
+    "./domain/prompts/promptBuilder",
+    "./domain/services/incrementalAnalysisService",
+    "./domain/prompts/refactoringPromptBuilder",
+    "./analysis/functionAnalyzer"
+  ],
+  "intent": "This file exists to bridge the gap between code analysis and AI-powered insights by managing all interactions with Large Language Models (OpenAI, Claude, Gemini). It solves the problem of extracting meaningful, human-readable insights from raw code structure by orchestrating LLM calls with proper rate limiting, retry logic, token budget management, and structured response parsing. It enables developers to get intelligent documentation, refactoring suggestions, test plans, and architectural insights without manually analyzing large codebases.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides AI-powered code analysis and documentation generation by coordinating LLM providers (OpenAI/Claude) to generate insights, summaries, and test plans for codebases.\",\n  \"userVisibleActions\": [\n    \"Generate intelligent product purpose analysis from codebase\",\n    \"Create comprehensive documentation with architecture insights\",\n    \"Generate unit test plans for code files\",\n    \"Receive AI-powered refactoring suggestions for functions\",\n    \"Get incremental analysis updates as code changes\",\n    \"View module-level summaries and insights\",\n    \"See file role classifications (entry point, core logic, etc.)\",\n    \"Receive budget-aware analysis notifications\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call analyzeChatRequest() to get AI insights for chat interactions\",\n    \"Use analyzeCodebase() to generate full codebase analysis with LLM insights\",\n    \"Invoke analyzeProductPurpose() to extract high-level product goals\",\n    \"Generate documentation via generateEnhancedProductDocumentation()\",\n    \"Request test plans with generateUnitTestPlan()\",\n    \"Get refactoring suggestions through analyzeForRefactoring()\",\n    \"Configure LLM provider (OpenAI, Claude, Gemini) through settings\",\n    \"Monitor token budget consumption across analysis operations\",\n    \"Handle rate limiting and retry logic automatically\",\n    \"Access parsed JSON responses from LLM outputs\",\n    \"Receive structured analysis results with metadata\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeChatRequest\",\n      \"desc\": \"Processes user chat requests and generates AI-powered responses about the codebase\",\n      \"inputs\": \"userMessage (string), codebaseContext (analysis data), chatHistory (conversation array)\",\n      \"outputs\": \"AI-generated response string addressing the user's question\"\n    },\n    {\n      \"name\": \"analyzeCodebase\",\n      \"desc\": \"Performs comprehensive codebase analysis using LLM to extract insights, patterns, and documentation\",\n      \"inputs\": \"CodeAnalysis object with file structure and metadata\",\n      \"outputs\": \"LLMInsights object with architectural patterns, tech stack, risks, and recommendations\"\n    },\n    {\n      \"name\": \"analyzeProductPurpose\",\n      \"desc\": \"Determines the high-level purpose and goals of the product from code analysis\",\n      \"inputs\": \"CodeAnalysis with file summaries and structure\",\n      \"outputs\": \"ProductPurposeAnalysis with purpose, rationale, and key capabilities\"\n    },\n    {\n      \"name\": \"generateEnhancedProductDocumentation\",\n      \"desc\": \"Creates detailed product documentation including purpose, architecture, and module descriptions\",\n      \"inputs\": \"CodeAnalysis and optional ProductPurposeAnalysis\",\n      \"outputs\": \"EnhancedProductDocumentation with comprehensive project documentation\"\n    },\n    {\n      \"name\": \"generateUnitTestPlan\",\n      \"desc\": \"Generates test plans with specific test cases for a code file\",\n      \"inputs\": \"file path, file content, file role, module context\",\n      \"outputs\": \"UnitTestPlan with test scenarios, coverage areas, and suggested test cases\"\n    },\n    {\n      \"name\": \"analyzeForRefactoring\",\n      \"desc\": \"Analyzes functions and provides refactoring suggestions to improve code quality\",\n      \"inputs\": \"file path, file content, function metadata\",\n      \"outputs\": \"RefactoringAnalysis with suggestions for improvements, complexity reduction, and best practices\"\n    },\n    {\n      \"name\": \"callLLM\",\n      \"desc\": \"Core method that handles all LLM API calls with rate limiting, retries, and response parsing\",\n      \"inputs\": \"prompt, schema definition, token budget, provider selection\",\n      \"outputs\": \"Parsed JSON response matching the requested schema\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./fileDocumentation\",\n    \"./analyzer\",\n    \"./analysis/enhancedAnalyzer\",\n    \"./llmSchemas\",\n    \"./fileAccessHelper\",\n    \"./logger\",\n    \"./config/configurationManager\",\n    \"./ai/providers/providerFactory\",\n    \"./ai/llmResponseParser\",\n    \"./ai/llmRateLimiter\",\n    \"./ai/llmRetryHandler\",\n    \"./domain/prompts/promptBuilder\",\n    \"./domain/services/incrementalAnalysisService\",\n    \"./domain/prompts/refactoringPromptBuilder\",\n    \"./analysis/functionAnalyzer\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between code analysis and AI-powered insights by managing all interactions with Large Language Models (OpenAI, Claude, Gemini). It solves the problem of extracting meaningful, human-readable insights from raw code structure by orchestrating LLM calls with proper rate limiting, retry logic, token budget management, and structured response parsing. It enables developers to get intelligent documentation, refactoring suggestions, test plans, and architectural insights without manually analyzing large codebases.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:45:47.867Z"
+  }
+}

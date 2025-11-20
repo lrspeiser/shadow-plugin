@@ -1,0 +1,64 @@
+{
+  "file": "src/ai/providers/anthropicProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Provides integration with Anthropic's Claude AI models for natural language processing and code analysis tasks",
+  "userVisibleActions": [
+    "Sends prompts to Claude AI and receives AI-generated responses",
+    "Generates structured data (JSON) from Claude's responses for code analysis",
+    "Processes conversations with Claude while maintaining message history",
+    "Receives error messages when Claude API key is not configured"
+  ],
+  "developerVisibleActions": [
+    "Initialize Claude API client with API key from configuration",
+    "Send requests to Claude with custom models, system prompts, and message history",
+    "Extract structured JSON data from Claude's text responses",
+    "Check if Claude provider is properly configured before use",
+    "Handle message format conversion between OpenAI-style and Claude-style formats",
+    "Configure request timeouts and token limits for Claude API calls"
+  ],
+  "keyFunctions": [
+    {
+      "name": "isConfigured",
+      "desc": "Checks if Claude API key is set up and ready to use",
+      "inputs": "none",
+      "outputs": "boolean indicating if provider is configured"
+    },
+    {
+      "name": "getName",
+      "desc": "Returns the provider identifier",
+      "inputs": "none",
+      "outputs": "string 'claude'"
+    },
+    {
+      "name": "sendRequest",
+      "desc": "Sends a prompt with conversation history to Claude and returns the response",
+      "inputs": "LLMRequestOptions (messages, model, systemPrompt, maxTokens)",
+      "outputs": "LLMResponse with text content and token usage"
+    },
+    {
+      "name": "sendStructuredRequest",
+      "desc": "Sends a request to Claude and extracts JSON data from the response",
+      "inputs": "LLMRequestOptions with expected JSON structure",
+      "outputs": "StructuredOutputResponse with parsed JSON data"
+    },
+    {
+      "name": "initialize",
+      "desc": "Sets up the Claude API client with credentials from configuration",
+      "inputs": "none (reads from config manager)",
+      "outputs": "void (initializes client)"
+    }
+  ],
+  "dependencies": [
+    "@anthropic-ai/sdk",
+    "../../config/configurationManager",
+    "../../utils/jsonExtractor",
+    "./ILLMProvider"
+  ],
+  "intent": "This file exists to abstract Claude AI integration so developers can interact with Anthropic's language models using a consistent interface. It solves the problem of converting between different AI provider formats and handling Claude-specific API requirements, making it easy to switch between AI providers without changing application code.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides integration with Anthropic's Claude AI models for natural language processing and code analysis tasks\",\n  \"userVisibleActions\": [\n    \"Sends prompts to Claude AI and receives AI-generated responses\",\n    \"Generates structured data (JSON) from Claude's responses for code analysis\",\n    \"Processes conversations with Claude while maintaining message history\",\n    \"Receives error messages when Claude API key is not configured\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize Claude API client with API key from configuration\",\n    \"Send requests to Claude with custom models, system prompts, and message history\",\n    \"Extract structured JSON data from Claude's text responses\",\n    \"Check if Claude provider is properly configured before use\",\n    \"Handle message format conversion between OpenAI-style and Claude-style formats\",\n    \"Configure request timeouts and token limits for Claude API calls\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if Claude API key is set up and ready to use\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean indicating if provider is configured\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the provider identifier\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string 'claude'\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a prompt with conversation history to Claude and returns the response\",\n      \"inputs\": \"LLMRequestOptions (messages, model, systemPrompt, maxTokens)\",\n      \"outputs\": \"LLMResponse with text content and token usage\"\n    },\n    {\n      \"name\": \"sendStructuredRequest\",\n      \"desc\": \"Sends a request to Claude and extracts JSON data from the response\",\n      \"inputs\": \"LLMRequestOptions with expected JSON structure\",\n      \"outputs\": \"StructuredOutputResponse with parsed JSON data\"\n    },\n    {\n      \"name\": \"initialize\",\n      \"desc\": \"Sets up the Claude API client with credentials from configuration\",\n      \"inputs\": \"none (reads from config manager)\",\n      \"outputs\": \"void (initializes client)\"\n    }\n  ],\n  \"dependencies\": [\n    \"@anthropic-ai/sdk\",\n    \"../../config/configurationManager\",\n    \"../../utils/jsonExtractor\",\n    \"./ILLMProvider\"\n  ],\n  \"intent\": \"This file exists to abstract Claude AI integration so developers can interact with Anthropic's language models using a consistent interface. It solves the problem of converting between different AI provider formats and handling Claude-specific API requirements, making it easy to switch between AI providers without changing application code.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:36:16.521Z"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "file": "src/llmIntegration.ts",
+  "role": "Core Logic",
+  "purpose": "Integrates LLM-powered code analysis features with VS Code UI components, managing initialization, commands, and state for insights, documentation, and test generation.",
+  "userVisibleActions": [
+    "Generate AI-powered code insights for the entire workspace",
+    "Analyze specific code files or selected code snippets",
+    "View generated insights in a tree view panel",
+    "Generate product documentation from codebase analysis",
+    "View formatted documentation in the output panel and webview",
+    "Export documentation to markdown files",
+    "Navigate through code structure and entry points",
+    "View unit test analysis and coverage",
+    "Generate unit tests using AI",
+    "Clear cached insights and analysis results",
+    "Configure LLM API settings (provider, API key, model)",
+    "See analysis progress through status messages and progress bars"
+  ],
+  "developerVisibleActions": [
+    "Register VS Code commands for triggering LLM analysis workflows",
+    "Initialize LLM service with configuration from workspace settings",
+    "Save and load analysis results to/from workspace storage",
+    "Trigger tree view refreshes when data changes",
+    "Handle errors and display user-friendly error messages",
+    "Manage state across different analysis views and panels",
+    "Coordinate between multiple UI providers (insights, documentation, tests)",
+    "Execute analysis workflows with proper context and scope",
+    "Format and present analysis results in multiple output formats",
+    "Handle file system operations for saving/loading cached data"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeLLMService",
+      "desc": "Sets up the LLM service, output channels, and loads saved analysis data on extension startup",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "analyzeFull",
+      "desc": "Performs comprehensive codebase analysis and generates insights for the entire workspace",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "analyzeFile",
+      "desc": "Analyzes a specific file or currently active editor and generates insights",
+      "inputs": "optional URI",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "analyzeSelection",
+      "desc": "Analyzes only the selected code in the active editor",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "desc": "Creates formatted product documentation from code analysis results",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "exportDocumentation",
+      "desc": "Saves generated documentation to markdown files in the workspace",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "clearInsights",
+      "desc": "Removes all cached insights and analysis results from storage",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "generateUnitTests",
+      "desc": "Uses AI to generate unit tests for selected code or active file",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "showInsights",
+      "desc": "Displays the insights tree view panel in the VS Code sidebar",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "configureAPISettings",
+      "desc": "Opens configuration interface for setting LLM provider and API credentials",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "child_process",
+    "util",
+    "llmService",
+    "insightsTreeView",
+    "fileDocumentation",
+    "analyzer",
+    "productNavigator",
+    "analysisViewer",
+    "insightsViewer",
+    "unitTestsNavigator",
+    "logger",
+    "state/llmStateManager",
+    "context/analysisContextBuilder",
+    "domain/formatters/documentationFormatter",
+    "infrastructure/persistence/analysisResultRepository"
+  ],
+  "intent": "This file exists to bridge the gap between LLM-powered code analysis capabilities and VS Code's user interface, providing a complete integration layer that allows users to leverage AI for understanding codebases, generating documentation, and creating tests through familiar VS Code commands and UI components.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Integrates LLM-powered code analysis features with VS Code UI components, managing initialization, commands, and state for insights, documentation, and test generation.\",\n  \"userVisibleActions\": [\n    \"Generate AI-powered code insights for the entire workspace\",\n    \"Analyze specific code files or selected code snippets\",\n    \"View generated insights in a tree view panel\",\n    \"Generate product documentation from codebase analysis\",\n    \"View formatted documentation in the output panel and webview\",\n    \"Export documentation to markdown files\",\n    \"Navigate through code structure and entry points\",\n    \"View unit test analysis and coverage\",\n    \"Generate unit tests using AI\",\n    \"Clear cached insights and analysis results\",\n    \"Configure LLM API settings (provider, API key, model)\",\n    \"See analysis progress through status messages and progress bars\"\n  ],\n  \"developerVisibleActions\": [\n    \"Register VS Code commands for triggering LLM analysis workflows\",\n    \"Initialize LLM service with configuration from workspace settings\",\n    \"Save and load analysis results to/from workspace storage\",\n    \"Trigger tree view refreshes when data changes\",\n    \"Handle errors and display user-friendly error messages\",\n    \"Manage state across different analysis views and panels\",\n    \"Coordinate between multiple UI providers (insights, documentation, tests)\",\n    \"Execute analysis workflows with proper context and scope\",\n    \"Format and present analysis results in multiple output formats\",\n    \"Handle file system operations for saving/loading cached data\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeLLMService\",\n      \"desc\": \"Sets up the LLM service, output channels, and loads saved analysis data on extension startup\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeFull\",\n      \"desc\": \"Performs comprehensive codebase analysis and generates insights for the entire workspace\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"analyzeFile\",\n      \"desc\": \"Analyzes a specific file or currently active editor and generates insights\",\n      \"inputs\": \"optional URI\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"analyzeSelection\",\n      \"desc\": \"Analyzes only the selected code in the active editor\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"generateProductDocumentation\",\n      \"desc\": \"Creates formatted product documentation from code analysis results\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"exportDocumentation\",\n      \"desc\": \"Saves generated documentation to markdown files in the workspace\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"clearInsights\",\n      \"desc\": \"Removes all cached insights and analysis results from storage\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"generateUnitTests\",\n      \"desc\": \"Uses AI to generate unit tests for selected code or active file\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"showInsights\",\n      \"desc\": \"Displays the insights tree view panel in the VS Code sidebar\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"configureAPISettings\",\n      \"desc\": \"Opens configuration interface for setting LLM provider and API credentials\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"util\",\n    \"llmService\",\n    \"insightsTreeView\",\n    \"fileDocumentation\",\n    \"analyzer\",\n    \"productNavigator\",\n    \"analysisViewer\",\n    \"insightsViewer\",\n    \"unitTestsNavigator\",\n    \"logger\",\n    \"state/llmStateManager\",\n    \"context/analysisContextBuilder\",\n    \"domain/formatters/documentationFormatter\",\n    \"infrastructure/persistence/analysisResultRepository\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between LLM-powered code analysis capabilities and VS Code's user interface, providing a complete integration layer that allows users to leverage AI for understanding codebases, generating documentation, and creating tests through familiar VS Code commands and UI components.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:45:09.999Z"
+  }
+}

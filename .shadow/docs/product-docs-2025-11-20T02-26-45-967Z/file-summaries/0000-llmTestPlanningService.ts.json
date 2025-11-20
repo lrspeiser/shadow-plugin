@@ -1,0 +1,53 @@
+{
+  "file": "src/domain/services/testing/llmTestPlanningService.ts",
+  "role": "Core Logic",
+  "purpose": "Creates prioritized test plans by analyzing code functions using LLM to determine which functions should be tested and in what order.",
+  "userVisibleActions": [
+    "Receives a test plan showing which functions in their codebase need testing",
+    "Sees functions categorized by priority and complexity",
+    "Gets count of testable vs non-testable functions",
+    "Views function groups organized for testing strategy"
+  ],
+  "developerVisibleActions": [
+    "Calls analyzeFunctions() to extract function metadata from code analysis results",
+    "Invokes createTestPlan() to generate LLM-based test strategy with context, functions, and optional documentation",
+    "Uses saveTestPlanToDisk() to persist the generated test plan to a file",
+    "Receives structured TestPlan object containing function groups and testability assessment",
+    "Sees logging output showing number of functions analyzed and how many are testable"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeFunctions",
+      "desc": "Extracts and normalizes function information from code analysis results",
+      "inputs": "codeAnalysis object containing functions array",
+      "outputs": "Array of function metadata including name, file, line numbers, complexity, parameters, and return type"
+    },
+    {
+      "name": "createTestPlan",
+      "desc": "Generates a prioritized test plan by sending function data to LLM service",
+      "inputs": "AnalysisContext, functions array, llmService, optional productDocs and architectureInsights",
+      "outputs": "TestPlan object with function groups and testability metrics"
+    },
+    {
+      "name": "saveTestPlanToDisk",
+      "desc": "Persists the generated test plan to a JSON file in the analysis results directory",
+      "inputs": "context (containing resultDir path) and testPlan object",
+      "outputs": "void (writes file to disk)"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./types/testPlanTypes",
+    "../../prompts/testPrompts",
+    "../../../analyzer",
+    "../../../logger"
+  ],
+  "intent": "This service exists to automate test planning by leveraging LLM intelligence to analyze code functions and determine optimal testing strategies. It solves the problem of manually identifying which functions need testing and prioritizing test effort based on function complexity, parameters, and codebase context.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Creates prioritized test plans by analyzing code functions using LLM to determine which functions should be tested and in what order.\",\n  \"userVisibleActions\": [\n    \"Receives a test plan showing which functions in their codebase need testing\",\n    \"Sees functions categorized by priority and complexity\",\n    \"Gets count of testable vs non-testable functions\",\n    \"Views function groups organized for testing strategy\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls analyzeFunctions() to extract function metadata from code analysis results\",\n    \"Invokes createTestPlan() to generate LLM-based test strategy with context, functions, and optional documentation\",\n    \"Uses saveTestPlanToDisk() to persist the generated test plan to a file\",\n    \"Receives structured TestPlan object containing function groups and testability assessment\",\n    \"Sees logging output showing number of functions analyzed and how many are testable\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Extracts and normalizes function information from code analysis results\",\n      \"inputs\": \"codeAnalysis object containing functions array\",\n      \"outputs\": \"Array of function metadata including name, file, line numbers, complexity, parameters, and return type\"\n    },\n    {\n      \"name\": \"createTestPlan\",\n      \"desc\": \"Generates a prioritized test plan by sending function data to LLM service\",\n      \"inputs\": \"AnalysisContext, functions array, llmService, optional productDocs and architectureInsights\",\n      \"outputs\": \"TestPlan object with function groups and testability metrics\"\n    },\n    {\n      \"name\": \"saveTestPlanToDisk\",\n      \"desc\": \"Persists the generated test plan to a JSON file in the analysis results directory\",\n      \"inputs\": \"context (containing resultDir path) and testPlan object\",\n      \"outputs\": \"void (writes file to disk)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./types/testPlanTypes\",\n    \"../../prompts/testPrompts\",\n    \"../../../analyzer\",\n    \"../../../logger\"\n  ],\n  \"intent\": \"This service exists to automate test planning by leveraging LLM intelligence to analyze code functions and determine optimal testing strategies. It solves the problem of manually identifying which functions need testing and prioritizing test effort based on function complexity, parameters, and codebase context.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:41:01.527Z"
+  }
+}

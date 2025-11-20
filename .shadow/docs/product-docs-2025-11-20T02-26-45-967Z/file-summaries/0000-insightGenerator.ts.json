@@ -1,0 +1,95 @@
+{
+  "file": "src/insightGenerator.ts",
+  "role": "Core Logic",
+  "purpose": "Analyzes code and generates actionable insights about code quality, organization, and potential issues",
+  "userVisibleActions": [
+    "Receives warnings about large files exceeding 500 lines of code",
+    "Gets notified about orphaned files that aren't imported anywhere",
+    "Sees alerts for missing entry points in the codebase",
+    "Receives warnings about circular dependencies between files",
+    "Gets notified about 'god objects' (files with too many functions)",
+    "Sees suggestions about potential dead code",
+    "Receives insights about file organization issues",
+    "Gets warnings about complex functions that may need refactoring"
+  ],
+  "developerVisibleActions": [
+    "Call generateInsights() with code analysis to get all insights for the entire codebase",
+    "Call generateInsightsForFile() to get insights for a specific file",
+    "Receive structured Insight objects with severity levels (error, warning, info)",
+    "Each insight includes title, description, category, file location, line number, and actionable suggestions",
+    "Insights are categorized by type (Code Organization, Maintainability, Performance, etc.)",
+    "Get code snippets included in insights when relevant"
+  ],
+  "keyFunctions": [
+    {
+      "name": "generateInsights",
+      "desc": "Analyzes entire codebase and returns all detected issues and recommendations",
+      "inputs": "CodeAnalysis object containing files, functions, and dependencies",
+      "outputs": "Array of Insight objects with problems and suggestions"
+    },
+    {
+      "name": "generateInsightsForFile",
+      "desc": "Analyzes a specific file and returns insights relevant to that file only",
+      "inputs": "CodeAnalysis object and file path string",
+      "outputs": "Array of Insight objects filtered for the specified file"
+    },
+    {
+      "name": "checkLargeFiles",
+      "desc": "Detects files that exceed recommended line count thresholds",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about oversized files"
+    },
+    {
+      "name": "checkOrphanedFiles",
+      "desc": "Identifies files that aren't imported or used anywhere in the codebase",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about unused files"
+    },
+    {
+      "name": "checkEntryPoints",
+      "desc": "Verifies that the codebase has proper entry points defined",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about missing entry points"
+    },
+    {
+      "name": "checkCircularDependencies",
+      "desc": "Detects potential circular dependency patterns between files",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about circular dependencies"
+    },
+    {
+      "name": "checkGodObjects",
+      "desc": "Identifies files with excessive functions that violate single responsibility principle",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about files with too many responsibilities"
+    },
+    {
+      "name": "checkDeadCode",
+      "desc": "Detects potentially unused or unreachable code",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about dead code"
+    },
+    {
+      "name": "checkFileOrganization",
+      "desc": "Analyzes project structure and suggests organizational improvements",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about file organization issues"
+    },
+    {
+      "name": "checkFunctionComplexity",
+      "desc": "Identifies functions that are too complex and may need simplification",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights about overly complex functions"
+    }
+  ],
+  "dependencies": [
+    "./analyzer"
+  ],
+  "intent": "This file exists to transform raw code analysis data into actionable, human-readable insights that help developers identify code quality issues, maintainability problems, and architectural concerns. It solves the problem of making sense of complex code metrics by categorizing issues, assigning severity levels, and providing specific suggestions for improvement.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Analyzes code and generates actionable insights about code quality, organization, and potential issues\",\n  \"userVisibleActions\": [\n    \"Receives warnings about large files exceeding 500 lines of code\",\n    \"Gets notified about orphaned files that aren't imported anywhere\",\n    \"Sees alerts for missing entry points in the codebase\",\n    \"Receives warnings about circular dependencies between files\",\n    \"Gets notified about 'god objects' (files with too many functions)\",\n    \"Sees suggestions about potential dead code\",\n    \"Receives insights about file organization issues\",\n    \"Gets warnings about complex functions that may need refactoring\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call generateInsights() with code analysis to get all insights for the entire codebase\",\n    \"Call generateInsightsForFile() to get insights for a specific file\",\n    \"Receive structured Insight objects with severity levels (error, warning, info)\",\n    \"Each insight includes title, description, category, file location, line number, and actionable suggestions\",\n    \"Insights are categorized by type (Code Organization, Maintainability, Performance, etc.)\",\n    \"Get code snippets included in insights when relevant\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"generateInsights\",\n      \"desc\": \"Analyzes entire codebase and returns all detected issues and recommendations\",\n      \"inputs\": \"CodeAnalysis object containing files, functions, and dependencies\",\n      \"outputs\": \"Array of Insight objects with problems and suggestions\"\n    },\n    {\n      \"name\": \"generateInsightsForFile\",\n      \"desc\": \"Analyzes a specific file and returns insights relevant to that file only\",\n      \"inputs\": \"CodeAnalysis object and file path string\",\n      \"outputs\": \"Array of Insight objects filtered for the specified file\"\n    },\n    {\n      \"name\": \"checkLargeFiles\",\n      \"desc\": \"Detects files that exceed recommended line count thresholds\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about oversized files\"\n    },\n    {\n      \"name\": \"checkOrphanedFiles\",\n      \"desc\": \"Identifies files that aren't imported or used anywhere in the codebase\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about unused files\"\n    },\n    {\n      \"name\": \"checkEntryPoints\",\n      \"desc\": \"Verifies that the codebase has proper entry points defined\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about missing entry points\"\n    },\n    {\n      \"name\": \"checkCircularDependencies\",\n      \"desc\": \"Detects potential circular dependency patterns between files\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about circular dependencies\"\n    },\n    {\n      \"name\": \"checkGodObjects\",\n      \"desc\": \"Identifies files with excessive functions that violate single responsibility principle\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about files with too many responsibilities\"\n    },\n    {\n      \"name\": \"checkDeadCode\",\n      \"desc\": \"Detects potentially unused or unreachable code\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about dead code\"\n    },\n    {\n      \"name\": \"checkFileOrganization\",\n      \"desc\": \"Analyzes project structure and suggests organizational improvements\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about file organization issues\"\n    },\n    {\n      \"name\": \"checkFunctionComplexity\",\n      \"desc\": \"Identifies functions that are too complex and may need simplification\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights about overly complex functions\"\n    }\n  ],\n  \"dependencies\": [\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to transform raw code analysis data into actionable, human-readable insights that help developers identify code quality issues, maintainability problems, and architectural concerns. It solves the problem of making sense of complex code metrics by categorizing issues, assigning severity levels, and providing specific suggestions for improvement.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:43:50.928Z"
+  }
+}

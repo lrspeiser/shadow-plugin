@@ -1,0 +1,46 @@
+{
+  "module": ".",
+  "moduleType": "other",
+  "capabilities": [
+    "Provides Jest testing framework configuration for TypeScript-based test execution",
+    "Enables code coverage reporting for test suites",
+    "Supports Visual Studio Code integration with mocking capabilities",
+    "Configures test environment settings for consistent test execution across the project"
+  ],
+  "summary": "This module configures the Jest testing framework for the project, enabling developers to run and maintain automated tests written in TypeScript. It establishes the testing infrastructure that allows development teams to verify code functionality, track code coverage metrics, and ensure software quality through unit and integration tests.\n\nThe configuration supports seamless integration with Visual Studio Code, providing developers with in-editor testing capabilities and debugging support. The setup includes TypeScript transformation rules, coverage reporting thresholds, and mock handling for external dependencies, creating a comprehensive testing environment that helps maintain code reliability and catch regressions early in the development cycle.",
+  "files": [
+    {
+      "file": "jest.config.js",
+      "role": "Core Logic",
+      "purpose": "Configures Jest testing framework for TypeScript test execution with coverage reporting and VS Code mocking support",
+      "userVisibleActions": [
+        "N/A - Configuration file with no direct user-facing actions"
+      ],
+      "developerVisibleActions": [
+        "Runs TypeScript tests in Node.js environment when developer executes test commands",
+        "Generates test coverage reports in text, lcov, and HTML formats in the 'coverage' directory",
+        "Discovers and executes test files matching patterns like *.test.ts, *.spec.ts in __tests__ directories",
+        "Provides code coverage metrics excluding test files, type definitions, and mock files",
+        "Mocks VS Code API during test execution to enable testing without VS Code runtime",
+        "Sets 10-second timeout for test execution to prevent hanging tests",
+        "Transpiles TypeScript files to JavaScript using ts-jest with ES2020 target"
+      ],
+      "keyFunctions": [],
+      "dependencies": [
+        "ts-jest",
+        "jest",
+        "typescript"
+      ],
+      "intent": "This file exists to configure the Jest testing framework for a TypeScript-based VS Code extension project, enabling developers to write and run unit tests with proper TypeScript compilation, VS Code API mocking, and comprehensive code coverage reporting",
+      "rawContent": "```json\n{\n  \"purpose\": \"Configures Jest testing framework for TypeScript test execution with coverage reporting and VS Code mocking support\",\n  \"userVisibleActions\": [\n    \"N/A - Configuration file with no direct user-facing actions\"\n  ],\n  \"developerVisibleActions\": [\n    \"Runs TypeScript tests in Node.js environment when developer executes test commands\",\n    \"Generates test coverage reports in text, lcov, and HTML formats in the 'coverage' directory\",\n    \"Discovers and executes test files matching patterns like *.test.ts, *.spec.ts in __tests__ directories\",\n    \"Provides code coverage metrics excluding test files, type definitions, and mock files\",\n    \"Mocks VS Code API during test execution to enable testing without VS Code runtime\",\n    \"Sets 10-second timeout for test execution to prevent hanging tests\",\n    \"Transpiles TypeScript files to JavaScript using ts-jest with ES2020 target\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"ts-jest\",\n    \"jest\",\n    \"typescript\"\n  ],\n  \"intent\": \"This file exists to configure the Jest testing framework for a TypeScript-based VS Code extension project, enabling developers to write and run unit tests with proper TypeScript compilation, VS Code API mocking, and comprehensive code coverage reporting\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:46:05.514Z"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "file": "src/domain/services/testing/testExecutionService.ts",
+  "role": "Core Logic",
+  "purpose": "Executes test suites (Jest, Mocha, Pytest) and captures their results in a structured format",
+  "userVisibleActions": [
+    "Run all tests in the workspace",
+    "Run tests for a specific file",
+    "View test execution results (passed, failed, error counts)",
+    "See test execution duration",
+    "View detailed error messages and stack traces for failed tests",
+    "Get test coverage information when available"
+  ],
+  "developerVisibleActions": [
+    "Call runJest() to execute Jest tests with optional file parameter",
+    "Call runMocha() to execute Mocha tests with optional file parameter",
+    "Call runPytest() to execute Python pytest with optional file parameter",
+    "Receive TestExecutionResult array with status, counts, and error details",
+    "Handle test execution errors and timeouts",
+    "Parse JSON output from test runners automatically",
+    "Access test coverage data from execution results"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runJest",
+      "desc": "Executes Jest tests for a specific file or entire workspace",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runMocha",
+      "desc": "Executes Mocha tests for a specific file or entire workspace",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runPytest",
+      "desc": "Executes Python pytest for a specific file or entire workspace",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "parseJestOutput",
+      "desc": "Parses JSON output from Jest test execution into structured results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parseMochaOutput",
+      "desc": "Parses JSON output from Mocha test execution into structured results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parsePytestOutput",
+      "desc": "Parses JSON output from pytest execution into structured results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    }
+  ],
+  "dependencies": [
+    "child_process",
+    "path",
+    "./types/testResultTypes"
+  ],
+  "intent": "Provides a unified interface for executing different test frameworks (Jest, Mocha, Pytest) and converting their outputs into a consistent result format, enabling the extension to support multiple testing technologies with test execution, result tracking, and error reporting capabilities.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Executes test suites (Jest, Mocha, Pytest) and captures their results in a structured format\",\n  \"userVisibleActions\": [\n    \"Run all tests in the workspace\",\n    \"Run tests for a specific file\",\n    \"View test execution results (passed, failed, error counts)\",\n    \"See test execution duration\",\n    \"View detailed error messages and stack traces for failed tests\",\n    \"Get test coverage information when available\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call runJest() to execute Jest tests with optional file parameter\",\n    \"Call runMocha() to execute Mocha tests with optional file parameter\",\n    \"Call runPytest() to execute Python pytest with optional file parameter\",\n    \"Receive TestExecutionResult array with status, counts, and error details\",\n    \"Handle test execution errors and timeouts\",\n    \"Parse JSON output from test runners automatically\",\n    \"Access test coverage data from execution results\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runJest\",\n      \"desc\": \"Executes Jest tests for a specific file or entire workspace\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runMocha\",\n      \"desc\": \"Executes Mocha tests for a specific file or entire workspace\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runPytest\",\n      \"desc\": \"Executes Python pytest for a specific file or entire workspace\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"parseJestOutput\",\n      \"desc\": \"Parses JSON output from Jest test execution into structured results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseMochaOutput\",\n      \"desc\": \"Parses JSON output from Mocha test execution into structured results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parsePytestOutput\",\n      \"desc\": \"Parses JSON output from pytest execution into structured results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    }\n  ],\n  \"dependencies\": [\n    \"child_process\",\n    \"path\",\n    \"./types/testResultTypes\"\n  ],\n  \"intent\": \"Provides a unified interface for executing different test frameworks (Jest, Mocha, Pytest) and converting their outputs into a consistent result format, enabling the extension to support multiple testing technologies with test execution, result tracking, and error reporting capabilities.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:41:37.064Z"
+  }
+}

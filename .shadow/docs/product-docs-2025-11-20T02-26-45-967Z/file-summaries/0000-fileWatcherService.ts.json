@@ -1,0 +1,73 @@
+{
+  "file": "src/domain/services/fileWatcherService.ts",
+  "role": "Core Logic",
+  "purpose": "Provides a centralized service for monitoring file system changes across the extension, consolidating all file watching functionality to eliminate duplication.",
+  "userVisibleActions": [
+    "Automatically detects when files are created in the workspace",
+    "Automatically detects when files are modified in the workspace",
+    "Automatically detects when files are deleted from the workspace",
+    "Automatically responds when user saves a document in the editor",
+    "Filters out specific files or patterns from being watched (e.g., ignoring certain directories)",
+    "Triggers updates in various UI components when relevant files change"
+  ],
+  "developerVisibleActions": [
+    "Register file watchers for specific file patterns (e.g., '**/*.md', '**/*.json')",
+    "Receive notifications when files matching patterns are created, changed, or deleted",
+    "Subscribe to document save events across all open documents",
+    "Configure which file system events to monitor (create, change, delete)",
+    "Set up ignore patterns to exclude certain files from being watched",
+    "Clean up watchers when components are disposed",
+    "Handle file change events asynchronously with custom logic",
+    "Use a single service instance to avoid duplicate file watchers"
+  ],
+  "keyFunctions": [
+    {
+      "name": "watch",
+      "desc": "Registers a file watcher for a specific pattern and returns a disposable to stop watching",
+      "inputs": "id (string), pattern (glob or RelativePattern), handler (callback function), options (ignorePatterns, watchCreate, watchChange, watchDelete flags)",
+      "outputs": "vscode.Disposable to stop the watcher"
+    },
+    {
+      "name": "onDocumentSave",
+      "desc": "Registers a handler to be called whenever any document is saved in the editor",
+      "inputs": "handler (callback function accepting TextDocument)",
+      "outputs": "vscode.Disposable to unregister the handler"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up all active file watchers and document save handlers",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getPatternKey",
+      "desc": "Generates a unique key for a file pattern to avoid duplicate watchers",
+      "inputs": "pattern (string or RelativePattern)",
+      "outputs": "string key"
+    },
+    {
+      "name": "shouldIgnore",
+      "desc": "Determines if a file path should be ignored based on configured patterns",
+      "inputs": "filePath (string), ignorePatterns (array of glob patterns)",
+      "outputs": "boolean indicating whether to ignore the file"
+    },
+    {
+      "name": "handleFileSystemEvent",
+      "desc": "Processes file system events and dispatches them to registered handlers",
+      "inputs": "uri (file URI), type (created/changed/deleted), patternKey (string)",
+      "outputs": "void (triggers async handlers)"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "fs"
+  ],
+  "intent": "This file exists to eliminate code duplication across multiple extension components that need to watch for file changes. Previously, fileWatcher.ts, productNavigator.ts, and insightsViewer.ts each had their own file watching logic. By consolidating into a single service, the extension can efficiently manage file system monitoring, avoid redundant watchers, ensure consistent behavior, and make it easier to maintain file watching functionality across the entire codebase.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a centralized service for monitoring file system changes across the extension, consolidating all file watching functionality to eliminate duplication.\",\n  \"userVisibleActions\": [\n    \"Automatically detects when files are created in the workspace\",\n    \"Automatically detects when files are modified in the workspace\",\n    \"Automatically detects when files are deleted from the workspace\",\n    \"Automatically responds when user saves a document in the editor\",\n    \"Filters out specific files or patterns from being watched (e.g., ignoring certain directories)\",\n    \"Triggers updates in various UI components when relevant files change\"\n  ],\n  \"developerVisibleActions\": [\n    \"Register file watchers for specific file patterns (e.g., '**/*.md', '**/*.json')\",\n    \"Receive notifications when files matching patterns are created, changed, or deleted\",\n    \"Subscribe to document save events across all open documents\",\n    \"Configure which file system events to monitor (create, change, delete)\",\n    \"Set up ignore patterns to exclude certain files from being watched\",\n    \"Clean up watchers when components are disposed\",\n    \"Handle file change events asynchronously with custom logic\",\n    \"Use a single service instance to avoid duplicate file watchers\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"watch\",\n      \"desc\": \"Registers a file watcher for a specific pattern and returns a disposable to stop watching\",\n      \"inputs\": \"id (string), pattern (glob or RelativePattern), handler (callback function), options (ignorePatterns, watchCreate, watchChange, watchDelete flags)\",\n      \"outputs\": \"vscode.Disposable to stop the watcher\"\n    },\n    {\n      \"name\": \"onDocumentSave\",\n      \"desc\": \"Registers a handler to be called whenever any document is saved in the editor\",\n      \"inputs\": \"handler (callback function accepting TextDocument)\",\n      \"outputs\": \"vscode.Disposable to unregister the handler\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up all active file watchers and document save handlers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getPatternKey\",\n      \"desc\": \"Generates a unique key for a file pattern to avoid duplicate watchers\",\n      \"inputs\": \"pattern (string or RelativePattern)\",\n      \"outputs\": \"string key\"\n    },\n    {\n      \"name\": \"shouldIgnore\",\n      \"desc\": \"Determines if a file path should be ignored based on configured patterns\",\n      \"inputs\": \"filePath (string), ignorePatterns (array of glob patterns)\",\n      \"outputs\": \"boolean indicating whether to ignore the file\"\n    },\n    {\n      \"name\": \"handleFileSystemEvent\",\n      \"desc\": \"Processes file system events and dispatches them to registered handlers\",\n      \"inputs\": \"uri (file URI), type (created/changed/deleted), patternKey (string)\",\n      \"outputs\": \"void (triggers async handlers)\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"fs\"\n  ],\n  \"intent\": \"This file exists to eliminate code duplication across multiple extension components that need to watch for file changes. Previously, fileWatcher.ts, productNavigator.ts, and insightsViewer.ts each had their own file watching logic. By consolidating into a single service, the extension can efficiently manage file system monitoring, avoid redundant watchers, ensure consistent behavior, and make it easier to maintain file watching functionality across the entire codebase.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:40:15.143Z"
+  }
+}

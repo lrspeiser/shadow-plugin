@@ -1,0 +1,43 @@
+{
+  "file": "src/domain/prompts/testPrompts.ts",
+  "role": "Core Logic",
+  "purpose": "Provides LLM prompt builders for generating test configuration and test plans from codebase analysis",
+  "userVisibleActions": [
+    "Generates test setup recommendations when initializing test configuration",
+    "Creates prioritized test plans based on code analysis",
+    "Provides structured JSON responses for test framework selection",
+    "Suggests mock requirements for external dependencies like VSCode API"
+  ],
+  "developerVisibleActions": [
+    "Call buildSetupPrompt() with workspace root and file list to get test configuration recommendations",
+    "Call buildPlanningPrompt() with analysis context and functions to generate test strategies",
+    "Receive JSON-formatted responses specifying testing frameworks, dependencies, and configurations",
+    "Get recommendations for test directory structure and required mock setups",
+    "Obtain prioritized lists of functions to test based on complexity and code statistics"
+  ],
+  "keyFunctions": [
+    {
+      "name": "buildSetupPrompt",
+      "desc": "Generates an LLM prompt that analyzes codebase and recommends test setup configuration",
+      "inputs": "workspaceRoot: string, fileList: string[], packageJsonContent?: string",
+      "outputs": "string (formatted prompt requesting JSON response with language, framework, dependencies, config files, test directory, and mock requirements)"
+    },
+    {
+      "name": "buildPlanningPrompt",
+      "desc": "Creates an LLM prompt for generating prioritized test plans from analyzed functions",
+      "inputs": "context: AnalysisContext, functions: any[], productDocs?: any, architectureInsights?: any",
+      "outputs": "string (formatted prompt with function list and codebase statistics for test strategy generation)"
+    }
+  ],
+  "dependencies": [
+    "../../analyzer (AnalysisContext)",
+    "../services/testing/types/testPlanTypes (TestableFunction)"
+  ],
+  "intent": "This file exists to bridge code analysis with LLM-powered test generation by constructing structured prompts that guide the LLM to produce actionable test configurations and strategies. It solves the problem of automating test setup decisions by providing the LLM with relevant codebase context in a format that produces consistent, parseable JSON responses.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides LLM prompt builders for generating test configuration and test plans from codebase analysis\",\n  \"userVisibleActions\": [\n    \"Generates test setup recommendations when initializing test configuration\",\n    \"Creates prioritized test plans based on code analysis\",\n    \"Provides structured JSON responses for test framework selection\",\n    \"Suggests mock requirements for external dependencies like VSCode API\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call buildSetupPrompt() with workspace root and file list to get test configuration recommendations\",\n    \"Call buildPlanningPrompt() with analysis context and functions to generate test strategies\",\n    \"Receive JSON-formatted responses specifying testing frameworks, dependencies, and configurations\",\n    \"Get recommendations for test directory structure and required mock setups\",\n    \"Obtain prioritized lists of functions to test based on complexity and code statistics\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildSetupPrompt\",\n      \"desc\": \"Generates an LLM prompt that analyzes codebase and recommends test setup configuration\",\n      \"inputs\": \"workspaceRoot: string, fileList: string[], packageJsonContent?: string\",\n      \"outputs\": \"string (formatted prompt requesting JSON response with language, framework, dependencies, config files, test directory, and mock requirements)\"\n    },\n    {\n      \"name\": \"buildPlanningPrompt\",\n      \"desc\": \"Creates an LLM prompt for generating prioritized test plans from analyzed functions\",\n      \"inputs\": \"context: AnalysisContext, functions: any[], productDocs?: any, architectureInsights?: any\",\n      \"outputs\": \"string (formatted prompt with function list and codebase statistics for test strategy generation)\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer (AnalysisContext)\",\n    \"../services/testing/types/testPlanTypes (TestableFunction)\"\n  ],\n  \"intent\": \"This file exists to bridge code analysis with LLM-powered test generation by constructing structured prompts that guide the LLM to produce actionable test configurations and strategies. It solves the problem of automating test setup decisions by providing the LLM with relevant codebase context in a format that produces consistent, parseable JSON responses.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:39:59.103Z"
+  }
+}

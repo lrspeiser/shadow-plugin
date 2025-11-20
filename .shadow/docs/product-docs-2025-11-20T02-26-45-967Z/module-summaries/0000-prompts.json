@@ -1,0 +1,198 @@
+{
+  "module": "src/domain/prompts",
+  "moduleType": "other",
+  "capabilities": [
+    "Standardizes LLM prompt generation for all code analysis and documentation tasks",
+    "Generates structured prompts for architecture analysis with configurable depth and detail levels",
+    "Creates prompts for comprehensive test plan generation aligned with project conventions",
+    "Produces prompts for code refactoring recommendations with function-level extraction plans",
+    "Builds prompts for module and file-level documentation summaries with consistent formatting",
+    "Generates prompts for test configuration setup and framework selection",
+    "Provides detailed migration instructions and dependency analysis for refactoring workflows"
+  ],
+  "summary": "The prompts module serves as the centralized prompt engineering layer for all LLM-powered features in the application. It ensures that every interaction with language models—whether for documentation generation, architecture analysis, test planning, or code refactoring—follows consistent formatting conventions and produces structured, predictable outputs. This standardization enables reliable parsing of LLM responses and maintains quality across all AI-generated content.\n\nUsers benefit from this module through enhanced documentation workflows that generate consistent, well-organized technical documentation at file, module, and product levels. When analyzing codebases, the module produces architecture insights with customizable depth, helping teams understand system structure and dependencies. For testing, it generates prioritized test plans based on code analysis and provides framework-specific recommendations including mock requirements for external dependencies.\n\nThe refactoring capabilities stand out by providing actionable, step-by-step guidance for improving code structure. Users receive detailed extraction plans showing exactly which functions should move to new files, complete with dependency analysis revealing caller-callee relationships. Each refactoring recommendation includes before-and-after code examples and comprehensive migration instructions, making it straightforward to implement suggested improvements while maintaining code functionality.",
+  "files": [
+    {
+      "file": "src/domain/prompts/promptBuilder.ts",
+      "role": "Core Logic",
+      "purpose": "Centralizes and standardizes the construction of LLM prompts for all code analysis, documentation, and testing tasks across the application.",
+      "userVisibleActions": [
+        "Documentation generation with consistent structure and formatting",
+        "Architecture analysis results with standardized depth and detail",
+        "Test plan generation following project conventions",
+        "Module and file summaries with consistent organization",
+        "Product-level documentation that combines all analysis results"
+      ],
+      "developerVisibleActions": [
+        "Call buildArchitecturePrompt() to generate prompts for analyzing code architecture patterns",
+        "Call buildProductDocsPrompt() to create prompts for generating product documentation",
+        "Call buildProductPurposePrompt() to analyze and extract product purpose from documentation",
+        "Call buildFileAnalysisPrompt() to generate file-level analysis prompts with role context",
+        "Call buildModuleRollupPrompt() to create module-level summary prompts from file summaries",
+        "Call buildProductLevelPrompt() to generate comprehensive product documentation prompts",
+        "Call buildPerFileTestPlanPrompt() to create test planning prompts for individual files",
+        "Call buildTestCodeGenerationPrompt() to generate actual test code from test plans",
+        "All prompts are returned as formatted strings ready for LLM consumption",
+        "Prompts include context, code analysis, and metadata to guide LLM responses",
+        "Token budgets and formatting instructions are embedded in generated prompts"
+      ],
+      "keyFunctions": [
+        {
+          "name": "buildArchitecturePrompt",
+          "desc": "Creates a prompt for LLM to analyze code architecture including patterns, structure, and design decisions",
+          "inputs": "AnalysisContext, optional CodeAnalysis, ProductDocumentation, ProductPurposeAnalysis, FileAccessHelper",
+          "outputs": "Formatted string prompt for architecture analysis"
+        },
+        {
+          "name": "buildProductDocsPrompt",
+          "desc": "Generates a prompt for extracting product documentation from existing files and context",
+          "inputs": "AnalysisContext",
+          "outputs": "Formatted string prompt for documentation extraction"
+        },
+        {
+          "name": "buildProductPurposePrompt",
+          "desc": "Creates a prompt to analyze and determine the core purpose and goals of the product",
+          "inputs": "EnhancedProductDocumentation, AnalysisContext",
+          "outputs": "Formatted string prompt for purpose analysis"
+        },
+        {
+          "name": "buildFileAnalysisPrompt",
+          "desc": "Generates a prompt for analyzing individual code files including their role and behavior",
+          "inputs": "FileInfo, file content string, role string",
+          "outputs": "Formatted string prompt for file-level analysis"
+        },
+        {
+          "name": "buildModuleRollupPrompt",
+          "desc": "Creates a prompt for summarizing multiple file summaries into a cohesive module summary",
+          "inputs": "Module path, module type, array of FileSummary objects",
+          "outputs": "Formatted string prompt for module rollup"
+        },
+        {
+          "name": "buildProductLevelPrompt",
+          "desc": "Generates a comprehensive prompt for creating product-wide documentation from all analyses",
+          "inputs": "FileSummary array, ModuleSummary array, CodeAnalysis, FileAccessHelper",
+          "outputs": "Formatted string prompt for product documentation"
+        },
+        {
+          "name": "buildPerFileTestPlanPrompt",
+          "desc": "Creates a prompt for generating test plans for individual files based on their functions",
+          "inputs": "File path, content, FunctionMetadata array, existing tests, language, test framework, optional project summary",
+          "outputs": "Formatted string prompt for test planning"
+        },
+        {
+          "name": "buildTestCodeGenerationPrompt",
+          "desc": "Generates a prompt for creating actual test code from test plan specifications",
+          "inputs": "Test plan item, source code, function code, language, test framework",
+          "outputs": "Formatted string prompt for test code generation"
+        }
+      ],
+      "dependencies": [
+        "../../llmService",
+        "../../analyzer",
+        "../../fileDocumentation",
+        "../../fileAccessHelper"
+      ],
+      "intent": "This file exists to eliminate duplication and ensure consistency across all LLM prompt construction. By centralizing prompt building, it ensures that all AI-driven analysis, documentation, and testing tasks receive properly formatted, context-rich prompts with consistent structure, token budgets, and instructions, making LLM responses more reliable and maintainable.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Centralizes and standardizes the construction of LLM prompts for all code analysis, documentation, and testing tasks across the application.\",\n  \"userVisibleActions\": [\n    \"Documentation generation with consistent structure and formatting\",\n    \"Architecture analysis results with standardized depth and detail\",\n    \"Test plan generation following project conventions\",\n    \"Module and file summaries with consistent organization\",\n    \"Product-level documentation that combines all analysis results\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call buildArchitecturePrompt() to generate prompts for analyzing code architecture patterns\",\n    \"Call buildProductDocsPrompt() to create prompts for generating product documentation\",\n    \"Call buildProductPurposePrompt() to analyze and extract product purpose from documentation\",\n    \"Call buildFileAnalysisPrompt() to generate file-level analysis prompts with role context\",\n    \"Call buildModuleRollupPrompt() to create module-level summary prompts from file summaries\",\n    \"Call buildProductLevelPrompt() to generate comprehensive product documentation prompts\",\n    \"Call buildPerFileTestPlanPrompt() to create test planning prompts for individual files\",\n    \"Call buildTestCodeGenerationPrompt() to generate actual test code from test plans\",\n    \"All prompts are returned as formatted strings ready for LLM consumption\",\n    \"Prompts include context, code analysis, and metadata to guide LLM responses\",\n    \"Token budgets and formatting instructions are embedded in generated prompts\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildArchitecturePrompt\",\n      \"desc\": \"Creates a prompt for LLM to analyze code architecture including patterns, structure, and design decisions\",\n      \"inputs\": \"AnalysisContext, optional CodeAnalysis, ProductDocumentation, ProductPurposeAnalysis, FileAccessHelper\",\n      \"outputs\": \"Formatted string prompt for architecture analysis\"\n    },\n    {\n      \"name\": \"buildProductDocsPrompt\",\n      \"desc\": \"Generates a prompt for extracting product documentation from existing files and context\",\n      \"inputs\": \"AnalysisContext\",\n      \"outputs\": \"Formatted string prompt for documentation extraction\"\n    },\n    {\n      \"name\": \"buildProductPurposePrompt\",\n      \"desc\": \"Creates a prompt to analyze and determine the core purpose and goals of the product\",\n      \"inputs\": \"EnhancedProductDocumentation, AnalysisContext\",\n      \"outputs\": \"Formatted string prompt for purpose analysis\"\n    },\n    {\n      \"name\": \"buildFileAnalysisPrompt\",\n      \"desc\": \"Generates a prompt for analyzing individual code files including their role and behavior\",\n      \"inputs\": \"FileInfo, file content string, role string\",\n      \"outputs\": \"Formatted string prompt for file-level analysis\"\n    },\n    {\n      \"name\": \"buildModuleRollupPrompt\",\n      \"desc\": \"Creates a prompt for summarizing multiple file summaries into a cohesive module summary\",\n      \"inputs\": \"Module path, module type, array of FileSummary objects\",\n      \"outputs\": \"Formatted string prompt for module rollup\"\n    },\n    {\n      \"name\": \"buildProductLevelPrompt\",\n      \"desc\": \"Generates a comprehensive prompt for creating product-wide documentation from all analyses\",\n      \"inputs\": \"FileSummary array, ModuleSummary array, CodeAnalysis, FileAccessHelper\",\n      \"outputs\": \"Formatted string prompt for product documentation\"\n    },\n    {\n      \"name\": \"buildPerFileTestPlanPrompt\",\n      \"desc\": \"Creates a prompt for generating test plans for individual files based on their functions\",\n      \"inputs\": \"File path, content, FunctionMetadata array, existing tests, language, test framework, optional project summary\",\n      \"outputs\": \"Formatted string prompt for test planning\"\n    },\n    {\n      \"name\": \"buildTestCodeGenerationPrompt\",\n      \"desc\": \"Generates a prompt for creating actual test code from test plan specifications\",\n      \"inputs\": \"Test plan item, source code, function code, language, test framework\",\n      \"outputs\": \"Formatted string prompt for test code generation\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../llmService\",\n    \"../../analyzer\",\n    \"../../fileDocumentation\",\n    \"../../fileAccessHelper\"\n  ],\n  \"intent\": \"This file exists to eliminate duplication and ensure consistency across all LLM prompt construction. By centralizing prompt building, it ensures that all AI-driven analysis, documentation, and testing tasks receive properly formatted, context-rich prompts with consistent structure, token budgets, and instructions, making LLM responses more reliable and maintainable.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/prompts/refactoringPromptBuilder.ts",
+      "role": "Core Logic",
+      "purpose": "Generates detailed, structured prompts for LLM-based code refactoring analysis with function-level extraction plans and migration steps.",
+      "userVisibleActions": [
+        "Receives comprehensive refactoring recommendations for improving code structure",
+        "Gets detailed extraction plans showing which functions should move to new files",
+        "Sees step-by-step migration instructions for implementing refactoring changes",
+        "Views before-and-after code examples for proposed refactorings",
+        "Obtains function dependency analysis showing which functions call or are called by others"
+      ],
+      "developerVisibleActions": [
+        "Builds prompts that request detailed refactoring analysis from LLM services",
+        "Incorporates code analysis results, product documentation, and architecture insights into prompts",
+        "Generates prompts with function-level metadata including signatures, parameters, and line ranges",
+        "Creates extraction plans identifying source files, target files, and functions to move",
+        "Includes migration steps and code examples in the refactoring instructions",
+        "Constructs prompts that analyze function responsibilities and dependencies"
+      ],
+      "keyFunctions": [
+        {
+          "name": "buildDetailedRefactoringPrompt",
+          "desc": "Creates a comprehensive prompt for LLM to generate detailed refactoring recommendations",
+          "inputs": "context (analysis context), codeAnalysis (code structure), productDocs (optional product documentation), architectureInsights (optional LLM insights), functionAnalyses (optional function metadata)",
+          "outputs": "Formatted prompt string for LLM consumption"
+        },
+        {
+          "name": "buildFunctionAnalysisSection",
+          "desc": "Constructs the section of the prompt containing function-level analysis details",
+          "inputs": "functionAnalyses (array of function metadata)",
+          "outputs": "Formatted string section with function details"
+        },
+        {
+          "name": "buildExtractionRequirementsSection",
+          "desc": "Generates prompt section specifying what extraction plans should include",
+          "inputs": "None",
+          "outputs": "Formatted string with extraction requirements"
+        },
+        {
+          "name": "buildBasePrompt",
+          "desc": "Creates the foundational prompt structure with context and analysis data",
+          "inputs": "context, codeAnalysis, productDocs, architectureInsights",
+          "outputs": "Base prompt string"
+        }
+      ],
+      "dependencies": [
+        "../../analyzer (CodeAnalysis, FileInfo, FunctionMetadata)",
+        "../../llmService (AnalysisContext, LLMInsights)",
+        "../../fileDocumentation (EnhancedProductDocumentation)"
+      ],
+      "intent": "This file exists to systematically construct detailed, prescriptive prompts that guide LLMs in generating actionable refactoring recommendations. It solves the problem of getting high-quality, structured refactoring analysis by ensuring prompts include all necessary context: function metadata, dependencies, architectural insights, and explicit requirements for extraction plans and migration steps.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Generates detailed, structured prompts for LLM-based code refactoring analysis with function-level extraction plans and migration steps.\",\n  \"userVisibleActions\": [\n    \"Receives comprehensive refactoring recommendations for improving code structure\",\n    \"Gets detailed extraction plans showing which functions should move to new files\",\n    \"Sees step-by-step migration instructions for implementing refactoring changes\",\n    \"Views before-and-after code examples for proposed refactorings\",\n    \"Obtains function dependency analysis showing which functions call or are called by others\"\n  ],\n  \"developerVisibleActions\": [\n    \"Builds prompts that request detailed refactoring analysis from LLM services\",\n    \"Incorporates code analysis results, product documentation, and architecture insights into prompts\",\n    \"Generates prompts with function-level metadata including signatures, parameters, and line ranges\",\n    \"Creates extraction plans identifying source files, target files, and functions to move\",\n    \"Includes migration steps and code examples in the refactoring instructions\",\n    \"Constructs prompts that analyze function responsibilities and dependencies\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildDetailedRefactoringPrompt\",\n      \"desc\": \"Creates a comprehensive prompt for LLM to generate detailed refactoring recommendations\",\n      \"inputs\": \"context (analysis context), codeAnalysis (code structure), productDocs (optional product documentation), architectureInsights (optional LLM insights), functionAnalyses (optional function metadata)\",\n      \"outputs\": \"Formatted prompt string for LLM consumption\"\n    },\n    {\n      \"name\": \"buildFunctionAnalysisSection\",\n      \"desc\": \"Constructs the section of the prompt containing function-level analysis details\",\n      \"inputs\": \"functionAnalyses (array of function metadata)\",\n      \"outputs\": \"Formatted string section with function details\"\n    },\n    {\n      \"name\": \"buildExtractionRequirementsSection\",\n      \"desc\": \"Generates prompt section specifying what extraction plans should include\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Formatted string with extraction requirements\"\n    },\n    {\n      \"name\": \"buildBasePrompt\",\n      \"desc\": \"Creates the foundational prompt structure with context and analysis data\",\n      \"inputs\": \"context, codeAnalysis, productDocs, architectureInsights\",\n      \"outputs\": \"Base prompt string\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer (CodeAnalysis, FileInfo, FunctionMetadata)\",\n    \"../../llmService (AnalysisContext, LLMInsights)\",\n    \"../../fileDocumentation (EnhancedProductDocumentation)\"\n  ],\n  \"intent\": \"This file exists to systematically construct detailed, prescriptive prompts that guide LLMs in generating actionable refactoring recommendations. It solves the problem of getting high-quality, structured refactoring analysis by ensuring prompts include all necessary context: function metadata, dependencies, architectural insights, and explicit requirements for extraction plans and migration steps.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/prompts/testPrompts.ts",
+      "role": "Core Logic",
+      "purpose": "Provides LLM prompt builders for generating test configuration and test plans from codebase analysis",
+      "userVisibleActions": [
+        "Generates test setup recommendations when initializing test configuration",
+        "Creates prioritized test plans based on code analysis",
+        "Provides structured JSON responses for test framework selection",
+        "Suggests mock requirements for external dependencies like VSCode API"
+      ],
+      "developerVisibleActions": [
+        "Call buildSetupPrompt() with workspace root and file list to get test configuration recommendations",
+        "Call buildPlanningPrompt() with analysis context and functions to generate test strategies",
+        "Receive JSON-formatted responses specifying testing frameworks, dependencies, and configurations",
+        "Get recommendations for test directory structure and required mock setups",
+        "Obtain prioritized lists of functions to test based on complexity and code statistics"
+      ],
+      "keyFunctions": [
+        {
+          "name": "buildSetupPrompt",
+          "desc": "Generates an LLM prompt that analyzes codebase and recommends test setup configuration",
+          "inputs": "workspaceRoot: string, fileList: string[], packageJsonContent?: string",
+          "outputs": "string (formatted prompt requesting JSON response with language, framework, dependencies, config files, test directory, and mock requirements)"
+        },
+        {
+          "name": "buildPlanningPrompt",
+          "desc": "Creates an LLM prompt for generating prioritized test plans from analyzed functions",
+          "inputs": "context: AnalysisContext, functions: any[], productDocs?: any, architectureInsights?: any",
+          "outputs": "string (formatted prompt with function list and codebase statistics for test strategy generation)"
+        }
+      ],
+      "dependencies": [
+        "../../analyzer (AnalysisContext)",
+        "../services/testing/types/testPlanTypes (TestableFunction)"
+      ],
+      "intent": "This file exists to bridge code analysis with LLM-powered test generation by constructing structured prompts that guide the LLM to produce actionable test configurations and strategies. It solves the problem of automating test setup decisions by providing the LLM with relevant codebase context in a format that produces consistent, parseable JSON responses.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides LLM prompt builders for generating test configuration and test plans from codebase analysis\",\n  \"userVisibleActions\": [\n    \"Generates test setup recommendations when initializing test configuration\",\n    \"Creates prioritized test plans based on code analysis\",\n    \"Provides structured JSON responses for test framework selection\",\n    \"Suggests mock requirements for external dependencies like VSCode API\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call buildSetupPrompt() with workspace root and file list to get test configuration recommendations\",\n    \"Call buildPlanningPrompt() with analysis context and functions to generate test strategies\",\n    \"Receive JSON-formatted responses specifying testing frameworks, dependencies, and configurations\",\n    \"Get recommendations for test directory structure and required mock setups\",\n    \"Obtain prioritized lists of functions to test based on complexity and code statistics\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildSetupPrompt\",\n      \"desc\": \"Generates an LLM prompt that analyzes codebase and recommends test setup configuration\",\n      \"inputs\": \"workspaceRoot: string, fileList: string[], packageJsonContent?: string\",\n      \"outputs\": \"string (formatted prompt requesting JSON response with language, framework, dependencies, config files, test directory, and mock requirements)\"\n    },\n    {\n      \"name\": \"buildPlanningPrompt\",\n      \"desc\": \"Creates an LLM prompt for generating prioritized test plans from analyzed functions\",\n      \"inputs\": \"context: AnalysisContext, functions: any[], productDocs?: any, architectureInsights?: any\",\n      \"outputs\": \"string (formatted prompt with function list and codebase statistics for test strategy generation)\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer (AnalysisContext)\",\n    \"../services/testing/types/testPlanTypes (TestableFunction)\"\n  ],\n  \"intent\": \"This file exists to bridge code analysis with LLM-powered test generation by constructing structured prompts that guide the LLM to produce actionable test configurations and strategies. It solves the problem of automating test setup decisions by providing the LLM with relevant codebase context in a format that produces consistent, parseable JSON responses.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:47:56.575Z"
+  }
+}

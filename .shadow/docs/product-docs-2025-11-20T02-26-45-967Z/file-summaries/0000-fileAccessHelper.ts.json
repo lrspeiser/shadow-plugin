@@ -1,0 +1,64 @@
+{
+  "file": "src/fileAccessHelper.ts",
+  "role": "Core Logic",
+  "purpose": "Provides file reading and grep search functionality to enable iterative LLM code analysis with structured request/response handling",
+  "userVisibleActions": [
+    "User requests to view file contents through LLM analysis",
+    "User searches for code patterns across multiple files using grep",
+    "User sees organized file listings grouped by folder",
+    "User receives search results with line numbers and context",
+    "User gets notified when search results are limited due to too many matches"
+  ],
+  "developerVisibleActions": [
+    "Developer creates FileRequest or GrepRequest objects to access code",
+    "Developer receives structured FileResponse with content and metadata",
+    "Developer receives GrepResponse with matching lines and context",
+    "Developer specifies file patterns to limit grep search scope",
+    "Developer controls maximum number of search results returned",
+    "Developer gets file listings organized by folder hierarchy",
+    "Developer provides reasons for file/grep requests for transparency"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getFileListing",
+      "desc": "Returns organized file listing grouped by folders with sorting",
+      "inputs": "Array of file objects with path, lines, and language",
+      "outputs": "Formatted string showing files organized by directory"
+    },
+    {
+      "name": "readFile",
+      "desc": "Reads a file from the workspace and returns its contents",
+      "inputs": "File path relative to workspace root",
+      "outputs": "FileResponse with content, line count, and existence flag"
+    },
+    {
+      "name": "grep",
+      "desc": "Searches for pattern across files matching optional glob pattern",
+      "inputs": "Search pattern, optional file pattern glob, max results limit",
+      "outputs": "GrepResponse with matches including line numbers and context"
+    },
+    {
+      "name": "processRequest",
+      "desc": "Handles both file and grep requests based on request type",
+      "inputs": "LLMRequest (either FileRequest or GrepRequest)",
+      "outputs": "FileResponse or GrepResponse depending on request type"
+    },
+    {
+      "name": "formatResponse",
+      "desc": "Converts response objects to human-readable formatted text",
+      "inputs": "FileResponse or GrepResponse object",
+      "outputs": "Formatted string for display to user or LLM"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path"
+  ],
+  "intent": "This file exists to enable iterative LLM code analysis by providing a structured way to request and retrieve file contents or search for patterns across the codebase. It solves the problem of LLMs needing to explore and understand code incrementally without loading entire files upfront, supporting intelligent code navigation through grep searches and targeted file reading.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides file reading and grep search functionality to enable iterative LLM code analysis with structured request/response handling\",\n  \"userVisibleActions\": [\n    \"User requests to view file contents through LLM analysis\",\n    \"User searches for code patterns across multiple files using grep\",\n    \"User sees organized file listings grouped by folder\",\n    \"User receives search results with line numbers and context\",\n    \"User gets notified when search results are limited due to too many matches\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer creates FileRequest or GrepRequest objects to access code\",\n    \"Developer receives structured FileResponse with content and metadata\",\n    \"Developer receives GrepResponse with matching lines and context\",\n    \"Developer specifies file patterns to limit grep search scope\",\n    \"Developer controls maximum number of search results returned\",\n    \"Developer gets file listings organized by folder hierarchy\",\n    \"Developer provides reasons for file/grep requests for transparency\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getFileListing\",\n      \"desc\": \"Returns organized file listing grouped by folders with sorting\",\n      \"inputs\": \"Array of file objects with path, lines, and language\",\n      \"outputs\": \"Formatted string showing files organized by directory\"\n    },\n    {\n      \"name\": \"readFile\",\n      \"desc\": \"Reads a file from the workspace and returns its contents\",\n      \"inputs\": \"File path relative to workspace root\",\n      \"outputs\": \"FileResponse with content, line count, and existence flag\"\n    },\n    {\n      \"name\": \"grep\",\n      \"desc\": \"Searches for pattern across files matching optional glob pattern\",\n      \"inputs\": \"Search pattern, optional file pattern glob, max results limit\",\n      \"outputs\": \"GrepResponse with matches including line numbers and context\"\n    },\n    {\n      \"name\": \"processRequest\",\n      \"desc\": \"Handles both file and grep requests based on request type\",\n      \"inputs\": \"LLMRequest (either FileRequest or GrepRequest)\",\n      \"outputs\": \"FileResponse or GrepResponse depending on request type\"\n    },\n    {\n      \"name\": \"formatResponse\",\n      \"desc\": \"Converts response objects to human-readable formatted text\",\n      \"inputs\": \"FileResponse or GrepResponse object\",\n      \"outputs\": \"Formatted string for display to user or LLM\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to enable iterative LLM code analysis by providing a structured way to request and retrieve file contents or search for patterns across the codebase. It solves the problem of LLMs needing to explore and understand code incrementally without loading entire files upfront, supporting intelligent code navigation through grep searches and targeted file reading.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:42:28.603Z"
+  }
+}

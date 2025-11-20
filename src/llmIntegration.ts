@@ -1577,6 +1577,9 @@ export async function generateUnitTests(): Promise<void> {
             
             let generatedCount = 0;
             const testFiles: string[] = [];
+            const generatedFilePaths = new Set<string>(); // Track generated files
+            const syntaxFixAttempts = new Map<string, number>(); // Track fix attempts per file
+            const MAX_SYNTAX_FIX_ATTEMPTS = 2;
             
             // Process in batches
             for (let i = 0; i < functionsToTest.length; i += batchSize) {
@@ -1596,20 +1599,56 @@ export async function generateUnitTests(): Promise<void> {
                 // Write test files
                 for (const [funcName, testResult] of testResults.entries()) {
                     const testFilePath = await LLMTestGenerationService.writeTestFile(testResult, workspaceRoot);
+                    
+                    // Check if we've already processed this file
+                    if (generatedFilePaths.has(testFilePath)) {
+                        SWLogger.log(`[Phase 3] Skipping duplicate file: ${testFilePath}`);
+                        continue;
+                    }
+                    
+                    generatedFilePaths.add(testFilePath);
                     testFiles.push(testFilePath);
                     
-                    // Validate syntax
-                    const syntaxCheck = await LLMTestGenerationService.validateSyntax(testFilePath, workspaceRoot);
-                    if (!syntaxCheck.valid) {
-                        SWLogger.log(`[Phase 3] Syntax error in ${testFilePath}, attempting fix...`);
+                    // Validate syntax with retry limit
+                    let syntaxValid = false;
+                    let attempts = 0;
+                    
+                    while (!syntaxValid && attempts < MAX_SYNTAX_FIX_ATTEMPTS) {
+                        const syntaxCheck = await LLMTestGenerationService.validateSyntax(testFilePath, workspaceRoot);
+                        
+                        if (syntaxCheck.valid) {
+                            syntaxValid = true;
+                            if (attempts > 0) {
+                                SWLogger.log(`[Phase 3] ✅ Syntax valid after ${attempts} fix attempt(s)`);
+                            }
+                            break;
+                        }
+                        
+                        attempts++;
+                        const currentAttempts = syntaxFixAttempts.get(testFilePath) || 0;
+                        syntaxFixAttempts.set(testFilePath, currentAttempts + 1);
+                        
+                        if (attempts >= MAX_SYNTAX_FIX_ATTEMPTS) {
+                            SWLogger.log(`[Phase 3] ❌ Giving up on ${testFilePath} after ${MAX_SYNTAX_FIX_ATTEMPTS} failed fix attempts`);
+                            SWLogger.log(`[Phase 3] Final syntax error: ${syntaxCheck.error}`);
+                            break;
+                        }
+                        
+                        SWLogger.log(`[Phase 3] Syntax error in ${testFilePath}, attempting fix (${attempts}/${MAX_SYNTAX_FIX_ATTEMPTS})...`);
+                        SWLogger.log(`[Phase 3] Error: ${syntaxCheck.error}`);
+                        
                         const fixResult = await LLMTestGenerationService.fixSyntaxError(
                             testFilePath,
                             syntaxCheck.error || 'Unknown syntax error',
                             workspaceRoot,
                             llmService
                         );
+                        
                         if (fixResult.success) {
-                            SWLogger.log(`[Phase 3] Fixed syntax error in ${testFilePath}`);
+                            SWLogger.log(`[Phase 3] LLM applied fix, re-validating...`);
+                        } else {
+                            SWLogger.log(`[Phase 3] ❌ LLM fix failed: ${fixResult.error}`);
+                            break; // No point continuing if LLM can't fix it
                         }
                     }
                     
@@ -1617,7 +1656,14 @@ export async function generateUnitTests(): Promise<void> {
                 }
             }
             
+            // Log Phase 3 summary
+            const filesWithSyntaxIssues = syntaxFixAttempts.size;
+            const totalSyntaxFixAttempts = Array.from(syntaxFixAttempts.values()).reduce((sum, count) => sum + count, 0);
+            
             SWLogger.log(`[Phase 3] Generated ${testFiles.length} test files`);
+            if (filesWithSyntaxIssues > 0) {
+                SWLogger.log(`[Phase 3] Files with syntax issues: ${filesWithSyntaxIssues}, Total fix attempts: ${totalSyntaxFixAttempts}`);
+            }
             
             // PHASE 4: TEST VALIDATION
             reporter.report('Phase 4/4: Running tests and validating...');

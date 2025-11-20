@@ -1,0 +1,59 @@
+{
+  "module": "src/infrastructure",
+  "moduleType": "other",
+  "capabilities": [
+    "Display progress notifications for long-running operations with customizable titles and messages",
+    "Show incremental progress updates as operations proceed through their tasks",
+    "Allow users to cancel operations in progress when cancellation is supported",
+    "Present progress indicators in various UI locations (notification area, window status, etc.)",
+    "Provide standardized progress reporting across all application features"
+  ],
+  "summary": "This infrastructure module provides a centralized progress notification system that keeps users informed during long-running operations throughout the application. It standardizes how progress is displayed, ensuring a consistent experience whether users are processing files, running analyses, or executing other time-intensive tasks.\n\nUsers see progress notifications that include descriptive titles and messages explaining what's happening. As operations proceed, the progress indicator updates incrementally to show completion status. For operations that support cancellation, users can click a cancel button to stop the process early. The service flexibly displays progress in different UI locations depending on the context, such as the notification area for background tasks or the window status bar for focused operations.\n\nThis module serves as the foundation for all progress reporting in the application, ensuring that users always have visibility into what the application is doing and how long operations might take. It eliminates uncertainty during long tasks and gives users control over cancellable operations.",
+  "files": [
+    {
+      "file": "src/infrastructure/progressService.ts",
+      "role": "Core Logic",
+      "purpose": "Provides a standardized service for displaying progress notifications with messages and cancellation support throughout the application.",
+      "userVisibleActions": [
+        "See progress notifications with titles and messages during long-running operations",
+        "View incremental progress updates as operations proceed",
+        "Cancel operations in progress using a cancel button (when cancellable)",
+        "See progress indicators in different locations (notification area, window, etc.)"
+      ],
+      "developerVisibleActions": [
+        "Wrap async tasks with progress reporting using a simple API",
+        "Report progress messages and optional increment values during task execution",
+        "Access cancellation tokens to respond to user cancellation requests",
+        "Configure progress notification title, cancellability, and display location",
+        "Use either a simple string title or full options object for flexibility"
+      ],
+      "keyFunctions": [
+        {
+          "name": "withProgress",
+          "desc": "Executes an async task while displaying a progress notification to the user",
+          "inputs": "options (title string or ProgressOptions object), task function that receives a ProgressReporter",
+          "outputs": "Promise resolving to the task result"
+        },
+        {
+          "name": "report",
+          "desc": "Updates the progress notification with a new message and optional increment",
+          "inputs": "message (string), increment (optional number)",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode"
+      ],
+      "intent": "Reduces boilerplate code and ensures consistent progress reporting UX across the entire codebase by wrapping VSCode's native progress API with a simpler, standardized interface.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a standardized service for displaying progress notifications with messages and cancellation support throughout the application.\",\n  \"userVisibleActions\": [\n    \"See progress notifications with titles and messages during long-running operations\",\n    \"View incremental progress updates as operations proceed\",\n    \"Cancel operations in progress using a cancel button (when cancellable)\",\n    \"See progress indicators in different locations (notification area, window, etc.)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Wrap async tasks with progress reporting using a simple API\",\n    \"Report progress messages and optional increment values during task execution\",\n    \"Access cancellation tokens to respond to user cancellation requests\",\n    \"Configure progress notification title, cancellability, and display location\",\n    \"Use either a simple string title or full options object for flexibility\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"withProgress\",\n      \"desc\": \"Executes an async task while displaying a progress notification to the user\",\n      \"inputs\": \"options (title string or ProgressOptions object), task function that receives a ProgressReporter\",\n      \"outputs\": \"Promise resolving to the task result\"\n    },\n    {\n      \"name\": \"report\",\n      \"desc\": \"Updates the progress notification with a new message and optional increment\",\n      \"inputs\": \"message (string), increment (optional number)\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"Reduces boilerplate code and ensures consistent progress reporting UX across the entire codebase by wrapping VSCode's native progress API with a simpler, standardized interface.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:48:51.576Z"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "file": "src/fileDocumentation.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript interfaces and data structures for organizing code documentation at file, module, and product levels.",
+  "userVisibleActions": [
+    "User receives structured documentation showing what each file does and why it exists",
+    "User sees organized documentation by modules (API routes, CLI commands, workers, GUI views)",
+    "User views product-level documentation with overviews, workflows, and problems solved",
+    "User accesses categorized features, components, and capabilities descriptions",
+    "User reads endpoint documentation with paths, methods, and descriptions",
+    "User reviews command documentation with usage and descriptions",
+    "User explores worker job flows and descriptions"
+  ],
+  "developerVisibleActions": [
+    "Developer defines file summaries with role, purpose, and key functions",
+    "Developer creates module summaries grouping related files by type",
+    "Developer documents user-visible and developer-visible actions for each file",
+    "Developer specifies file dependencies and intent",
+    "Developer generates product documentation with architecture diagrams",
+    "Developer structures documentation with titles, descriptions, and categories",
+    "Developer organizes capabilities by user perspective (GUI, CLI, API, CI/CD)",
+    "Developer includes raw LLM responses for documentation generation",
+    "Developer maps endpoints, commands, and workers to their descriptions"
+  ],
+  "keyFunctions": [],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer"
+  ],
+  "intent": "This file exists to provide a standardized schema for organizing and structuring code documentation across multiple levels (file, module, product), enabling consistent documentation generation and making codebases easier to understand for both users and developers.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript interfaces and data structures for organizing code documentation at file, module, and product levels.\",\n  \"userVisibleActions\": [\n    \"User receives structured documentation showing what each file does and why it exists\",\n    \"User sees organized documentation by modules (API routes, CLI commands, workers, GUI views)\",\n    \"User views product-level documentation with overviews, workflows, and problems solved\",\n    \"User accesses categorized features, components, and capabilities descriptions\",\n    \"User reads endpoint documentation with paths, methods, and descriptions\",\n    \"User reviews command documentation with usage and descriptions\",\n    \"User explores worker job flows and descriptions\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer defines file summaries with role, purpose, and key functions\",\n    \"Developer creates module summaries grouping related files by type\",\n    \"Developer documents user-visible and developer-visible actions for each file\",\n    \"Developer specifies file dependencies and intent\",\n    \"Developer generates product documentation with architecture diagrams\",\n    \"Developer structures documentation with titles, descriptions, and categories\",\n    \"Developer organizes capabilities by user perspective (GUI, CLI, API, CI/CD)\",\n    \"Developer includes raw LLM responses for documentation generation\",\n    \"Developer maps endpoints, commands, and workers to their descriptions\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to provide a standardized schema for organizing and structuring code documentation across multiple levels (file, module, product), enabling consistent documentation generation and making codebases easier to understand for both users and developers.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:42:37.902Z"
+  }
+}

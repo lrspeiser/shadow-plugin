@@ -1,0 +1,70 @@
+{
+  "module": "src/domain/formatters",
+  "moduleType": "other",
+  "capabilities": [
+    "Generates comprehensive product documentation in human-readable Markdown format",
+    "Formats product metadata including name, type, description, and timestamps",
+    "Organizes documentation by interface type (GUI, CLI, API) with detailed sections",
+    "Presents key features and capabilities in structured bullet-point lists",
+    "Formats technical architecture details including patterns, dependencies, and file structure",
+    "Displays AI-generated insights with architectural recommendations and best practices",
+    "Shows quality assessment metrics and scores in an easy-to-read format",
+    "Highlights improvement suggestions and actionable items for development teams"
+  ],
+  "summary": "The formatters module provides documentation generation capabilities that transform raw product data and AI insights into polished, human-readable Markdown documents. Users can generate comprehensive documentation that includes product overviews, feature descriptions, technical architecture details, and quality assessments, all formatted with consistent structure and clear sections.\n\nThis module enables users to create professional documentation that organizes information by interface type (GUI, CLI, API), presenting key features, main capabilities, and technical implementation details in an accessible format. The generated documents include timestamps, structured headings, and bullet-pointed lists that make it easy for developers and stakeholders to understand product capabilities and architecture.\n\nThe module also formats AI-generated insights, incorporating architectural pattern analysis, dependency assessments, and quality metrics into the documentation. Users can view improvement suggestions, technical recommendations, and action items in a clear, organized manner that facilitates decision-making and development planning. All documentation is formatted with proper Markdown syntax for seamless integration into documentation systems, wikis, or version control repositories.",
+  "files": [
+    {
+      "file": "src/domain/formatters/documentationFormatter.ts",
+      "role": "Core Logic",
+      "purpose": "Formats product documentation and LLM insights into structured Markdown documents for human readability",
+      "userVisibleActions": [
+        "Generates comprehensive product documentation in Markdown format with timestamps",
+        "Creates formatted sections for product overview, features, and user perspectives",
+        "Displays documentation organized by interface type (GUI, CLI, API)",
+        "Shows key features and main capabilities in bullet-point format",
+        "Presents technical details including architecture, dependencies, and file structure",
+        "Formats AI-generated insights with architectural patterns and recommendations",
+        "Displays quality assessment scores and metrics",
+        "Shows identified improvement suggestions and action items"
+      ],
+      "developerVisibleActions": [
+        "Converts EnhancedProductDocumentation objects into readable Markdown documents",
+        "Converts LLMInsights objects into structured Markdown reports",
+        "Applies consistent formatting and section ordering to documentation",
+        "Generates timestamps in both local and UTC formats",
+        "Creates hierarchical document structure with headers and subheaders",
+        "Formats lists and bullet points for features, dependencies, and insights",
+        "Handles optional sections gracefully (only includes sections with content)",
+        "Provides standardized documentation output format for the application"
+      ],
+      "keyFunctions": [
+        {
+          "name": "formatEnhancedDocsAsMarkdown",
+          "desc": "Converts enhanced product documentation object into a comprehensive Markdown document",
+          "inputs": "EnhancedProductDocumentation object containing overview, features, perspectives, architecture, etc.",
+          "outputs": "Formatted Markdown string with sections for overview, features, user perspectives, technical details, and file structure"
+        },
+        {
+          "name": "formatInsightsAsMarkdown",
+          "desc": "Converts LLM-generated insights into a structured Markdown report",
+          "inputs": "LLMInsights object containing architectural patterns, quality assessment, and recommendations",
+          "outputs": "Formatted Markdown string with sections for key insights, architecture, quality scores, and improvement suggestions"
+        }
+      ],
+      "dependencies": [
+        "../../fileDocumentation (EnhancedProductDocumentation type)",
+        "../../llmService (LLMInsights type)"
+      ],
+      "intent": "Separates documentation formatting logic from business logic to create consistent, human-readable Markdown output from structured data objects. Solves the problem of presenting complex product documentation and AI insights in a standardized, readable format that users can easily consume and understand.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Formats product documentation and LLM insights into structured Markdown documents for human readability\",\n  \"userVisibleActions\": [\n    \"Generates comprehensive product documentation in Markdown format with timestamps\",\n    \"Creates formatted sections for product overview, features, and user perspectives\",\n    \"Displays documentation organized by interface type (GUI, CLI, API)\",\n    \"Shows key features and main capabilities in bullet-point format\",\n    \"Presents technical details including architecture, dependencies, and file structure\",\n    \"Formats AI-generated insights with architectural patterns and recommendations\",\n    \"Displays quality assessment scores and metrics\",\n    \"Shows identified improvement suggestions and action items\"\n  ],\n  \"developerVisibleActions\": [\n    \"Converts EnhancedProductDocumentation objects into readable Markdown documents\",\n    \"Converts LLMInsights objects into structured Markdown reports\",\n    \"Applies consistent formatting and section ordering to documentation\",\n    \"Generates timestamps in both local and UTC formats\",\n    \"Creates hierarchical document structure with headers and subheaders\",\n    \"Formats lists and bullet points for features, dependencies, and insights\",\n    \"Handles optional sections gracefully (only includes sections with content)\",\n    \"Provides standardized documentation output format for the application\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatEnhancedDocsAsMarkdown\",\n      \"desc\": \"Converts enhanced product documentation object into a comprehensive Markdown document\",\n      \"inputs\": \"EnhancedProductDocumentation object containing overview, features, perspectives, architecture, etc.\",\n      \"outputs\": \"Formatted Markdown string with sections for overview, features, user perspectives, technical details, and file structure\"\n    },\n    {\n      \"name\": \"formatInsightsAsMarkdown\",\n      \"desc\": \"Converts LLM-generated insights into a structured Markdown report\",\n      \"inputs\": \"LLMInsights object containing architectural patterns, quality assessment, and recommendations\",\n      \"outputs\": \"Formatted Markdown string with sections for key insights, architecture, quality scores, and improvement suggestions\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../fileDocumentation (EnhancedProductDocumentation type)\",\n    \"../../llmService (LLMInsights type)\"\n  ],\n  \"intent\": \"Separates documentation formatting logic from business logic to create consistent, human-readable Markdown output from structured data objects. Solves the problem of presenting complex product documentation and AI insights in a standardized, readable format that users can easily consume and understand.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:47:36.048Z"
+  }
+}

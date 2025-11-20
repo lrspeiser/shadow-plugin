@@ -1,0 +1,248 @@
+{
+  "module": "src/ai/providers",
+  "moduleType": "other",
+  "capabilities": [
+    "Switch between multiple AI providers (OpenAI GPT models and Anthropic Claude) for natural language processing",
+    "Send prompts and receive AI-generated text responses in a provider-agnostic way",
+    "Request and receive structured JSON responses from AI models for data extraction and code analysis",
+    "Maintain conversation history across multiple exchanges with AI models",
+    "Stream AI responses progressively for real-time user feedback",
+    "Automatically validate and extract JSON from AI responses when structured output is needed",
+    "Configure and manage AI provider credentials through a unified interface"
+  ],
+  "summary": "This module provides a unified abstraction layer for interacting with multiple AI language model providers. Users can communicate with either OpenAI's GPT models or Anthropic's Claude AI through a consistent interface, allowing them to switch between providers without changing how they interact with the AI. The module handles all provider-specific implementation details, authentication, and response formatting behind the scenes.\n\nUsers can send natural language prompts and receive AI-generated responses in two formats: regular text for conversational interactions, or structured JSON for data extraction and code analysis tasks. The module supports both streaming responses (where text appears progressively) and complete responses. It automatically handles message history to maintain context across multi-turn conversations and validates JSON responses to ensure data integrity.\n\nThe factory pattern implementation allows users to easily switch between AI providers based on their configuration settings, with the system automatically selecting and initializing the appropriate provider (OpenAI or Claude) based on available API keys. This flexibility enables users to choose the best AI model for their specific needs while maintaining a consistent experience regardless of which provider is active.",
+  "files": [
+    {
+      "file": "src/ai/providers/ILLMProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Defines the contract for AI language model providers (OpenAI, Claude, etc.) to enable communication with different LLM services in a unified way",
+      "userVisibleActions": [
+        "User receives AI-generated text responses to their queries",
+        "User receives structured JSON responses when requesting formatted data",
+        "User experiences consistent AI behavior regardless of which provider (OpenAI, Claude, etc.) is configured"
+      ],
+      "developerVisibleActions": [
+        "Developer implements this interface to add new AI provider support",
+        "Developer calls sendRequest() to get text responses from any LLM provider",
+        "Developer calls sendStructuredRequest() to get parsed JSON data from LLM",
+        "Developer checks isConfigured() to verify provider is ready before making requests",
+        "Developer configures conversation messages with role-based structure (system, user, assistant)",
+        "Developer controls response parameters like temperature, max tokens, and response format"
+      ],
+      "keyFunctions": [
+        {
+          "name": "isConfigured",
+          "desc": "Checks if the provider has valid credentials and is ready to use",
+          "inputs": "None",
+          "outputs": "Boolean indicating if provider is configured"
+        },
+        {
+          "name": "sendRequest",
+          "desc": "Sends a prompt to the LLM and returns text response",
+          "inputs": "LLMRequestOptions (model, messages, temperature, maxTokens, responseFormat)",
+          "outputs": "Promise<LLMResponse> with content, finish reason, model name, and raw response"
+        },
+        {
+          "name": "sendStructuredRequest",
+          "desc": "Sends a prompt to the LLM and returns parsed JSON data with optional follow-up requests",
+          "inputs": "LLMRequestOptions and optional JSON schema",
+          "outputs": "Promise<StructuredOutputResponse<T>> with typed data and optional file/grep requests"
+        },
+        {
+          "name": "getName",
+          "desc": "Returns the provider's display name",
+          "inputs": "None",
+          "outputs": "String provider name (e.g., 'OpenAI', 'Claude')"
+        }
+      ],
+      "dependencies": [],
+      "intent": "This interface exists to abstract away differences between AI providers (OpenAI, Claude, custom models), allowing the application to switch providers without changing calling code. It solves the problem of vendor lock-in and enables consistent AI interactions regardless of the underlying service.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Defines the contract for AI language model providers (OpenAI, Claude, etc.) to enable communication with different LLM services in a unified way\",\n  \"userVisibleActions\": [\n    \"User receives AI-generated text responses to their queries\",\n    \"User receives structured JSON responses when requesting formatted data\",\n    \"User experiences consistent AI behavior regardless of which provider (OpenAI, Claude, etc.) is configured\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer implements this interface to add new AI provider support\",\n    \"Developer calls sendRequest() to get text responses from any LLM provider\",\n    \"Developer calls sendStructuredRequest() to get parsed JSON data from LLM\",\n    \"Developer checks isConfigured() to verify provider is ready before making requests\",\n    \"Developer configures conversation messages with role-based structure (system, user, assistant)\",\n    \"Developer controls response parameters like temperature, max tokens, and response format\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if the provider has valid credentials and is ready to use\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Boolean indicating if provider is configured\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a prompt to the LLM and returns text response\",\n      \"inputs\": \"LLMRequestOptions (model, messages, temperature, maxTokens, responseFormat)\",\n      \"outputs\": \"Promise<LLMResponse> with content, finish reason, model name, and raw response\"\n    },\n    {\n      \"name\": \"sendStructuredRequest\",\n      \"desc\": \"Sends a prompt to the LLM and returns parsed JSON data with optional follow-up requests\",\n      \"inputs\": \"LLMRequestOptions and optional JSON schema\",\n      \"outputs\": \"Promise<StructuredOutputResponse<T>> with typed data and optional file/grep requests\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the provider's display name\",\n      \"inputs\": \"None\",\n      \"outputs\": \"String provider name (e.g., 'OpenAI', 'Claude')\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"This interface exists to abstract away differences between AI providers (OpenAI, Claude, custom models), allowing the application to switch providers without changing calling code. It solves the problem of vendor lock-in and enables consistent AI interactions regardless of the underlying service.\"\n}\n```"
+    },
+    {
+      "file": "src/ai/providers/anthropicProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Provides integration with Anthropic's Claude AI models for natural language processing and code analysis tasks",
+      "userVisibleActions": [
+        "Sends prompts to Claude AI and receives AI-generated responses",
+        "Generates structured data (JSON) from Claude's responses for code analysis",
+        "Processes conversations with Claude while maintaining message history",
+        "Receives error messages when Claude API key is not configured"
+      ],
+      "developerVisibleActions": [
+        "Initialize Claude API client with API key from configuration",
+        "Send requests to Claude with custom models, system prompts, and message history",
+        "Extract structured JSON data from Claude's text responses",
+        "Check if Claude provider is properly configured before use",
+        "Handle message format conversion between OpenAI-style and Claude-style formats",
+        "Configure request timeouts and token limits for Claude API calls"
+      ],
+      "keyFunctions": [
+        {
+          "name": "isConfigured",
+          "desc": "Checks if Claude API key is set up and ready to use",
+          "inputs": "none",
+          "outputs": "boolean indicating if provider is configured"
+        },
+        {
+          "name": "getName",
+          "desc": "Returns the provider identifier",
+          "inputs": "none",
+          "outputs": "string 'claude'"
+        },
+        {
+          "name": "sendRequest",
+          "desc": "Sends a prompt with conversation history to Claude and returns the response",
+          "inputs": "LLMRequestOptions (messages, model, systemPrompt, maxTokens)",
+          "outputs": "LLMResponse with text content and token usage"
+        },
+        {
+          "name": "sendStructuredRequest",
+          "desc": "Sends a request to Claude and extracts JSON data from the response",
+          "inputs": "LLMRequestOptions with expected JSON structure",
+          "outputs": "StructuredOutputResponse with parsed JSON data"
+        },
+        {
+          "name": "initialize",
+          "desc": "Sets up the Claude API client with credentials from configuration",
+          "inputs": "none (reads from config manager)",
+          "outputs": "void (initializes client)"
+        }
+      ],
+      "dependencies": [
+        "@anthropic-ai/sdk",
+        "../../config/configurationManager",
+        "../../utils/jsonExtractor",
+        "./ILLMProvider"
+      ],
+      "intent": "This file exists to abstract Claude AI integration so developers can interact with Anthropic's language models using a consistent interface. It solves the problem of converting between different AI provider formats and handling Claude-specific API requirements, making it easy to switch between AI providers without changing application code.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides integration with Anthropic's Claude AI models for natural language processing and code analysis tasks\",\n  \"userVisibleActions\": [\n    \"Sends prompts to Claude AI and receives AI-generated responses\",\n    \"Generates structured data (JSON) from Claude's responses for code analysis\",\n    \"Processes conversations with Claude while maintaining message history\",\n    \"Receives error messages when Claude API key is not configured\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize Claude API client with API key from configuration\",\n    \"Send requests to Claude with custom models, system prompts, and message history\",\n    \"Extract structured JSON data from Claude's text responses\",\n    \"Check if Claude provider is properly configured before use\",\n    \"Handle message format conversion between OpenAI-style and Claude-style formats\",\n    \"Configure request timeouts and token limits for Claude API calls\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if Claude API key is set up and ready to use\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean indicating if provider is configured\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the provider identifier\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string 'claude'\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a prompt with conversation history to Claude and returns the response\",\n      \"inputs\": \"LLMRequestOptions (messages, model, systemPrompt, maxTokens)\",\n      \"outputs\": \"LLMResponse with text content and token usage\"\n    },\n    {\n      \"name\": \"sendStructuredRequest\",\n      \"desc\": \"Sends a request to Claude and extracts JSON data from the response\",\n      \"inputs\": \"LLMRequestOptions with expected JSON structure\",\n      \"outputs\": \"StructuredOutputResponse with parsed JSON data\"\n    },\n    {\n      \"name\": \"initialize\",\n      \"desc\": \"Sets up the Claude API client with credentials from configuration\",\n      \"inputs\": \"none (reads from config manager)\",\n      \"outputs\": \"void (initializes client)\"\n    }\n  ],\n  \"dependencies\": [\n    \"@anthropic-ai/sdk\",\n    \"../../config/configurationManager\",\n    \"../../utils/jsonExtractor\",\n    \"./ILLMProvider\"\n  ],\n  \"intent\": \"This file exists to abstract Claude AI integration so developers can interact with Anthropic's language models using a consistent interface. It solves the problem of converting between different AI provider formats and handling Claude-specific API requirements, making it easy to switch between AI providers without changing application code.\"\n}\n```"
+    },
+    {
+      "file": "src/ai/providers/openAIProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Provides OpenAI API integration for sending chat completion requests and receiving AI-generated responses",
+      "userVisibleActions": [
+        "Sends user messages to OpenAI's GPT models and receives AI-generated responses",
+        "Supports both regular text responses and structured JSON responses from the AI",
+        "Handles streaming responses where AI text appears progressively",
+        "Automatically validates and extracts JSON from AI responses when structured output is requested"
+      ],
+      "developerVisibleActions": [
+        "Configures OpenAI API connection using API key from configuration manager",
+        "Provides synchronous check if OpenAI is properly configured via isConfigured()",
+        "Sends chat completion requests with customizable model, messages, and response format",
+        "Returns structured responses with content, finish reason, and token usage statistics",
+        "Streams chat completions with real-time content chunks via async iteration",
+        "Extracts and validates JSON from AI responses for structured output requests",
+        "Sets 5-minute timeout for all OpenAI API requests",
+        "Throws errors when API key is not configured"
+      ],
+      "keyFunctions": [
+        {
+          "name": "initialize",
+          "desc": "Sets up OpenAI client with API key from configuration",
+          "inputs": "None",
+          "outputs": "void"
+        },
+        {
+          "name": "isConfigured",
+          "desc": "Checks if OpenAI provider is ready to use",
+          "inputs": "None",
+          "outputs": "boolean indicating if API key is set"
+        },
+        {
+          "name": "getName",
+          "desc": "Returns provider identifier",
+          "inputs": "None",
+          "outputs": "String 'openai'"
+        },
+        {
+          "name": "sendRequest",
+          "desc": "Sends a chat completion request to OpenAI and returns the response",
+          "inputs": "LLMRequestOptions with model, messages, systemPrompt, responseFormat",
+          "outputs": "Promise<LLMResponse> with content, finishReason, and usage stats"
+        },
+        {
+          "name": "streamRequest",
+          "desc": "Streams a chat completion request with progressive content delivery",
+          "inputs": "LLMRequestOptions with model, messages, systemPrompt, responseFormat",
+          "outputs": "AsyncIterable<string> yielding content chunks as they arrive"
+        },
+        {
+          "name": "sendStructuredOutputRequest",
+          "desc": "Sends request expecting JSON response and validates the output",
+          "inputs": "LLMRequestOptions with model, messages, systemPrompt, responseFormat",
+          "outputs": "Promise<StructuredOutputResponse> with parsed JSON data or validation errors"
+        }
+      ],
+      "dependencies": [
+        "openai",
+        "../../config/configurationManager",
+        "../../utils/jsonExtractor",
+        "./ILLMProvider"
+      ],
+      "intent": "This file exists to abstract OpenAI's API into a standardized provider interface, allowing the application to send AI requests, receive responses (both streaming and non-streaming), and handle structured JSON outputs while managing API configuration and error handling centrally",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides OpenAI API integration for sending chat completion requests and receiving AI-generated responses\",\n  \"userVisibleActions\": [\n    \"Sends user messages to OpenAI's GPT models and receives AI-generated responses\",\n    \"Supports both regular text responses and structured JSON responses from the AI\",\n    \"Handles streaming responses where AI text appears progressively\",\n    \"Automatically validates and extracts JSON from AI responses when structured output is requested\"\n  ],\n  \"developerVisibleActions\": [\n    \"Configures OpenAI API connection using API key from configuration manager\",\n    \"Provides synchronous check if OpenAI is properly configured via isConfigured()\",\n    \"Sends chat completion requests with customizable model, messages, and response format\",\n    \"Returns structured responses with content, finish reason, and token usage statistics\",\n    \"Streams chat completions with real-time content chunks via async iteration\",\n    \"Extracts and validates JSON from AI responses for structured output requests\",\n    \"Sets 5-minute timeout for all OpenAI API requests\",\n    \"Throws errors when API key is not configured\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initialize\",\n      \"desc\": \"Sets up OpenAI client with API key from configuration\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if OpenAI provider is ready to use\",\n      \"inputs\": \"None\",\n      \"outputs\": \"boolean indicating if API key is set\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns provider identifier\",\n      \"inputs\": \"None\",\n      \"outputs\": \"String 'openai'\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a chat completion request to OpenAI and returns the response\",\n      \"inputs\": \"LLMRequestOptions with model, messages, systemPrompt, responseFormat\",\n      \"outputs\": \"Promise<LLMResponse> with content, finishReason, and usage stats\"\n    },\n    {\n      \"name\": \"streamRequest\",\n      \"desc\": \"Streams a chat completion request with progressive content delivery\",\n      \"inputs\": \"LLMRequestOptions with model, messages, systemPrompt, responseFormat\",\n      \"outputs\": \"AsyncIterable<string> yielding content chunks as they arrive\"\n    },\n    {\n      \"name\": \"sendStructuredOutputRequest\",\n      \"desc\": \"Sends request expecting JSON response and validates the output\",\n      \"inputs\": \"LLMRequestOptions with model, messages, systemPrompt, responseFormat\",\n      \"outputs\": \"Promise<StructuredOutputResponse> with parsed JSON data or validation errors\"\n    }\n  ],\n  \"dependencies\": [\n    \"openai\",\n    \"../../config/configurationManager\",\n    \"../../utils/jsonExtractor\",\n    \"./ILLMProvider\"\n  ],\n  \"intent\": \"This file exists to abstract OpenAI's API into a standardized provider interface, allowing the application to send AI requests, receive responses (both streaming and non-streaming), and handle structured JSON outputs while managing API configuration and error handling centrally\"\n}\n```"
+    },
+    {
+      "file": "src/ai/providers/providerFactory.ts",
+      "role": "Core Logic",
+      "purpose": "Factory that creates and manages AI provider instances (OpenAI or Claude) based on configuration settings",
+      "userVisibleActions": [
+        "Switches between different AI providers (OpenAI or Claude) for generating responses",
+        "Ensures only configured AI providers are available for use",
+        "Maintains consistent AI provider throughout the session unless configuration changes"
+      ],
+      "developerVisibleActions": [
+        "Provides a centralized way to obtain AI provider instances without creating duplicates",
+        "Returns the currently configured AI provider based on user settings",
+        "Validates which AI providers have valid API keys and configuration",
+        "Lists all AI providers that are properly configured and ready to use",
+        "Maintains singleton instances of each provider to avoid redundant initialization"
+      ],
+      "keyFunctions": [
+        {
+          "name": "getProvider",
+          "desc": "Returns the AI provider instance for a specific provider type (openai or claude)",
+          "inputs": "provider: LLMProvider (either 'openai' or 'claude')",
+          "outputs": "ILLMProvider instance"
+        },
+        {
+          "name": "getCurrentProvider",
+          "desc": "Returns the AI provider that is currently set in user configuration",
+          "inputs": "none",
+          "outputs": "ILLMProvider instance of the configured provider"
+        },
+        {
+          "name": "isProviderConfigured",
+          "desc": "Checks if a specific AI provider has valid configuration and API keys",
+          "inputs": "provider: LLMProvider (either 'openai' or 'claude')",
+          "outputs": "boolean indicating if provider is ready to use"
+        },
+        {
+          "name": "getConfiguredProviders",
+          "desc": "Returns a list of all AI providers that are properly configured",
+          "inputs": "none",
+          "outputs": "Array of LLMProvider types that are configured"
+        }
+      ],
+      "dependencies": [
+        "./ILLMProvider",
+        "./openAIProvider",
+        "./anthropicProvider",
+        "../../config/configurationManager"
+      ],
+      "intent": "Provides a centralized factory pattern for creating and managing AI provider instances, ensuring proper initialization, configuration validation, and singleton behavior to avoid duplicate provider instances while supporting multiple AI backends.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Factory that creates and manages AI provider instances (OpenAI or Claude) based on configuration settings\",\n  \"userVisibleActions\": [\n    \"Switches between different AI providers (OpenAI or Claude) for generating responses\",\n    \"Ensures only configured AI providers are available for use\",\n    \"Maintains consistent AI provider throughout the session unless configuration changes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides a centralized way to obtain AI provider instances without creating duplicates\",\n    \"Returns the currently configured AI provider based on user settings\",\n    \"Validates which AI providers have valid API keys and configuration\",\n    \"Lists all AI providers that are properly configured and ready to use\",\n    \"Maintains singleton instances of each provider to avoid redundant initialization\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getProvider\",\n      \"desc\": \"Returns the AI provider instance for a specific provider type (openai or claude)\",\n      \"inputs\": \"provider: LLMProvider (either 'openai' or 'claude')\",\n      \"outputs\": \"ILLMProvider instance\"\n    },\n    {\n      \"name\": \"getCurrentProvider\",\n      \"desc\": \"Returns the AI provider that is currently set in user configuration\",\n      \"inputs\": \"none\",\n      \"outputs\": \"ILLMProvider instance of the configured provider\"\n    },\n    {\n      \"name\": \"isProviderConfigured\",\n      \"desc\": \"Checks if a specific AI provider has valid configuration and API keys\",\n      \"inputs\": \"provider: LLMProvider (either 'openai' or 'claude')\",\n      \"outputs\": \"boolean indicating if provider is ready to use\"\n    },\n    {\n      \"name\": \"getConfiguredProviders\",\n      \"desc\": \"Returns a list of all AI providers that are properly configured\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of LLMProvider types that are configured\"\n    }\n  ],\n  \"dependencies\": [\n    \"./ILLMProvider\",\n    \"./openAIProvider\",\n    \"./anthropicProvider\",\n    \"../../config/configurationManager\"\n  ],\n  \"intent\": \"Provides a centralized factory pattern for creating and managing AI provider instances, ensuring proper initialization, configuration validation, and singleton behavior to avoid duplicate provider instances while supporting multiple AI backends.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:46:24.819Z"
+  }
+}

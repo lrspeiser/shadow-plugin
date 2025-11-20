@@ -1,25 +1,146 @@
 {
-  "strategy": "Adopt a risk-based testing approach prioritizing AI integration layer, core analysis engine, and error handling paths. Focus on: (1) AI provider interactions and rate limiting as highest risk due to external dependencies and cost implications, (2) Core analysis functions that parse and transform code structures, (3) Response parsing logic which handles unpredictable AI output, (4) Retry and error handling mechanisms critical for reliability. Use integration tests for end-to-end workflows, unit tests with mocks for isolated logic, and contract tests for AI provider boundaries.",
-  "total_functions": 1177,
-  "testable_functions": 856,
+  "strategy": "Prioritize testing critical AI provider interactions, rate limiting, response parsing, and retry logic as these are error-prone and affect core functionality. Focus on integration points between providers and handlers, then branch into code analysis features. Use mocks for external API calls, file system operations, and AI provider SDKs. Target 70% coverage starting with high-risk paths.",
+  "total_functions": 1176,
+  "testable_functions": 950,
   "function_groups": [
     {
-      "group_id": "ai-rate-limiting",
-      "name": "AI Rate Limiting & Request Management",
+      "group_id": "ai-providers",
+      "name": "AI Provider Integration",
       "priority": 1,
       "functions": [
         {
-          "name": "constructor",
+          "name": "createProvider (switch)",
+          "file": "src/ai/providers/providerFactory.ts",
+          "startLine": 23,
+          "endLine": 38,
+          "complexity": "high",
+          "dependencies": [
+            "AnthropicProvider",
+            "OpenAIProvider",
+            "config"
+          ],
+          "mocking_needed": true,
+          "rationale": "Critical factory pattern - all AI interactions flow through here"
+        },
+        {
+          "name": "constructor (AnthropicProvider)",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 14,
+          "endLine": 16,
+          "complexity": "low",
+          "dependencies": [
+            "Anthropic SDK"
+          ],
+          "mocking_needed": true,
+          "rationale": "Primary provider initialization"
+        },
+        {
+          "name": "validateConfig (if)",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 20,
+          "endLine": 26,
+          "complexity": "medium",
+          "dependencies": [
+            "config validation"
+          ],
+          "mocking_needed": false,
+          "rationale": "Configuration validation prevents runtime failures"
+        },
+        {
+          "name": "sendRequest (if)",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 41,
+          "endLine": 43,
+          "complexity": "high",
+          "dependencies": [
+            "Anthropic API",
+            "rateLimiter",
+            "retryHandler"
+          ],
+          "mocking_needed": true,
+          "rationale": "Core request execution path"
+        },
+        {
+          "name": "constructor (OpenAIProvider)",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 14,
+          "endLine": 16,
+          "complexity": "low",
+          "dependencies": [
+            "OpenAI SDK"
+          ],
+          "mocking_needed": true,
+          "rationale": "Secondary provider initialization"
+        },
+        {
+          "name": "validateConfig (if)",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 20,
+          "endLine": 26,
+          "complexity": "medium",
+          "dependencies": [
+            "config validation"
+          ],
+          "mocking_needed": false,
+          "rationale": "Configuration validation prevents runtime failures"
+        },
+        {
+          "name": "sendRequest (if)",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 41,
+          "endLine": 43,
+          "complexity": "high",
+          "dependencies": [
+            "OpenAI API",
+            "rateLimiter",
+            "retryHandler"
+          ],
+          "mocking_needed": true,
+          "rationale": "Core request execution path"
+        }
+      ]
+    },
+    {
+      "group_id": "rate-limiting",
+      "name": "Rate Limiting & Resource Management",
+      "priority": 2,
+      "functions": [
+        {
+          "name": "constructor (RateLimiter)",
           "file": "src/ai/llmRateLimiter.ts",
           "startLine": 20,
           "endLine": 33,
           "complexity": "medium",
           "dependencies": [
-            "rate limit configuration",
-            "timing mechanisms"
+            "config"
+          ],
+          "mocking_needed": false,
+          "rationale": "Initializes rate limiting parameters - critical for API quota management"
+        },
+        {
+          "name": "acquireToken (if)",
+          "file": "src/ai/llmRateLimiter.ts",
+          "startLine": 47,
+          "endLine": 49,
+          "complexity": "high",
+          "dependencies": [
+            "token bucket",
+            "time management"
           ],
           "mocking_needed": true,
-          "test_focus": "Verify rate limiter initializes with correct limits, handles various configuration scenarios, validates input parameters"
+          "rationale": "Controls request throttling - prevents API overuse"
+        },
+        {
+          "name": "checkQuota (if)",
+          "file": "src/ai/llmRateLimiter.ts",
+          "startLine": 81,
+          "endLine": 83,
+          "complexity": "medium",
+          "dependencies": [
+            "quota tracking"
+          ],
+          "mocking_needed": false,
+          "rationale": "Prevents quota exhaustion"
         },
         {
           "name": "waitTime",
@@ -28,582 +149,378 @@
           "endLine": 105,
           "complexity": "medium",
           "dependencies": [
-            "current request queue",
             "time calculations"
           ],
           "mocking_needed": true,
-          "test_focus": "Test wait time calculation under various load conditions, boundary cases (queue full, empty), time drift scenarios"
+          "rationale": "Calculates backoff delays - affects retry behavior"
         },
         {
-          "name": "enforceRateLimit",
+          "name": "waitTime nested (if)",
           "file": "src/ai/llmRateLimiter.ts",
-          "startLine": 47,
-          "endLine": 131,
-          "complexity": "high",
+          "startLine": 102,
+          "endLine": 105,
+          "complexity": "low",
           "dependencies": [
-            "token counters",
-            "request timestamps",
-            "async queue"
+            "time calculations"
           ],
           "mocking_needed": true,
-          "test_focus": "Critical path testing: concurrent requests, rate limit exceeded scenarios, token bucket algorithm correctness, recovery after throttling"
+          "rationale": "Edge case handling in wait calculations"
         }
       ]
     },
     {
-      "group_id": "ai-retry-logic",
-      "name": "AI Retry & Error Recovery",
-      "priority": 1,
+      "group_id": "retry-handler",
+      "name": "Retry Logic & Error Handling",
+      "priority": 3,
       "functions": [
         {
-          "name": "retryWithBackoff",
+          "name": "executeWithRetry (for)",
           "file": "src/ai/llmRetryHandler.ts",
           "startLine": 60,
           "endLine": 90,
           "complexity": "high",
           "dependencies": [
-            "exponential backoff calculator",
-            "error classifier",
-            "delay timers"
+            "retryPolicy",
+            "errorClassification",
+            "delays"
           ],
           "mocking_needed": true,
-          "test_focus": "Exponential backoff progression, max retry limits, different error types (transient vs permanent), timeout handling, cancellation support"
+          "rationale": "Core retry orchestration - handles transient failures"
         },
         {
-          "name": "errorMessage extraction",
+          "name": "shouldRetry (if)",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 68,
+          "endLine": 70,
+          "complexity": "high",
+          "dependencies": [
+            "error type detection"
+          ],
+          "mocking_needed": false,
+          "rationale": "Determines retry eligibility - critical decision point"
+        },
+        {
+          "name": "backoffDelay (if)",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 78,
+          "endLine": 80,
+          "complexity": "medium",
+          "dependencies": [
+            "exponential backoff"
+          ],
+          "mocking_needed": true,
+          "rationale": "Calculates retry delays - affects system load"
+        },
+        {
+          "name": "isRetryableError (if)",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 100,
+          "endLine": 102,
+          "complexity": "medium",
+          "dependencies": [
+            "error codes"
+          ],
+          "mocking_needed": false,
+          "rationale": "Error classification affects retry behavior"
+        },
+        {
+          "name": "errorMessage/errorCode",
           "file": "src/ai/llmRetryHandler.ts",
           "startLine": 104,
           "endLine": 115,
           "complexity": "medium",
           "dependencies": [
-            "error object parsers",
-            "nested error handling"
+            "error parsing"
           ],
-          "mocking_needed": true,
-          "test_focus": "Extract messages from various error formats (string, Error object, nested errors, unknown types), handle malformed errors"
-        },
-        {
-          "name": "retry loop (line 155)",
-          "file": "src/ai/llmRetryHandler.ts",
-          "startLine": 155,
-          "endLine": 186,
-          "complexity": "high",
-          "dependencies": [
-            "retry strategy",
-            "error handlers",
-            "success validators"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Retry count accuracy, immediate success path, eventual success after retries, permanent failure handling, state consistency"
+          "mocking_needed": false,
+          "rationale": "Extracts error details for logging and debugging"
         }
       ]
     },
     {
-      "group_id": "ai-response-parsing",
-      "name": "AI Response Parsing & Extraction",
-      "priority": 1,
+      "group_id": "response-parser",
+      "name": "LLM Response Parsing",
+      "priority": 4,
       "functions": [
         {
-          "name": "parseResponse",
+          "name": "parseResponse (if)",
           "file": "src/ai/llmResponseParser.ts",
           "startLine": 17,
           "endLine": 30,
           "complexity": "high",
           "dependencies": [
-            "JSON parser",
-            "markdown parser",
-            "schema validators"
+            "JSON parsing",
+            "validation"
           ],
-          "mocking_needed": true,
-          "test_focus": "Parse various response formats (JSON, markdown, mixed), handle malformed responses, extract embedded code blocks, validate against expected schemas"
+          "mocking_needed": false,
+          "rationale": "Main entry point for all response processing"
         },
         {
-          "name": "documentation extraction loop",
+          "name": "extractJSON (if)",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 60,
+          "endLine": 72,
+          "complexity": "high",
+          "dependencies": [
+            "regex",
+            "JSON extraction"
+          ],
+          "mocking_needed": false,
+          "rationale": "Handles malformed responses - common failure point"
+        },
+        {
+          "name": "validateStructure (for)",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 109,
+          "endLine": 115,
+          "complexity": "medium",
+          "dependencies": [
+            "schema validation"
+          ],
+          "mocking_needed": false,
+          "rationale": "Ensures response integrity"
+        },
+        {
+          "name": "parseCodeBlocks (for)",
           "file": "src/ai/llmResponseParser.ts",
           "startLine": 313,
           "endLine": 348,
           "complexity": "high",
           "dependencies": [
-            "pattern matchers",
-            "section parsers",
-            "nested structure handlers"
+            "regex",
+            "string parsing"
           ],
-          "mocking_needed": true,
-          "test_focus": "Extract structured documentation from free-form text, handle nested sections, preserve formatting, edge cases (empty sections, malformed headers)"
+          "mocking_needed": false,
+          "rationale": "Extracts code from responses - core feature"
         },
         {
-          "name": "test plan parsing loop",
+          "name": "parseCodeBlocks nested (if)",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 323,
+          "endLine": 344,
+          "complexity": "high",
+          "dependencies": [
+            "language detection",
+            "code extraction"
+          ],
+          "mocking_needed": false,
+          "rationale": "Complex parsing logic with multiple branches"
+        },
+        {
+          "name": "sanitizeResponse (for)",
           "file": "src/ai/llmResponseParser.ts",
           "startLine": 390,
           "endLine": 439,
           "complexity": "high",
           "dependencies": [
-            "test item extractors",
-            "priority parsers",
-            "dependency mappers"
+            "string manipulation",
+            "XSS prevention"
           ],
-          "mocking_needed": true,
-          "test_focus": "Parse complex test plans with priorities, dependencies, groupings; handle incomplete data, validate output structure"
+          "mocking_needed": false,
+          "rationale": "Security-critical sanitization"
         }
       ]
     },
     {
-      "group_id": "ai-provider-integration",
-      "name": "AI Provider Implementation",
-      "priority": 2,
+      "group_id": "code-analysis",
+      "name": "Enhanced Code Analysis",
+      "priority": 5,
       "functions": [
         {
-          "name": "anthropicProvider.constructor",
-          "file": "src/ai/providers/anthropicProvider.ts",
-          "startLine": 14,
-          "endLine": 16,
-          "complexity": "low",
-          "dependencies": [
-            "API client",
-            "configuration"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Initialization with valid/invalid API keys, configuration validation"
-        },
-        {
-          "name": "anthropicProvider request builder",
-          "file": "src/ai/providers/anthropicProvider.ts",
-          "startLine": 20,
-          "endLine": 144,
-          "complexity": "high",
-          "dependencies": [
-            "Anthropic API client",
-            "message formatters",
-            "rate limiters"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Request formatting for Anthropic API, parameter validation, token counting, error transformation, streaming support"
-        },
-        {
-          "name": "openAIProvider.constructor",
-          "file": "src/ai/providers/openAIProvider.ts",
-          "startLine": 14,
-          "endLine": 16,
-          "complexity": "low",
-          "dependencies": [
-            "OpenAI client",
-            "configuration"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Initialization with various configuration options, API key validation"
-        },
-        {
-          "name": "openAIProvider request processing",
-          "file": "src/ai/providers/openAIProvider.ts",
-          "startLine": 89,
-          "endLine": 133,
-          "complexity": "high",
-          "dependencies": [
-            "OpenAI API",
-            "message converters",
-            "response handlers"
-          ],
-          "mocking_needed": true,
-          "test_focus": "OpenAI-specific request formatting, function calling support, streaming responses, error mapping"
-        },
-        {
-          "name": "providerFactory switch",
-          "file": "src/ai/providers/providerFactory.ts",
-          "startLine": 23,
-          "endLine": 38,
-          "complexity": "medium",
-          "dependencies": [
-            "provider constructors",
-            "configuration"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Create correct provider based on configuration, handle unknown providers, validate provider selection logic"
-        }
-      ]
-    },
-    {
-      "group_id": "core-analysis-engine",
-      "name": "Core Code Analysis Engine",
-      "priority": 2,
-      "functions": [
-        {
-          "name": "analyzeFunction",
+          "name": "analyzeFiles (for)",
           "file": "src/analysis/enhancedAnalyzer.ts",
           "startLine": 31,
           "endLine": 58,
           "complexity": "high",
           "dependencies": [
+            "file system",
             "AST parser",
-            "TypeScript compiler API",
-            "dependency extractors"
+            "complexity calculator"
           ],
           "mocking_needed": true,
-          "test_focus": "Parse various function types (arrow, async, generators), extract parameters/return types, identify dependencies, handle edge cases"
+          "rationale": "Main analysis orchestration - processes multiple files"
         },
         {
-          "name": "AST visitor",
+          "name": "parseFile (if)",
           "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 104,
-          "endLine": 122,
-          "complexity": "high",
+          "startLine": 40,
+          "endLine": 47,
+          "complexity": "medium",
           "dependencies": [
-            "TypeScript AST",
-            "node type handlers",
-            "scope trackers"
+            "TypeScript parser",
+            "file IO"
           ],
           "mocking_needed": true,
-          "test_focus": "Visit all relevant node types, maintain correct traversal order, handle nested structures, skip irrelevant nodes efficiently"
+          "rationale": "Parses source code - foundation for all analysis"
         },
         {
-          "name": "complexity analysis loop",
+          "name": "extractFunctions (for)",
           "file": "src/analysis/enhancedAnalyzer.ts",
           "startLine": 488,
           "endLine": 617,
           "complexity": "high",
           "dependencies": [
-            "cyclomatic complexity calculator",
-            "cognitive complexity metrics",
-            "control flow analyzers"
+            "AST traversal",
+            "function detection"
           ],
-          "mocking_needed": true,
-          "test_focus": "Calculate complexity metrics accurately, handle deeply nested code, identify complexity hotspots, performance on large functions"
+          "mocking_needed": false,
+          "rationale": "Core function extraction - 130 lines of complex logic"
         },
         {
-          "name": "dependency traversal",
+          "name": "visit (AST traversal)",
           "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 744,
-          "endLine": 771,
+          "startLine": 104,
+          "endLine": 122,
           "complexity": "high",
           "dependencies": [
-            "module resolver",
-            "import analyzers",
-            "graph builders"
+            "AST nodes",
+            "visitor pattern"
           ],
-          "mocking_needed": true,
-          "test_focus": "Build complete dependency graph, handle circular dependencies, resolve relative/absolute imports, filter external vs internal deps"
-        }
-      ]
-    },
-    {
-      "group_id": "code-structure-extraction",
-      "name": "Code Structure Extraction",
-      "priority": 2,
-      "functions": [
-        {
-          "name": "extractFunctionInfo",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 164,
-          "endLine": 199,
-          "complexity": "high",
-          "dependencies": [
-            "function parser",
-            "signature extractor",
-            "comment parser"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Extract complete function metadata, handle JSDoc comments, identify function boundaries, support multiple syntaxes"
+          "mocking_needed": false,
+          "rationale": "AST traversal logic - used throughout analysis"
         },
         {
-          "name": "class member iteration",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 649,
-          "endLine": 654,
-          "complexity": "medium",
-          "dependencies": [
-            "class parser",
-            "member analyzers",
-            "decorator handlers"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Extract all class members (methods, properties, accessors), handle inheritance, process decorators"
-        },
-        {
-          "name": "interface analysis",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 664,
-          "endLine": 669,
-          "complexity": "medium",
-          "dependencies": [
-            "interface parser",
-            "type extractors"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Extract interface members and types, handle extends clauses, generic parameters"
-        },
-        {
-          "name": "endpoint detection loop",
+          "name": "calculateComplexity (for)",
           "file": "src/analysis/enhancedAnalyzer.ts",
           "startLine": 693,
           "endLine": 719,
           "complexity": "high",
           "dependencies": [
-            "route extractors",
-            "HTTP method detectors",
-            "middleware analyzers"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Detect REST endpoints across frameworks (Express, Fastify, etc.), extract routes/methods/middleware, handle dynamic routes"
-        }
-      ]
-    },
-    {
-      "group_id": "documentation-generation",
-      "name": "Documentation Generation & Formatting",
-      "priority": 3,
-      "functions": [
-        {
-          "name": "generateProductDocs",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 309,
-          "endLine": 311,
-          "complexity": "high",
-          "dependencies": [
-            "AI provider",
-            "prompt builder",
-            "markdown formatter"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Generate complete product documentation from codebase analysis, handle various project structures, quality of output"
-        },
-        {
-          "name": "generateArchitectureInsights",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 441,
-          "endLine": 447,
-          "complexity": "high",
-          "dependencies": [
-            "system analyzer",
-            "pattern detector",
-            "AI provider"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Identify architectural patterns, component relationships, system boundaries, generate insights summary"
-        },
-        {
-          "name": "formatDocumentation",
-          "file": "src/ai/llmResponseParser.ts",
-          "startLine": 60,
-          "endLine": 72,
-          "complexity": "medium",
-          "dependencies": [
-            "markdown formatter",
-            "template engine",
-            "section organizers"
+            "cyclomatic complexity",
+            "AST"
           ],
           "mocking_needed": false,
-          "test_focus": "Format various documentation types consistently, handle empty sections, preserve code formatting, generate valid markdown"
+          "rationale": "Complexity metrics - key quality indicator"
         },
         {
-          "name": "buildPrompt",
-          "file": "src/ai/llmResponseParser.ts",
-          "startLine": 223,
-          "endLine": 231,
+          "name": "traverse (recursive)",
+          "file": "src/analysis/enhancedAnalyzer.ts",
+          "startLine": 744,
+          "endLine": 771,
           "complexity": "high",
           "dependencies": [
-            "prompt templates",
-            "context builders",
-            "token limiters"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Build effective prompts for different analysis types, stay within token limits, include relevant context"
-        }
-      ]
-    },
-    {
-      "group_id": "test-generation",
-      "name": "Test Generation Workflow",
-      "priority": 3,
-      "functions": [
-        {
-          "name": "generateTests",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 83,
-          "endLine": 85,
-          "complexity": "high",
-          "dependencies": [
-            "test planner",
-            "test generator",
-            "test validator",
-            "AI provider"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Complete test generation workflow, orchestration of planning/generation/validation, error recovery"
-        },
-        {
-          "name": "createTestPlan",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 187,
-          "endLine": 193,
-          "complexity": "high",
-          "dependencies": [
-            "complexity analyzer",
-            "dependency mapper",
-            "priority calculator"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Prioritize functions for testing, identify test dependencies, group related tests, validate plan completeness"
-        },
-        {
-          "name": "detectTestSetup",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 197,
-          "endLine": 199,
-          "complexity": "medium",
-          "dependencies": [
-            "framework detector",
-            "config parser",
-            "dependency checker"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Detect Jest, Mocha, Vitest configs, identify missing test dependencies, recommend setup steps"
-        },
-        {
-          "name": "executeTests",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 464,
-          "endLine": 469,
-          "complexity": "high",
-          "dependencies": [
-            "test runner",
-            "process spawner",
-            "result parser"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Run tests in subprocess, capture stdout/stderr, parse test results, handle timeouts/crashes"
-        },
-        {
-          "name": "validateAndFixTests",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 467,
-          "endLine": 469,
-          "complexity": "high",
-          "dependencies": [
-            "test executor",
-            "failure analyzer",
-            "AI fixer",
-            "file writer"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Validate generated tests run successfully, analyze failures, generate fixes using AI, iterate until passing"
-        }
-      ]
-    },
-    {
-      "group_id": "insights-quality-analysis",
-      "name": "Code Quality & Insights",
-      "priority": 3,
-      "functions": [
-        {
-          "name": "generateInsights",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 631,
-          "endLine": 633,
-          "complexity": "high",
-          "dependencies": [
-            "complexity metrics",
-            "pattern detectors",
-            "smell identifiers"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Identify large files, orphaned code, high complexity functions, duplicate code, assign severity levels"
-        },
-        {
-          "name": "refactoring candidate detection",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 588,
-          "endLine": 599,
-          "complexity": "medium",
-          "dependencies": [
-            "complexity thresholds",
-            "file size analyzers"
+            "recursive traversal",
+            "AST"
           ],
           "mocking_needed": false,
-          "test_focus": "Identify functions needing refactoring based on metrics, prioritize refactoring candidates"
-        },
-        {
-          "name": "buildRefactoringPrompt",
-          "file": "src/ai/llmResponseParser.ts",
-          "startLine": 295,
-          "endLine": 298,
-          "complexity": "medium",
-          "dependencies": [
-            "prompt builder",
-            "code context extractor"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Build detailed refactoring prompts with context, specify refactoring goals, include migration guidance"
+          "rationale": "Recursive AST navigation - can cause stack issues"
         }
       ]
     },
     {
-      "group_id": "ui-navigation",
-      "name": "UI & Navigation Functions",
-      "priority": 4,
+      "group_id": "provider-helpers",
+      "name": "Provider Helper Functions",
+      "priority": 6,
       "functions": [
         {
-          "name": "navigateToLocation",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 796,
-          "endLine": 811,
+          "name": "formatRequest (Anthropic)",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 63,
+          "endLine": 65,
           "complexity": "medium",
           "dependencies": [
-            "VS Code API",
-            "document manager",
-            "text editor"
+            "message formatting"
           ],
-          "mocking_needed": true,
-          "test_focus": "Open files at correct line/column, handle missing files, focus editor properly, reveal ranges"
+          "mocking_needed": false,
+          "rationale": "Formats requests for Anthropic API"
         },
         {
-          "name": "showItemDetails",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 673,
-          "endLine": 675,
+          "name": "parseResponse (Anthropic)",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 79,
+          "endLine": 81,
           "complexity": "medium",
           "dependencies": [
-            "webview provider",
-            "HTML renderer",
-            "data serializers"
+            "response parser"
           ],
-          "mocking_needed": true,
-          "test_focus": "Display function/endpoint details in webview, format data properly, handle missing data gracefully"
-        }
-      ]
-    },
-    {
-      "group_id": "workspace-management",
-      "name": "Workspace & File Management",
-      "priority": 4,
-      "functions": [
-        {
-          "name": "analyzeWorkspace",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 40,
-          "endLine": 47,
-          "complexity": "high",
-          "dependencies": [
-            "file system",
-            "parallel processor",
-            "result aggregator"
-          ],
-          "mocking_needed": true,
-          "test_focus": "Analyze all files in workspace, handle large workspaces, aggregate results, progress reporting, cancellation support"
+          "mocking_needed": false,
+          "rationale": "Parses Anthropic-specific responses"
         },
         {
-          "name": "analyzeFile",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 115,
-          "endLine": 118,
+          "name": "getRateLimits (Anthropic)",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 121,
+          "endLine": 126,
+          "complexity": "low",
+          "dependencies": [
+            "rate limit config"
+          ],
+          "mocking_needed": false,
+          "rationale": "Returns provider-specific rate limits"
+        },
+        {
+          "name": "formatMessages (OpenAI, for)",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 120,
+          "endLine": 133,
+          "complexity": "medium",
+          "dependencies": [
+            "message formatting"
+          ],
+          "mocking_needed": false,
+          "rationale": "Formats messages for OpenAI API"
+        },
+        {
+          "name": "handleStreamResponse (OpenAI)",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 89,
+          "endLine": 94,
           "complexity": "high",
           "dependencies": [
-            "file reader",
-            "parser",
-            "analyzer pipeline"
+            "streaming",
+            "event handling"
           ],
           "mocking_needed": true,
-          "test_focus": "Parse and analyze single file, handle syntax errors, extract all metadata, handle various file types"
+          "rationale": "Handles streaming responses - complex async logic"
         }
       ]
     }
-  ]
+  ],
+  "test_priorities": {
+    "critical_paths": [
+      "AI provider initialization → request formatting → API call → response parsing",
+      "Rate limiter token acquisition → quota checking → request execution",
+      "Retry handler error classification → backoff calculation → retry attempt",
+      "File analysis → AST parsing → function extraction → complexity calculation"
+    ],
+    "edge_cases": [
+      "Malformed JSON responses from LLM",
+      "Rate limit exhaustion scenarios",
+      "Network timeout and retry exhaustion",
+      "Invalid TypeScript syntax in analyzed files",
+      "Deeply nested AST structures causing stack overflow"
+    ],
+    "integration_tests": [
+      "End-to-end provider factory → provider → rate limiter → retry handler flow",
+      "Complete analysis pipeline from file input to structured output",
+      "Error propagation through retry and rate limiting layers"
+    ]
+  },
+  "mocking_strategy": {
+    "external_apis": [
+      "Anthropic SDK methods",
+      "OpenAI SDK methods",
+      "File system operations (fs.readFile, fs.writeFile)",
+      "Timer functions (setTimeout, Date.now)"
+    ],
+    "internal_modules": [
+      "Rate limiter for isolated provider tests",
+      "Retry handler for isolated provider tests",
+      "Response parser for retry handler tests"
+    ]
+  },
+  "coverage_targets": {
+    "critical_modules": "90%",
+    "high_priority": "80%",
+    "medium_priority": "70%",
+    "overall_target": "75%"
+  },
+  "estimated_effort": {
+    "ai_providers_group": "3-4 days",
+    "rate_limiting_group": "2 days",
+    "retry_handler_group": "2-3 days",
+    "response_parser_group": "3 days",
+    "code_analysis_group": "4-5 days",
+    "total_for_top_30": "14-17 days"
+  }
 }

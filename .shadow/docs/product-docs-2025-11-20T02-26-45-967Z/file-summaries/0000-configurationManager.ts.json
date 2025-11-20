@@ -1,0 +1,65 @@
+{
+  "file": "src/config/configurationManager.ts",
+  "role": "Core Logic",
+  "purpose": "Manages all Shadow Watch extension settings and notifies components when configuration changes occur",
+  "userVisibleActions": [
+    "User enables/disables Shadow Watch extension",
+    "User toggles automatic analysis when saving files",
+    "User toggles inline hints display in code editor",
+    "User configures which LLM provider to use (OpenAI or Claude)",
+    "User selects output format for LLM interactions (Cursor, ChatGPT, Generic, or Compact)",
+    "User sets minimum severity level for showing diagnostics (Error, Warning, or Info)",
+    "User changes any Shadow Watch setting in VS Code settings UI"
+  ],
+  "developerVisibleActions": [
+    "Developer components can access all Shadow Watch configuration settings through type-safe getters",
+    "Developer components can register callbacks to be notified when configuration changes",
+    "Developer components can validate configuration settings before using them",
+    "Developer can query whether the extension is enabled",
+    "Developer can check if analysis should run on file save",
+    "Developer can determine which LLM provider and format to use",
+    "Developer can check severity threshold for filtering diagnostics"
+  ],
+  "keyFunctions": [
+    {
+      "name": "onConfigurationChange",
+      "desc": "Registers a callback function to be invoked whenever Shadow Watch settings change",
+      "inputs": "callback function with no parameters",
+      "outputs": "void"
+    },
+    {
+      "name": "removeConfigurationChangeListener",
+      "desc": "Unregisters a previously registered configuration change callback",
+      "inputs": "callback function to remove",
+      "outputs": "void"
+    },
+    {
+      "name": "enabled",
+      "desc": "Returns whether the Shadow Watch extension is currently enabled",
+      "inputs": "none (getter property)",
+      "outputs": "boolean"
+    },
+    {
+      "name": "analyzeOnSave",
+      "desc": "Returns whether automatic analysis should run when files are saved",
+      "inputs": "none (getter property)",
+      "outputs": "boolean"
+    },
+    {
+      "name": "showInlineHints",
+      "desc": "Returns whether inline hints should be displayed in the code editor",
+      "inputs": "none (getter property)",
+      "outputs": "boolean"
+    }
+  ],
+  "dependencies": [
+    "vscode"
+  ],
+  "intent": "This file exists to provide a single, centralized point of access for all Shadow Watch configuration settings, ensuring type safety and consistency across the extension. It solves the problem of scattered configuration access and provides a reactive system where components can automatically respond to setting changes without manual polling.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages all Shadow Watch extension settings and notifies components when configuration changes occur\",\n  \"userVisibleActions\": [\n    \"User enables/disables Shadow Watch extension\",\n    \"User toggles automatic analysis when saving files\",\n    \"User toggles inline hints display in code editor\",\n    \"User configures which LLM provider to use (OpenAI or Claude)\",\n    \"User selects output format for LLM interactions (Cursor, ChatGPT, Generic, or Compact)\",\n    \"User sets minimum severity level for showing diagnostics (Error, Warning, or Info)\",\n    \"User changes any Shadow Watch setting in VS Code settings UI\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer components can access all Shadow Watch configuration settings through type-safe getters\",\n    \"Developer components can register callbacks to be notified when configuration changes\",\n    \"Developer components can validate configuration settings before using them\",\n    \"Developer can query whether the extension is enabled\",\n    \"Developer can check if analysis should run on file save\",\n    \"Developer can determine which LLM provider and format to use\",\n    \"Developer can check severity threshold for filtering diagnostics\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"onConfigurationChange\",\n      \"desc\": \"Registers a callback function to be invoked whenever Shadow Watch settings change\",\n      \"inputs\": \"callback function with no parameters\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"removeConfigurationChangeListener\",\n      \"desc\": \"Unregisters a previously registered configuration change callback\",\n      \"inputs\": \"callback function to remove\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"enabled\",\n      \"desc\": \"Returns whether the Shadow Watch extension is currently enabled\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"analyzeOnSave\",\n      \"desc\": \"Returns whether automatic analysis should run when files are saved\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"showInlineHints\",\n      \"desc\": \"Returns whether inline hints should be displayed in the code editor\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"boolean\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide a single, centralized point of access for all Shadow Watch configuration settings, ensuring type safety and consistency across the extension. It solves the problem of scattered configuration access and provides a reactive system where components can automatically respond to setting changes without manual polling.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:37:59.940Z"
+  }
+}

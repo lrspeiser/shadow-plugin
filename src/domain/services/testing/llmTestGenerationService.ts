@@ -165,10 +165,19 @@ export class LLMTestGenerationService {
             if (fixResult.status === 'pass' && fixResult.fixed_code) {
                 // Write fixed code
                 fs.writeFileSync(testFilePath, fixResult.fixed_code, 'utf-8');
-                SWLogger.log(`[TestGeneration] Fixed syntax error: ${fixResult.explanation}`);
-                return { success: true, fixedCode: fixResult.fixed_code };
+                SWLogger.log(`[TestGeneration] Applied LLM fix: ${fixResult.explanation}`);
+                
+                // Re-validate syntax to confirm fix worked
+                const revalidation = await TestExecutionService.validateSyntax(workspaceRoot, testFilePath);
+                if (revalidation.valid) {
+                    SWLogger.log(`[TestGeneration] ✅ Syntax fix verified successfully`);
+                    return { success: true, fixedCode: fixResult.fixed_code };
+                } else {
+                    SWLogger.log(`[TestGeneration] ❌ Syntax fix failed re-validation: ${revalidation.error}`);
+                    return { success: false, error: `Fix applied but syntax still invalid: ${revalidation.error}` };
+                }
             } else {
-                SWLogger.log(`[TestGeneration] Could not fix syntax error: ${fixResult.explanation}`);
+                SWLogger.log(`[TestGeneration] LLM could not fix syntax error: ${fixResult.explanation}`);
                 return { success: false, error: fixResult.explanation };
             }
 

@@ -1,0 +1,54 @@
+{
+  "file": "src/logger.ts",
+  "role": "Core Logic",
+  "purpose": "Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory",
+  "userVisibleActions": [
+    "Log files are created in the workspace's .shadow/logs directory",
+    "A shadow-watch.log file accumulates timestamped entries of extension activity",
+    "Logs persist across sessions for debugging and auditing purposes"
+  ],
+  "developerVisibleActions": [
+    "Developers can call SWLogger.log() to write timestamped messages to the log file",
+    "Developers can call SWLogger.section() to add formatted section headers to organize log entries",
+    "Logging fails silently if the workspace is not available or file operations fail",
+    "Log entries include ISO timestamp format for precise timing information"
+  ],
+  "keyFunctions": [
+    {
+      "name": "log",
+      "desc": "Writes a timestamped message to the shadow-watch.log file",
+      "inputs": "message: string - the text to log",
+      "outputs": "void - no return value, writes to file system"
+    },
+    {
+      "name": "section",
+      "desc": "Adds a formatted section header to the log for organizing related entries",
+      "inputs": "title: string - the section title",
+      "outputs": "void - writes formatted header to log"
+    },
+    {
+      "name": "getLogPath",
+      "desc": "Determines the full file path where logs should be written",
+      "inputs": "none",
+      "outputs": "string | null - the log file path or null if no workspace is open"
+    },
+    {
+      "name": "ensureDir",
+      "desc": "Creates the directory structure if it doesn't exist",
+      "inputs": "dir: string - directory path to create",
+      "outputs": "void - creates directory recursively"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "vscode"
+  ],
+  "intent": "This file exists to provide centralized, file-based logging for the extension, allowing developers to track extension behavior and debug issues by writing persistent logs to the workspace. It solves the problem of needing visibility into extension operations without relying on console output or VS Code's output panel alone.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory\",\n  \"userVisibleActions\": [\n    \"Log files are created in the workspace's .shadow/logs directory\",\n    \"A shadow-watch.log file accumulates timestamped entries of extension activity\",\n    \"Logs persist across sessions for debugging and auditing purposes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developers can call SWLogger.log() to write timestamped messages to the log file\",\n    \"Developers can call SWLogger.section() to add formatted section headers to organize log entries\",\n    \"Logging fails silently if the workspace is not available or file operations fail\",\n    \"Log entries include ISO timestamp format for precise timing information\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"log\",\n      \"desc\": \"Writes a timestamped message to the shadow-watch.log file\",\n      \"inputs\": \"message: string - the text to log\",\n      \"outputs\": \"void - no return value, writes to file system\"\n    },\n    {\n      \"name\": \"section\",\n      \"desc\": \"Adds a formatted section header to the log for organizing related entries\",\n      \"inputs\": \"title: string - the section title\",\n      \"outputs\": \"void - writes formatted header to log\"\n    },\n    {\n      \"name\": \"getLogPath\",\n      \"desc\": \"Determines the full file path where logs should be written\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string | null - the log file path or null if no workspace is open\"\n    },\n    {\n      \"name\": \"ensureDir\",\n      \"desc\": \"Creates the directory structure if it doesn't exist\",\n      \"inputs\": \"dir: string - directory path to create\",\n      \"outputs\": \"void - creates directory recursively\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide centralized, file-based logging for the extension, allowing developers to track extension behavior and debug issues by writing persistent logs to the workspace. It solves the problem of needing visibility into extension operations without relying on console output or VS Code's output panel alone.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:45:58.638Z"
+  }
+}

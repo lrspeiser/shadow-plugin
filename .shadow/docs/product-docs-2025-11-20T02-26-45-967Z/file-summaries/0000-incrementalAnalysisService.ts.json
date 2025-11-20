@@ -1,0 +1,59 @@
+{
+  "file": "src/domain/services/incrementalAnalysisService.ts",
+  "role": "Core Logic",
+  "purpose": "Manages iterative LLM analysis by processing file and grep requests across multiple analysis iterations until completion or limit is reached",
+  "userVisibleActions": [
+    "Performs multi-step code analysis that progressively gathers more information",
+    "Reads additional files when the AI needs more context",
+    "Searches code using grep when the AI needs to find specific patterns",
+    "Limits analysis to prevent infinite loops (max iterations)",
+    "Shows progress through iteration callbacks during long-running analysis"
+  ],
+  "developerVisibleActions": [
+    "Provides async iterator pattern for testable incremental analysis",
+    "Executes file read requests from LLM responses",
+    "Executes grep search requests from LLM responses",
+    "Limits requests to 5 per iteration to prevent overload",
+    "Maintains conversation history across iterations",
+    "Returns structured results with iteration count and request history",
+    "Notifies through callbacks when iterations start and complete",
+    "Determines when to continue or stop iterations"
+  ],
+  "keyFunctions": [
+    {
+      "name": "processRequests",
+      "desc": "Processes LLM file and grep requests to gather additional information",
+      "inputs": "requests (LLMRequest[]), currentResult (any), messages (conversation history)",
+      "outputs": "ProcessRequestsResult with additionalInfo string and updated messages array"
+    },
+    {
+      "name": "readFiles",
+      "desc": "Reads requested files through FileAccessHelper",
+      "inputs": "file paths from LLM requests",
+      "outputs": "formatted file content as additional info"
+    },
+    {
+      "name": "performGrep",
+      "desc": "Executes grep searches through FileAccessHelper",
+      "inputs": "grep requests with patterns and paths",
+      "outputs": "formatted search results as additional info"
+    },
+    {
+      "name": "async iterator pattern",
+      "desc": "Converts while loops to async iterator for iteration control",
+      "inputs": "iteration callbacks and max iterations",
+      "outputs": "IterationResult with result, iteration count, requests, and continuation flag"
+    }
+  ],
+  "dependencies": [
+    "FileAccessHelper",
+    "LLMRequest types"
+  ],
+  "intent": "Eliminates code duplication from llmService.ts by extracting iterative analysis logic into a testable, reusable service that handles the common pattern of LLM requesting additional files and performing searches during multi-step code analysis",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages iterative LLM analysis by processing file and grep requests across multiple analysis iterations until completion or limit is reached\",\n  \"userVisibleActions\": [\n    \"Performs multi-step code analysis that progressively gathers more information\",\n    \"Reads additional files when the AI needs more context\",\n    \"Searches code using grep when the AI needs to find specific patterns\",\n    \"Limits analysis to prevent infinite loops (max iterations)\",\n    \"Shows progress through iteration callbacks during long-running analysis\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides async iterator pattern for testable incremental analysis\",\n    \"Executes file read requests from LLM responses\",\n    \"Executes grep search requests from LLM responses\",\n    \"Limits requests to 5 per iteration to prevent overload\",\n    \"Maintains conversation history across iterations\",\n    \"Returns structured results with iteration count and request history\",\n    \"Notifies through callbacks when iterations start and complete\",\n    \"Determines when to continue or stop iterations\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"processRequests\",\n      \"desc\": \"Processes LLM file and grep requests to gather additional information\",\n      \"inputs\": \"requests (LLMRequest[]), currentResult (any), messages (conversation history)\",\n      \"outputs\": \"ProcessRequestsResult with additionalInfo string and updated messages array\"\n    },\n    {\n      \"name\": \"readFiles\",\n      \"desc\": \"Reads requested files through FileAccessHelper\",\n      \"inputs\": \"file paths from LLM requests\",\n      \"outputs\": \"formatted file content as additional info\"\n    },\n    {\n      \"name\": \"performGrep\",\n      \"desc\": \"Executes grep searches through FileAccessHelper\",\n      \"inputs\": \"grep requests with patterns and paths\",\n      \"outputs\": \"formatted search results as additional info\"\n    },\n    {\n      \"name\": \"async iterator pattern\",\n      \"desc\": \"Converts while loops to async iterator for iteration control\",\n      \"inputs\": \"iteration callbacks and max iterations\",\n      \"outputs\": \"IterationResult with result, iteration count, requests, and continuation flag\"\n    }\n  ],\n  \"dependencies\": [\n    \"FileAccessHelper\",\n    \"LLMRequest types\"\n  ],\n  \"intent\": \"Eliminates code duplication from llmService.ts by extracting iterative analysis logic into a testable, reusable service that handles the common pattern of LLM requesting additional files and performing searches during multi-step code analysis\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:40:27.481Z"
+  }
+}

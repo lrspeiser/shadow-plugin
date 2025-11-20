@@ -1,0 +1,284 @@
+{
+  "module": "src/domain/services/testing",
+  "moduleType": "tests",
+  "capabilities": [
+    "Automatically generate unit tests for code functions using AI-powered analysis",
+    "Create prioritized test plans by analyzing codebases to determine testing strategy",
+    "Detect and configure test environments across multiple languages and frameworks",
+    "Execute test suites and capture structured results with detailed reporting",
+    "Automatically validate and fix failing tests through iterative AI-powered corrections",
+    "Track test generation progress with real-time updates on function coverage",
+    "Support multiple test frameworks including Jest, Mocha, Pytest, and JUnit"
+  ],
+  "summary": "This module provides comprehensive AI-powered test generation and management capabilities for software projects. It leverages LLM technology to intelligently analyze codebases, create test plans, generate unit tests, and automatically fix failing tests. The module handles the complete testing workflow from environment detection and setup through test execution and validation.\n\nUsers can automatically generate tests for their code functions in batches, with the system tracking progress and providing feedback on each function being tested. The module intelligently prioritizes which functions should be tested based on complexity and importance, then generates appropriate test cases using AI analysis. When tests fail, the system automatically attempts to fix them through multiple retry attempts, significantly reducing manual debugging effort.\n\nThe module supports a wide range of programming languages and testing frameworks, automatically detecting the project environment and configuring the appropriate test runners and dependencies. Test execution results are captured in structured formats showing passed/failed counts, execution duration, error messages, stack traces, and coverage information. This comprehensive approach streamlines the entire testing process from setup through validation.",
+  "files": [
+    {
+      "file": "src/domain/services/testing/llmTestGenerationService.ts",
+      "role": "Core Logic",
+      "purpose": "Generates unit tests for code functions in small batches using an LLM service, with progress tracking and execution validation.",
+      "userVisibleActions": [
+        "Progress updates showing current function being tested (e.g., 'Processing function 3 of 10: calculateTotal')",
+        "Test generation results for each function with pass/fail status",
+        "Error messages when test generation or execution fails",
+        "Notifications about which functions have been successfully tested"
+      ],
+      "developerVisibleActions": [
+        "Trigger test generation for a batch of functions by providing function metadata and workspace path",
+        "Receive progress callbacks during batch processing showing which function is currently being processed",
+        "Get structured test generation results including generated test code and execution status",
+        "Access test state that tracks which functions have been processed and which remain",
+        "View generated test code that can be saved to test files",
+        "See whether generated tests pass or fail when executed",
+        "Extract function source code from workspace files for test context"
+      ],
+      "keyFunctions": [
+        {
+          "name": "generateTestBatch",
+          "desc": "Generates tests for multiple functions in a batch, calling LLM for each function and tracking progress",
+          "inputs": "functions (array of TestableFunction), workspaceRoot (string), llmService (LLM service instance), onProgress (optional callback)",
+          "outputs": "Map of function names to TestGenerationResult objects"
+        },
+        {
+          "name": "extractFunctionSource",
+          "desc": "Reads and extracts the source code of a specific function from the workspace files",
+          "inputs": "func (TestableFunction), workspaceRoot (string)",
+          "outputs": "Source code string for the function"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "./types/testPlanTypes",
+        "./types/testResultTypes",
+        "../../prompts/testPrompts",
+        "./testExecutionService",
+        "../../../logger"
+      ],
+      "intent": "Enables incremental, batch-based test generation using LLMs to avoid overwhelming the system with too many simultaneous test generation requests. Provides progress tracking so developers can monitor which functions are being tested and get immediate feedback on test generation success or failure.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Generates unit tests for code functions in small batches using an LLM service, with progress tracking and execution validation.\",\n  \"userVisibleActions\": [\n    \"Progress updates showing current function being tested (e.g., 'Processing function 3 of 10: calculateTotal')\",\n    \"Test generation results for each function with pass/fail status\",\n    \"Error messages when test generation or execution fails\",\n    \"Notifications about which functions have been successfully tested\"\n  ],\n  \"developerVisibleActions\": [\n    \"Trigger test generation for a batch of functions by providing function metadata and workspace path\",\n    \"Receive progress callbacks during batch processing showing which function is currently being processed\",\n    \"Get structured test generation results including generated test code and execution status\",\n    \"Access test state that tracks which functions have been processed and which remain\",\n    \"View generated test code that can be saved to test files\",\n    \"See whether generated tests pass or fail when executed\",\n    \"Extract function source code from workspace files for test context\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"generateTestBatch\",\n      \"desc\": \"Generates tests for multiple functions in a batch, calling LLM for each function and tracking progress\",\n      \"inputs\": \"functions (array of TestableFunction), workspaceRoot (string), llmService (LLM service instance), onProgress (optional callback)\",\n      \"outputs\": \"Map of function names to TestGenerationResult objects\"\n    },\n    {\n      \"name\": \"extractFunctionSource\",\n      \"desc\": \"Reads and extracts the source code of a specific function from the workspace files\",\n      \"inputs\": \"func (TestableFunction), workspaceRoot (string)\",\n      \"outputs\": \"Source code string for the function\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./types/testPlanTypes\",\n    \"./types/testResultTypes\",\n    \"../../prompts/testPrompts\",\n    \"./testExecutionService\",\n    \"../../../logger\"\n  ],\n  \"intent\": \"Enables incremental, batch-based test generation using LLMs to avoid overwhelming the system with too many simultaneous test generation requests. Provides progress tracking so developers can monitor which functions are being tested and get immediate feedback on test generation success or failure.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "role": "Core Logic",
+      "purpose": "Creates prioritized test plans by analyzing code functions using LLM to determine which functions should be tested and in what order.",
+      "userVisibleActions": [
+        "Receives a test plan showing which functions in their codebase need testing",
+        "Sees functions categorized by priority and complexity",
+        "Gets count of testable vs non-testable functions",
+        "Views function groups organized for testing strategy"
+      ],
+      "developerVisibleActions": [
+        "Calls analyzeFunctions() to extract function metadata from code analysis results",
+        "Invokes createTestPlan() to generate LLM-based test strategy with context, functions, and optional documentation",
+        "Uses saveTestPlanToDisk() to persist the generated test plan to a file",
+        "Receives structured TestPlan object containing function groups and testability assessment",
+        "Sees logging output showing number of functions analyzed and how many are testable"
+      ],
+      "keyFunctions": [
+        {
+          "name": "analyzeFunctions",
+          "desc": "Extracts and normalizes function information from code analysis results",
+          "inputs": "codeAnalysis object containing functions array",
+          "outputs": "Array of function metadata including name, file, line numbers, complexity, parameters, and return type"
+        },
+        {
+          "name": "createTestPlan",
+          "desc": "Generates a prioritized test plan by sending function data to LLM service",
+          "inputs": "AnalysisContext, functions array, llmService, optional productDocs and architectureInsights",
+          "outputs": "TestPlan object with function groups and testability metrics"
+        },
+        {
+          "name": "saveTestPlanToDisk",
+          "desc": "Persists the generated test plan to a JSON file in the analysis results directory",
+          "inputs": "context (containing resultDir path) and testPlan object",
+          "outputs": "void (writes file to disk)"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "./types/testPlanTypes",
+        "../../prompts/testPrompts",
+        "../../../analyzer",
+        "../../../logger"
+      ],
+      "intent": "This service exists to automate test planning by leveraging LLM intelligence to analyze code functions and determine optimal testing strategies. It solves the problem of manually identifying which functions need testing and prioritizing test effort based on function complexity, parameters, and codebase context.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Creates prioritized test plans by analyzing code functions using LLM to determine which functions should be tested and in what order.\",\n  \"userVisibleActions\": [\n    \"Receives a test plan showing which functions in their codebase need testing\",\n    \"Sees functions categorized by priority and complexity\",\n    \"Gets count of testable vs non-testable functions\",\n    \"Views function groups organized for testing strategy\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls analyzeFunctions() to extract function metadata from code analysis results\",\n    \"Invokes createTestPlan() to generate LLM-based test strategy with context, functions, and optional documentation\",\n    \"Uses saveTestPlanToDisk() to persist the generated test plan to a file\",\n    \"Receives structured TestPlan object containing function groups and testability assessment\",\n    \"Sees logging output showing number of functions analyzed and how many are testable\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Extracts and normalizes function information from code analysis results\",\n      \"inputs\": \"codeAnalysis object containing functions array\",\n      \"outputs\": \"Array of function metadata including name, file, line numbers, complexity, parameters, and return type\"\n    },\n    {\n      \"name\": \"createTestPlan\",\n      \"desc\": \"Generates a prioritized test plan by sending function data to LLM service\",\n      \"inputs\": \"AnalysisContext, functions array, llmService, optional productDocs and architectureInsights\",\n      \"outputs\": \"TestPlan object with function groups and testability metrics\"\n    },\n    {\n      \"name\": \"saveTestPlanToDisk\",\n      \"desc\": \"Persists the generated test plan to a JSON file in the analysis results directory\",\n      \"inputs\": \"context (containing resultDir path) and testPlan object\",\n      \"outputs\": \"void (writes file to disk)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./types/testPlanTypes\",\n    \"../../prompts/testPrompts\",\n    \"../../../analyzer\",\n    \"../../../logger\"\n  ],\n  \"intent\": \"This service exists to automate test planning by leveraging LLM intelligence to analyze code functions and determine optimal testing strategies. It solves the problem of manually identifying which functions need testing and prioritizing test effort based on function complexity, parameters, and codebase context.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/llmTestSetupService.ts",
+      "role": "Core Logic",
+      "purpose": "Detects the test environment and generates LLM-powered test setup configurations for different programming languages and frameworks.",
+      "userVisibleActions": [
+        "Automatically detects the project's testing framework and language",
+        "Generates test configuration files based on the detected environment",
+        "Creates test directory structure if missing",
+        "Installs required testing dependencies",
+        "Sets up appropriate test runners (Jest, pytest, JUnit, etc.)"
+      ],
+      "developerVisibleActions": [
+        "Call detectTestEnvironment() to analyze project structure and identify language/framework",
+        "Use LLM prompts to generate context-aware test setup plans",
+        "Execute setup plans to install dependencies and create configuration files",
+        "Receive structured TestEnvironment data showing what was detected",
+        "Get TestSetupPlan with specific actions needed to configure testing",
+        "Obtain SetupExecutionResult indicating success/failure of setup operations"
+      ],
+      "keyFunctions": [
+        {
+          "name": "detectTestEnvironment",
+          "desc": "Analyzes workspace to detect primary language, testing framework, and existing test setup",
+          "inputs": "workspaceRoot: string (path to project root)",
+          "outputs": "TestEnvironment object containing language, framework, and configuration status"
+        },
+        {
+          "name": "getAllFiles",
+          "desc": "Recursively scans directory to find all files for language detection",
+          "inputs": "directory path",
+          "outputs": "Array of file paths"
+        },
+        {
+          "name": "buildSetupPrompt",
+          "desc": "Constructs LLM prompt for generating test setup configuration",
+          "inputs": "TestEnvironment data",
+          "outputs": "Formatted prompt string for LLM"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "child_process",
+        "./types/testSetupTypes",
+        "../../prompts/testPrompts",
+        "../../../logger"
+      ],
+      "intent": "This file exists to eliminate manual test setup by automatically detecting a project's programming environment and generating appropriate test configurations. It solves the problem of developers needing to manually configure testing frameworks, install dependencies, and create test structures for different languages and environments by using LLM intelligence to understand the project context and generate optimal setup plans.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Detects the test environment and generates LLM-powered test setup configurations for different programming languages and frameworks.\",\n  \"userVisibleActions\": [\n    \"Automatically detects the project's testing framework and language\",\n    \"Generates test configuration files based on the detected environment\",\n    \"Creates test directory structure if missing\",\n    \"Installs required testing dependencies\",\n    \"Sets up appropriate test runners (Jest, pytest, JUnit, etc.)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call detectTestEnvironment() to analyze project structure and identify language/framework\",\n    \"Use LLM prompts to generate context-aware test setup plans\",\n    \"Execute setup plans to install dependencies and create configuration files\",\n    \"Receive structured TestEnvironment data showing what was detected\",\n    \"Get TestSetupPlan with specific actions needed to configure testing\",\n    \"Obtain SetupExecutionResult indicating success/failure of setup operations\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestEnvironment\",\n      \"desc\": \"Analyzes workspace to detect primary language, testing framework, and existing test setup\",\n      \"inputs\": \"workspaceRoot: string (path to project root)\",\n      \"outputs\": \"TestEnvironment object containing language, framework, and configuration status\"\n    },\n    {\n      \"name\": \"getAllFiles\",\n      \"desc\": \"Recursively scans directory to find all files for language detection\",\n      \"inputs\": \"directory path\",\n      \"outputs\": \"Array of file paths\"\n    },\n    {\n      \"name\": \"buildSetupPrompt\",\n      \"desc\": \"Constructs LLM prompt for generating test setup configuration\",\n      \"inputs\": \"TestEnvironment data\",\n      \"outputs\": \"Formatted prompt string for LLM\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"./types/testSetupTypes\",\n    \"../../prompts/testPrompts\",\n    \"../../../logger\"\n  ],\n  \"intent\": \"This file exists to eliminate manual test setup by automatically detecting a project's programming environment and generating appropriate test configurations. It solves the problem of developers needing to manually configure testing frameworks, install dependencies, and create test structures for different languages and environments by using LLM intelligence to understand the project context and generate optimal setup plans.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/llmTestValidationService.ts",
+      "role": "Core Logic",
+      "purpose": "Validates and automatically fixes failing tests using LLM-powered code generation and iterative execution",
+      "userVisibleActions": [
+        "Tests are automatically run and validated",
+        "Failing tests are detected and reported with detailed error messages",
+        "Tests are automatically fixed through multiple retry attempts",
+        "Test execution results show passed/failed counts and success rates",
+        "Detailed test reports are generated showing which tests passed or failed"
+      ],
+      "developerVisibleActions": [
+        "Trigger test validation for specific test files or entire workspace",
+        "Configure maximum retry attempts for automatic test fixing",
+        "Receive structured test execution results with pass/fail statistics",
+        "Access detailed error messages and stack traces for failed tests",
+        "Get feedback on which fix attempts succeeded or failed",
+        "Review generated test reports with comprehensive test outcomes"
+      ],
+      "keyFunctions": [
+        {
+          "name": "runTests",
+          "desc": "Executes all tests or a specific test file and captures results",
+          "inputs": "workspaceRoot (string), optional testFile (string)",
+          "outputs": "Array of TestExecutionResult objects with pass/fail statistics"
+        },
+        {
+          "name": "fixFailingTest",
+          "desc": "Attempts to automatically fix a failing test using LLM with retry logic",
+          "inputs": "testFilePath, executionResult, workspaceRoot, llmService, maxAttempts (default 3)",
+          "outputs": "Object with success status, number of attempts, and final error if failed"
+        },
+        {
+          "name": "buildFixPrompt",
+          "desc": "Constructs an LLM prompt for fixing test failures based on error context",
+          "inputs": "Test file content, execution results, error details",
+          "outputs": "Formatted prompt string for LLM processing"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "TestExecutionService",
+        "testResultTypes (TestExecutionResult, TestReport, TestReportSummary)",
+        "testPrompts (buildFixPrompt)",
+        "SWLogger"
+      ],
+      "intent": "This file solves the problem of manual test debugging by automating test validation and repair. When tests fail during development, it automatically detects failures, generates fix attempts using LLM intelligence, applies the fixes, and re-runs tests until they pass or max attempts are reached. This significantly reduces developer time spent debugging and fixing broken tests.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Validates and automatically fixes failing tests using LLM-powered code generation and iterative execution\",\n  \"userVisibleActions\": [\n    \"Tests are automatically run and validated\",\n    \"Failing tests are detected and reported with detailed error messages\",\n    \"Tests are automatically fixed through multiple retry attempts\",\n    \"Test execution results show passed/failed counts and success rates\",\n    \"Detailed test reports are generated showing which tests passed or failed\"\n  ],\n  \"developerVisibleActions\": [\n    \"Trigger test validation for specific test files or entire workspace\",\n    \"Configure maximum retry attempts for automatic test fixing\",\n    \"Receive structured test execution results with pass/fail statistics\",\n    \"Access detailed error messages and stack traces for failed tests\",\n    \"Get feedback on which fix attempts succeeded or failed\",\n    \"Review generated test reports with comprehensive test outcomes\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runTests\",\n      \"desc\": \"Executes all tests or a specific test file and captures results\",\n      \"inputs\": \"workspaceRoot (string), optional testFile (string)\",\n      \"outputs\": \"Array of TestExecutionResult objects with pass/fail statistics\"\n    },\n    {\n      \"name\": \"fixFailingTest\",\n      \"desc\": \"Attempts to automatically fix a failing test using LLM with retry logic\",\n      \"inputs\": \"testFilePath, executionResult, workspaceRoot, llmService, maxAttempts (default 3)\",\n      \"outputs\": \"Object with success status, number of attempts, and final error if failed\"\n    },\n    {\n      \"name\": \"buildFixPrompt\",\n      \"desc\": \"Constructs an LLM prompt for fixing test failures based on error context\",\n      \"inputs\": \"Test file content, execution results, error details\",\n      \"outputs\": \"Formatted prompt string for LLM processing\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestExecutionService\",\n    \"testResultTypes (TestExecutionResult, TestReport, TestReportSummary)\",\n    \"testPrompts (buildFixPrompt)\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file solves the problem of manual test debugging by automating test validation and repair. When tests fail during development, it automatically detects failures, generates fix attempts using LLM intelligence, applies the fixes, and re-runs tests until they pass or max attempts are reached. This significantly reduces developer time spent debugging and fixing broken tests.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/testExecutionService.ts",
+      "role": "Core Logic",
+      "purpose": "Executes test suites (Jest, Mocha, Pytest) and captures their results in a structured format",
+      "userVisibleActions": [
+        "Run all tests in the workspace",
+        "Run tests for a specific file",
+        "View test execution results (passed, failed, error counts)",
+        "See test execution duration",
+        "View detailed error messages and stack traces for failed tests",
+        "Get test coverage information when available"
+      ],
+      "developerVisibleActions": [
+        "Call runJest() to execute Jest tests with optional file parameter",
+        "Call runMocha() to execute Mocha tests with optional file parameter",
+        "Call runPytest() to execute Python pytest with optional file parameter",
+        "Receive TestExecutionResult array with status, counts, and error details",
+        "Handle test execution errors and timeouts",
+        "Parse JSON output from test runners automatically",
+        "Access test coverage data from execution results"
+      ],
+      "keyFunctions": [
+        {
+          "name": "runJest",
+          "desc": "Executes Jest tests for a specific file or entire workspace",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "runMocha",
+          "desc": "Executes Mocha tests for a specific file or entire workspace",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "runPytest",
+          "desc": "Executes Python pytest for a specific file or entire workspace",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "parseJestOutput",
+          "desc": "Parses JSON output from Jest test execution into structured results",
+          "inputs": "stdout: string, stderr: string",
+          "outputs": "TestExecutionResult[]"
+        },
+        {
+          "name": "parseMochaOutput",
+          "desc": "Parses JSON output from Mocha test execution into structured results",
+          "inputs": "stdout: string, stderr: string",
+          "outputs": "TestExecutionResult[]"
+        },
+        {
+          "name": "parsePytestOutput",
+          "desc": "Parses JSON output from pytest execution into structured results",
+          "inputs": "stdout: string, stderr: string",
+          "outputs": "TestExecutionResult[]"
+        }
+      ],
+      "dependencies": [
+        "child_process",
+        "path",
+        "./types/testResultTypes"
+      ],
+      "intent": "Provides a unified interface for executing different test frameworks (Jest, Mocha, Pytest) and converting their outputs into a consistent result format, enabling the extension to support multiple testing technologies with test execution, result tracking, and error reporting capabilities.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Executes test suites (Jest, Mocha, Pytest) and captures their results in a structured format\",\n  \"userVisibleActions\": [\n    \"Run all tests in the workspace\",\n    \"Run tests for a specific file\",\n    \"View test execution results (passed, failed, error counts)\",\n    \"See test execution duration\",\n    \"View detailed error messages and stack traces for failed tests\",\n    \"Get test coverage information when available\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call runJest() to execute Jest tests with optional file parameter\",\n    \"Call runMocha() to execute Mocha tests with optional file parameter\",\n    \"Call runPytest() to execute Python pytest with optional file parameter\",\n    \"Receive TestExecutionResult array with status, counts, and error details\",\n    \"Handle test execution errors and timeouts\",\n    \"Parse JSON output from test runners automatically\",\n    \"Access test coverage data from execution results\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runJest\",\n      \"desc\": \"Executes Jest tests for a specific file or entire workspace\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runMocha\",\n      \"desc\": \"Executes Mocha tests for a specific file or entire workspace\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runPytest\",\n      \"desc\": \"Executes Python pytest for a specific file or entire workspace\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"parseJestOutput\",\n      \"desc\": \"Parses JSON output from Jest test execution into structured results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseMochaOutput\",\n      \"desc\": \"Parses JSON output from Mocha test execution into structured results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parsePytestOutput\",\n      \"desc\": \"Parses JSON output from pytest execution into structured results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    }\n  ],\n  \"dependencies\": [\n    \"child_process\",\n    \"path\",\n    \"./types/testResultTypes\"\n  ],\n  \"intent\": \"Provides a unified interface for executing different test frameworks (Jest, Mocha, Pytest) and converting their outputs into a consistent result format, enabling the extension to support multiple testing technologies with test execution, result tracking, and error reporting capabilities.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:48:16.315Z"
+  }
+}

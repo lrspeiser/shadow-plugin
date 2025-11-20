@@ -1,0 +1,62 @@
+{
+  "file": "src/llmSchemas.ts",
+  "role": "Core Logic",
+  "purpose": "Defines JSON schemas that structure and validate AI (Claude) responses for code analysis, ensuring parseable outputs without manual parsing.",
+  "userVisibleActions": [
+    "Receives structured analysis of product purpose and architecture rationale",
+    "Gets organized lists of design decisions and user goals",
+    "Sees formatted issue reports with titles, descriptions, and affected files",
+    "Receives behavior descriptions with user-facing and developer-facing actions",
+    "Gets dependency analysis with module relationships and purposes",
+    "Sees intent explanations for why files exist and what problems they solve"
+  ],
+  "developerVisibleActions": [
+    "Provides schema templates that guarantee valid JSON responses from Claude AI",
+    "Enforces required fields in AI responses to prevent missing data",
+    "Structures AI output into predictable formats for programmatic consumption",
+    "Validates that AI responses include specific information categories",
+    "Defines metadata fields for tracking analysis completeness and confidence",
+    "Ensures AI responses distinguish between user-facing and developer-facing behavior",
+    "Generates structured issue reports with severity levels and fix proposals"
+  ],
+  "keyFunctions": [
+    {
+      "name": "productPurposeAnalysisSchema",
+      "desc": "Schema that structures AI analysis of product purpose and architecture decisions",
+      "inputs": "Used by AI to format analysis results",
+      "outputs": "Structured object with productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors"
+    },
+    {
+      "name": "issueItemSchema",
+      "desc": "Schema that formats individual code issues with titles, descriptions, and affected files",
+      "inputs": "Used by AI to format issue detection results",
+      "outputs": "Structured object with title, description, relevantFiles, relevantFunctions fields"
+    },
+    {
+      "name": "behaviorItemSchema",
+      "desc": "Schema that separates user-facing actions from developer-facing implementation details",
+      "inputs": "Used by AI to categorize code behavior",
+      "outputs": "Structured object with userVisibleActions and developerVisibleActions arrays"
+    },
+    {
+      "name": "dependencyItemSchema",
+      "desc": "Schema that documents module dependencies with their purposes and relationships",
+      "inputs": "Used by AI to format dependency analysis",
+      "outputs": "Structured object with module name, purpose, and usedBy/uses relationships"
+    },
+    {
+      "name": "fileAnalysisSchema",
+      "desc": "Comprehensive schema that combines purpose, behavior, dependencies, and intent analysis for a file",
+      "inputs": "Used by AI to format complete file analysis",
+      "outputs": "Structured object with purpose, behaviors, dependencies, intent, and metadata fields"
+    }
+  ],
+  "dependencies": [],
+  "intent": "Eliminates ambiguity in AI responses by defining strict JSON schemas that guarantee parseable, structured output for code analysis tasks, enabling reliable automated processing of AI-generated insights without manual parsing or error handling.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines JSON schemas that structure and validate AI (Claude) responses for code analysis, ensuring parseable outputs without manual parsing.\",\n  \"userVisibleActions\": [\n    \"Receives structured analysis of product purpose and architecture rationale\",\n    \"Gets organized lists of design decisions and user goals\",\n    \"Sees formatted issue reports with titles, descriptions, and affected files\",\n    \"Receives behavior descriptions with user-facing and developer-facing actions\",\n    \"Gets dependency analysis with module relationships and purposes\",\n    \"Sees intent explanations for why files exist and what problems they solve\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides schema templates that guarantee valid JSON responses from Claude AI\",\n    \"Enforces required fields in AI responses to prevent missing data\",\n    \"Structures AI output into predictable formats for programmatic consumption\",\n    \"Validates that AI responses include specific information categories\",\n    \"Defines metadata fields for tracking analysis completeness and confidence\",\n    \"Ensures AI responses distinguish between user-facing and developer-facing behavior\",\n    \"Generates structured issue reports with severity levels and fix proposals\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"productPurposeAnalysisSchema\",\n      \"desc\": \"Schema that structures AI analysis of product purpose and architecture decisions\",\n      \"inputs\": \"Used by AI to format analysis results\",\n      \"outputs\": \"Structured object with productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors\"\n    },\n    {\n      \"name\": \"issueItemSchema\",\n      \"desc\": \"Schema that formats individual code issues with titles, descriptions, and affected files\",\n      \"inputs\": \"Used by AI to format issue detection results\",\n      \"outputs\": \"Structured object with title, description, relevantFiles, relevantFunctions fields\"\n    },\n    {\n      \"name\": \"behaviorItemSchema\",\n      \"desc\": \"Schema that separates user-facing actions from developer-facing implementation details\",\n      \"inputs\": \"Used by AI to categorize code behavior\",\n      \"outputs\": \"Structured object with userVisibleActions and developerVisibleActions arrays\"\n    },\n    {\n      \"name\": \"dependencyItemSchema\",\n      \"desc\": \"Schema that documents module dependencies with their purposes and relationships\",\n      \"inputs\": \"Used by AI to format dependency analysis\",\n      \"outputs\": \"Structured object with module name, purpose, and usedBy/uses relationships\"\n    },\n    {\n      \"name\": \"fileAnalysisSchema\",\n      \"desc\": \"Comprehensive schema that combines purpose, behavior, dependencies, and intent analysis for a file\",\n      \"inputs\": \"Used by AI to format complete file analysis\",\n      \"outputs\": \"Structured object with purpose, behaviors, dependencies, intent, and metadata fields\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"Eliminates ambiguity in AI responses by defining strict JSON schemas that guarantee parseable, structured output for code analysis tasks, enabling reliable automated processing of AI-generated insights without manual parsing or error handling.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:45:24.577Z"
+  }
+}

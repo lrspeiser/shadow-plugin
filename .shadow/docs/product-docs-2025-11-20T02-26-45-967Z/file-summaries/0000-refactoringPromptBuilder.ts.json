@@ -1,0 +1,58 @@
+{
+  "file": "src/domain/prompts/refactoringPromptBuilder.ts",
+  "role": "Core Logic",
+  "purpose": "Generates detailed, structured prompts for LLM-based code refactoring analysis with function-level extraction plans and migration steps.",
+  "userVisibleActions": [
+    "Receives comprehensive refactoring recommendations for improving code structure",
+    "Gets detailed extraction plans showing which functions should move to new files",
+    "Sees step-by-step migration instructions for implementing refactoring changes",
+    "Views before-and-after code examples for proposed refactorings",
+    "Obtains function dependency analysis showing which functions call or are called by others"
+  ],
+  "developerVisibleActions": [
+    "Builds prompts that request detailed refactoring analysis from LLM services",
+    "Incorporates code analysis results, product documentation, and architecture insights into prompts",
+    "Generates prompts with function-level metadata including signatures, parameters, and line ranges",
+    "Creates extraction plans identifying source files, target files, and functions to move",
+    "Includes migration steps and code examples in the refactoring instructions",
+    "Constructs prompts that analyze function responsibilities and dependencies"
+  ],
+  "keyFunctions": [
+    {
+      "name": "buildDetailedRefactoringPrompt",
+      "desc": "Creates a comprehensive prompt for LLM to generate detailed refactoring recommendations",
+      "inputs": "context (analysis context), codeAnalysis (code structure), productDocs (optional product documentation), architectureInsights (optional LLM insights), functionAnalyses (optional function metadata)",
+      "outputs": "Formatted prompt string for LLM consumption"
+    },
+    {
+      "name": "buildFunctionAnalysisSection",
+      "desc": "Constructs the section of the prompt containing function-level analysis details",
+      "inputs": "functionAnalyses (array of function metadata)",
+      "outputs": "Formatted string section with function details"
+    },
+    {
+      "name": "buildExtractionRequirementsSection",
+      "desc": "Generates prompt section specifying what extraction plans should include",
+      "inputs": "None",
+      "outputs": "Formatted string with extraction requirements"
+    },
+    {
+      "name": "buildBasePrompt",
+      "desc": "Creates the foundational prompt structure with context and analysis data",
+      "inputs": "context, codeAnalysis, productDocs, architectureInsights",
+      "outputs": "Base prompt string"
+    }
+  ],
+  "dependencies": [
+    "../../analyzer (CodeAnalysis, FileInfo, FunctionMetadata)",
+    "../../llmService (AnalysisContext, LLMInsights)",
+    "../../fileDocumentation (EnhancedProductDocumentation)"
+  ],
+  "intent": "This file exists to systematically construct detailed, prescriptive prompts that guide LLMs in generating actionable refactoring recommendations. It solves the problem of getting high-quality, structured refactoring analysis by ensuring prompts include all necessary context: function metadata, dependencies, architectural insights, and explicit requirements for extraction plans and migration steps.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Generates detailed, structured prompts for LLM-based code refactoring analysis with function-level extraction plans and migration steps.\",\n  \"userVisibleActions\": [\n    \"Receives comprehensive refactoring recommendations for improving code structure\",\n    \"Gets detailed extraction plans showing which functions should move to new files\",\n    \"Sees step-by-step migration instructions for implementing refactoring changes\",\n    \"Views before-and-after code examples for proposed refactorings\",\n    \"Obtains function dependency analysis showing which functions call or are called by others\"\n  ],\n  \"developerVisibleActions\": [\n    \"Builds prompts that request detailed refactoring analysis from LLM services\",\n    \"Incorporates code analysis results, product documentation, and architecture insights into prompts\",\n    \"Generates prompts with function-level metadata including signatures, parameters, and line ranges\",\n    \"Creates extraction plans identifying source files, target files, and functions to move\",\n    \"Includes migration steps and code examples in the refactoring instructions\",\n    \"Constructs prompts that analyze function responsibilities and dependencies\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildDetailedRefactoringPrompt\",\n      \"desc\": \"Creates a comprehensive prompt for LLM to generate detailed refactoring recommendations\",\n      \"inputs\": \"context (analysis context), codeAnalysis (code structure), productDocs (optional product documentation), architectureInsights (optional LLM insights), functionAnalyses (optional function metadata)\",\n      \"outputs\": \"Formatted prompt string for LLM consumption\"\n    },\n    {\n      \"name\": \"buildFunctionAnalysisSection\",\n      \"desc\": \"Constructs the section of the prompt containing function-level analysis details\",\n      \"inputs\": \"functionAnalyses (array of function metadata)\",\n      \"outputs\": \"Formatted string section with function details\"\n    },\n    {\n      \"name\": \"buildExtractionRequirementsSection\",\n      \"desc\": \"Generates prompt section specifying what extraction plans should include\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Formatted string with extraction requirements\"\n    },\n    {\n      \"name\": \"buildBasePrompt\",\n      \"desc\": \"Creates the foundational prompt structure with context and analysis data\",\n      \"inputs\": \"context, codeAnalysis, productDocs, architectureInsights\",\n      \"outputs\": \"Base prompt string\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer (CodeAnalysis, FileInfo, FunctionMetadata)\",\n    \"../../llmService (AnalysisContext, LLMInsights)\",\n    \"../../fileDocumentation (EnhancedProductDocumentation)\"\n  ],\n  \"intent\": \"This file exists to systematically construct detailed, prescriptive prompts that guide LLMs in generating actionable refactoring recommendations. It solves the problem of getting high-quality, structured refactoring analysis by ensuring prompts include all necessary context: function metadata, dependencies, architectural insights, and explicit requirements for extraction plans and migration steps.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:39:48.063Z"
+  }
+}

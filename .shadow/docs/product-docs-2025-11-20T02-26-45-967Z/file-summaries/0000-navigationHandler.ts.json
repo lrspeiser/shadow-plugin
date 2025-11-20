@@ -1,0 +1,63 @@
+{
+  "file": "src/domain/handlers/navigationHandler.ts",
+  "role": "Core Logic",
+  "purpose": "Handles navigation to files, functions, endpoints, and other code locations within the VS Code editor, displaying details about code items when clicked.",
+  "userVisibleActions": [
+    "Click on a file item to open that file in the editor",
+    "Click on a function to jump to its definition in the source code",
+    "Click on an endpoint to navigate to its implementation",
+    "Click on an analysis item to view its details in the editor",
+    "View error messages when navigation fails to find a file or location",
+    "See the cursor positioned at the exact line and column of the selected code element"
+  ],
+  "developerVisibleActions": [
+    "Navigates to product items (files, functions, endpoints) from navigation trees",
+    "Opens files at specific line and column positions",
+    "Handles navigation from analysis viewer items",
+    "Resolves relative file paths against workspace root",
+    "Converts absolute paths to proper file URIs",
+    "Shows error messages when files cannot be opened",
+    "Manages text document opening and editor display",
+    "Handles navigation to entry points from code analysis"
+  ],
+  "keyFunctions": [
+    {
+      "name": "navigateToProductItem",
+      "desc": "Opens files and navigates to specific code locations (functions, endpoints) from product navigation items",
+      "inputs": "ProductNavItem containing file path, function name, and location data",
+      "outputs": "Promise<void> - opens document in editor or shows error"
+    },
+    {
+      "name": "navigateToAnalysisItem",
+      "desc": "Navigates to code locations from analysis results, positioning cursor at specific lines",
+      "inputs": "AnalysisItem with file path and line/column information",
+      "outputs": "Promise<void> - opens document and sets cursor position"
+    },
+    {
+      "name": "navigateToEntryPoint",
+      "desc": "Jumps to entry point definitions in the codebase from analysis data",
+      "inputs": "EntryPoint object with file location and position details",
+      "outputs": "Promise<void> - navigates to entry point location"
+    },
+    {
+      "name": "showItemDetails",
+      "desc": "Displays detailed information about a selected code item",
+      "inputs": "Product item or analysis item with metadata",
+      "outputs": "void - shows details in appropriate VS Code panel"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "ProductNavItem from productNavigator",
+    "AnalysisItem from analysisViewer",
+    "EntryPoint from analyzer"
+  ],
+  "intent": "This file exists to centralize all navigation logic for the extension, separating the concern of 'going to code locations' from other extension functionality. It solves the problem of navigating between different views (product navigator, analysis viewer) and the actual source code files, handling path resolution, error cases, and editor positioning in one place.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Handles navigation to files, functions, endpoints, and other code locations within the VS Code editor, displaying details about code items when clicked.\",\n  \"userVisibleActions\": [\n    \"Click on a file item to open that file in the editor\",\n    \"Click on a function to jump to its definition in the source code\",\n    \"Click on an endpoint to navigate to its implementation\",\n    \"Click on an analysis item to view its details in the editor\",\n    \"View error messages when navigation fails to find a file or location\",\n    \"See the cursor positioned at the exact line and column of the selected code element\"\n  ],\n  \"developerVisibleActions\": [\n    \"Navigates to product items (files, functions, endpoints) from navigation trees\",\n    \"Opens files at specific line and column positions\",\n    \"Handles navigation from analysis viewer items\",\n    \"Resolves relative file paths against workspace root\",\n    \"Converts absolute paths to proper file URIs\",\n    \"Shows error messages when files cannot be opened\",\n    \"Manages text document opening and editor display\",\n    \"Handles navigation to entry points from code analysis\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"navigateToProductItem\",\n      \"desc\": \"Opens files and navigates to specific code locations (functions, endpoints) from product navigation items\",\n      \"inputs\": \"ProductNavItem containing file path, function name, and location data\",\n      \"outputs\": \"Promise<void> - opens document in editor or shows error\"\n    },\n    {\n      \"name\": \"navigateToAnalysisItem\",\n      \"desc\": \"Navigates to code locations from analysis results, positioning cursor at specific lines\",\n      \"inputs\": \"AnalysisItem with file path and line/column information\",\n      \"outputs\": \"Promise<void> - opens document and sets cursor position\"\n    },\n    {\n      \"name\": \"navigateToEntryPoint\",\n      \"desc\": \"Jumps to entry point definitions in the codebase from analysis data\",\n      \"inputs\": \"EntryPoint object with file location and position details\",\n      \"outputs\": \"Promise<void> - navigates to entry point location\"\n    },\n    {\n      \"name\": \"showItemDetails\",\n      \"desc\": \"Displays detailed information about a selected code item\",\n      \"inputs\": \"Product item or analysis item with metadata\",\n      \"outputs\": \"void - shows details in appropriate VS Code panel\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"ProductNavItem from productNavigator\",\n    \"AnalysisItem from analysisViewer\",\n    \"EntryPoint from analyzer\"\n  ],\n  \"intent\": \"This file exists to centralize all navigation logic for the extension, separating the concern of 'going to code locations' from other extension functionality. It solves the problem of navigating between different views (product navigator, analysis viewer) and the actual source code files, handling path resolution, error cases, and editor positioning in one place.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:39:15.566Z"
+  }
+}

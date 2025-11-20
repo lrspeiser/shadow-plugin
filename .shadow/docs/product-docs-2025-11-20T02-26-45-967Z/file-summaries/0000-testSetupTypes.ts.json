@@ -1,0 +1,28 @@
+{
+  "file": "src/domain/services/testing/types/testSetupTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript interfaces for test setup configuration, environment detection, and execution results in the testing service.",
+  "userVisibleActions": [
+    "Test setup plans are created with specific testing frameworks and dependencies",
+    "Configuration files are generated for the test environment",
+    "Test directories are established in the project",
+    "Dependencies are installed for testing frameworks",
+    "Success or error messages are displayed after test setup execution"
+  ],
+  "developerVisibleActions": [
+    "Provides type-safe structures for planning test setup with language, framework, and dependency information",
+    "Enables detection of existing test environment features (package.json, tsconfig, jest config, test directories)",
+    "Structures mock requirements with types and reasons for test isolation",
+    "Returns execution results with lists of created files, installed dependencies, and any errors",
+    "Supports identifying missing dependencies and existing test frameworks in the project"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides a type-safe contract for test setup operations, ensuring consistent data structures across the testing service for planning, environment detection, and execution reporting. This enables developers to reliably configure test environments with proper typing and validation.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript interfaces for test setup configuration, environment detection, and execution results in the testing service.\",\n  \"userVisibleActions\": [\n    \"Test setup plans are created with specific testing frameworks and dependencies\",\n    \"Configuration files are generated for the test environment\",\n    \"Test directories are established in the project\",\n    \"Dependencies are installed for testing frameworks\",\n    \"Success or error messages are displayed after test setup execution\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides type-safe structures for planning test setup with language, framework, and dependency information\",\n    \"Enables detection of existing test environment features (package.json, tsconfig, jest config, test directories)\",\n    \"Structures mock requirements with types and reasons for test isolation\",\n    \"Returns execution results with lists of created files, installed dependencies, and any errors\",\n    \"Supports identifying missing dependencies and existing test frameworks in the project\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides a type-safe contract for test setup operations, ensuring consistent data structures across the testing service for planning, environment detection, and execution reporting. This enables developers to reliably configure test environments with proper typing and validation.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:42:02.061Z"
+  }
+}

@@ -3130,11 +3130,25 @@ Return ONLY the Markdown report, no additional text or explanations.`;
 
             // Parse JSON from response
             const content = response.content || '';
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+            
+            if (!content) {
+                throw new Error('LLM returned empty response');
             }
-            throw new Error('No JSON found in response');
+            
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                SWLogger.log(`[LLM] No JSON found in response. Content: ${content.substring(0, 200)}...`);
+                throw new Error('No JSON found in response');
+            }
+            
+            try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                return parsed;
+            } catch (parseError: any) {
+                SWLogger.log(`[LLM] JSON parse error: ${parseError.message}`);
+                SWLogger.log(`[LLM] Attempted to parse: ${jsonMatch[0].substring(0, 500)}...`);
+                throw new Error(`Invalid JSON in response: ${parseError.message}`);
+            }
         } catch (error: any) {
             SWLogger.log(`[LLM] Error generating test for function: ${error.message}`);
             throw error;
@@ -3173,11 +3187,25 @@ Return ONLY the Markdown report, no additional text or explanations.`;
 
             // Parse JSON from response
             const content = response.content || '';
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+            
+            if (!content) {
+                throw new Error('LLM returned empty response');
             }
-            throw new Error('No JSON found in response');
+            
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                SWLogger.log(`[LLM] No JSON found in response. Content: ${content.substring(0, 200)}...`);
+                throw new Error('No JSON found in response');
+            }
+            
+            try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                return parsed;
+            } catch (parseError: any) {
+                SWLogger.log(`[LLM] JSON parse error: ${parseError.message}`);
+                SWLogger.log(`[LLM] Attempted to parse: ${jsonMatch[0].substring(0, 500)}...`);
+                throw new Error(`Invalid JSON in response: ${parseError.message}`);
+            }
         } catch (error: any) {
             SWLogger.log(`[LLM] Error fixing failing test: ${error.message}`);
             throw error;

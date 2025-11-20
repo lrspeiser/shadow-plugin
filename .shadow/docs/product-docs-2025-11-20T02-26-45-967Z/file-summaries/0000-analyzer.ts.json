@@ -1,0 +1,67 @@
+{
+  "file": "src/analyzer.ts",
+  "role": "Core Logic",
+  "purpose": "Defines core data structures and interfaces for code analysis results, including file metrics, function metadata, dependencies, and test mappings.",
+  "userVisibleActions": [
+    "View total project statistics (files, lines, functions)",
+    "See large files identified in the codebase",
+    "Browse function information with parameters and return types",
+    "Examine import relationships between files",
+    "Identify orphaned files not imported anywhere",
+    "Discover entry points in the application",
+    "View duplicate code groups",
+    "See function risk levels (high/medium/low)",
+    "Review function documentation and visibility",
+    "Explore test coverage mapping for functions"
+  ],
+  "developerVisibleActions": [
+    "Import CodeAnalysis interface to structure analysis results",
+    "Use FunctionMetadata to store detailed function information including parameters, return types, and docstrings",
+    "Track branch complexity with BranchInfo (if/else/switch/loop/exception handling)",
+    "Map dependencies by type (database, HTTP, filesystem, cache, etc.)",
+    "Monitor state mutations (assign/modify/delete/read operations)",
+    "Link source files to their test files using TestMapping",
+    "Identify uncovered functions without tests",
+    "Detect duplicate code sections with similarity scores",
+    "Cache analysis results using AnalysisCache",
+    "Track function relationships through imports and dependencies"
+  ],
+  "keyFunctions": [
+    {
+      "name": "CodeAnalysis",
+      "desc": "Main interface that aggregates all analysis results for a codebase",
+      "inputs": "Analysis data from file system traversal",
+      "outputs": "Structured metrics including files, functions, imports, orphans, entry points, and optional enhanced metadata"
+    },
+    {
+      "name": "FunctionMetadata",
+      "desc": "Comprehensive metadata for individual functions including control flow and dependencies",
+      "inputs": "Parsed function information from source code",
+      "outputs": "Structured function details with parameters, branches, dependencies, mutations, and risk assessment"
+    },
+    {
+      "name": "TestMapping",
+      "desc": "Maps source code to test files and identifies untested functions",
+      "inputs": "Source files and test files from analysis",
+      "outputs": "Bidirectional mapping between source files/functions and their tests, plus uncovered functions list"
+    },
+    {
+      "name": "DependencyInfo",
+      "desc": "Categorizes and tracks external and internal dependencies",
+      "inputs": "Import statements and function calls",
+      "outputs": "Classified dependencies by type (db/http/filesystem/etc.) with internal/external flag"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./cache"
+  ],
+  "intent": "This file exists to establish a comprehensive, type-safe contract for code analysis results. It solves the problem of consistently structuring complex codebase analysis data including metrics, metadata, relationships, and test coverage so that other components can reliably process and display analysis insights to users.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines core data structures and interfaces for code analysis results, including file metrics, function metadata, dependencies, and test mappings.\",\n  \"userVisibleActions\": [\n    \"View total project statistics (files, lines, functions)\",\n    \"See large files identified in the codebase\",\n    \"Browse function information with parameters and return types\",\n    \"Examine import relationships between files\",\n    \"Identify orphaned files not imported anywhere\",\n    \"Discover entry points in the application\",\n    \"View duplicate code groups\",\n    \"See function risk levels (high/medium/low)\",\n    \"Review function documentation and visibility\",\n    \"Explore test coverage mapping for functions\"\n  ],\n  \"developerVisibleActions\": [\n    \"Import CodeAnalysis interface to structure analysis results\",\n    \"Use FunctionMetadata to store detailed function information including parameters, return types, and docstrings\",\n    \"Track branch complexity with BranchInfo (if/else/switch/loop/exception handling)\",\n    \"Map dependencies by type (database, HTTP, filesystem, cache, etc.)\",\n    \"Monitor state mutations (assign/modify/delete/read operations)\",\n    \"Link source files to their test files using TestMapping\",\n    \"Identify uncovered functions without tests\",\n    \"Detect duplicate code sections with similarity scores\",\n    \"Cache analysis results using AnalysisCache\",\n    \"Track function relationships through imports and dependencies\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"CodeAnalysis\",\n      \"desc\": \"Main interface that aggregates all analysis results for a codebase\",\n      \"inputs\": \"Analysis data from file system traversal\",\n      \"outputs\": \"Structured metrics including files, functions, imports, orphans, entry points, and optional enhanced metadata\"\n    },\n    {\n      \"name\": \"FunctionMetadata\",\n      \"desc\": \"Comprehensive metadata for individual functions including control flow and dependencies\",\n      \"inputs\": \"Parsed function information from source code\",\n      \"outputs\": \"Structured function details with parameters, branches, dependencies, mutations, and risk assessment\"\n    },\n    {\n      \"name\": \"TestMapping\",\n      \"desc\": \"Maps source code to test files and identifies untested functions\",\n      \"inputs\": \"Source files and test files from analysis\",\n      \"outputs\": \"Bidirectional mapping between source files/functions and their tests, plus uncovered functions list\"\n    },\n    {\n      \"name\": \"DependencyInfo\",\n      \"desc\": \"Categorizes and tracks external and internal dependencies\",\n      \"inputs\": \"Import statements and function calls\",\n      \"outputs\": \"Classified dependencies by type (db/http/filesystem/etc.) with internal/external flag\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./cache\"\n  ],\n  \"intent\": \"This file exists to establish a comprehensive, type-safe contract for code analysis results. It solves the problem of consistently structuring complex codebase analysis data including metrics, metadata, relationships, and test coverage so that other components can reliably process and display analysis insights to users.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:37:38.774Z"
+  }
+}

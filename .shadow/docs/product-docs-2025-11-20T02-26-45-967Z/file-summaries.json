@@ -1,0 +1,37 @@
+{
+  "summaries": [
+    {
+      "file": "jest.config.js",
+      "role": "Core Logic",
+      "purpose": "Configures Jest testing framework for running TypeScript unit tests in a Node.js environment with code coverage reporting.",
+      "userVisibleActions": [
+        "Test results are displayed when running the test suite",
+        "Code coverage reports show which parts of the codebase are tested",
+        "Test failures and errors are reported with clear messages",
+        "Test execution completes within 10 seconds or times out"
+      ],
+      "developerVisibleActions": [
+        "Run tests using Jest with TypeScript support via ts-jest preset",
+        "Execute tests from files matching patterns in src/ and UnitTests/ directories",
+        "View code coverage reports in text, lcov, and HTML formats in the coverage directory",
+        "Mock the vscode module for testing VS Code extension code in isolation",
+        "Write tests in TypeScript files with .test.ts or .spec.ts naming conventions",
+        "Access ES2020 features and strict type checking during test execution",
+        "Exclude test files, mock files, and declaration files from coverage analysis"
+      ],
+      "keyFunctions": [],
+      "dependencies": [
+        "ts-jest",
+        "jest",
+        "vscode"
+      ],
+      "intent": "This configuration file exists to set up the Jest testing environment for a TypeScript-based VS Code extension project, enabling developers to write and run unit tests with proper TypeScript compilation, module mocking, and comprehensive code coverage reporting while excluding non-production code from coverage metrics.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Configures Jest testing framework for running TypeScript unit tests in a Node.js environment with code coverage reporting.\",\n  \"userVisibleActions\": [\n    \"Test results are displayed when running the test suite\",\n    \"Code coverage reports show which parts of the codebase are tested\",\n    \"Test failures and errors are reported with clear messages\",\n    \"Test execution completes within 10 seconds or times out\"\n  ],\n  \"developerVisibleActions\": [\n    \"Run tests using Jest with TypeScript support via ts-jest preset\",\n    \"Execute tests from files matching patterns in src/ and UnitTests/ directories\",\n    \"View code coverage reports in text, lcov, and HTML formats in the coverage directory\",\n    \"Mock the vscode module for testing VS Code extension code in isolation\",\n    \"Write tests in TypeScript files with .test.ts or .spec.ts naming conventions\",\n    \"Access ES2020 features and strict type checking during test execution\",\n    \"Exclude test files, mock files, and declaration files from coverage analysis\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"ts-jest\",\n    \"jest\",\n    \"vscode\"\n  ],\n  \"intent\": \"This configuration file exists to set up the Jest testing environment for a TypeScript-based VS Code extension project, enabling developers to write and run unit tests with proper TypeScript compilation, module mocking, and comprehensive code coverage reporting while excluding non-production code from coverage metrics.\"\n}\n```"
+    }
+  ],
+  "_metadata": {
+    "totalFiles": 0,
+    "completedFiles": 1,
+    "lastUpdated": "2025-11-20T02:26:45.968Z"
+  }
+}

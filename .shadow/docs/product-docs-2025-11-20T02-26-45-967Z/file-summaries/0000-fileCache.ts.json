@@ -1,0 +1,67 @@
+{
+  "file": "src/infrastructure/fileSystem/fileCache.ts",
+  "role": "Core Logic",
+  "purpose": "Caches file contents in memory to avoid redundant disk reads and improve performance when accessing the same files multiple times",
+  "userVisibleActions": [
+    "Faster file access when the same file is read multiple times",
+    "Automatic updates when files change on disk",
+    "Reduced disk activity and improved responsiveness"
+  ],
+  "developerVisibleActions": [
+    "Request file content through the cache instead of direct file system access",
+    "Files are automatically re-read when they change on disk",
+    "Cache evicts least recently used files when memory limit is reached",
+    "File changes are detected through file system watching",
+    "Cache statistics track hits, misses, and evictions for monitoring"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getFile",
+      "desc": "Retrieves file content from cache if available and valid, otherwise reads from disk and caches it",
+      "inputs": "filePath (string) - path to the file to read",
+      "outputs": "Promise<string> - the file content as text"
+    },
+    {
+      "name": "setupWatcher",
+      "desc": "Sets up file system monitoring to automatically invalidate cached files when they change",
+      "inputs": "none",
+      "outputs": "void - creates file watcher in background"
+    },
+    {
+      "name": "isStale",
+      "desc": "Checks if a cached file has exceeded its time-to-live and needs refreshing",
+      "inputs": "cached file entry with timestamp",
+      "outputs": "boolean - true if cache entry is expired"
+    },
+    {
+      "name": "evictIfNeeded",
+      "desc": "Removes least recently used files from cache when total size exceeds the configured limit",
+      "inputs": "none",
+      "outputs": "void - modifies cache by removing old entries"
+    },
+    {
+      "name": "invalidate",
+      "desc": "Removes a specific file or all files from the cache",
+      "inputs": "optional filePath (string) - specific file to remove, or all if omitted",
+      "outputs": "void - removes entries from cache"
+    },
+    {
+      "name": "getStats",
+      "desc": "Returns cache performance metrics including hits, misses, and current size",
+      "inputs": "none",
+      "outputs": "CacheStats object with performance counters"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path"
+  ],
+  "intent": "Eliminates redundant file system reads by caching file contents in memory, improving performance when multiple components need to access the same files repeatedly. Ensures cache stays synchronized with file system changes through automatic invalidation.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Caches file contents in memory to avoid redundant disk reads and improve performance when accessing the same files multiple times\",\n  \"userVisibleActions\": [\n    \"Faster file access when the same file is read multiple times\",\n    \"Automatic updates when files change on disk\",\n    \"Reduced disk activity and improved responsiveness\"\n  ],\n  \"developerVisibleActions\": [\n    \"Request file content through the cache instead of direct file system access\",\n    \"Files are automatically re-read when they change on disk\",\n    \"Cache evicts least recently used files when memory limit is reached\",\n    \"File changes are detected through file system watching\",\n    \"Cache statistics track hits, misses, and evictions for monitoring\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getFile\",\n      \"desc\": \"Retrieves file content from cache if available and valid, otherwise reads from disk and caches it\",\n      \"inputs\": \"filePath (string) - path to the file to read\",\n      \"outputs\": \"Promise<string> - the file content as text\"\n    },\n    {\n      \"name\": \"setupWatcher\",\n      \"desc\": \"Sets up file system monitoring to automatically invalidate cached files when they change\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void - creates file watcher in background\"\n    },\n    {\n      \"name\": \"isStale\",\n      \"desc\": \"Checks if a cached file has exceeded its time-to-live and needs refreshing\",\n      \"inputs\": \"cached file entry with timestamp\",\n      \"outputs\": \"boolean - true if cache entry is expired\"\n    },\n    {\n      \"name\": \"evictIfNeeded\",\n      \"desc\": \"Removes least recently used files from cache when total size exceeds the configured limit\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void - modifies cache by removing old entries\"\n    },\n    {\n      \"name\": \"invalidate\",\n      \"desc\": \"Removes a specific file or all files from the cache\",\n      \"inputs\": \"optional filePath (string) - specific file to remove, or all if omitted\",\n      \"outputs\": \"void - removes entries from cache\"\n    },\n    {\n      \"name\": \"getStats\",\n      \"desc\": \"Returns cache performance metrics including hits, misses, and current size\",\n      \"inputs\": \"none\",\n      \"outputs\": \"CacheStats object with performance counters\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\"\n  ],\n  \"intent\": \"Eliminates redundant file system reads by caching file contents in memory, improving performance when multiple components need to access the same files repeatedly. Ensures cache stays synchronized with file system changes through automatic invalidation.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:43:02.161Z"
+  }
+}

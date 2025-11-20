@@ -313,11 +313,8 @@ export class AnalysisResultRepository {
                 fs.mkdirSync(docsDir, { recursive: true });
             }
 
-            // Save final version in run directory
-            const runDir = this.architectureInsightsRun?.runDir;
-            if (!runDir) {
-                throw new Error('No run directory available for saving architecture insights');
-            }
+            // Initialize run directory if not already initialized
+            const runDir = this.architectureInsightsRun?.runDir || this.initializeArchitectureInsightsRun(workspaceRoot);
             
             // Save as markdown
             const markdownPath = path.join(runDir, 'architecture-insights.md');

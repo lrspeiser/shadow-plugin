@@ -1,0 +1,66 @@
+{
+  "file": "src/domain/bootstrap/extensionBootstrapper.ts",
+  "role": "Core Logic",
+  "purpose": "Initializes and configures all extension components during VS Code extension activation, setting up analyzers, watchers, providers, and UI elements.",
+  "userVisibleActions": [
+    "Status bar item appears showing extension state",
+    "Tree views become available in sidebar (Insights, Analysis, Static Analysis, Unit Tests, Product Navigator, Reports)",
+    "Diagnostics (warnings/errors) appear in Problems panel",
+    "File change notifications trigger automatic re-analysis",
+    "Reports viewer displays analysis reports",
+    "Custom webviews render for different analysis types"
+  ],
+  "developerVisibleActions": [
+    "Extension activates and all components initialize on workspace open",
+    "File watcher monitors code changes and triggers analysis",
+    "Cache system stores analysis results for performance",
+    "Configuration manager loads user settings",
+    "Error handler captures and logs failures during initialization",
+    "State manager tracks LLM integration status",
+    "Multiple tree providers populate different sidebar views",
+    "Diagnostics provider integrates with VS Code's Problems panel"
+  ],
+  "keyFunctions": [
+    {
+      "name": "ExtensionComponents interface",
+      "desc": "Defines all components that need to be initialized for the extension to function",
+      "inputs": "N/A (interface definition)",
+      "outputs": "Type definition including analyzer, generators, watchers, providers, cache, UI elements"
+    },
+    {
+      "name": "bootstrap (implied)",
+      "desc": "Orchestrates initialization of all extension components in correct order",
+      "inputs": "vscode.ExtensionContext",
+      "outputs": "ExtensionComponents object with all initialized services"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "../../analyzer (CodeAnalyzer)",
+    "../../insightGenerator (InsightGenerator)",
+    "../../llmFormatter (LLMFormatter)",
+    "../../fileWatcher (FileWatcher)",
+    "../../insightsTreeView (InsightsTreeProvider)",
+    "../../diagnosticsProvider (DiagnosticsProvider)",
+    "../../cache (AnalysisCache)",
+    "../../llmIntegration",
+    "../../productNavigator (ProductNavigatorProvider)",
+    "../../analysisViewer (AnalysisViewerProvider, AnalysisItem)",
+    "../../insightsViewer (InsightsViewerProvider, InsightItem)",
+    "../../staticAnalysisViewer (StaticAnalysisViewerProvider, StaticAnalysisItem)",
+    "../../unitTestsNavigator (UnitTestsNavigatorProvider, UnitTestItem)",
+    "../../config/configurationManager",
+    "../../utils/errorHandler (ErrorHandler)",
+    "../../domain/services/fileWatcherService (FileWatcherService)",
+    "../../ui/reportsViewer (ReportsViewer)",
+    "../../reportsTreeProvider (ReportsTreeProvider, ReportTreeItem)",
+    "../../state/llmStateManager"
+  ],
+  "intent": "This file exists to centralize and organize the complex initialization sequence required to start the VS Code extension. It solves the problem of managing multiple interdependent components (analyzers, UI providers, watchers, caches) that must be initialized in a specific order, making the activation logic maintainable and testable by separating it from the main extension entry point.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Initializes and configures all extension components during VS Code extension activation, setting up analyzers, watchers, providers, and UI elements.\",\n  \"userVisibleActions\": [\n    \"Status bar item appears showing extension state\",\n    \"Tree views become available in sidebar (Insights, Analysis, Static Analysis, Unit Tests, Product Navigator, Reports)\",\n    \"Diagnostics (warnings/errors) appear in Problems panel\",\n    \"File change notifications trigger automatic re-analysis\",\n    \"Reports viewer displays analysis reports\",\n    \"Custom webviews render for different analysis types\"\n  ],\n  \"developerVisibleActions\": [\n    \"Extension activates and all components initialize on workspace open\",\n    \"File watcher monitors code changes and triggers analysis\",\n    \"Cache system stores analysis results for performance\",\n    \"Configuration manager loads user settings\",\n    \"Error handler captures and logs failures during initialization\",\n    \"State manager tracks LLM integration status\",\n    \"Multiple tree providers populate different sidebar views\",\n    \"Diagnostics provider integrates with VS Code's Problems panel\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"ExtensionComponents interface\",\n      \"desc\": \"Defines all components that need to be initialized for the extension to function\",\n      \"inputs\": \"N/A (interface definition)\",\n      \"outputs\": \"Type definition including analyzer, generators, watchers, providers, cache, UI elements\"\n    },\n    {\n      \"name\": \"bootstrap (implied)\",\n      \"desc\": \"Orchestrates initialization of all extension components in correct order\",\n      \"inputs\": \"vscode.ExtensionContext\",\n      \"outputs\": \"ExtensionComponents object with all initialized services\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"../../analyzer (CodeAnalyzer)\",\n    \"../../insightGenerator (InsightGenerator)\",\n    \"../../llmFormatter (LLMFormatter)\",\n    \"../../fileWatcher (FileWatcher)\",\n    \"../../insightsTreeView (InsightsTreeProvider)\",\n    \"../../diagnosticsProvider (DiagnosticsProvider)\",\n    \"../../cache (AnalysisCache)\",\n    \"../../llmIntegration\",\n    \"../../productNavigator (ProductNavigatorProvider)\",\n    \"../../analysisViewer (AnalysisViewerProvider, AnalysisItem)\",\n    \"../../insightsViewer (InsightsViewerProvider, InsightItem)\",\n    \"../../staticAnalysisViewer (StaticAnalysisViewerProvider, StaticAnalysisItem)\",\n    \"../../unitTestsNavigator (UnitTestsNavigatorProvider, UnitTestItem)\",\n    \"../../config/configurationManager\",\n    \"../../utils/errorHandler (ErrorHandler)\",\n    \"../../domain/services/fileWatcherService (FileWatcherService)\",\n    \"../../ui/reportsViewer (ReportsViewer)\",\n    \"../../reportsTreeProvider (ReportsTreeProvider, ReportTreeItem)\",\n    \"../../state/llmStateManager\"\n  ],\n  \"intent\": \"This file exists to centralize and organize the complex initialization sequence required to start the VS Code extension. It solves the problem of managing multiple interdependent components (analyzers, UI providers, watchers, caches) that must be initialized in a specific order, making the activation logic maintainable and testable by separating it from the main extension entry point.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T02:38:48.059Z"
+  }
+}
