@@ -1,0 +1,40 @@
+{
+  "file": "src/domain/prompts/testPrompts.ts",
+  "role": "Core Logic",
+  "purpose": "Provides prompt builders that generate structured instructions for LLMs to analyze codebases and create test plans.",
+  "userVisibleActions": [
+    "No direct user-facing actions - this file generates prompts for AI-driven test generation"
+  ],
+  "developerVisibleActions": [
+    "Developer can generate a test setup recommendation prompt by providing workspace root, file list, and optional package.json content",
+    "Developer can generate a test planning prompt by providing analysis context, functions list, and optional product/architecture documentation",
+    "Developer receives structured JSON-formatted prompts that instruct LLMs on how to analyze code and recommend test configurations",
+    "Developer gets prompts that request specific test setup information including framework, dependencies, config files, and mock requirements",
+    "Developer gets prompts that request prioritized test plans based on function complexity, coverage, and importance"
+  ],
+  "keyFunctions": [
+    {
+      "name": "buildSetupPrompt",
+      "desc": "Creates a prompt that asks an LLM to analyze a codebase and recommend optimal test setup configuration",
+      "inputs": "workspaceRoot (string), fileList (array of file paths), optional packageJsonContent (string)",
+      "outputs": "Formatted string prompt requesting JSON response with language, framework, dependencies, config files, test directory, and mock requirements"
+    },
+    {
+      "name": "buildPlanningPrompt",
+      "desc": "Creates a prompt that asks an LLM to analyze functions and create a prioritized test plan",
+      "inputs": "context (AnalysisContext), functions (array of function objects), optional productDocs, optional architectureInsights",
+      "outputs": "Formatted string prompt with codebase statistics and function list requesting prioritized test strategy"
+    }
+  ],
+  "dependencies": [
+    "../../analyzer",
+    "../services/testing/types/testPlanTypes"
+  ],
+  "intent": "This file exists to bridge the gap between code analysis and AI-driven test generation by creating standardized, structured prompts that guide LLMs to generate comprehensive test configurations and plans. It solves the problem of consistently requesting the right information from LLMs in a format that can be programmatically processed.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides prompt builders that generate structured instructions for LLMs to analyze codebases and create test plans.\",\n  \"userVisibleActions\": [\n    \"No direct user-facing actions - this file generates prompts for AI-driven test generation\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer can generate a test setup recommendation prompt by providing workspace root, file list, and optional package.json content\",\n    \"Developer can generate a test planning prompt by providing analysis context, functions list, and optional product/architecture documentation\",\n    \"Developer receives structured JSON-formatted prompts that instruct LLMs on how to analyze code and recommend test configurations\",\n    \"Developer gets prompts that request specific test setup information including framework, dependencies, config files, and mock requirements\",\n    \"Developer gets prompts that request prioritized test plans based on function complexity, coverage, and importance\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildSetupPrompt\",\n      \"desc\": \"Creates a prompt that asks an LLM to analyze a codebase and recommend optimal test setup configuration\",\n      \"inputs\": \"workspaceRoot (string), fileList (array of file paths), optional packageJsonContent (string)\",\n      \"outputs\": \"Formatted string prompt requesting JSON response with language, framework, dependencies, config files, test directory, and mock requirements\"\n    },\n    {\n      \"name\": \"buildPlanningPrompt\",\n      \"desc\": \"Creates a prompt that asks an LLM to analyze functions and create a prioritized test plan\",\n      \"inputs\": \"context (AnalysisContext), functions (array of function objects), optional productDocs, optional architectureInsights\",\n      \"outputs\": \"Formatted string prompt with codebase statistics and function list requesting prioritized test strategy\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer\",\n    \"../services/testing/types/testPlanTypes\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between code analysis and AI-driven test generation by creating standardized, structured prompts that guide LLMs to generate comprehensive test configurations and plans. It solves the problem of consistently requesting the right information from LLMs in a format that can be programmatically processed.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:52:58.705Z"
+  }
+}

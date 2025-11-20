@@ -1,0 +1,53 @@
+{
+  "file": "src/fileDocumentation.ts",
+  "role": "Core Logic",
+  "purpose": "Defines the structured data models and type definitions for organizing code documentation at file, module, and product levels.",
+  "userVisibleActions": [
+    "User can view file-level summaries showing what each code file does",
+    "User can see module-level rollups grouping related files by functionality",
+    "User can browse product-level documentation with architecture diagrams",
+    "User can access API endpoints, CLI commands, and worker job flows",
+    "User can view dependency graphs showing how components relate"
+  ],
+  "developerVisibleActions": [
+    "Developer defines file summaries with role, purpose, and key functions",
+    "Developer organizes files into modules (API, CLI, workers, core, GUI)",
+    "Developer documents user-facing actions separately from internal behavior",
+    "Developer creates structured metadata for endpoints, commands, and workers",
+    "Developer generates product documentation with overview and architecture",
+    "Developer tracks dependencies between files and components",
+    "Developer stores raw LLM responses alongside structured data"
+  ],
+  "keyFunctions": [
+    {
+      "name": "FileSummary",
+      "desc": "Represents a single file's documentation including role, purpose, actions, and dependencies",
+      "inputs": "file path, role, purpose, actions, functions, dependencies, intent",
+      "outputs": "Structured file documentation object"
+    },
+    {
+      "name": "ModuleSummary",
+      "desc": "Aggregates multiple files into a module with capabilities, endpoints, commands, or workers",
+      "inputs": "module path, type, capabilities, files array, optional endpoints/commands/workers",
+      "outputs": "Module-level documentation object"
+    },
+    {
+      "name": "EnhancedProductDocumentation",
+      "desc": "Top-level product documentation with overview, user perspectives, architecture, and workflow integration",
+      "inputs": "overview, capabilities, user perspectives (GUI/CLI/API/CI-CD), architecture, diagrams, metadata",
+      "outputs": "Complete product documentation structure"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer"
+  ],
+  "intent": "This file exists to establish a hierarchical documentation structure that transforms raw code analysis into user-friendly documentation at three levels: individual files, functional modules, and complete product overview. It separates user-visible behavior from developer-facing implementation details, enabling stakeholders at different levels to understand the codebase from their perspective.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines the structured data models and type definitions for organizing code documentation at file, module, and product levels.\",\n  \"userVisibleActions\": [\n    \"User can view file-level summaries showing what each code file does\",\n    \"User can see module-level rollups grouping related files by functionality\",\n    \"User can browse product-level documentation with architecture diagrams\",\n    \"User can access API endpoints, CLI commands, and worker job flows\",\n    \"User can view dependency graphs showing how components relate\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer defines file summaries with role, purpose, and key functions\",\n    \"Developer organizes files into modules (API, CLI, workers, core, GUI)\",\n    \"Developer documents user-facing actions separately from internal behavior\",\n    \"Developer creates structured metadata for endpoints, commands, and workers\",\n    \"Developer generates product documentation with overview and architecture\",\n    \"Developer tracks dependencies between files and components\",\n    \"Developer stores raw LLM responses alongside structured data\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"FileSummary\",\n      \"desc\": \"Represents a single file's documentation including role, purpose, actions, and dependencies\",\n      \"inputs\": \"file path, role, purpose, actions, functions, dependencies, intent\",\n      \"outputs\": \"Structured file documentation object\"\n    },\n    {\n      \"name\": \"ModuleSummary\",\n      \"desc\": \"Aggregates multiple files into a module with capabilities, endpoints, commands, or workers\",\n      \"inputs\": \"module path, type, capabilities, files array, optional endpoints/commands/workers\",\n      \"outputs\": \"Module-level documentation object\"\n    },\n    {\n      \"name\": \"EnhancedProductDocumentation\",\n      \"desc\": \"Top-level product documentation with overview, user perspectives, architecture, and workflow integration\",\n      \"inputs\": \"overview, capabilities, user perspectives (GUI/CLI/API/CI-CD), architecture, diagrams, metadata\",\n      \"outputs\": \"Complete product documentation structure\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to establish a hierarchical documentation structure that transforms raw code analysis into user-friendly documentation at three levels: individual files, functional modules, and complete product overview. It separates user-visible behavior from developer-facing implementation details, enabling stakeholders at different levels to understand the codebase from their perspective.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:55:46.681Z"
+  }
+}

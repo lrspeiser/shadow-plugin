@@ -1,0 +1,50 @@
+{
+  "file": "src/domain/services/incrementalAnalysisService.ts",
+  "role": "Core Logic",
+  "purpose": "Manages iterative LLM analysis by processing file and grep requests across multiple conversation rounds until analysis is complete.",
+  "userVisibleActions": [
+    "Analysis proceeds in multiple rounds, with each round gathering more information based on previous results",
+    "File contents and search results are retrieved automatically during analysis",
+    "Progress through iterations is tracked and communicated",
+    "Analysis stops when completion criteria are met or maximum iterations reached"
+  ],
+  "developerVisibleActions": [
+    "Service processes LLM requests for file reads and grep searches iteratively",
+    "Callbacks notify when iterations start and complete",
+    "Returns structured results including iteration count, requests made, and whether to continue",
+    "Limits requests to 5 per iteration to prevent excessive processing",
+    "Formats file and search results into conversation messages",
+    "Provides async iterator pattern for testable iteration control"
+  ],
+  "keyFunctions": [
+    {
+      "name": "processRequests",
+      "desc": "Processes file read and grep search requests from LLM, returning formatted results",
+      "inputs": "requests (LLMRequest[]), currentResult (any), messages (conversation array)",
+      "outputs": "ProcessRequestsResult with additionalInfo string and updated messages array"
+    },
+    {
+      "name": "IterationResult",
+      "desc": "Structure representing outcome of a single analysis iteration",
+      "inputs": "N/A (interface)",
+      "outputs": "Contains result, iteration number, max iterations, requests made, and continuation flag"
+    },
+    {
+      "name": "IterationCallbacks",
+      "desc": "Optional callbacks to monitor iteration lifecycle",
+      "inputs": "N/A (interface)",
+      "outputs": "Callbacks for iteration start and completion events"
+    }
+  ],
+  "dependencies": [
+    "fileAccessHelper",
+    "LLMRequest"
+  ],
+  "intent": "Eliminates code duplication by extracting iterative LLM analysis logic into a dedicated service that handles multi-round conversations where the LLM requests additional files or searches to complete its analysis, making the pattern testable and reusable across different analysis scenarios.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages iterative LLM analysis by processing file and grep requests across multiple conversation rounds until analysis is complete.\",\n  \"userVisibleActions\": [\n    \"Analysis proceeds in multiple rounds, with each round gathering more information based on previous results\",\n    \"File contents and search results are retrieved automatically during analysis\",\n    \"Progress through iterations is tracked and communicated\",\n    \"Analysis stops when completion criteria are met or maximum iterations reached\"\n  ],\n  \"developerVisibleActions\": [\n    \"Service processes LLM requests for file reads and grep searches iteratively\",\n    \"Callbacks notify when iterations start and complete\",\n    \"Returns structured results including iteration count, requests made, and whether to continue\",\n    \"Limits requests to 5 per iteration to prevent excessive processing\",\n    \"Formats file and search results into conversation messages\",\n    \"Provides async iterator pattern for testable iteration control\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"processRequests\",\n      \"desc\": \"Processes file read and grep search requests from LLM, returning formatted results\",\n      \"inputs\": \"requests (LLMRequest[]), currentResult (any), messages (conversation array)\",\n      \"outputs\": \"ProcessRequestsResult with additionalInfo string and updated messages array\"\n    },\n    {\n      \"name\": \"IterationResult\",\n      \"desc\": \"Structure representing outcome of a single analysis iteration\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"Contains result, iteration number, max iterations, requests made, and continuation flag\"\n    },\n    {\n      \"name\": \"IterationCallbacks\",\n      \"desc\": \"Optional callbacks to monitor iteration lifecycle\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"Callbacks for iteration start and completion events\"\n    }\n  ],\n  \"dependencies\": [\n    \"fileAccessHelper\",\n    \"LLMRequest\"\n  ],\n  \"intent\": \"Eliminates code duplication by extracting iterative LLM analysis logic into a dedicated service that handles multi-round conversations where the LLM requests additional files or searches to complete its analysis, making the pattern testable and reusable across different analysis scenarios.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:53:23.897Z"
+  }
+}

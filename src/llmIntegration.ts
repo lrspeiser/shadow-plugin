@@ -338,7 +338,6 @@ export async function generateProductDocs() {
                         }
                     },
                     onProductDocIteration: (doc, iteration, maxIterations) => {
-                        analysisResultRepository.saveIncrementalProductDocIteration(doc, workspaceRoot, iteration, maxIterations);
                         // Update progress notification to show incremental progress
                         reporter.report(`Step 3/3: Generating product documentation (iteration ${iteration}/${maxIterations})`);
                         // Refresh product navigator to show new files
@@ -500,7 +499,6 @@ export async function generateLLMInsights() {
                         SWLogger.log('Submitting product purpose analysis to LLM');
                     },
                     onProductPurposeAnalysis: (productPurpose) => {
-                        analysisResultRepository.saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
                         // Update progress notification to show product purpose analysis received
                         reporter.report('Step 1/2: Received product purpose analysis from LLM');
                         SWLogger.log('Received product purpose analysis from LLM');
@@ -522,8 +520,6 @@ export async function generateLLMInsights() {
                             hasInsights: !!insights,
                             insightsKeys: insights ? Object.keys(insights) : []
                         });
-                        
-                        analysisResultRepository.saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, iteration, maxIterations);
                         
                         // Update progress notification to show iteration was received
                         reporter.report(`Step 2/2: Received architecture insights iteration ${iteration}/${maxIterations} from LLM`);
@@ -1785,7 +1781,7 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                             analysisResultRepository.saveIncrementalModuleSummary(summary, workspaceRoot, 0, 0);
                         },
                         onProductDocIteration: (doc) => {
-                            analysisResultRepository.saveIncrementalProductDocIteration(doc, workspaceRoot, 1, 1);
+                            // Iteration files skipped for now
                         }
                     }
                 );
@@ -1839,7 +1835,7 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                             reporter.report('Step 3/4: Analyzing product purpose...', 0);
                         },
                         onProductPurposeAnalysis: (productPurpose) => {
-                            analysisResultRepository.saveIncrementalProductPurposeAnalysis(productPurpose, workspaceRoot);
+                            // Iteration files skipped for now
                         },
                         onInsightsIterationStart: (iteration, maxIterations) => {
                             if (reporter.cancellationToken?.isCancellationRequested) {
@@ -1848,7 +1844,6 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                             reporter.report(`Step 3/4: Generating insights (${iteration}/${maxIterations})...`, 0);
                         },
                         onInsightsIteration: (insights) => {
-                            analysisResultRepository.saveIncrementalArchitectureInsightsIteration(insights, workspaceRoot, 1, 1);
                             const insightsViewer = stateManager.getInsightsViewer();
                             if (insightsViewer) {
                                 insightsViewer.setInsights(insights);

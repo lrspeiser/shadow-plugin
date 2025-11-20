@@ -1,0 +1,62 @@
+{
+  "file": "src/cache.ts",
+  "role": "Core Logic",
+  "purpose": "Manages persistent storage and retrieval of code analysis results with automatic expiration after 24 hours",
+  "userVisibleActions": [
+    "Analysis results are loaded instantly when reopening a previously analyzed workspace",
+    "Analysis results become stale and are automatically refreshed after 24 hours",
+    "Cache storage is automatically created in the workspace on first use",
+    "Old analysis data can be cleared to free up disk space"
+  ],
+  "developerVisibleActions": [
+    "Store code analysis results to disk for future retrieval",
+    "Retrieve previously cached analysis results for a workspace",
+    "Clear all cached analysis data across workspaces",
+    "Invalidate outdated cache entries automatically after 24 hours",
+    "Generate unique cache keys for different workspace paths"
+  ],
+  "keyFunctions": [
+    {
+      "name": "constructor",
+      "desc": "Initializes the cache manager with a storage location",
+      "inputs": "storagePath (string) - base directory for cache storage",
+      "outputs": "AnalysisCache instance"
+    },
+    {
+      "name": "getCacheKey",
+      "desc": "Converts a workspace path into a safe filename for cache storage",
+      "inputs": "workspaceRoot (string) - workspace directory path",
+      "outputs": "string - base64-encoded safe filename"
+    },
+    {
+      "name": "get",
+      "desc": "Retrieves cached analysis results if they exist and are not expired",
+      "inputs": "workspaceRoot (string) - workspace directory path",
+      "outputs": "Promise<CodeAnalysis | null> - cached analysis or null if expired/missing"
+    },
+    {
+      "name": "set",
+      "desc": "Saves analysis results to cache with current timestamp",
+      "inputs": "workspaceRoot (string), data (CodeAnalysis) - workspace path and analysis to cache",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all cached analysis files from storage",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer"
+  ],
+  "intent": "This file exists to speed up the extension by avoiding repeated analysis of unchanged codebases. It solves the performance problem of re-analyzing large projects every time VS Code is opened by persisting analysis results to disk with a time-based expiration strategy.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages persistent storage and retrieval of code analysis results with automatic expiration after 24 hours\",\n  \"userVisibleActions\": [\n    \"Analysis results are loaded instantly when reopening a previously analyzed workspace\",\n    \"Analysis results become stale and are automatically refreshed after 24 hours\",\n    \"Cache storage is automatically created in the workspace on first use\",\n    \"Old analysis data can be cleared to free up disk space\"\n  ],\n  \"developerVisibleActions\": [\n    \"Store code analysis results to disk for future retrieval\",\n    \"Retrieve previously cached analysis results for a workspace\",\n    \"Clear all cached analysis data across workspaces\",\n    \"Invalidate outdated cache entries automatically after 24 hours\",\n    \"Generate unique cache keys for different workspace paths\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes the cache manager with a storage location\",\n      \"inputs\": \"storagePath (string) - base directory for cache storage\",\n      \"outputs\": \"AnalysisCache instance\"\n    },\n    {\n      \"name\": \"getCacheKey\",\n      \"desc\": \"Converts a workspace path into a safe filename for cache storage\",\n      \"inputs\": \"workspaceRoot (string) - workspace directory path\",\n      \"outputs\": \"string - base64-encoded safe filename\"\n    },\n    {\n      \"name\": \"get\",\n      \"desc\": \"Retrieves cached analysis results if they exist and are not expired\",\n      \"inputs\": \"workspaceRoot (string) - workspace directory path\",\n      \"outputs\": \"Promise<CodeAnalysis | null> - cached analysis or null if expired/missing\"\n    },\n    {\n      \"name\": \"set\",\n      \"desc\": \"Saves analysis results to cache with current timestamp\",\n      \"inputs\": \"workspaceRoot (string), data (CodeAnalysis) - workspace path and analysis to cache\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all cached analysis files from storage\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to speed up the extension by avoiding repeated analysis of unchanged codebases. It solves the performance problem of re-analyzing large projects every time VS Code is opened by persisting analysis results to disk with a time-based expiration strategy.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:50:32.330Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "file": "src/ai/providers/ILLMProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Defines the contract for integrating different AI language model providers (OpenAI, Claude, etc.) into the system",
+  "userVisibleActions": [
+    "Receives AI-generated text responses from different language model providers",
+    "Gets structured JSON data from AI providers for automated processing",
+    "System checks if an AI provider is available before attempting to use it"
+  ],
+  "developerVisibleActions": [
+    "Implement this interface to add support for new LLM providers",
+    "Send text prompts to AI providers and receive formatted responses",
+    "Request structured JSON output from AI models with optional schema validation",
+    "Configure provider-specific settings like model, temperature, and token limits",
+    "Handle system prompts, conversation history, and response formatting",
+    "Request file searches or grep operations from AI providers as follow-up actions"
+  ],
+  "keyFunctions": [
+    {
+      "name": "isConfigured",
+      "desc": "Checks if the provider has valid credentials and is ready to use",
+      "inputs": "none",
+      "outputs": "boolean indicating if provider is configured"
+    },
+    {
+      "name": "sendRequest",
+      "desc": "Sends a prompt to the AI provider and receives a text response",
+      "inputs": "LLMRequestOptions with messages, model settings, temperature, and token limits",
+      "outputs": "LLMResponse with generated text content and metadata"
+    },
+    {
+      "name": "sendStructuredRequest",
+      "desc": "Sends a prompt expecting structured JSON output with optional follow-up requests",
+      "inputs": "LLMRequestOptions and optional schema for validation",
+      "outputs": "StructuredOutputResponse with parsed data and optional file/grep requests"
+    },
+    {
+      "name": "getName",
+      "desc": "Returns the provider's identifying name",
+      "inputs": "none",
+      "outputs": "string name of the provider"
+    }
+  ],
+  "dependencies": [],
+  "intent": "This interface exists to abstract away differences between AI provider APIs (OpenAI, Anthropic Claude, custom endpoints) so the application can work with multiple LLM services interchangeably. It standardizes how the system communicates with different AI providers, enabling provider switching without code changes and supporting both conversational and structured data extraction use cases.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines the contract for integrating different AI language model providers (OpenAI, Claude, etc.) into the system\",\n  \"userVisibleActions\": [\n    \"Receives AI-generated text responses from different language model providers\",\n    \"Gets structured JSON data from AI providers for automated processing\",\n    \"System checks if an AI provider is available before attempting to use it\"\n  ],\n  \"developerVisibleActions\": [\n    \"Implement this interface to add support for new LLM providers\",\n    \"Send text prompts to AI providers and receive formatted responses\",\n    \"Request structured JSON output from AI models with optional schema validation\",\n    \"Configure provider-specific settings like model, temperature, and token limits\",\n    \"Handle system prompts, conversation history, and response formatting\",\n    \"Request file searches or grep operations from AI providers as follow-up actions\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if the provider has valid credentials and is ready to use\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean indicating if provider is configured\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a prompt to the AI provider and receives a text response\",\n      \"inputs\": \"LLMRequestOptions with messages, model settings, temperature, and token limits\",\n      \"outputs\": \"LLMResponse with generated text content and metadata\"\n    },\n    {\n      \"name\": \"sendStructuredRequest\",\n      \"desc\": \"Sends a prompt expecting structured JSON output with optional follow-up requests\",\n      \"inputs\": \"LLMRequestOptions and optional schema for validation\",\n      \"outputs\": \"StructuredOutputResponse with parsed data and optional file/grep requests\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the provider's identifying name\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string name of the provider\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"This interface exists to abstract away differences between AI provider APIs (OpenAI, Anthropic Claude, custom endpoints) so the application can work with multiple LLM services interchangeably. It standardizes how the system communicates with different AI providers, enabling provider switching without code changes and supporting both conversational and structured data extraction use cases.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:48:44.038Z"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "file": "src/llmFormatter.ts",
+  "role": "Core Logic",
+  "purpose": "Formats code architecture insights into different output styles optimized for various LLM tools and display contexts.",
+  "userVisibleActions": [
+    "View architecture issues organized by severity (Critical, Warnings, Informational)",
+    "See formatted output optimized for Cursor AI assistant",
+    "See formatted output optimized for ChatGPT",
+    "View compact format for quick scanning of issues",
+    "Read generic formatted output compatible with any LLM",
+    "See emoji indicators (🔴, ⚠️, ℹ️) for issue severity levels",
+    "View actionable guidance on what help is needed from the LLM"
+  ],
+  "developerVisibleActions": [
+    "Choose output format (cursor, chatgpt, compact, generic) when formatting insights",
+    "Pass array of Insight objects to be formatted",
+    "Receive formatted markdown string ready for display or LLM consumption",
+    "Get insights automatically grouped by severity level",
+    "Get structured output with clear sections for issue categories",
+    "Get prompts embedded in output to guide LLM responses"
+  ],
+  "keyFunctions": [
+    {
+      "name": "formatInsights",
+      "desc": "Routes insights to appropriate formatter based on specified format type",
+      "inputs": "insights: Insight[], format: string (default 'cursor')",
+      "outputs": "Formatted string in requested style"
+    },
+    {
+      "name": "formatForCursor",
+      "desc": "Creates Cursor AI-optimized output with severity grouping and action requests",
+      "inputs": "insights: Insight[]",
+      "outputs": "Markdown string with sections for errors, warnings, info, and guidance prompts"
+    },
+    {
+      "name": "formatForChatGPT",
+      "desc": "Creates ChatGPT-optimized output formatted as a conversation starter",
+      "inputs": "insights: Insight[]",
+      "outputs": "Markdown string formatted as a help request to ChatGPT"
+    },
+    {
+      "name": "formatCompact",
+      "desc": "Creates condensed output showing only essential information",
+      "inputs": "insights: Insight[]",
+      "outputs": "Compact markdown string with minimal formatting"
+    },
+    {
+      "name": "formatGeneric",
+      "desc": "Creates standard output compatible with any LLM or display context",
+      "inputs": "insights: Insight[]",
+      "outputs": "Generic markdown string with basic structure"
+    },
+    {
+      "name": "formatInsightForCursor",
+      "desc": "Formats individual insight with file location, issue details, and suggestions",
+      "inputs": "insight: Insight",
+      "outputs": "Formatted markdown section for single insight"
+    }
+  ],
+  "dependencies": [
+    "./insightGenerator"
+  ],
+  "intent": "Transforms technical code analysis insights into human-readable, LLM-friendly formats that prompt effective assistance from AI coding tools. Solves the problem of presenting architecture issues in a way that maximizes helpful responses from different AI assistants by tailoring the output format and embedded prompts to each tool's strengths.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Formats code architecture insights into different output styles optimized for various LLM tools and display contexts.\",\n  \"userVisibleActions\": [\n    \"View architecture issues organized by severity (Critical, Warnings, Informational)\",\n    \"See formatted output optimized for Cursor AI assistant\",\n    \"See formatted output optimized for ChatGPT\",\n    \"View compact format for quick scanning of issues\",\n    \"Read generic formatted output compatible with any LLM\",\n    \"See emoji indicators (🔴, ⚠️, ℹ️) for issue severity levels\",\n    \"View actionable guidance on what help is needed from the LLM\"\n  ],\n  \"developerVisibleActions\": [\n    \"Choose output format (cursor, chatgpt, compact, generic) when formatting insights\",\n    \"Pass array of Insight objects to be formatted\",\n    \"Receive formatted markdown string ready for display or LLM consumption\",\n    \"Get insights automatically grouped by severity level\",\n    \"Get structured output with clear sections for issue categories\",\n    \"Get prompts embedded in output to guide LLM responses\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatInsights\",\n      \"desc\": \"Routes insights to appropriate formatter based on specified format type\",\n      \"inputs\": \"insights: Insight[], format: string (default 'cursor')\",\n      \"outputs\": \"Formatted string in requested style\"\n    },\n    {\n      \"name\": \"formatForCursor\",\n      \"desc\": \"Creates Cursor AI-optimized output with severity grouping and action requests\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Markdown string with sections for errors, warnings, info, and guidance prompts\"\n    },\n    {\n      \"name\": \"formatForChatGPT\",\n      \"desc\": \"Creates ChatGPT-optimized output formatted as a conversation starter\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Markdown string formatted as a help request to ChatGPT\"\n    },\n    {\n      \"name\": \"formatCompact\",\n      \"desc\": \"Creates condensed output showing only essential information\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Compact markdown string with minimal formatting\"\n    },\n    {\n      \"name\": \"formatGeneric\",\n      \"desc\": \"Creates standard output compatible with any LLM or display context\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Generic markdown string with basic structure\"\n    },\n    {\n      \"name\": \"formatInsightForCursor\",\n      \"desc\": \"Formats individual insight with file location, issue details, and suggestions\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Formatted markdown section for single insight\"\n    }\n  ],\n  \"dependencies\": [\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"Transforms technical code analysis insights into human-readable, LLM-friendly formats that prompt effective assistance from AI coding tools. Solves the problem of presenting architecture issues in a way that maximizes helpful responses from different AI assistants by tailoring the output format and embedded prompts to each tool's strengths.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:57:57.463Z"
+  }
+}

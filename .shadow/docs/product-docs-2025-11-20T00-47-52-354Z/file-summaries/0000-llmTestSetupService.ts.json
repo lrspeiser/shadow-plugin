@@ -1,0 +1,68 @@
+{
+  "file": "src/domain/services/testing/llmTestSetupService.ts",
+  "role": "Core Logic",
+  "purpose": "Detects test environment configuration and generates AI-powered test setup plans for different programming languages and testing frameworks.",
+  "userVisibleActions": [
+    "Automatically detects the programming language used in the workspace (TypeScript, JavaScript, Python, Java, C++)",
+    "Identifies existing testing frameworks (Jest, Mocha, pytest, JUnit, Google Test)",
+    "Discovers test directories and configuration files",
+    "Generates a test setup plan with recommended dependencies and configuration",
+    "Provides step-by-step setup instructions for missing test infrastructure",
+    "Reports whether the test environment is ready or needs setup"
+  ],
+  "developerVisibleActions": [
+    "Call detectTestEnvironment() to scan workspace and identify language, framework, and existing test configuration",
+    "Use generateTestSetupPlan() to create an AI-generated setup plan based on detected environment",
+    "Execute executeSetupPlan() to automatically install dependencies and create configuration files",
+    "Receive TestEnvironment object with details about detected language, framework, and file paths",
+    "Get TestSetupPlan with missing dependencies, configuration templates, and setup steps",
+    "Obtain SetupExecutionResult indicating success/failure and any errors encountered"
+  ],
+  "keyFunctions": [
+    {
+      "name": "detectTestEnvironment",
+      "desc": "Scans workspace to detect programming language, testing framework, and existing test infrastructure",
+      "inputs": "workspaceRoot (string path)",
+      "outputs": "TestEnvironment object with language, framework, paths, and status"
+    },
+    {
+      "name": "generateTestSetupPlan",
+      "desc": "Uses LLM to generate a comprehensive test setup plan based on detected environment",
+      "inputs": "TestEnvironment object, optional LLM provider",
+      "outputs": "TestSetupPlan with dependencies, configuration, and setup steps"
+    },
+    {
+      "name": "executeSetupPlan",
+      "desc": "Executes the generated setup plan by installing dependencies and creating configuration files",
+      "inputs": "TestSetupPlan object, workspaceRoot path",
+      "outputs": "SetupExecutionResult with success status and execution details"
+    },
+    {
+      "name": "getAllFiles",
+      "desc": "Recursively retrieves all files in a directory for language detection",
+      "inputs": "directory path (string)",
+      "outputs": "Array of file paths"
+    },
+    {
+      "name": "detectTestingFramework",
+      "desc": "Identifies which testing framework is in use based on dependencies and config files",
+      "inputs": "packageJsonPath (string)",
+      "outputs": "Framework name string (jest, mocha, pytest, junit, etc.)"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "child_process",
+    "./types/testSetupTypes",
+    "../../prompts/testPrompts",
+    "../../../logger"
+  ],
+  "intent": "Automates the detection and setup of test environments across multiple programming languages and testing frameworks, reducing manual configuration burden by using LLM to generate intelligent, context-aware setup plans tailored to the detected project structure.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Detects test environment configuration and generates AI-powered test setup plans for different programming languages and testing frameworks.\",\n  \"userVisibleActions\": [\n    \"Automatically detects the programming language used in the workspace (TypeScript, JavaScript, Python, Java, C++)\",\n    \"Identifies existing testing frameworks (Jest, Mocha, pytest, JUnit, Google Test)\",\n    \"Discovers test directories and configuration files\",\n    \"Generates a test setup plan with recommended dependencies and configuration\",\n    \"Provides step-by-step setup instructions for missing test infrastructure\",\n    \"Reports whether the test environment is ready or needs setup\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call detectTestEnvironment() to scan workspace and identify language, framework, and existing test configuration\",\n    \"Use generateTestSetupPlan() to create an AI-generated setup plan based on detected environment\",\n    \"Execute executeSetupPlan() to automatically install dependencies and create configuration files\",\n    \"Receive TestEnvironment object with details about detected language, framework, and file paths\",\n    \"Get TestSetupPlan with missing dependencies, configuration templates, and setup steps\",\n    \"Obtain SetupExecutionResult indicating success/failure and any errors encountered\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestEnvironment\",\n      \"desc\": \"Scans workspace to detect programming language, testing framework, and existing test infrastructure\",\n      \"inputs\": \"workspaceRoot (string path)\",\n      \"outputs\": \"TestEnvironment object with language, framework, paths, and status\"\n    },\n    {\n      \"name\": \"generateTestSetupPlan\",\n      \"desc\": \"Uses LLM to generate a comprehensive test setup plan based on detected environment\",\n      \"inputs\": \"TestEnvironment object, optional LLM provider\",\n      \"outputs\": \"TestSetupPlan with dependencies, configuration, and setup steps\"\n    },\n    {\n      \"name\": \"executeSetupPlan\",\n      \"desc\": \"Executes the generated setup plan by installing dependencies and creating configuration files\",\n      \"inputs\": \"TestSetupPlan object, workspaceRoot path\",\n      \"outputs\": \"SetupExecutionResult with success status and execution details\"\n    },\n    {\n      \"name\": \"getAllFiles\",\n      \"desc\": \"Recursively retrieves all files in a directory for language detection\",\n      \"inputs\": \"directory path (string)\",\n      \"outputs\": \"Array of file paths\"\n    },\n    {\n      \"name\": \"detectTestingFramework\",\n      \"desc\": \"Identifies which testing framework is in use based on dependencies and config files\",\n      \"inputs\": \"packageJsonPath (string)\",\n      \"outputs\": \"Framework name string (jest, mocha, pytest, junit, etc.)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"./types/testSetupTypes\",\n    \"../../prompts/testPrompts\",\n    \"../../../logger\"\n  ],\n  \"intent\": \"Automates the detection and setup of test environments across multiple programming languages and testing frameworks, reducing manual configuration burden by using LLM to generate intelligent, context-aware setup plans tailored to the detected project structure.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:54:12.164Z"
+  }
+}

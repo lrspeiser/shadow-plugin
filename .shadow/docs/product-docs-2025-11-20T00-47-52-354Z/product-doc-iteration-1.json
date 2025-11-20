@@ -1,0 +1,714 @@
+{
+  "overview": "Shadow Watch is a VS Code extension that provides AI-powered code intelligence and automated testing capabilities for software development teams. The extension analyzes your codebase to generate comprehensive documentation, identify code quality issues, and create unit tests automatically. Users interact with the extension through multiple sidebar panels, command palette actions, and inline diagnostics that appear directly in the editor as you work.\n\nThe extension connects to AI language models (OpenAI GPT-4 or Anthropic Claude) to understand your code at multiple levels - from individual functions to entire product architecture. It automatically generates documentation describing what your application does, how components relate to each other, and what problems your code solves. The extension watches your files for changes and can automatically re-analyze your code as you save, keeping documentation and insights up to date.\n\nShadow Watch transforms time-consuming manual tasks into automated workflows. Instead of manually writing documentation, reviewing code for quality issues, or creating unit tests from scratch, users can generate these artifacts with a few clicks. The extension presents all analysis results in organized tree views, exports documentation in multiple formats optimized for different AI assistants, and provides detailed reports that help teams understand and improve their codebase.",
+  "whatItDoes": [
+    "Generates comprehensive product documentation automatically by analyzing your entire codebase",
+    "Creates detailed architecture insights describing system components and their relationships",
+    "Identifies code quality issues like large files, orphaned code, circular dependencies, and complexity problems",
+    "Generates unit tests automatically for your functions with AI-powered test planning",
+    "Executes test suites and automatically fixes failing tests using AI assistance",
+    "Provides interactive tree views for navigating code structure, dependencies, and entry points",
+    "Displays inline diagnostics showing code issues directly in the editor with squiggly underlines",
+    "Exports analysis results in multiple formats (Markdown, JSON) optimized for Cursor, ChatGPT, and other AI tools",
+    "Watches files for changes and automatically re-analyzes code when you save",
+    "Searches codebases using grep patterns to find specific code elements",
+    "Caches analysis results for 24 hours to provide instant access across sessions",
+    "Detects test framework configuration and generates setup instructions if needed",
+    "Creates prioritized test plans based on function complexity, dependencies, and risk",
+    "Generates tests in small batches with real-time progress tracking",
+    "Validates generated tests by running them and captures detailed results"
+  ],
+  "userPerspective": {
+    "gui": [
+      "Browse code structure through interactive tree views showing products, analyses, insights, and test results",
+      "View AI-generated architecture insights in a dedicated sidebar panel",
+      "Navigate from high-level components down to specific functions with single clicks",
+      "See code quality issues highlighted with inline squiggly underlines in the editor",
+      "Monitor analysis progress through status bar indicators showing current operations",
+      "View comprehensive reports in webview panels displaying formatted documentation",
+      "Access detailed information about functions, API endpoints, and dependencies in popup panels",
+      "Track test generation progress with real-time updates showing completed and failed tests",
+      "Review test execution results with pass/fail counts and error details",
+      "Copy analysis results, insights, and documentation to clipboard for sharing"
+    ],
+    "cli": [
+      "Execute workspace analysis through VS Code command palette",
+      "Trigger file-specific analysis for currently open files",
+      "Generate product documentation on demand",
+      "Clear cached analysis data to force fresh analysis",
+      "Switch between OpenAI and Claude AI providers",
+      "Configure extension settings through VS Code preferences",
+      "Export analysis results in different formats",
+      "Access test generation and validation workflows"
+    ],
+    "api": [
+      "Integrates with OpenAI GPT-4 API for AI-powered code analysis",
+      "Connects to Anthropic Claude API as alternative AI provider",
+      "Handles API rate limiting automatically to prevent quota violations",
+      "Retries failed API requests with intelligent backoff strategies",
+      "Supports streaming responses for real-time AI text generation",
+      "Validates API credentials and provider availability before use"
+    ],
+    "cicd": [
+      "Generates test suites that integrate with existing test frameworks (Jest, Mocha, Vitest, Pytest, JUnit, Google Test)",
+      "Detects test environment configuration automatically",
+      "Creates setup instructions for missing test dependencies",
+      "Executes tests and captures results for CI/CD pipeline integration",
+      "Exports analysis results in standardized formats for automated workflows",
+      "Validates generated tests to ensure they run successfully"
+    ]
+  },
+  "workflowIntegration": [
+    "Code review workflow: Analyze files to identify quality issues before committing changes",
+    "Documentation workflow: Generate comprehensive product and architecture documentation automatically",
+    "Testing workflow: Create test plans, generate unit tests, execute tests, and fix failures in one automated flow",
+    "Refactoring workflow: Analyze function dependencies and complexity to plan safe code reorganization",
+    "Onboarding workflow: Generate architecture insights and documentation to help new team members understand the codebase",
+    "AI-assisted development: Export analysis results in formats optimized for Cursor, ChatGPT, and other AI coding assistants",
+    "Quality monitoring: Continuously track code quality through automatic re-analysis on file save",
+    "Test coverage workflow: Identify untested functions and generate tests to improve coverage",
+    "Cross-language testing: Support multiple programming languages and testing frameworks in polyglot projects"
+  ],
+  "problemsSolved": [
+    "Eliminates manual documentation writing by automatically generating comprehensive product and architecture documentation",
+    "Reduces time spent understanding unfamiliar codebases through AI-generated insights and navigation tools",
+    "Catches code quality issues early by identifying large files, orphaned code, and circular dependencies automatically",
+    "Accelerates test creation by generating unit tests with AI assistance instead of writing them manually",
+    "Reduces debugging time by automatically fixing failing tests through AI-powered retry attempts",
+    "Prevents API quota violations through automatic rate limiting when calling AI services",
+    "Maintains up-to-date documentation through automatic re-analysis when code changes",
+    "Streamlines code reviews by highlighting quality issues with inline diagnostics",
+    "Simplifies test environment setup by detecting configuration and generating setup instructions",
+    "Improves test coverage by prioritizing which functions need tests based on complexity and risk",
+    "Enables efficient code navigation through interactive tree views showing dependencies and relationships",
+    "Reduces context switching by keeping analysis results accessible for 24 hours across sessions",
+    "Supports diverse workflows by exporting results in multiple formats for different tools",
+    "Handles temporary API failures gracefully through intelligent retry logic",
+    "Provides consistent AI interactions across multiple providers (OpenAI, Claude) through unified interface"
+  ],
+  "architecture": "Shadow Watch follows a layered architecture with distinct separation between user interface, domain logic, infrastructure services, and AI integration. The user interface layer consists of multiple VS Code tree view providers and webview panels that present analysis results, insights, and reports. These views receive data from the domain layer and respond to user commands through registered command handlers. The extension bootstrapper initializes all components during activation and establishes the communication pathways between layers.\n\nThe domain layer contains the core business logic organized into specialized services. The analysis services parse code files to extract structure, dependencies, and function information. The testing services orchestrate the complete test generation workflow from planning through execution and validation. The prompt builders construct structured instructions for AI models based on analysis requirements. The formatting services transform raw analysis data into human-readable documentation. All domain services coordinate with each other through well-defined interfaces and data structures.\n\nThe infrastructure layer provides foundational capabilities that support the domain logic. The file system services handle efficient file reading, caching, and watching operations. The persistence layer manages storage and retrieval of analysis results in a timestamped directory structure. The AI provider layer abstracts interactions with different language models (OpenAI, Claude) behind a common interface. Rate limiting, retry logic, and response parsing ensure reliable AI interactions. The configuration manager centralizes all user preferences and broadcasts changes to interested components. This layered design enables each component to focus on its specific responsibility while maintaining clean boundaries and testability.",
+  "titles": [
+    "Shadow Watch Extension",
+    "Code Analysis",
+    "Architecture Insights",
+    "Product Documentation",
+    "Test Generation Workflow",
+    "Test Planning Service",
+    "Test Setup Service",
+    "Test Execution Service",
+    "Test Validation Service",
+    "Interactive Tree Views",
+    "Analysis Viewer",
+    "Insights Viewer",
+    "Static Analysis Viewer",
+    "Unit Tests Navigator",
+    "Product Navigator",
+    "Reports Tree Provider",
+    "Inline Diagnostics",
+    "Command Palette Integration",
+    "LLM Service",
+    "AI Provider Factory",
+    "Rate Limiter",
+    "Retry Handler",
+    "Response Parser",
+    "File Watcher Service",
+    "Incremental Analysis Service",
+    "Configuration Manager",
+    "Documentation Formatter",
+    "Navigation Handler",
+    "Prompt Builder",
+    "Refactoring Prompt Builder",
+    "Test Prompts",
+    "File Cache",
+    "File Processor",
+    "Analysis Result Repository",
+    "Progress Service",
+    "Enhanced Analyzer",
+    "Function Analyzer",
+    "Insight Generator",
+    "File Access Helper",
+    "LLM State Manager",
+    "Incremental Storage",
+    "Reports Viewer",
+    "Error Handler",
+    "JSON Extractor"
+  ],
+  "descriptions": [
+    {
+      "title": "Shadow Watch Extension",
+      "description": "The main VS Code extension that provides AI-powered code analysis, documentation generation, and automated testing capabilities through multiple integrated views and commands",
+      "category": "feature"
+    },
+    {
+      "title": "Code Analysis",
+      "description": "Analyzes source code files to extract structure, functions, dependencies, entry points, and relationships for comprehensive codebase understanding",
+      "category": "feature"
+    },
+    {
+      "title": "Architecture Insights",
+      "description": "AI-generated insights describing the high-level architecture, component relationships, system themes, and design patterns used in the codebase",
+      "category": "feature"
+    },
+    {
+      "title": "Product Documentation",
+      "description": "Comprehensive documentation automatically generated from code analysis that describes what the application does from a user perspective, including features, workflows, and problems solved",
+      "category": "feature"
+    },
+    {
+      "title": "Test Generation Workflow",
+      "description": "End-to-end automated workflow that analyzes code, creates test plans, generates unit tests with AI assistance, executes tests, and fixes failures automatically",
+      "category": "workflow"
+    },
+    {
+      "title": "Interactive Tree Views",
+      "description": "Sidebar panels that display code structure, analysis results, insights, and test information in an organized, navigable tree format with interactive actions",
+      "category": "feature"
+    },
+    {
+      "title": "Inline Diagnostics",
+      "description": "Code quality issues displayed directly in the editor as squiggly underlines with detailed problem descriptions in the problems panel",
+      "category": "feature"
+    },
+    {
+      "title": "Command Palette Integration",
+      "description": "All extension features accessible through VS Code's command palette for quick access to analysis, documentation, testing, and configuration actions",
+      "category": "integration"
+    },
+    {
+      "title": "LLM Service",
+      "description": "AI-powered analysis service that generates insights, documentation, and code understanding by interfacing with OpenAI GPT-4 or Anthropic Claude language models",
+      "category": "module"
+    },
+    {
+      "title": "File Watcher Service",
+      "description": "Monitors workspace files for changes and automatically triggers re-analysis when files are saved, keeping documentation and insights up to date",
+      "category": "module"
+    },
+    {
+      "title": "Configuration Manager",
+      "description": "Centralized management of all user preferences including AI provider selection, API credentials, analysis triggers, and display options",
+      "category": "module"
+    },
+    {
+      "title": "Test Planning Service",
+      "description": "Analyzes code functions and creates prioritized test plans based on complexity, dependencies, and risk factors using AI guidance",
+      "category": "module"
+    },
+    {
+      "title": "Test Setup Service",
+      "description": "Detects existing test framework configuration and generates setup instructions including required dependencies and configuration files",
+      "category": "module"
+    },
+    {
+      "title": "Test Execution Service",
+      "description": "Runs test suites using the appropriate testing framework and captures detailed results including pass/fail status, errors, and execution timing",
+      "category": "module"
+    },
+    {
+      "title": "Test Validation Service",
+      "description": "Validates generated tests by executing them and automatically fixes failures through AI-powered retry attempts",
+      "category": "module"
+    },
+    {
+      "title": "Enhanced Analyzer",
+      "description": "Deep code analysis engine that parses Abstract Syntax Trees to extract detailed function metadata, control flow, dependencies, and behavioral patterns",
+      "category": "component"
+    },
+    {
+      "title": "Function Analyzer",
+      "description": "Extracts comprehensive function information from large code files to support refactoring analysis including signatures, dependencies, and complexity metrics",
+      "category": "component"
+    },
+    {
+      "title": "Insight Generator",
+      "description": "Identifies code quality issues like large files, orphaned code, circular dependencies, and complexity problems with severity-based categorization",
+      "category": "component"
+    },
+    {
+      "title": "Documentation Formatter",
+      "description": "Transforms raw analysis data into well-structured Markdown documentation organized by user perspective and technical considerations",
+      "category": "component"
+    },
+    {
+      "title": "Navigation Handler",
+      "description": "Enables navigation to specific code locations and displays detailed information about functions, API endpoints, and dependencies in webview panels",
+      "category": "component"
+    },
+    {
+      "title": "Prompt Builder",
+      "description": "Constructs specialized prompts for different types of AI analysis including architecture documentation, refactoring plans, and test generation",
+      "category": "component"
+    },
+    {
+      "title": "AI Provider Factory",
+      "description": "Creates and manages AI language model provider instances ensuring single instance per provider type and supporting OpenAI and Claude",
+      "category": "component"
+    },
+    {
+      "title": "Rate Limiter",
+      "description": "Prevents API requests from exceeding provider rate limits by tracking and enforcing request quotas per time window",
+      "category": "component"
+    },
+    {
+      "title": "Retry Handler",
+      "description": "Handles automatic retries of failed AI requests with intelligent exponential backoff for temporary errors like rate limits or network issues",
+      "category": "component"
+    },
+    {
+      "title": "Response Parser",
+      "description": "Extracts structured data from AI text responses and converts them into standardized documentation formats",
+      "category": "component"
+    },
+    {
+      "title": "File Cache",
+      "description": "Optimizes file operations by caching file contents and automatically invalidating cached data when files change",
+      "category": "component"
+    },
+    {
+      "title": "File Processor",
+      "description": "Provides parallel file processing with automatic filtering of non-source directories like node_modules and build outputs",
+      "category": "component"
+    },
+    {
+      "title": "Analysis Result Repository",
+      "description": "Manages persistent storage of analysis results in timestamped directory structures with automatic maintenance of latest reference links",
+      "category": "component"
+    },
+    {
+      "title": "Progress Service",
+      "description": "Displays standardized progress notifications to users during long-running operations with support for cancellation",
+      "category": "component"
+    },
+    {
+      "title": "Analysis Viewer",
+      "description": "Tree view that displays code structure organized by files, functions, dependencies, and entry points with navigation support",
+      "category": "feature"
+    },
+    {
+      "title": "Insights Viewer",
+      "description": "Tree view showing AI-generated architecture insights including system purpose, component relationships, and organizational patterns",
+      "category": "feature"
+    },
+    {
+      "title": "Static Analysis Viewer",
+      "description": "Tree view presenting code quality issues identified by static analysis with severity indicators and recommendations",
+      "category": "feature"
+    },
+    {
+      "title": "Unit Tests Navigator",
+      "description": "Tree view for browsing and navigating unit tests in the codebase with links to test files and source code",
+      "category": "feature"
+    },
+    {
+      "title": "Product Navigator",
+      "description": "Tree view showing high-level product structure and enabling navigation between documentation and source code",
+      "category": "feature"
+    },
+    {
+      "title": "Reports Tree Provider",
+      "description": "Tree view displaying generated reports including documentation, test results, and analysis summaries",
+      "category": "feature"
+    },
+    {
+      "title": "Incremental Analysis Service",
+      "description": "Orchestrates multi-round AI conversations that progressively gather information through file reads and searches until analysis is complete",
+      "category": "module"
+    },
+    {
+      "title": "Test Configuration Service",
+      "description": "Automatically detects which testing framework is in use and validates that all required dependencies and configuration are present",
+      "category": "module"
+    },
+    {
+      "title": "Export Formats",
+      "description": "Multiple output formats optimized for different AI assistants including Cursor (tree structure), ChatGPT (detailed markdown), Generic (standard format), and Compact (minimal format)",
+      "category": "feature"
+    },
+    {
+      "title": "Grep Search",
+      "description": "Pattern-based code search that finds specific elements across the codebase using regex patterns with configurable file filters",
+      "category": "feature"
+    },
+    {
+      "title": "Context Builder",
+      "description": "Converts analysis results into formats suitable for LLM context and saves them to persistent storage for future use",
+      "category": "component"
+    },
+    {
+      "title": "LLM State Manager",
+      "description": "Manages the state of LLM operations including tracking active requests, handling cancellations, and coordinating multi-step workflows",
+      "category": "component"
+    },
+    {
+      "title": "Incremental Storage",
+      "description": "Provides incremental saving of analysis results allowing partial results to be stored and accessed during long-running analysis operations",
+      "category": "component"
+    }
+  ],
+  "relevantFunctions": [
+    {
+      "name": "analyzeWorkspace",
+      "description": "Analyzes the entire workspace codebase to generate comprehensive documentation, insights, and structural information",
+      "file": "src/extension.ts",
+      "module": "Extension"
+    },
+    {
+      "name": "analyzeFile",
+      "description": "Analyzes a single code file to extract its structure, functions, dependencies, and generates file-level documentation",
+      "file": "src/analyzer.ts",
+      "module": "Analyzer"
+    },
+    {
+      "name": "generateProductDocs",
+      "description": "Creates complete product documentation by analyzing the codebase and using AI to generate user-facing descriptions",
+      "file": "src/llmIntegration.ts",
+      "module": "LLM Integration"
+    },
+    {
+      "name": "generateArchitectureInsights",
+      "description": "Produces high-level architecture insights describing system components, relationships, and design patterns",
+      "file": "src/llmIntegration.ts",
+      "module": "LLM Integration"
+    },
+    {
+      "name": "generateTests",
+      "description": "Orchestrates the complete test generation workflow including planning, generation, and validation",
+      "file": "src/domain/services/testing/llmTestGenerationService.ts",
+      "module": "Test Generation"
+    },
+    {
+      "name": "createTestPlan",
+      "description": "Analyzes code functions and creates a prioritized test plan based on complexity and dependencies",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "module": "Test Planning"
+    },
+    {
+      "name": "detectTestSetup",
+      "description": "Automatically detects test framework configuration and identifies missing dependencies or setup requirements",
+      "file": "src/domain/services/testing/llmTestSetupService.ts",
+      "module": "Test Setup"
+    },
+    {
+      "name": "executeTests",
+      "description": "Runs test suites using the appropriate testing framework and captures detailed execution results",
+      "file": "src/domain/services/testing/testExecutionService.ts",
+      "module": "Test Execution"
+    },
+    {
+      "name": "validateAndFixTests",
+      "description": "Validates generated tests by running them and automatically fixes failures using AI assistance",
+      "file": "src/domain/services/testing/llmTestValidationService.ts",
+      "module": "Test Validation"
+    },
+    {
+      "name": "analyzeFunction",
+      "description": "Performs deep analysis on a function by parsing its AST to extract metadata, dependencies, and behavioral patterns",
+      "file": "src/analysis/enhancedAnalyzer.ts",
+      "module": "Enhanced Analyzer"
+    },
+    {
+      "name": "extractFunctionInfo",
+      "description": "Extracts detailed function information from large code files to support refactoring analysis",
+      "file": "src/analysis/functionAnalyzer.ts",
+      "module": "Function Analyzer"
+    },
+    {
+      "name": "generateInsights",
+      "description": "Identifies code quality issues like large files, orphaned code, and complexity problems with severity ratings",
+      "file": "src/insightGenerator.ts",
+      "module": "Insight Generator"
+    },
+    {
+      "name": "navigateToLocation",
+      "description": "Opens a file at a specific line number in the VS Code editor",
+      "file": "src/domain/handlers/navigationHandler.ts",
+      "module": "Navigation Handler"
+    },
+    {
+      "name": "showItemDetails",
+      "description": "Displays detailed information about code items (functions, endpoints) in a webview panel",
+      "file": "src/domain/handlers/navigationHandler.ts",
+      "module": "Navigation Handler"
+    },
+    {
+      "name": "buildPrompt",
+      "description": "Constructs specialized prompts for different types of AI analysis tasks based on analysis requirements",
+      "file": "src/domain/prompts/promptBuilder.ts",
+      "module": "Prompt Builder"
+    },
+    {
+      "name": "buildRefactoringPrompt",
+      "description": "Creates detailed prompts for AI-powered code refactoring including extraction plans and migration steps",
+      "file": "src/domain/prompts/refactoringPromptBuilder.ts",
+      "module": "Refactoring Prompts"
+    },
+    {
+      "name": "formatDocumentation",
+      "description": "Transforms raw analysis data into well-structured Markdown documentation",
+      "file": "src/domain/formatters/documentationFormatter.ts",
+      "module": "Documentation Formatter"
+    },
+    {
+      "name": "parseResponse",
+      "description": "Extracts structured data from AI text responses and converts them into standardized documentation formats",
+      "file": "src/ai/llmResponseParser.ts",
+      "module": "Response Parser"
+    },
+    {
+      "name": "enforceRateLimit",
+      "description": "Tracks and enforces API rate limits to prevent exceeding provider quotas",
+      "file": "src/ai/llmRateLimiter.ts",
+      "module": "Rate Limiter"
+    },
+    {
+      "name": "retryWithBackoff",
+      "description": "Automatically retries failed AI requests with exponential backoff for temporary errors",
+      "file": "src/ai/llmRetryHandler.ts",
+      "module": "Retry Handler"
+    },
+    {
+      "name": "getCachedFile",
+      "description": "Retrieves file contents from cache or reads from disk if not cached",
+      "file": "src/infrastructure/fileSystem/fileCache.ts",
+      "module": "File Cache"
+    },
+    {
+      "name": "processFiles",
+      "description": "Processes multiple files in parallel with automatic filtering of non-source directories",
+      "file": "src/infrastructure/fileSystem/fileProcessor.ts",
+      "module": "File Processor"
+    },
+    {
+      "name": "saveAnalysisResults",
+      "description": "Persists analysis results to disk in a timestamped directory structure",
+      "file": "src/infrastructure/persistence/analysisResultRepository.ts",
+      "module": "Analysis Repository"
+    },
+    {
+      "name": "watchFiles",
+      "description": "Monitors workspace files for changes and triggers callbacks when files are modified or saved",
+      "file": "src/domain/services/fileWatcherService.ts",
+      "module": "File Watcher"
+    },
+    {
+      "name": "performIncrementalAnalysis",
+      "description": "Conducts multi-round AI analysis by iteratively requesting files and searches based on previous results",
+      "file": "src/domain/services/incrementalAnalysisService.ts",
+      "module": "Incremental Analysis"
+    }
+  ],
+  "relevantDataStructures": [
+    {
+      "name": "FileDocumentation",
+      "description": "Represents documentation for a single file including summary, capabilities, functions, and dependencies",
+      "type": "interface",
+      "file": "src/fileDocumentation.ts"
+    },
+    {
+      "name": "ModuleDocumentation",
+      "description": "Represents documentation for a module including overview, capabilities, and contained files",
+      "type": "interface",
+      "file": "src/fileDocumentation.ts"
+    },
+    {
+      "name": "ProductDocumentation",
+      "description": "Comprehensive product-level documentation including overview, features, workflows, architecture, and user perspectives",
+      "type": "interface",
+      "file": "src/fileDocumentation.ts"
+    },
+    {
+      "name": "CodeInsight",
+      "description": "Represents a code quality issue with title, description, severity, category, and affected files",
+      "type": "interface",
+      "file": "src/insightGenerator.ts"
+    },
+    {
+      "name": "AnalysisResult",
+      "description": "Complete analysis result for a workspace including files, modules, products, insights, and statistics",
+      "type": "interface",
+      "file": "src/analyzer.ts"
+    },
+    {
+      "name": "TestPlan",
+      "description": "Structured test plan containing functions to test, priorities, and generation configuration",
+      "type": "interface",
+      "file": "src/domain/services/testing/types/testPlanTypes.ts"
+    },
+    {
+      "name": "TestGenerationProgress",
+      "description": "Tracks progress of test generation including phase, completed count, and failure information",
+      "type": "interface",
+      "file": "src/domain/services/testing/types/testResultTypes.ts"
+    },
+    {
+      "name": "TestExecutionResult",
+      "description": "Results from test execution including pass/fail counts, errors, and execution timing",
+      "type": "interface",
+      "file": "src/domain/services/testing/types/testResultTypes.ts"
+    },
+    {
+      "name": "TestSetupConfiguration",
+      "description": "Configuration for test environment including framework, dependencies, and setup instructions",
+      "type": "interface",
+      "file": "src/domain/services/testing/types/testSetupTypes.ts"
+    },
+    {
+      "name": "FunctionAnalysis",
+      "description": "Detailed analysis of a function including signature, dependencies, complexity, and behavioral hints",
+      "type": "interface",
+      "file": "src/analysis/enhancedAnalyzer.ts"
+    },
+    {
+      "name": "ArchitectureInsight",
+      "description": "AI-generated insight about system architecture including purpose, relationships, and design patterns",
+      "type": "interface",
+      "file": "src/llmService.ts"
+    },
+    {
+      "name": "LLMResponse",
+      "description": "Structured response from AI language model including generated content and metadata",
+      "type": "interface",
+      "file": "src/ai/llmResponseParser.ts"
+    },
+    {
+      "name": "RateLimitConfig",
+      "description": "Configuration for API rate limiting including requests per minute and time window",
+      "type": "interface",
+      "file": "src/ai/llmRateLimiter.ts"
+    },
+    {
+      "name": "NavigationTarget",
+      "description": "Represents a code location to navigate to including file path and line number",
+      "type": "interface",
+      "file": "src/domain/handlers/navigationHandler.ts"
+    },
+    {
+      "name": "ExportFormat",
+      "description": "Enumeration of supported export formats (Cursor, ChatGPT, Generic, Compact)",
+      "type": "type",
+      "file": "src/llmFormatter.ts"
+    }
+  ],
+  "relevantCodeFiles": [
+    {
+      "path": "src/extension.ts",
+      "description": "Main extension activation and command registration",
+      "purpose": "Initializes all extension components, registers commands, and coordinates analysis workflows",
+      "role": "Entry point"
+    },
+    {
+      "path": "src/llmIntegration.ts",
+      "description": "LLM-powered analysis orchestration",
+      "purpose": "Manages AI-powered documentation generation and code analysis features",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/analyzer.ts",
+      "description": "Code analysis engine",
+      "purpose": "Analyzes source code files to extract structure, functions, and dependencies",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/insightGenerator.ts",
+      "description": "Code quality analysis",
+      "purpose": "Identifies code quality issues and generates recommendations",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/domain/services/testing/llmTestGenerationService.ts",
+      "description": "Test generation orchestration",
+      "purpose": "Coordinates the complete test generation workflow from planning to validation",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/domain/services/testing/llmTestPlanningService.ts",
+      "description": "Test planning",
+      "purpose": "Analyzes code and creates prioritized test plans",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/domain/services/testing/testExecutionService.ts",
+      "description": "Test execution",
+      "purpose": "Runs test suites and captures detailed execution results",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/analysis/enhancedAnalyzer.ts",
+      "description": "Deep code analysis",
+      "purpose": "Performs AST-based analysis to extract function metadata and behavioral patterns",
+      "role": "Core component"
+    },
+    {
+      "path": "src/ai/providers/providerFactory.ts",
+      "description": "AI provider management",
+      "purpose": "Creates and manages AI language model provider instances",
+      "role": "Infrastructure"
+    },
+    {
+      "path": "src/domain/prompts/promptBuilder.ts",
+      "description": "AI prompt construction",
+      "purpose": "Builds specialized prompts for different types of AI analysis",
+      "role": "Core component"
+    },
+    {
+      "path": "src/domain/formatters/documentationFormatter.ts",
+      "description": "Documentation formatting",
+      "purpose": "Transforms analysis data into readable Markdown documentation",
+      "role": "Core component"
+    },
+    {
+      "path": "src/domain/handlers/navigationHandler.ts",
+      "description": "Code navigation",
+      "purpose": "Handles navigation to code locations and displays item details",
+      "role": "Core feature"
+    },
+    {
+      "path": "src/config/configurationManager.ts",
+      "description": "Settings management",
+      "purpose": "Manages all user preferences and broadcasts configuration changes",
+      "role": "Infrastructure"
+    },
+    {
+      "path": "src/infrastructure/persistence/analysisResultRepository.ts",
+      "description": "Analysis storage",
+      "purpose": "Persists and retrieves analysis results with timestamped versioning",
+      "role": "Infrastructure"
+    },
+    {
+      "path": "src/domain/services/fileWatcherService.ts",
+      "description": "File monitoring",
+      "purpose": "Watches workspace files and triggers re-analysis on changes",
+      "role": "Infrastructure"
+    },
+    {
+      "path": "src/analysisViewer.ts",
+      "description": "Code structure tree view",
+      "purpose": "Displays code structure in an interactive sidebar tree view",
+      "role": "User interface"
+    },
+    {
+      "path": "src/insightsViewer.ts",
+      "description": "Architecture insights tree view",
+      "purpose": "Displays AI-generated architecture insights in a sidebar panel",
+      "role": "User interface"
+    },
+    {
+      "path": "src/insightsTreeView.ts",
+      "description": "Insights and reports tree view",
+      "purpose": "Shows code insights, documentation status, and generated reports",
+      "role": "User interface"
+    }
+  ],
+  "exampleInput": {
+    "description": "Example input showing a request to analyze a workspace and generate product documentation. This represents the type of data the extension receives when users trigger analysis through commands.",
+    "json": "{\"command\":\"shadowwatch.analyzeWorkspace\",\"workspace\":{\"rootPath\":\"/users/developer/projects/myapp\",\"name\":\"myapp\"},\"options\":{\"generateProductDocs\":true,\"generateArchitectureInsights\":true,\"includeTestCoverage\":true,\"llmProvider\":\"openai\",\"exportFormat\":\"cursor\",\"minSeverity\":\"warning\"}}"
+  },
+  "exampleOutput": {
+    "description": "Example output showing a complete analysis result with product documentation, architecture insights, and code quality findings. This represents the structured data the extension generates and displays to users.",
+    "json": "{\"product\":{\"name\":\"MyApp\",\"overview\":\"MyApp is a web application that helps users manage their tasks and projects...\",\"whatItDoes\":[\"Create and organize tasks with priorities and due dates\",\"Track project progress with visual dashboards\"],\"userPerspective\":{\"gui\":[\"Users can drag and drop tasks between project boards\",\"Visual progress indicators show completion status\"],\"api\":[\"REST API allows external systems to create and update tasks\",\"Webhook notifications alert external services of task changes\"]},\"architecture\":\"MyApp follows a three-tier architecture with a React frontend, Node.js backend, and PostgreSQL database...\"},\"insights\":[{\"title\":\"Large API Handler File\",\"description\":\"The main API handler file contains 1500 lines and handles multiple concerns\",\"severity\":\"warning\",\"category\":\"maintainability\",\"files\":[\"src/api/handlers.ts\"],\"recommendation\":\"Consider splitting into separate handler files per resource type\"},{\"title\":\"Circular Dependency Detected\",\"description\":\"Task service and project service have circular dependencies\",\"severity\":\"error\",\"category\":\"architecture\",\"files\":[\"src/services/taskService.ts\",\"src/services/projectService.ts\"],\"recommendation\":\"Extract shared logic to a common utilities module\"}],\"statistics\":{\"totalFiles\":127,\"totalLines\":45823,\"filesAnalyzed\":115,\"insightsGenerated\":12,\"analysisTimeMs\":8934},\"timestamp\":\"2024-01-15T10:30:45.123Z\"}"
+  },
+  "_metadata": {
+    "iteration": 1,
+    "maxIterations": 1,
+    "savedAt": "2025-11-20T01:04:05.226Z"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "file": "src/domain/bootstrap/extensionBootstrapper.ts",
+  "role": "Core Logic",
+  "purpose": "Bootstraps and initializes all extension components when the VS Code extension is activated, setting up views, commands, and services.",
+  "userVisibleActions": [
+    "Extension activates and displays status bar item showing analysis status",
+    "Product Navigator tree view becomes available in the sidebar",
+    "Analysis Viewer tree view displays code analysis results",
+    "Insights Viewer tree view shows generated insights",
+    "Static Analysis Viewer tree view presents static analysis findings",
+    "Unit Tests Navigator tree view lists unit tests",
+    "Reports tree view displays generated reports",
+    "Diagnostics panel shows code issues and warnings",
+    "File changes trigger automatic re-analysis and view updates"
+  ],
+  "developerVisibleActions": [
+    "Creates and registers all extension components during activation",
+    "Initializes configuration manager for extension settings",
+    "Sets up file watcher service to monitor code changes",
+    "Registers tree data providers for all sidebar views",
+    "Initializes error handler for centralized error management",
+    "Creates analysis cache for performance optimization",
+    "Establishes LLM state manager for AI integration tracking",
+    "Wires up diagnostics provider to display code issues",
+    "Registers status bar item for displaying extension state",
+    "Returns ExtensionComponents interface containing all initialized services"
+  ],
+  "keyFunctions": [
+    {
+      "name": "bootstrap",
+      "desc": "Initializes all extension components and returns them as a structured interface",
+      "inputs": "vscode.ExtensionContext",
+      "outputs": "ExtensionComponents interface containing all initialized services"
+    },
+    {
+      "name": "ExtensionComponents (interface)",
+      "desc": "Defines the structure of all extension components including analyzers, viewers, providers, and services",
+      "inputs": "N/A (type definition)",
+      "outputs": "Type definition for component collection"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "CodeAnalyzer",
+    "InsightGenerator",
+    "LLMFormatter",
+    "FileWatcher",
+    "InsightsTreeProvider",
+    "DiagnosticsProvider",
+    "AnalysisCache",
+    "llmIntegration",
+    "ProductNavigatorProvider",
+    "AnalysisViewerProvider",
+    "InsightsViewerProvider",
+    "StaticAnalysisViewerProvider",
+    "UnitTestsNavigatorProvider",
+    "configurationManager",
+    "ErrorHandler",
+    "FileWatcherService",
+    "ReportsViewer",
+    "ReportsTreeProvider",
+    "llmStateManager"
+  ],
+  "intent": "Centralizes extension initialization logic to cleanly separate activation concerns from command registration and component lifecycle management, ensuring all services are properly instantiated and wired together before the extension becomes active.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Bootstraps and initializes all extension components when the VS Code extension is activated, setting up views, commands, and services.\",\n  \"userVisibleActions\": [\n    \"Extension activates and displays status bar item showing analysis status\",\n    \"Product Navigator tree view becomes available in the sidebar\",\n    \"Analysis Viewer tree view displays code analysis results\",\n    \"Insights Viewer tree view shows generated insights\",\n    \"Static Analysis Viewer tree view presents static analysis findings\",\n    \"Unit Tests Navigator tree view lists unit tests\",\n    \"Reports tree view displays generated reports\",\n    \"Diagnostics panel shows code issues and warnings\",\n    \"File changes trigger automatic re-analysis and view updates\"\n  ],\n  \"developerVisibleActions\": [\n    \"Creates and registers all extension components during activation\",\n    \"Initializes configuration manager for extension settings\",\n    \"Sets up file watcher service to monitor code changes\",\n    \"Registers tree data providers for all sidebar views\",\n    \"Initializes error handler for centralized error management\",\n    \"Creates analysis cache for performance optimization\",\n    \"Establishes LLM state manager for AI integration tracking\",\n    \"Wires up diagnostics provider to display code issues\",\n    \"Registers status bar item for displaying extension state\",\n    \"Returns ExtensionComponents interface containing all initialized services\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"bootstrap\",\n      \"desc\": \"Initializes all extension components and returns them as a structured interface\",\n      \"inputs\": \"vscode.ExtensionContext\",\n      \"outputs\": \"ExtensionComponents interface containing all initialized services\"\n    },\n    {\n      \"name\": \"ExtensionComponents (interface)\",\n      \"desc\": \"Defines the structure of all extension components including analyzers, viewers, providers, and services\",\n      \"inputs\": \"N/A (type definition)\",\n      \"outputs\": \"Type definition for component collection\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"LLMFormatter\",\n    \"FileWatcher\",\n    \"InsightsTreeProvider\",\n    \"DiagnosticsProvider\",\n    \"AnalysisCache\",\n    \"llmIntegration\",\n    \"ProductNavigatorProvider\",\n    \"AnalysisViewerProvider\",\n    \"InsightsViewerProvider\",\n    \"StaticAnalysisViewerProvider\",\n    \"UnitTestsNavigatorProvider\",\n    \"configurationManager\",\n    \"ErrorHandler\",\n    \"FileWatcherService\",\n    \"ReportsViewer\",\n    \"ReportsTreeProvider\",\n    \"llmStateManager\"\n  ],\n  \"intent\": \"Centralizes extension initialization logic to cleanly separate activation concerns from command registration and component lifecycle management, ensuring all services are properly instantiated and wired together before the extension becomes active.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:51:45.446Z"
+  }
+}

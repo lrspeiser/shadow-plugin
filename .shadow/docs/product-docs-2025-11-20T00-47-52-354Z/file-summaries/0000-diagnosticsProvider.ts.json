@@ -1,0 +1,64 @@
+{
+  "file": "src/diagnosticsProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Manages the display of code insights as inline diagnostics (squiggly underlines and problems panel entries) in the VS Code editor.",
+  "userVisibleActions": [
+    "See squiggly underlines in code where insights are detected",
+    "View insights in the Problems panel with severity indicators (error, warning, info)",
+    "Click on problems to navigate to the corresponding code location",
+    "See 'Shadow Watch' as the source of diagnostic messages",
+    "View insight descriptions as diagnostic messages",
+    "Have diagnostics automatically cleared when insights are updated"
+  ],
+  "developerVisibleActions": [
+    "Provide insights to be displayed as diagnostics in the editor",
+    "Update diagnostics for all files or a specific file",
+    "Clear all diagnostics from the Problems panel",
+    "Dispose of the diagnostics collection when extension deactivates",
+    "Diagnostics are automatically grouped by file",
+    "Each insight is converted to a VS Code diagnostic with appropriate severity"
+  ],
+  "keyFunctions": [
+    {
+      "name": "updateDiagnostics",
+      "desc": "Updates diagnostics for all files based on provided insights",
+      "inputs": "Array of Insight objects",
+      "outputs": "Void - displays diagnostics in editor and Problems panel"
+    },
+    {
+      "name": "updateDiagnosticsForFile",
+      "desc": "Updates diagnostics for a specific file",
+      "inputs": "File URI and array of Insight objects for that file",
+      "outputs": "Void - displays diagnostics for the specified file"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all diagnostics from the editor and Problems panel",
+      "inputs": "None",
+      "outputs": "Void"
+    },
+    {
+      "name": "createDiagnostic",
+      "desc": "Converts an insight into a VS Code diagnostic with severity, message, and location",
+      "inputs": "Insight object",
+      "outputs": "VS Code Diagnostic object"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up the diagnostics collection when no longer needed",
+      "inputs": "None",
+      "outputs": "Void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./insightGenerator"
+  ],
+  "intent": "This file exists to bridge the gap between Shadow Watch's insight generation system and VS Code's native diagnostics UI. It translates insights into the standard VS Code problems/diagnostics format so users can see issues directly in their code with familiar VS Code UI patterns (squiggles, Problems panel). It solves the problem of how to visually communicate detected insights to users in an intuitive, IDE-native way.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages the display of code insights as inline diagnostics (squiggly underlines and problems panel entries) in the VS Code editor.\",\n  \"userVisibleActions\": [\n    \"See squiggly underlines in code where insights are detected\",\n    \"View insights in the Problems panel with severity indicators (error, warning, info)\",\n    \"Click on problems to navigate to the corresponding code location\",\n    \"See 'Shadow Watch' as the source of diagnostic messages\",\n    \"View insight descriptions as diagnostic messages\",\n    \"Have diagnostics automatically cleared when insights are updated\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provide insights to be displayed as diagnostics in the editor\",\n    \"Update diagnostics for all files or a specific file\",\n    \"Clear all diagnostics from the Problems panel\",\n    \"Dispose of the diagnostics collection when extension deactivates\",\n    \"Diagnostics are automatically grouped by file\",\n    \"Each insight is converted to a VS Code diagnostic with appropriate severity\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"updateDiagnostics\",\n      \"desc\": \"Updates diagnostics for all files based on provided insights\",\n      \"inputs\": \"Array of Insight objects\",\n      \"outputs\": \"Void - displays diagnostics in editor and Problems panel\"\n    },\n    {\n      \"name\": \"updateDiagnosticsForFile\",\n      \"desc\": \"Updates diagnostics for a specific file\",\n      \"inputs\": \"File URI and array of Insight objects for that file\",\n      \"outputs\": \"Void - displays diagnostics for the specified file\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all diagnostics from the editor and Problems panel\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Void\"\n    },\n    {\n      \"name\": \"createDiagnostic\",\n      \"desc\": \"Converts an insight into a VS Code diagnostic with severity, message, and location\",\n      \"inputs\": \"Insight object\",\n      \"outputs\": \"VS Code Diagnostic object\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up the diagnostics collection when no longer needed\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between Shadow Watch's insight generation system and VS Code's native diagnostics UI. It translates insights into the standard VS Code problems/diagnostics format so users can see issues directly in their code with familiar VS Code UI patterns (squiggles, Problems panel). It solves the problem of how to visually communicate detected insights to users in an intuitive, IDE-native way.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:51:14.915Z"
+  }
+}

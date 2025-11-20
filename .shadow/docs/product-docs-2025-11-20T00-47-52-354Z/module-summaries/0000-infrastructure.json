@@ -1,0 +1,60 @@
+{
+  "module": "src/infrastructure",
+  "moduleType": "other",
+  "capabilities": [
+    "Display progress notifications to users during long-running operations",
+    "Update progress messages dynamically as operations progress through different stages",
+    "Provide cancellable operations with a cancel button in the notification",
+    "Show progress indicators in the notification area or other specified locations",
+    "Handle user cancellation requests and propagate them to the underlying operation"
+  ],
+  "summary": "This infrastructure module provides a standardized progress notification service for VS Code extensions. It enables developers to communicate the status of long-running operations to users through consistent, professional progress notifications that appear in the VS Code interface.\n\nThe module supports displaying titled progress notifications with updatable status messages, allowing users to track operations as they move through different stages. When operations are cancellable, users can click a cancel button in the notification to stop the operation mid-execution. The service manages the complete lifecycle of progress notifications, from initial display through updates to completion or cancellation.\n\nThis creates a unified user experience across all extension operations that require time to complete, such as file processing, API calls, or code generation tasks. Users receive clear visual feedback about what's happening and maintain control over long-running processes through the cancellation capability.",
+  "files": [
+    {
+      "file": "src/infrastructure/progressService.ts",
+      "role": "Core Logic",
+      "purpose": "Provides a standardized service for displaying progress notifications to users during long-running operations in VS Code",
+      "userVisibleActions": [
+        "Progress notification appears with a title and status message during operations",
+        "Progress message updates as operation progresses through different stages",
+        "Cancel button appears in notification (when cancellable) allowing user to stop the operation",
+        "Progress indicator shows in notification area or other specified location"
+      ],
+      "developerVisibleActions": [
+        "Developer calls withProgress() to wrap any async operation with progress reporting",
+        "Developer provides a title for the progress notification",
+        "Developer receives a reporter object to update progress messages during execution",
+        "Developer can specify if operation is cancellable and where progress should display",
+        "Developer can check cancellation token to stop operation if user cancels",
+        "Developer can pass simple string title or full options object for flexibility"
+      ],
+      "keyFunctions": [
+        {
+          "name": "withProgress",
+          "desc": "Executes an async task while displaying progress notification to user",
+          "inputs": "options (title, cancellable flag, display location), task function that receives progress reporter",
+          "outputs": "Returns the result of the executed task"
+        },
+        {
+          "name": "report",
+          "desc": "Updates the progress message shown to user",
+          "inputs": "message string, optional increment number",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode"
+      ],
+      "intent": "Reduces boilerplate code and ensures consistent progress reporting UX across the extension by wrapping VS Code's native progress API with a simpler, standardized interface",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a standardized service for displaying progress notifications to users during long-running operations in VS Code\",\n  \"userVisibleActions\": [\n    \"Progress notification appears with a title and status message during operations\",\n    \"Progress message updates as operation progresses through different stages\",\n    \"Cancel button appears in notification (when cancellable) allowing user to stop the operation\",\n    \"Progress indicator shows in notification area or other specified location\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer calls withProgress() to wrap any async operation with progress reporting\",\n    \"Developer provides a title for the progress notification\",\n    \"Developer receives a reporter object to update progress messages during execution\",\n    \"Developer can specify if operation is cancellable and where progress should display\",\n    \"Developer can check cancellation token to stop operation if user cancels\",\n    \"Developer can pass simple string title or full options object for flexibility\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"withProgress\",\n      \"desc\": \"Executes an async task while displaying progress notification to user\",\n      \"inputs\": \"options (title, cancellable flag, display location), task function that receives progress reporter\",\n      \"outputs\": \"Returns the result of the executed task\"\n    },\n    {\n      \"name\": \"report\",\n      \"desc\": \"Updates the progress message shown to user\",\n      \"inputs\": \"message string, optional increment number\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"Reduces boilerplate code and ensures consistent progress reporting UX across the extension by wrapping VS Code's native progress API with a simpler, standardized interface\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T01:01:50.312Z"
+  }
+}

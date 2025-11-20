@@ -1,0 +1,65 @@
+{
+  "file": "src/ai/providers/anthropicProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Provides an interface to Anthropic's Claude AI model for generating text responses and structured JSON outputs within the extension",
+  "userVisibleActions": [
+    "Sends prompts to Claude AI and receives text responses",
+    "Generates structured JSON outputs from Claude based on schemas",
+    "Uses Claude models (like claude-sonnet-4-5) for AI-powered features",
+    "Experiences AI responses with up to 8192 tokens of output",
+    "May see errors if Claude API key is not configured"
+  ],
+  "developerVisibleActions": [
+    "Configure Claude API key through extension settings to enable the provider",
+    "Send text prompts with system prompts and conversation history to Claude",
+    "Request structured JSON outputs by providing schemas and instructions",
+    "Handle automatic JSON extraction from Claude responses",
+    "Receive error messages when API key is missing or invalid",
+    "Use consistent provider interface compatible with other LLM providers"
+  ],
+  "keyFunctions": [
+    {
+      "name": "isConfigured",
+      "desc": "Checks if Claude API key is configured and client is ready",
+      "inputs": "none",
+      "outputs": "boolean indicating if provider is ready to use"
+    },
+    {
+      "name": "getName",
+      "desc": "Returns the identifier name for this provider",
+      "inputs": "none",
+      "outputs": "string 'claude'"
+    },
+    {
+      "name": "sendRequest",
+      "desc": "Sends a text prompt to Claude and returns the response",
+      "inputs": "LLMRequestOptions (messages, model, system prompt, max tokens)",
+      "outputs": "LLMResponse with generated text and token counts"
+    },
+    {
+      "name": "sendStructuredOutputRequest",
+      "desc": "Requests structured JSON output from Claude based on a schema",
+      "inputs": "LLMRequestOptions with schema and output instructions",
+      "outputs": "StructuredOutputResponse with parsed JSON object"
+    },
+    {
+      "name": "initialize",
+      "desc": "Sets up the Anthropic client with API key from configuration",
+      "inputs": "none (reads from config manager)",
+      "outputs": "void (initializes client or sets to null)"
+    }
+  ],
+  "dependencies": [
+    "@anthropic-ai/sdk",
+    "ILLMProvider",
+    "configurationManager",
+    "jsonExtractor"
+  ],
+  "intent": "This file exists to integrate Anthropic's Claude AI models into the extension, providing an implementation of the LLM provider interface that handles Claude-specific message formatting, API communication, and JSON response parsing while maintaining compatibility with the extension's provider abstraction layer.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides an interface to Anthropic's Claude AI model for generating text responses and structured JSON outputs within the extension\",\n  \"userVisibleActions\": [\n    \"Sends prompts to Claude AI and receives text responses\",\n    \"Generates structured JSON outputs from Claude based on schemas\",\n    \"Uses Claude models (like claude-sonnet-4-5) for AI-powered features\",\n    \"Experiences AI responses with up to 8192 tokens of output\",\n    \"May see errors if Claude API key is not configured\"\n  ],\n  \"developerVisibleActions\": [\n    \"Configure Claude API key through extension settings to enable the provider\",\n    \"Send text prompts with system prompts and conversation history to Claude\",\n    \"Request structured JSON outputs by providing schemas and instructions\",\n    \"Handle automatic JSON extraction from Claude responses\",\n    \"Receive error messages when API key is missing or invalid\",\n    \"Use consistent provider interface compatible with other LLM providers\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if Claude API key is configured and client is ready\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean indicating if provider is ready to use\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the identifier name for this provider\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string 'claude'\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a text prompt to Claude and returns the response\",\n      \"inputs\": \"LLMRequestOptions (messages, model, system prompt, max tokens)\",\n      \"outputs\": \"LLMResponse with generated text and token counts\"\n    },\n    {\n      \"name\": \"sendStructuredOutputRequest\",\n      \"desc\": \"Requests structured JSON output from Claude based on a schema\",\n      \"inputs\": \"LLMRequestOptions with schema and output instructions\",\n      \"outputs\": \"StructuredOutputResponse with parsed JSON object\"\n    },\n    {\n      \"name\": \"initialize\",\n      \"desc\": \"Sets up the Anthropic client with API key from configuration\",\n      \"inputs\": \"none (reads from config manager)\",\n      \"outputs\": \"void (initializes client or sets to null)\"\n    }\n  ],\n  \"dependencies\": [\n    \"@anthropic-ai/sdk\",\n    \"ILLMProvider\",\n    \"configurationManager\",\n    \"jsonExtractor\"\n  ],\n  \"intent\": \"This file exists to integrate Anthropic's Claude AI models into the extension, providing an implementation of the LLM provider interface that handles Claude-specific message formatting, API communication, and JSON response parsing while maintaining compatibility with the extension's provider abstraction layer.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:48:57.042Z"
+  }
+}

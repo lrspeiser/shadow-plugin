@@ -1,0 +1,131 @@
+{
+  "module": "src/config",
+  "moduleType": "other",
+  "capabilities": [
+    "Centralized management of all Shadow Watch extension settings",
+    "Type-safe access to user preferences across the extension",
+    "Real-time notification system for configuration changes",
+    "Support for multiple LLM providers (OpenAI and Claude)",
+    "Configurable analysis behavior and output formatting",
+    "Flexible filtering and display options for detected issues",
+    "Performance tuning through file size limits and timeout settings"
+  ],
+  "summary": "The config module serves as the central configuration hub for the Shadow Watch extension, managing all user preferences and settings. It provides a type-safe interface for accessing configuration values such as LLM provider selection, API credentials, analysis triggers, and display preferences. The module ensures that any component in the extension can reliably read current settings and respond to changes in real-time.\n\nUsers interact with this module through VS Code's settings interface to control core behaviors like enabling/disabling the extension, automatic analysis on file save, and inline hint visibility. They can configure which AI service to use (OpenAI or Claude) along with corresponding API keys and custom endpoints. The module also manages output formatting options (Cursor, ChatGPT, Generic, or Compact) to match different workflow preferences.\n\nAdditional configuration options allow users to fine-tune the extension's behavior by setting minimum severity levels for problem display (Error, Warning, or Info), adjusting HTTP timeouts for AI requests, limiting maximum file sizes for analysis, and toggling debug logging. The module's notification system ensures that when users change any setting, all dependent components immediately receive updates and can adjust their behavior accordingly, providing a seamless and responsive configuration experience.",
+  "files": [
+    {
+      "file": "src/config/configurationManager.ts",
+      "role": "Core Logic",
+      "purpose": "Manages all configuration settings for the Shadow Watch extension, providing type-safe access to user preferences and notifying components when settings change.",
+      "userVisibleActions": [
+        "Enable or disable the Shadow Watch extension entirely",
+        "Toggle automatic analysis when saving files",
+        "Show or hide inline hint decorations in the editor",
+        "Configure which LLM provider to use (OpenAI or Claude)",
+        "Set API keys for AI services",
+        "Choose output format for AI reports (Cursor, ChatGPT, Generic, or Compact)",
+        "Adjust minimum severity level for displaying problems (Error, Warning, or Info)",
+        "Set custom endpoints for AI services",
+        "Configure HTTP timeout for AI requests",
+        "Set maximum file size for analysis",
+        "Enable or disable debug logging",
+        "Show or hide decorations in the status bar"
+      ],
+      "developerVisibleActions": [
+        "Access all Shadow Watch configuration values through type-safe getters",
+        "Register callbacks to listen for configuration changes",
+        "Validate configuration values and receive error feedback",
+        "Retrieve configuration for specific workspace folders",
+        "Update configuration values programmatically",
+        "Get notified automatically when user changes settings in VSCode preferences",
+        "Access validated API keys, endpoints, and service settings"
+      ],
+      "keyFunctions": [
+        {
+          "name": "Constructor",
+          "desc": "Initializes the configuration manager and sets up automatic watching for configuration changes",
+          "inputs": "None",
+          "outputs": "ConfigurationManager instance"
+        },
+        {
+          "name": "onConfigurationChange",
+          "desc": "Registers a callback function to be invoked whenever Shadow Watch configuration changes",
+          "inputs": "callback function",
+          "outputs": "void"
+        },
+        {
+          "name": "removeConfigurationChangeListener",
+          "desc": "Removes a previously registered configuration change callback",
+          "inputs": "callback function",
+          "outputs": "void"
+        },
+        {
+          "name": "enabled",
+          "desc": "Returns whether the Shadow Watch extension is enabled",
+          "inputs": "None (getter)",
+          "outputs": "boolean"
+        },
+        {
+          "name": "analyzeOnSave",
+          "desc": "Returns whether automatic analysis on file save is enabled",
+          "inputs": "None (getter)",
+          "outputs": "boolean"
+        },
+        {
+          "name": "showInlineHints",
+          "desc": "Returns whether inline hint decorations should be displayed",
+          "inputs": "None (getter)",
+          "outputs": "boolean"
+        },
+        {
+          "name": "llmProvider",
+          "desc": "Returns the configured LLM provider (OpenAI or Claude)",
+          "inputs": "None (getter)",
+          "outputs": "LLMProvider type"
+        },
+        {
+          "name": "llmFormat",
+          "desc": "Returns the configured output format for LLM reports",
+          "inputs": "None (getter)",
+          "outputs": "LLMFormat type"
+        },
+        {
+          "name": "severityThreshold",
+          "desc": "Returns the minimum severity level for displaying problems",
+          "inputs": "None (getter)",
+          "outputs": "SeverityThreshold type"
+        },
+        {
+          "name": "validate",
+          "desc": "Validates the current configuration and returns any errors found",
+          "inputs": "None",
+          "outputs": "ConfigValidationResult with validation status and error messages"
+        },
+        {
+          "name": "getConfigForResource",
+          "desc": "Retrieves configuration specific to a workspace folder or file",
+          "inputs": "vscode.Uri resource",
+          "outputs": "workspace-specific configuration"
+        },
+        {
+          "name": "updateConfig",
+          "desc": "Updates a configuration value programmatically",
+          "inputs": "key, value, configuration target",
+          "outputs": "Promise that resolves when update completes"
+        }
+      ],
+      "dependencies": [
+        "vscode"
+      ],
+      "intent": "This file exists to provide a single, centralized point of access for all Shadow Watch configuration settings, ensuring type safety, preventing direct access to raw configuration values, and enabling reactive updates when users change their preferences. It solves the problem of scattered configuration access throughout the codebase and provides validation to ensure settings are correct before use.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Manages all configuration settings for the Shadow Watch extension, providing type-safe access to user preferences and notifying components when settings change.\",\n  \"userVisibleActions\": [\n    \"Enable or disable the Shadow Watch extension entirely\",\n    \"Toggle automatic analysis when saving files\",\n    \"Show or hide inline hint decorations in the editor\",\n    \"Configure which LLM provider to use (OpenAI or Claude)\",\n    \"Set API keys for AI services\",\n    \"Choose output format for AI reports (Cursor, ChatGPT, Generic, or Compact)\",\n    \"Adjust minimum severity level for displaying problems (Error, Warning, or Info)\",\n    \"Set custom endpoints for AI services\",\n    \"Configure HTTP timeout for AI requests\",\n    \"Set maximum file size for analysis\",\n    \"Enable or disable debug logging\",\n    \"Show or hide decorations in the status bar\"\n  ],\n  \"developerVisibleActions\": [\n    \"Access all Shadow Watch configuration values through type-safe getters\",\n    \"Register callbacks to listen for configuration changes\",\n    \"Validate configuration values and receive error feedback\",\n    \"Retrieve configuration for specific workspace folders\",\n    \"Update configuration values programmatically\",\n    \"Get notified automatically when user changes settings in VSCode preferences\",\n    \"Access validated API keys, endpoints, and service settings\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"Constructor\",\n      \"desc\": \"Initializes the configuration manager and sets up automatic watching for configuration changes\",\n      \"inputs\": \"None\",\n      \"outputs\": \"ConfigurationManager instance\"\n    },\n    {\n      \"name\": \"onConfigurationChange\",\n      \"desc\": \"Registers a callback function to be invoked whenever Shadow Watch configuration changes\",\n      \"inputs\": \"callback function\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"removeConfigurationChangeListener\",\n      \"desc\": \"Removes a previously registered configuration change callback\",\n      \"inputs\": \"callback function\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"enabled\",\n      \"desc\": \"Returns whether the Shadow Watch extension is enabled\",\n      \"inputs\": \"None (getter)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"analyzeOnSave\",\n      \"desc\": \"Returns whether automatic analysis on file save is enabled\",\n      \"inputs\": \"None (getter)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"showInlineHints\",\n      \"desc\": \"Returns whether inline hint decorations should be displayed\",\n      \"inputs\": \"None (getter)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"llmProvider\",\n      \"desc\": \"Returns the configured LLM provider (OpenAI or Claude)\",\n      \"inputs\": \"None (getter)\",\n      \"outputs\": \"LLMProvider type\"\n    },\n    {\n      \"name\": \"llmFormat\",\n      \"desc\": \"Returns the configured output format for LLM reports\",\n      \"inputs\": \"None (getter)\",\n      \"outputs\": \"LLMFormat type\"\n    },\n    {\n      \"name\": \"severityThreshold\",\n      \"desc\": \"Returns the minimum severity level for displaying problems\",\n      \"inputs\": \"None (getter)\",\n      \"outputs\": \"SeverityThreshold type\"\n    },\n    {\n      \"name\": \"validate\",\n      \"desc\": \"Validates the current configuration and returns any errors found\",\n      \"inputs\": \"None\",\n      \"outputs\": \"ConfigValidationResult with validation status and error messages\"\n    },\n    {\n      \"name\": \"getConfigForResource\",\n      \"desc\": \"Retrieves configuration specific to a workspace folder or file\",\n      \"inputs\": \"vscode.Uri resource\",\n      \"outputs\": \"workspace-specific configuration\"\n    },\n    {\n      \"name\": \"updateConfig\",\n      \"desc\": \"Updates a configuration value programmatically\",\n      \"inputs\": \"key, value, configuration target\",\n      \"outputs\": \"Promise that resolves when update completes\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide a single, centralized point of access for all Shadow Watch configuration settings, ensuring type safety, preventing direct access to raw configuration values, and enabling reactive updates when users change their preferences. It solves the problem of scattered configuration access throughout the codebase and provides validation to ensure settings are correct before use.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T01:00:02.297Z"
+  }
+}

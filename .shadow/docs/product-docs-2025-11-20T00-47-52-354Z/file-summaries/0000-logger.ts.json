@@ -1,0 +1,54 @@
+{
+  "file": "src/logger.ts",
+  "role": "Core Logic",
+  "purpose": "Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory",
+  "userVisibleActions": [
+    "Log files are automatically created in .shadow/logs/shadow-watch.log in the workspace root",
+    "All logged events are timestamped with ISO format timestamps",
+    "Log sections are visually separated with header lines for easier reading"
+  ],
+  "developerVisibleActions": [
+    "Developers can log messages that appear in .shadow/logs/shadow-watch.log",
+    "Developers can create section headers in the log file to organize different parts of execution",
+    "Logging fails silently if the workspace is not available or errors occur",
+    "The .shadow/logs directory is automatically created if it doesn't exist"
+  ],
+  "keyFunctions": [
+    {
+      "name": "log",
+      "desc": "Writes a timestamped message to the log file",
+      "inputs": "message (string) - the text to log",
+      "outputs": "void - writes to file system"
+    },
+    {
+      "name": "section",
+      "desc": "Creates a formatted section header in the log file with surrounding equals signs",
+      "inputs": "title (string) - the section header text",
+      "outputs": "void - writes to file system"
+    },
+    {
+      "name": "getLogPath",
+      "desc": "Determines the file path where logs should be written",
+      "inputs": "none",
+      "outputs": "string | null - path to log file or null if no workspace"
+    },
+    {
+      "name": "ensureDir",
+      "desc": "Creates a directory if it doesn't already exist",
+      "inputs": "dir (string) - directory path to create",
+      "outputs": "void - modifies file system"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "vscode"
+  ],
+  "intent": "This file exists to provide a centralized, file-based logging system for the extension, allowing developers to track extension behavior and debug issues by writing timestamped logs to a consistent location in the workspace",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory\",\n  \"userVisibleActions\": [\n    \"Log files are automatically created in .shadow/logs/shadow-watch.log in the workspace root\",\n    \"All logged events are timestamped with ISO format timestamps\",\n    \"Log sections are visually separated with header lines for easier reading\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developers can log messages that appear in .shadow/logs/shadow-watch.log\",\n    \"Developers can create section headers in the log file to organize different parts of execution\",\n    \"Logging fails silently if the workspace is not available or errors occur\",\n    \"The .shadow/logs directory is automatically created if it doesn't exist\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"log\",\n      \"desc\": \"Writes a timestamped message to the log file\",\n      \"inputs\": \"message (string) - the text to log\",\n      \"outputs\": \"void - writes to file system\"\n    },\n    {\n      \"name\": \"section\",\n      \"desc\": \"Creates a formatted section header in the log file with surrounding equals signs\",\n      \"inputs\": \"title (string) - the section header text\",\n      \"outputs\": \"void - writes to file system\"\n    },\n    {\n      \"name\": \"getLogPath\",\n      \"desc\": \"Determines the file path where logs should be written\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string | null - path to log file or null if no workspace\"\n    },\n    {\n      \"name\": \"ensureDir\",\n      \"desc\": \"Creates a directory if it doesn't already exist\",\n      \"inputs\": \"dir (string) - directory path to create\",\n      \"outputs\": \"void - modifies file system\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide a centralized, file-based logging system for the extension, allowing developers to track extension behavior and debug issues by writing timestamped logs to a consistent location in the workspace\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:58:59.551Z"
+  }
+}

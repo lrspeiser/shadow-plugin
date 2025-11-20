@@ -1,0 +1,124 @@
+{
+  "module": "src/analysis",
+  "moduleType": "other",
+  "capabilities": [
+    "Deep code analysis through Abstract Syntax Tree (AST) parsing to extract comprehensive function metadata",
+    "Function signature and dependency extraction for refactoring analysis",
+    "Control flow and execution path analysis to identify code complexity",
+    "Behavioral pattern recognition to classify function purposes (validation, transformation, API calls, etc.)",
+    "State mutation and side effect detection across functions",
+    "Large file analysis to identify refactoring candidates and their relationships",
+    "Dependency graph generation showing function interdependencies"
+  ],
+  "summary": "The analysis module provides comprehensive code intelligence capabilities that help developers understand, refactor, and improve their codebase. It performs deep static analysis on source code files by parsing their Abstract Syntax Trees to extract detailed information about functions, their behaviors, complexities, and relationships.\n\nUsers can analyze individual functions or entire large files to receive insights about code structure, control flow branches, dependencies, and behavioral patterns. The module identifies what functions do (such as validation, transformation, or API interactions), how they modify application state, and which external dependencies they rely on. This information is particularly valuable for automated refactoring workflows, where understanding function responsibilities and their dependency chains is critical.\n\nThe module supports refactoring decisions by highlighting which functions in large files need attention, showing their signatures, listing their dependencies (both incoming and outgoing), and providing behavioral hints. This enables developers to make informed decisions about code splitting, function extraction, and architectural improvements while understanding the full impact of potential changes.",
+  "files": [
+    {
+      "file": "src/analysis/enhancedAnalyzer.ts",
+      "role": "Core Logic",
+      "purpose": "Performs deep code analysis by parsing Abstract Syntax Trees (AST) to extract detailed function metadata, control flow branches, dependencies, and behavioral patterns from source code files.",
+      "userVisibleActions": [
+        "Receives detailed analysis of code functions including their complexity, dependencies, and behavior patterns",
+        "Gets insights into how functions modify state and interact with external dependencies",
+        "Views control flow analysis showing different execution paths and branches in code",
+        "Sees behavioral hints about what functions do (e.g., validation, transformation, API calls)"
+      ],
+      "developerVisibleActions": [
+        "Calls analyzeFileMetadata() to analyze an entire file and get metadata for all functions",
+        "Receives structured FunctionMetadata objects containing branches, dependencies, state mutations, and behavioral hints",
+        "Gets TypeScript/JavaScript AST-based analysis for deeper insights compared to regex-based analysis",
+        "Accesses branch information showing conditional logic paths and complexity metrics",
+        "Retrieves dependency information showing external module usage and side effects",
+        "Obtains state mutation tracking showing what variables and properties are modified",
+        "Receives behavioral hints categorizing function purposes (validators, transformers, API handlers, etc.)"
+      ],
+      "keyFunctions": [
+        {
+          "name": "analyzeFileMetadata",
+          "desc": "Analyzes all functions in a file and returns detailed metadata for each",
+          "inputs": "filePath (string), content (string), language (string), functions (FunctionInfo[])",
+          "outputs": "Map<string, FunctionMetadata> containing analysis results for each function"
+        },
+        {
+          "name": "analyzeTypeScriptFunction",
+          "desc": "Performs AST-based analysis on TypeScript/JavaScript functions for detailed insights",
+          "inputs": "filePath (string), content (string), func (FunctionInfo), functionContent (string)",
+          "outputs": "FunctionMetadata with branches, dependencies, mutations, and behavioral hints"
+        },
+        {
+          "name": "analyzeFunctionWithRegex",
+          "desc": "Fallback analysis method using pattern matching for non-TypeScript languages",
+          "inputs": "filePath (string), func (FunctionInfo), functionContent (string), language (string)",
+          "outputs": "FunctionMetadata with basic analysis from regex patterns"
+        },
+        {
+          "name": "extractFunctionContent",
+          "desc": "Extracts the source code content for a specific function by line numbers",
+          "inputs": "content (string), startLine (number), endLine (number)",
+          "outputs": "String containing the function's source code"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "typescript",
+        "../analyzer (CodeAnalysis, FunctionMetadata, BranchInfo, DependencyInfo, StateMutationInfo, TestMapping, BehavioralHints, FunctionInfo)"
+      ],
+      "intent": "This file exists to provide advanced code intelligence beyond basic parsing. It solves the problem of understanding code behavior at a semantic level by analyzing control flow, tracking state changes, identifying dependencies, and categorizing function purposes. This enables smarter test generation, documentation creation, and code understanding tools.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Performs deep code analysis by parsing Abstract Syntax Trees (AST) to extract detailed function metadata, control flow branches, dependencies, and behavioral patterns from source code files.\",\n  \"userVisibleActions\": [\n    \"Receives detailed analysis of code functions including their complexity, dependencies, and behavior patterns\",\n    \"Gets insights into how functions modify state and interact with external dependencies\",\n    \"Views control flow analysis showing different execution paths and branches in code\",\n    \"Sees behavioral hints about what functions do (e.g., validation, transformation, API calls)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls analyzeFileMetadata() to analyze an entire file and get metadata for all functions\",\n    \"Receives structured FunctionMetadata objects containing branches, dependencies, state mutations, and behavioral hints\",\n    \"Gets TypeScript/JavaScript AST-based analysis for deeper insights compared to regex-based analysis\",\n    \"Accesses branch information showing conditional logic paths and complexity metrics\",\n    \"Retrieves dependency information showing external module usage and side effects\",\n    \"Obtains state mutation tracking showing what variables and properties are modified\",\n    \"Receives behavioral hints categorizing function purposes (validators, transformers, API handlers, etc.)\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFileMetadata\",\n      \"desc\": \"Analyzes all functions in a file and returns detailed metadata for each\",\n      \"inputs\": \"filePath (string), content (string), language (string), functions (FunctionInfo[])\",\n      \"outputs\": \"Map<string, FunctionMetadata> containing analysis results for each function\"\n    },\n    {\n      \"name\": \"analyzeTypeScriptFunction\",\n      \"desc\": \"Performs AST-based analysis on TypeScript/JavaScript functions for detailed insights\",\n      \"inputs\": \"filePath (string), content (string), func (FunctionInfo), functionContent (string)\",\n      \"outputs\": \"FunctionMetadata with branches, dependencies, mutations, and behavioral hints\"\n    },\n    {\n      \"name\": \"analyzeFunctionWithRegex\",\n      \"desc\": \"Fallback analysis method using pattern matching for non-TypeScript languages\",\n      \"inputs\": \"filePath (string), func (FunctionInfo), functionContent (string), language (string)\",\n      \"outputs\": \"FunctionMetadata with basic analysis from regex patterns\"\n    },\n    {\n      \"name\": \"extractFunctionContent\",\n      \"desc\": \"Extracts the source code content for a specific function by line numbers\",\n      \"inputs\": \"content (string), startLine (number), endLine (number)\",\n      \"outputs\": \"String containing the function's source code\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"typescript\",\n    \"../analyzer (CodeAnalysis, FunctionMetadata, BranchInfo, DependencyInfo, StateMutationInfo, TestMapping, BehavioralHints, FunctionInfo)\"\n  ],\n  \"intent\": \"This file exists to provide advanced code intelligence beyond basic parsing. It solves the problem of understanding code behavior at a semantic level by analyzing control flow, tracking state changes, identifying dependencies, and categorizing function purposes. This enables smarter test generation, documentation creation, and code understanding tools.\"\n}\n```"
+    },
+    {
+      "file": "src/analysis/functionAnalyzer.ts",
+      "role": "Core Logic",
+      "purpose": "Extracts detailed function information from large code files to support automated refactoring analysis and reporting.",
+      "userVisibleActions": [
+        "Receives analysis reports showing which functions in large files need refactoring",
+        "Gets function signatures, dependencies, and responsibilities listed in refactoring suggestions",
+        "Views which functions depend on or are depended upon by target functions"
+      ],
+      "developerVisibleActions": [
+        "Calls analyzeFunctions() to scan large files and extract function metadata for refactoring reports",
+        "Processes function signatures, dependencies, and call relationships from TypeScript source files",
+        "Integrates with existing CodeAnalysis infrastructure to build comprehensive function analysis",
+        "Filters files by size threshold to focus refactoring efforts on large files",
+        "Receives FunctionAnalysis objects containing function details, dependencies, and responsibilities"
+      ],
+      "keyFunctions": [
+        {
+          "name": "analyzeFunctions",
+          "desc": "Analyzes all functions in files exceeding a size threshold and returns detailed function information",
+          "inputs": "CodeAnalysis object, optional size threshold in lines (default 500)",
+          "outputs": "Array of FunctionAnalysis objects containing function details"
+        },
+        {
+          "name": "analyzeFunction",
+          "desc": "Performs deep analysis on a single function to extract its signature, dependencies, and relationships",
+          "inputs": "File path, FunctionInfo object, CodeAnalysis context",
+          "outputs": "FunctionAnalysis object or null if analysis fails"
+        },
+        {
+          "name": "resolveFilePath",
+          "desc": "Resolves relative file paths to absolute paths for file access",
+          "inputs": "File path string, CodeAnalysis context",
+          "outputs": "Resolved absolute file path"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "typescript",
+        "../analyzer",
+        "../domain/prompts/refactoringPromptBuilder"
+      ],
+      "intent": "This file exists to support automated code refactoring by extracting detailed function-level information from large files, enabling the system to understand function boundaries, dependencies, and responsibilities to generate meaningful refactoring recommendations.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Extracts detailed function information from large code files to support automated refactoring analysis and reporting.\",\n  \"userVisibleActions\": [\n    \"Receives analysis reports showing which functions in large files need refactoring\",\n    \"Gets function signatures, dependencies, and responsibilities listed in refactoring suggestions\",\n    \"Views which functions depend on or are depended upon by target functions\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls analyzeFunctions() to scan large files and extract function metadata for refactoring reports\",\n    \"Processes function signatures, dependencies, and call relationships from TypeScript source files\",\n    \"Integrates with existing CodeAnalysis infrastructure to build comprehensive function analysis\",\n    \"Filters files by size threshold to focus refactoring efforts on large files\",\n    \"Receives FunctionAnalysis objects containing function details, dependencies, and responsibilities\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Analyzes all functions in files exceeding a size threshold and returns detailed function information\",\n      \"inputs\": \"CodeAnalysis object, optional size threshold in lines (default 500)\",\n      \"outputs\": \"Array of FunctionAnalysis objects containing function details\"\n    },\n    {\n      \"name\": \"analyzeFunction\",\n      \"desc\": \"Performs deep analysis on a single function to extract its signature, dependencies, and relationships\",\n      \"inputs\": \"File path, FunctionInfo object, CodeAnalysis context\",\n      \"outputs\": \"FunctionAnalysis object or null if analysis fails\"\n    },\n    {\n      \"name\": \"resolveFilePath\",\n      \"desc\": \"Resolves relative file paths to absolute paths for file access\",\n      \"inputs\": \"File path string, CodeAnalysis context\",\n      \"outputs\": \"Resolved absolute file path\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"typescript\",\n    \"../analyzer\",\n    \"../domain/prompts/refactoringPromptBuilder\"\n  ],\n  \"intent\": \"This file exists to support automated code refactoring by extracting detailed function-level information from large files, enabling the system to understand function boundaries, dependencies, and responsibilities to generate meaningful refactoring recommendations.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:59:35.166Z"
+  }
+}

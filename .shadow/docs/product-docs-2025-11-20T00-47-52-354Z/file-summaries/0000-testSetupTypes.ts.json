@@ -1,0 +1,28 @@
+{
+  "file": "src/domain/services/testing/types/testSetupTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type definitions for test setup service operations, including test configuration, dependencies, and execution results.",
+  "userVisibleActions": [
+    "User receives information about test setup plans including framework and dependencies",
+    "User sees which configuration files will be created during test setup",
+    "User is informed about test environment status and missing dependencies",
+    "User receives feedback on setup execution success with created files and installed dependencies",
+    "User is notified of any errors that occurred during test setup"
+  ],
+  "developerVisibleActions": [
+    "Developer uses TestSetupPlan to structure test framework configuration data",
+    "Developer accesses TestEnvironment to check existing test infrastructure",
+    "Developer receives SetupExecutionResult to understand what was created and installed",
+    "Developer identifies mock requirements needed for testing",
+    "Developer tracks dependency installation status through structured result types"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides type safety and structure for test setup operations by defining interfaces for test plans, environment detection, dependency management, and execution results, ensuring consistent data handling throughout the test setup service.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type definitions for test setup service operations, including test configuration, dependencies, and execution results.\",\n  \"userVisibleActions\": [\n    \"User receives information about test setup plans including framework and dependencies\",\n    \"User sees which configuration files will be created during test setup\",\n    \"User is informed about test environment status and missing dependencies\",\n    \"User receives feedback on setup execution success with created files and installed dependencies\",\n    \"User is notified of any errors that occurred during test setup\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer uses TestSetupPlan to structure test framework configuration data\",\n    \"Developer accesses TestEnvironment to check existing test infrastructure\",\n    \"Developer receives SetupExecutionResult to understand what was created and installed\",\n    \"Developer identifies mock requirements needed for testing\",\n    \"Developer tracks dependency installation status through structured result types\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides type safety and structure for test setup operations by defining interfaces for test plans, environment detection, dependency management, and execution results, ensuring consistent data handling throughout the test setup service.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:55:00.610Z"
+  }
+}

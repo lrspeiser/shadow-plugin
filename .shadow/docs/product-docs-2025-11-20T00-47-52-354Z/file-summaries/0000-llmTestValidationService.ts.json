@@ -1,0 +1,51 @@
+{
+  "file": "src/domain/services/testing/llmTestValidationService.ts",
+  "role": "Core Logic",
+  "purpose": "Validates tests by running them and automatically fixing failures using LLM assistance",
+  "userVisibleActions": [
+    "Tests are automatically executed in the workspace",
+    "Test results show pass/fail status with counts",
+    "Failing tests are automatically fixed through multiple retry attempts",
+    "Progress updates appear in logs showing test execution status",
+    "Test reports are generated showing overall test health"
+  ],
+  "developerVisibleActions": [
+    "Call runTests() to execute Jest tests in workspace and get execution results",
+    "Call fixFailingTest() to automatically repair a failing test using LLM suggestions",
+    "Receive TestExecutionResult objects containing passed/failed/error counts",
+    "Access test reports and summaries showing test suite health metrics",
+    "Configure maximum fix attempts to control auto-repair retry limit",
+    "Get detailed failure information including error messages and stack traces"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runTests",
+      "desc": "Executes all tests or a specific test file and returns execution results with pass/fail counts",
+      "inputs": "workspaceRoot: string, testFile?: string (optional specific test file)",
+      "outputs": "Promise<TestExecutionResult[]> with test outcomes and statistics"
+    },
+    {
+      "name": "fixFailingTest",
+      "desc": "Attempts to automatically fix a failing test by using LLM to generate corrections",
+      "inputs": "testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts: number (default 3)",
+      "outputs": "Promise<{ success: boolean; attempts: number; finalError?: string }> indicating fix outcome"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "TestExecutionService",
+    "TestExecutionResult",
+    "TestReport",
+    "TestReportSummary",
+    "buildFixPrompt",
+    "SWLogger"
+  ],
+  "intent": "This service exists to automate test validation and repair in the development workflow. It solves the problem of manually fixing failing tests by using LLM intelligence to analyze test failures and automatically generate fixes, reducing developer time spent on test maintenance and improving test suite reliability.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Validates tests by running them and automatically fixing failures using LLM assistance\",\n  \"userVisibleActions\": [\n    \"Tests are automatically executed in the workspace\",\n    \"Test results show pass/fail status with counts\",\n    \"Failing tests are automatically fixed through multiple retry attempts\",\n    \"Progress updates appear in logs showing test execution status\",\n    \"Test reports are generated showing overall test health\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call runTests() to execute Jest tests in workspace and get execution results\",\n    \"Call fixFailingTest() to automatically repair a failing test using LLM suggestions\",\n    \"Receive TestExecutionResult objects containing passed/failed/error counts\",\n    \"Access test reports and summaries showing test suite health metrics\",\n    \"Configure maximum fix attempts to control auto-repair retry limit\",\n    \"Get detailed failure information including error messages and stack traces\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runTests\",\n      \"desc\": \"Executes all tests or a specific test file and returns execution results with pass/fail counts\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string (optional specific test file)\",\n      \"outputs\": \"Promise<TestExecutionResult[]> with test outcomes and statistics\"\n    },\n    {\n      \"name\": \"fixFailingTest\",\n      \"desc\": \"Attempts to automatically fix a failing test by using LLM to generate corrections\",\n      \"inputs\": \"testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts: number (default 3)\",\n      \"outputs\": \"Promise<{ success: boolean; attempts: number; finalError?: string }> indicating fix outcome\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestExecutionService\",\n    \"TestExecutionResult\",\n    \"TestReport\",\n    \"TestReportSummary\",\n    \"buildFixPrompt\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This service exists to automate test validation and repair in the development workflow. It solves the problem of manually fixing failing tests by using LLM intelligence to analyze test failures and automatically generate fixes, reducing developer time spent on test maintenance and improving test suite reliability.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:54:23.024Z"
+  }
+}

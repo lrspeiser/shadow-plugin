@@ -1,0 +1,107 @@
+{
+  "file": "src/llmIntegration.ts",
+  "role": "Core Logic",
+  "purpose": "Manages LLM-powered code analysis features, including initializing services, generating documentation, analyzing code, and handling user interactions with AI-generated insights.",
+  "userVisibleActions": [
+    "Generate documentation for code files and products",
+    "View AI-generated insights about code structure and behavior",
+    "Navigate through analyzed code via tree views",
+    "See analysis progress and status messages in output channel",
+    "Access generated documentation in webview panels",
+    "View code analysis results including entry points and components",
+    "Receive notifications when analysis completes or fails",
+    "See API configuration status and warnings"
+  ],
+  "developerVisibleActions": [
+    "Initialize LLM service on extension startup",
+    "Trigger code analysis for workspace files",
+    "Generate product documentation from analysis results",
+    "Request AI insights for specific code contexts",
+    "Refresh tree views when analysis data changes",
+    "Save and load analysis results from cache",
+    "Handle API key configuration and validation",
+    "Manage analysis state across sessions",
+    "Convert code analysis to LLM context format",
+    "Display documentation in formatted webview",
+    "Register commands for documentation and analysis actions",
+    "Handle errors and display user-friendly messages",
+    "Coordinate between analysis services and UI providers"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeLLMService",
+      "desc": "Sets up LLM service and loads saved analysis data on startup",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "generateDocumentation",
+      "desc": "Creates AI-generated documentation for code files or entire products",
+      "inputs": "file paths, analysis context",
+      "outputs": "EnhancedProductDocumentation"
+    },
+    {
+      "name": "analyzeCode",
+      "desc": "Performs deep code analysis using LLM to extract structure and behavior",
+      "inputs": "workspace paths, file list",
+      "outputs": "CodeAnalysis with entry points and insights"
+    },
+    {
+      "name": "requestInsights",
+      "desc": "Gets AI-generated insights about code patterns and architecture",
+      "inputs": "AnalysisContext",
+      "outputs": "LLMInsights"
+    },
+    {
+      "name": "saveCodeAnalysis",
+      "desc": "Persists analysis results to cache for future sessions",
+      "inputs": "CodeAnalysis object",
+      "outputs": "void"
+    },
+    {
+      "name": "loadSavedCodeAnalysis",
+      "desc": "Retrieves previously saved analysis from cache",
+      "inputs": "workspace identifier",
+      "outputs": "CodeAnalysis or null"
+    },
+    {
+      "name": "convertCodeAnalysisToContext",
+      "desc": "Transforms code analysis into format suitable for LLM processing",
+      "inputs": "CodeAnalysis",
+      "outputs": "AnalysisContext"
+    },
+    {
+      "name": "showDocumentation",
+      "desc": "Displays generated documentation in webview panel",
+      "inputs": "documentation object",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "child_process",
+    "util",
+    "llmService",
+    "insightsTreeView",
+    "fileDocumentation",
+    "analyzer",
+    "productNavigator",
+    "analysisViewer",
+    "insightsViewer",
+    "unitTestsNavigator",
+    "logger",
+    "llmStateManager",
+    "analysisContextBuilder",
+    "documentationFormatter",
+    "analysisResultRepository"
+  ],
+  "intent": "This file exists to bridge the gap between VS Code extension UI and LLM analysis capabilities, coordinating all AI-powered features like documentation generation, code insights, and intelligent navigation. It solves the problem of managing complex interactions between user actions, background analysis, state persistence, and AI service calls in a unified way.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages LLM-powered code analysis features, including initializing services, generating documentation, analyzing code, and handling user interactions with AI-generated insights.\",\n  \"userVisibleActions\": [\n    \"Generate documentation for code files and products\",\n    \"View AI-generated insights about code structure and behavior\",\n    \"Navigate through analyzed code via tree views\",\n    \"See analysis progress and status messages in output channel\",\n    \"Access generated documentation in webview panels\",\n    \"View code analysis results including entry points and components\",\n    \"Receive notifications when analysis completes or fails\",\n    \"See API configuration status and warnings\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize LLM service on extension startup\",\n    \"Trigger code analysis for workspace files\",\n    \"Generate product documentation from analysis results\",\n    \"Request AI insights for specific code contexts\",\n    \"Refresh tree views when analysis data changes\",\n    \"Save and load analysis results from cache\",\n    \"Handle API key configuration and validation\",\n    \"Manage analysis state across sessions\",\n    \"Convert code analysis to LLM context format\",\n    \"Display documentation in formatted webview\",\n    \"Register commands for documentation and analysis actions\",\n    \"Handle errors and display user-friendly messages\",\n    \"Coordinate between analysis services and UI providers\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeLLMService\",\n      \"desc\": \"Sets up LLM service and loads saved analysis data on startup\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"generateDocumentation\",\n      \"desc\": \"Creates AI-generated documentation for code files or entire products\",\n      \"inputs\": \"file paths, analysis context\",\n      \"outputs\": \"EnhancedProductDocumentation\"\n    },\n    {\n      \"name\": \"analyzeCode\",\n      \"desc\": \"Performs deep code analysis using LLM to extract structure and behavior\",\n      \"inputs\": \"workspace paths, file list\",\n      \"outputs\": \"CodeAnalysis with entry points and insights\"\n    },\n    {\n      \"name\": \"requestInsights\",\n      \"desc\": \"Gets AI-generated insights about code patterns and architecture\",\n      \"inputs\": \"AnalysisContext\",\n      \"outputs\": \"LLMInsights\"\n    },\n    {\n      \"name\": \"saveCodeAnalysis\",\n      \"desc\": \"Persists analysis results to cache for future sessions\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"loadSavedCodeAnalysis\",\n      \"desc\": \"Retrieves previously saved analysis from cache\",\n      \"inputs\": \"workspace identifier\",\n      \"outputs\": \"CodeAnalysis or null\"\n    },\n    {\n      \"name\": \"convertCodeAnalysisToContext\",\n      \"desc\": \"Transforms code analysis into format suitable for LLM processing\",\n      \"inputs\": \"CodeAnalysis\",\n      \"outputs\": \"AnalysisContext\"\n    },\n    {\n      \"name\": \"showDocumentation\",\n      \"desc\": \"Displays generated documentation in webview panel\",\n      \"inputs\": \"documentation object\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"util\",\n    \"llmService\",\n    \"insightsTreeView\",\n    \"fileDocumentation\",\n    \"analyzer\",\n    \"productNavigator\",\n    \"analysisViewer\",\n    \"insightsViewer\",\n    \"unitTestsNavigator\",\n    \"logger\",\n    \"llmStateManager\",\n    \"analysisContextBuilder\",\n    \"documentationFormatter\",\n    \"analysisResultRepository\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between VS Code extension UI and LLM analysis capabilities, coordinating all AI-powered features like documentation generation, code insights, and intelligent navigation. It solves the problem of managing complex interactions between user actions, background analysis, state persistence, and AI service calls in a unified way.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:58:14.538Z"
+  }
+}

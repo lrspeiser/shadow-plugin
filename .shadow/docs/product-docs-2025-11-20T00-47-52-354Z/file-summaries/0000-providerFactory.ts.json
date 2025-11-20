@@ -1,0 +1,55 @@
+{
+  "file": "src/ai/providers/providerFactory.ts",
+  "role": "Core Logic",
+  "purpose": "Creates and manages AI provider instances (OpenAI or Claude) based on configuration, ensuring only one instance of each provider exists at a time.",
+  "userVisibleActions": [
+    "Automatically switches between OpenAI and Claude AI providers based on user configuration",
+    "Validates that the selected AI provider has valid credentials before use",
+    "Shows only configured AI providers as available options"
+  ],
+  "developerVisibleActions": [
+    "Provides a single factory to access any AI provider without managing instances directly",
+    "Ensures singleton pattern for each provider type to avoid duplicate connections",
+    "Exposes methods to check provider configuration status before attempting AI operations",
+    "Returns list of all properly configured providers for UI display"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getProvider",
+      "desc": "Returns the provider instance for a specific AI service (openai or claude)",
+      "inputs": "provider: 'openai' | 'claude'",
+      "outputs": "ILLMProvider instance"
+    },
+    {
+      "name": "getCurrentProvider",
+      "desc": "Returns the currently active AI provider based on user configuration",
+      "inputs": "none",
+      "outputs": "ILLMProvider instance"
+    },
+    {
+      "name": "isProviderConfigured",
+      "desc": "Checks if a specific AI provider has valid configuration and credentials",
+      "inputs": "provider: 'openai' | 'claude'",
+      "outputs": "boolean (true if configured)"
+    },
+    {
+      "name": "getConfiguredProviders",
+      "desc": "Returns list of all AI providers that are properly configured and ready to use",
+      "inputs": "none",
+      "outputs": "array of provider names ['openai', 'claude']"
+    }
+  ],
+  "dependencies": [
+    "ILLMProvider",
+    "OpenAIProvider",
+    "AnthropicProvider",
+    "configurationManager"
+  ],
+  "intent": "Centralizes AI provider creation and lifecycle management, ensuring developers don't need to manually instantiate or track provider instances, and providing a single point to query provider availability and configuration status.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Creates and manages AI provider instances (OpenAI or Claude) based on configuration, ensuring only one instance of each provider exists at a time.\",\n  \"userVisibleActions\": [\n    \"Automatically switches between OpenAI and Claude AI providers based on user configuration\",\n    \"Validates that the selected AI provider has valid credentials before use\",\n    \"Shows only configured AI providers as available options\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides a single factory to access any AI provider without managing instances directly\",\n    \"Ensures singleton pattern for each provider type to avoid duplicate connections\",\n    \"Exposes methods to check provider configuration status before attempting AI operations\",\n    \"Returns list of all properly configured providers for UI display\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getProvider\",\n      \"desc\": \"Returns the provider instance for a specific AI service (openai or claude)\",\n      \"inputs\": \"provider: 'openai' | 'claude'\",\n      \"outputs\": \"ILLMProvider instance\"\n    },\n    {\n      \"name\": \"getCurrentProvider\",\n      \"desc\": \"Returns the currently active AI provider based on user configuration\",\n      \"inputs\": \"none\",\n      \"outputs\": \"ILLMProvider instance\"\n    },\n    {\n      \"name\": \"isProviderConfigured\",\n      \"desc\": \"Checks if a specific AI provider has valid configuration and credentials\",\n      \"inputs\": \"provider: 'openai' | 'claude'\",\n      \"outputs\": \"boolean (true if configured)\"\n    },\n    {\n      \"name\": \"getConfiguredProviders\",\n      \"desc\": \"Returns list of all AI providers that are properly configured and ready to use\",\n      \"inputs\": \"none\",\n      \"outputs\": \"array of provider names ['openai', 'claude']\"\n    }\n  ],\n  \"dependencies\": [\n    \"ILLMProvider\",\n    \"OpenAIProvider\",\n    \"AnthropicProvider\",\n    \"configurationManager\"\n  ],\n  \"intent\": \"Centralizes AI provider creation and lifecycle management, ensuring developers don't need to manually instantiate or track provider instances, and providing a single point to query provider availability and configuration status.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:49:20.753Z"
+  }
+}

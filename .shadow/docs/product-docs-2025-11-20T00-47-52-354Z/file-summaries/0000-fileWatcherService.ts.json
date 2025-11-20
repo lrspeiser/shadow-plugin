@@ -1,0 +1,67 @@
+{
+  "file": "src/domain/services/fileWatcherService.ts",
+  "role": "Core Logic",
+  "purpose": "Provides a centralized service for monitoring file system changes and document saves in the workspace, consolidating file watching functionality across the extension.",
+  "userVisibleActions": [
+    "Automatically detects when files are created in the workspace",
+    "Automatically detects when files are modified or saved",
+    "Automatically detects when files are deleted from the workspace",
+    "Responds to file changes based on specific file patterns (e.g., *.md, *.json)",
+    "Triggers updates when documents are saved in the editor"
+  ],
+  "developerVisibleActions": [
+    "Register handlers to respond to file creation events",
+    "Register handlers to respond to file modification events",
+    "Register handlers to respond to file deletion events",
+    "Register handlers to respond to document save events",
+    "Filter file changes using ignore patterns (e.g., exclude node_modules)",
+    "Watch multiple file patterns simultaneously with different handlers",
+    "Dispose of watchers to stop monitoring files",
+    "Configure which types of changes to monitor (create, change, delete)",
+    "Receive structured file change events with URI and change type"
+  ],
+  "keyFunctions": [
+    {
+      "name": "watch",
+      "desc": "Monitors file system changes matching a specific pattern and triggers callbacks",
+      "inputs": "id (string), pattern (file glob or relative pattern), handler (callback function), options (ignorePatterns, watchCreate, watchChange, watchDelete flags)",
+      "outputs": "Disposable object to stop watching"
+    },
+    {
+      "name": "onDocumentSave",
+      "desc": "Registers a callback to be triggered whenever a document is saved in the editor",
+      "inputs": "handler (callback function receiving TextDocument)",
+      "outputs": "Disposable object to unregister the handler"
+    },
+    {
+      "name": "stopWatching",
+      "desc": "Stops monitoring a specific file pattern and removes associated handlers",
+      "inputs": "id (string)",
+      "outputs": "void"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up all active watchers and handlers when service is no longer needed",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getPatternKey",
+      "desc": "Generates a unique key for a file pattern to prevent duplicate watchers",
+      "inputs": "pattern (string or RelativePattern)",
+      "outputs": "string key"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "fs"
+  ],
+  "intent": "This file exists to eliminate duplication of file watching code across multiple components (fileWatcher.ts, productNavigator.ts, insightsViewer.ts) by providing a single, reusable service that manages file system monitoring. It solves the problem of multiple components independently creating watchers, which leads to code duplication, inconsistent behavior, and resource waste. By centralizing this functionality, components can easily respond to file changes without managing watcher lifecycles themselves.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a centralized service for monitoring file system changes and document saves in the workspace, consolidating file watching functionality across the extension.\",\n  \"userVisibleActions\": [\n    \"Automatically detects when files are created in the workspace\",\n    \"Automatically detects when files are modified or saved\",\n    \"Automatically detects when files are deleted from the workspace\",\n    \"Responds to file changes based on specific file patterns (e.g., *.md, *.json)\",\n    \"Triggers updates when documents are saved in the editor\"\n  ],\n  \"developerVisibleActions\": [\n    \"Register handlers to respond to file creation events\",\n    \"Register handlers to respond to file modification events\",\n    \"Register handlers to respond to file deletion events\",\n    \"Register handlers to respond to document save events\",\n    \"Filter file changes using ignore patterns (e.g., exclude node_modules)\",\n    \"Watch multiple file patterns simultaneously with different handlers\",\n    \"Dispose of watchers to stop monitoring files\",\n    \"Configure which types of changes to monitor (create, change, delete)\",\n    \"Receive structured file change events with URI and change type\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"watch\",\n      \"desc\": \"Monitors file system changes matching a specific pattern and triggers callbacks\",\n      \"inputs\": \"id (string), pattern (file glob or relative pattern), handler (callback function), options (ignorePatterns, watchCreate, watchChange, watchDelete flags)\",\n      \"outputs\": \"Disposable object to stop watching\"\n    },\n    {\n      \"name\": \"onDocumentSave\",\n      \"desc\": \"Registers a callback to be triggered whenever a document is saved in the editor\",\n      \"inputs\": \"handler (callback function receiving TextDocument)\",\n      \"outputs\": \"Disposable object to unregister the handler\"\n    },\n    {\n      \"name\": \"stopWatching\",\n      \"desc\": \"Stops monitoring a specific file pattern and removes associated handlers\",\n      \"inputs\": \"id (string)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up all active watchers and handlers when service is no longer needed\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getPatternKey\",\n      \"desc\": \"Generates a unique key for a file pattern to prevent duplicate watchers\",\n      \"inputs\": \"pattern (string or RelativePattern)\",\n      \"outputs\": \"string key\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"fs\"\n  ],\n  \"intent\": \"This file exists to eliminate duplication of file watching code across multiple components (fileWatcher.ts, productNavigator.ts, insightsViewer.ts) by providing a single, reusable service that manages file system monitoring. It solves the problem of multiple components independently creating watchers, which leads to code duplication, inconsistent behavior, and resource waste. By centralizing this functionality, components can easily respond to file changes without managing watcher lifecycles themselves.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:53:12.517Z"
+  }
+}

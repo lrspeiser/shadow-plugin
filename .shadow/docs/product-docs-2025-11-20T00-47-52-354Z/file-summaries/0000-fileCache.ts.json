@@ -1,0 +1,80 @@
+{
+  "file": "src/infrastructure/fileSystem/fileCache.ts",
+  "role": "Core Logic",
+  "purpose": "Optimizes file system operations by caching file contents to reduce redundant reads across multiple components.",
+  "userVisibleActions": [
+    "Files load faster when accessed multiple times within a short period",
+    "Changes to files are automatically detected and reflected immediately",
+    "Memory usage is kept under control through automatic cache cleanup"
+  ],
+  "developerVisibleActions": [
+    "Retrieve file content through cache with automatic fallback to disk reads",
+    "Cache automatically invalidates when files change on disk",
+    "Access cache statistics to monitor performance (hits, misses, evictions)",
+    "Configure cache size limits and time-to-live (TTL) settings",
+    "Cache entries are automatically evicted using LRU policy when size limit is reached",
+    "File changes are detected via file system watcher for automatic invalidation"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getFile",
+      "desc": "Retrieves file content from cache or reads from disk if not cached or stale",
+      "inputs": "filePath: string",
+      "outputs": "Promise<string> - file content"
+    },
+    {
+      "name": "isStale",
+      "desc": "Determines if a cached file has exceeded its time-to-live threshold",
+      "inputs": "cached: CachedFile",
+      "outputs": "boolean - true if expired"
+    },
+    {
+      "name": "getFileHash",
+      "desc": "Computes hash of file to detect content changes",
+      "inputs": "filePath: string",
+      "outputs": "Promise<string> - file hash"
+    },
+    {
+      "name": "evictIfNeeded",
+      "desc": "Removes least recently used cache entries when size limit is exceeded",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "setupWatcher",
+      "desc": "Configures file system watcher to automatically invalidate cache on file changes",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "invalidate",
+      "desc": "Removes specific file from cache when it changes",
+      "inputs": "filePath: string",
+      "outputs": "void"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all entries from cache",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getStats",
+      "desc": "Returns cache performance metrics",
+      "inputs": "none",
+      "outputs": "CacheStats - hits, misses, evictions, size"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path"
+  ],
+  "intent": "This file exists to improve extension performance by preventing redundant file system reads. It solves the problem of multiple components requesting the same file content repeatedly, which would slow down operations. The cache intelligently manages memory by evicting old entries and automatically detects file changes to ensure data stays fresh.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Optimizes file system operations by caching file contents to reduce redundant reads across multiple components.\",\n  \"userVisibleActions\": [\n    \"Files load faster when accessed multiple times within a short period\",\n    \"Changes to files are automatically detected and reflected immediately\",\n    \"Memory usage is kept under control through automatic cache cleanup\"\n  ],\n  \"developerVisibleActions\": [\n    \"Retrieve file content through cache with automatic fallback to disk reads\",\n    \"Cache automatically invalidates when files change on disk\",\n    \"Access cache statistics to monitor performance (hits, misses, evictions)\",\n    \"Configure cache size limits and time-to-live (TTL) settings\",\n    \"Cache entries are automatically evicted using LRU policy when size limit is reached\",\n    \"File changes are detected via file system watcher for automatic invalidation\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getFile\",\n      \"desc\": \"Retrieves file content from cache or reads from disk if not cached or stale\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"Promise<string> - file content\"\n    },\n    {\n      \"name\": \"isStale\",\n      \"desc\": \"Determines if a cached file has exceeded its time-to-live threshold\",\n      \"inputs\": \"cached: CachedFile\",\n      \"outputs\": \"boolean - true if expired\"\n    },\n    {\n      \"name\": \"getFileHash\",\n      \"desc\": \"Computes hash of file to detect content changes\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"Promise<string> - file hash\"\n    },\n    {\n      \"name\": \"evictIfNeeded\",\n      \"desc\": \"Removes least recently used cache entries when size limit is exceeded\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setupWatcher\",\n      \"desc\": \"Configures file system watcher to automatically invalidate cache on file changes\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"invalidate\",\n      \"desc\": \"Removes specific file from cache when it changes\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all entries from cache\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getStats\",\n      \"desc\": \"Returns cache performance metrics\",\n      \"inputs\": \"none\",\n      \"outputs\": \"CacheStats - hits, misses, evictions, size\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to improve extension performance by preventing redundant file system reads. It solves the problem of multiple components requesting the same file content repeatedly, which would slow down operations. The cache intelligently manages memory by evicting old entries and automatically detects file changes to ensure data stays fresh.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T00:56:09.860Z"
+  }
+}

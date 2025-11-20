@@ -240,37 +240,6 @@ export class AnalysisResultRepository {
         }
     }
 
-    /**
-     * Save incremental product doc iteration
-     */
-    saveIncrementalProductDocIteration(
-        productDoc: any,
-        workspaceRoot: string,
-        iteration: number,
-        maxIterations: number
-    ): void {
-        try {
-            const runDir = this.initializeProductDocsRun(workspaceRoot);
-            const iterationPath = path.join(runDir, `product-doc-iteration-${iteration}.json`);
-            
-            const docWithMetadata = {
-                ...productDoc,
-                _metadata: {
-                    iteration,
-                    maxIterations,
-                    savedAt: new Date().toISOString()
-                }
-            };
-            fs.writeFileSync(iterationPath, JSON.stringify(docWithMetadata, null, 2), 'utf-8');
-            
-            // Also save as markdown
-            const markdownPath = path.join(runDir, `product-doc-iteration-${iteration}.md`);
-            const markdown = this.formatter.formatEnhancedDocsAsMarkdown(productDoc);
-            fs.writeFileSync(markdownPath, markdown, 'utf-8');
-        } catch (error) {
-            console.error('Failed to save incremental product doc iteration:', error);
-        }
-    }
 
     /**
      * Save final enhanced product docs
@@ -321,68 +290,7 @@ export class AnalysisResultRepository {
         }
     }
 
-    /**
-     * Save incremental product purpose analysis
-     */
-    saveIncrementalProductPurposeAnalysis(
-        productPurpose: any,
-        workspaceRoot: string
-    ): void {
-        const runDir = this.initializeArchitectureInsightsRun(workspaceRoot);
-        const storage = createTimestampedStorage<any>(runDir, 'product-purpose-analysis');
-        storage.saveSync(productPurpose);
-    }
 
-    /**
-     * Save incremental architecture insights iteration
-     */
-    saveIncrementalArchitectureInsightsIteration(
-        insights: any,
-        workspaceRoot: string,
-        iteration: number,
-        maxIterations: number
-    ): void {
-        try {
-            const runDir = this.initializeArchitectureInsightsRun(workspaceRoot);
-            const iterationPath = path.join(runDir, `architecture-insights-iteration-${iteration}.json`);
-            
-            console.log('[AnalysisResultRepository] Saving architecture insights iteration', iteration, 'to:', iterationPath);
-            console.log('[AnalysisResultRepository] Insights data being saved:', {
-                hasOverall: !!insights.overallAssessment,
-                strengthsCount: insights.strengths?.length || 0,
-                issuesCount: insights.issues?.length || 0,
-                recommendationsCount: insights.recommendations?.length || 0,
-                prioritiesCount: insights.priorities?.length || 0,
-                hasOrganization: !!insights.organization,
-                hasEntryPointsAnalysis: !!insights.entryPointsAnalysis,
-                hasOrphanedFilesAnalysis: !!insights.orphanedFilesAnalysis,
-                hasFolderReorganization: !!insights.folderReorganization,
-                hasCursorPrompt: !!insights.cursorPrompt,
-                hasProductPurposeAnalysis: !!insights.productPurposeAnalysis,
-                keys: Object.keys(insights)
-            });
-            
-            const insightsWithMetadata = {
-                ...insights,
-                _metadata: {
-                    iteration,
-                    maxIterations,
-                    savedAt: new Date().toISOString()
-                }
-            };
-            fs.writeFileSync(iterationPath, JSON.stringify(insightsWithMetadata, null, 2), 'utf-8');
-            console.log('[AnalysisResultRepository] Successfully saved iteration file, size:', fs.statSync(iterationPath).size, 'bytes');
-            
-            // Also save as markdown
-            const markdownPath = path.join(runDir, `architecture-insights-iteration-${iteration}.md`);
-            const markdown = this.formatter.formatInsightsAsMarkdown(insights);
-            fs.writeFileSync(markdownPath, markdown, 'utf-8');
-            console.log('[AnalysisResultRepository] Successfully saved markdown file');
-        } catch (error) {
-            console.error('[AnalysisResultRepository] Failed to save incremental architecture insights iteration:', error);
-            console.error('[AnalysisResultRepository] Error details:', error instanceof Error ? error.stack : error);
-        }
-    }
 
     /**
      * Save final architecture insights
