@@ -1555,8 +1555,20 @@ Please proceed with reorganization, moving one file at a time.
         const prompt = this.buildUnitTestPlanPrompt(context, codeAnalysis, productDocs, architectureInsights);
         
         const providerName = isClaude ? 'Claude' : 'OpenAI';
+        // Rough token estimate: 1 token ≈ 4 characters for English text
+        const estimatedTokens = Math.ceil(prompt.length / 4);
+        const maxTokens = 200000;
+        
         console.log(`[Unit Test Plan] Using ${providerName} provider`);
-        console.log('Unit test prompt length:', prompt.length);
+        console.log(`[Unit Test Plan] Prompt size: ${prompt.length} chars (~${estimatedTokens} tokens)`);
+        
+        if (estimatedTokens > maxTokens) {
+            throw new Error(
+                `Prompt too large: ~${estimatedTokens} tokens (max: ${maxTokens}). ` +
+                `The synthesized documentation may be too verbose. ` +
+                `Try regenerating product docs and architecture insights with more concise summaries.`
+            );
+        }
 
         try {
             // Check for cancellation before LLM call
@@ -1899,119 +1911,65 @@ Please proceed with reorganization, moving one file at a time.
         // Detect primary language
         const primaryLanguage = this.detectPrimaryLanguage(context, codeAnalysis);
         const testingFrameworks = this.getTestingFrameworkForLanguage(primaryLanguage);
-        let prompt = `You are an expert test architect. Generate a comprehensive unit test plan that tests ALL functions in this codebase to catch regressions.
+        let prompt = `You are an expert test architect. Generate a comprehensive unit test plan that tests critical functions in this codebase to catch regressions.
 
 ## Codebase Statistics
 - Total Files: ${context.totalFiles}
 - Total Lines: ${context.totalLines}
 - Total Functions: ${context.totalFunctions}
 - Entry Points: ${context.entryPoints.length}
-- Orphaned Files: ${context.orphanedFiles.length}
 
-## Entry Points
-${context.entryPoints.map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
-
-## All Files and Their Functions
-${codeAnalysis && codeAnalysis.files ? codeAnalysis.files
-    .sort((a, b) => b.lines - a.lines)
-    .map((f, i) => {
-        const fileFunctions = codeAnalysis.functions.filter(func => func.file === f.path);
-        const funcList = fileFunctions.length > 0 
-            ? fileFunctions.map(func => `    - ${func.name} (lines ${func.startLine}-${func.endLine}, ${func.lines} lines)`)
-            : ['    - (no functions detected)'];
-        return `${i + 1}. ${f.path} (${f.language}, ${f.lines} lines, ${f.functions} functions)\n${funcList.join('\n')}`;
-    }).join('\n\n') : context.files
-    .sort((a, b) => b.lines - a.lines)
-    .slice(0, 50)
-    .map((f, i) => `${i + 1}. ${f.path} - ${f.lines} lines, ${f.functions} functions`)
-    .join('\n')}
-
-## Function Details
-${codeAnalysis && codeAnalysis.functions ? codeAnalysis.functions
-    .slice(0, 100) // Limit to top 100 functions to avoid token limits
-    .map((f, i) => `${i + 1}. ${f.name} in ${f.file} (${f.language}, lines ${f.startLine}-${f.endLine}, ${f.lines} lines)`)
-    .join('\n') : 'No function details available'}
-
-## File Dependencies and Imports
-${codeAnalysis && codeAnalysis.imports ? Object.entries(codeAnalysis.imports)
-    .slice(0, 50) // Limit to avoid token limits
-    .map(([file, imports]) => `${file} imports: ${imports.slice(0, 10).join(', ')}${imports.length > 10 ? '...' : ''}`)
-    .join('\n') : 'No import information available'}
+## Entry Points (Critical for Testing)
+${context.entryPoints.slice(0, 10).map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
 `;
 
         if (productDocs) {
-            prompt += `\n## Product Overview
+            prompt += `\n## Product Documentation (Synthesized)
 ${productDocs.overview || 'N/A'}
 
 ## What It Does
-${productDocs.whatItDoes?.join('\n- ') || 'N/A'}
+${productDocs.whatItDoes?.slice(0, 10).join('\n- ') || 'N/A'}
 
-## Architecture Summary
+## Architecture
 ${productDocs.architecture || 'N/A'}
 
-## Key Functions and Modules
+## Key Functions
 ${productDocs.relevantFunctions && productDocs.relevantFunctions.length > 0 
-    ? productDocs.relevantFunctions.slice(0, 30).map((f: any) => 
-        `- ${f.name} (${f.file || f.module || 'unknown'}): ${f.description || 'N/A'}`
+    ? productDocs.relevantFunctions.slice(0, 15).map((f: any) => 
+        `- ${f.name}: ${f.description || 'N/A'}`
       ).join('\n')
     : 'N/A'}
 
-## Key Data Structures
-${productDocs.relevantDataStructures && productDocs.relevantDataStructures.length > 0
-    ? productDocs.relevantDataStructures.slice(0, 20).map((ds: any) =>
-        `- ${ds.name} (${ds.type || 'unknown'}): ${ds.description || 'N/A'}`
-      ).join('\n')
-    : 'N/A'}
-
-## Important Code Files
+## Key Code Files
 ${productDocs.relevantCodeFiles && productDocs.relevantCodeFiles.length > 0
-    ? productDocs.relevantCodeFiles.slice(0, 30).map((cf: any) =>
-        `- ${cf.path}: ${cf.purpose || cf.description || 'N/A'} (role: ${cf.role || 'N/A'})`
+    ? productDocs.relevantCodeFiles.slice(0, 15).map((cf: any) => 
+        `- ${cf.path}: ${cf.purpose || cf.description || 'N/A'}`
       ).join('\n')
     : 'N/A'}
 `;
         }
 
         if (architectureInsights) {
-            prompt += `\n## Architecture Insights
+            prompt += `\n## Architecture Insights (Synthesized)
 ### Overall Assessment
 ${architectureInsights.overallAssessment || 'N/A'}
 
-### Strengths
-${architectureInsights.strengths?.slice(0, 10).join('\n- ') || 'N/A'}
-
-### Critical Issues (Must Test)
-${architectureInsights.issues?.slice(0, 10).map(i => {
+### Critical Issues (Must Test These)
+${architectureInsights.issues?.slice(0, 8).map(i => {
     if (typeof i === 'string') return `- ${i}`;
-    const files = i.relevantFiles && i.relevantFiles.length > 0 ? ` (files: ${i.relevantFiles.slice(0, 3).join(', ')})` : '';
-    const funcs = i.relevantFunctions && i.relevantFunctions.length > 0 ? ` (functions: ${i.relevantFunctions.slice(0, 3).join(', ')})` : '';
-    return `- ${i.title}: ${i.description}${files}${funcs}`;
+    return `- ${i.title}: ${i.description || ''}`;
 }).join('\n') || 'N/A'}
 
-### Success/Errors Analysis (CRITICAL FOR TEST GENERATION)
-${(architectureInsights as any).successErrors || 'N/A'}
-
-**IMPORTANT**: Use the Success/Errors section above to generate comprehensive tests:
-- Test all success cases documented
-- Test all expected failures and verify proper error handling
-- Add tests for silent failure scenarios (these are critical to catch)
-- Test fallback behaviors and verify they log appropriately
-- Add logging assertions where silent failures or fallbacks are detected
-
-### Recommendations (Test These Areas)
-${architectureInsights.recommendations?.slice(0, 10).map(r => {
-    if (typeof r === 'string') return `- ${r}`;
-    const files = r.relevantFiles && r.relevantFiles.length > 0 ? ` (files: ${r.relevantFiles.slice(0, 3).join(', ')})` : '';
-    const funcs = r.relevantFunctions && r.relevantFunctions.length > 0 ? ` (functions: ${r.relevantFunctions.slice(0, 3).join(', ')})` : '';
-    return `- ${r.title}: ${r.description}${files}${funcs}`;
-}).join('\n') || 'N/A'}
-
-### High Priority Areas (Focus Testing Here)
-${architectureInsights.priorities?.slice(0, 10).map(p => {
+### High Priority Areas
+${architectureInsights.priorities?.slice(0, 8).map(p => {
     if (typeof p === 'string') return `- ${p}`;
-    const files = p.relevantFiles && p.relevantFiles.length > 0 ? ` (files: ${p.relevantFiles.slice(0, 3).join(', ')})` : '';
-    const funcs = p.relevantFunctions && p.relevantFunctions.length > 0 ? ` (functions: ${p.relevantFunctions.slice(0, 3).join(', ')})` : '';
-    return `- ${p.title}: ${p.description}${files}${funcs}`;
+    return `- ${p.title}: ${p.description || ''}`;
+}).join('\n') || 'N/A'}
+
+### Recommendations
+${architectureInsights.recommendations?.slice(0, 5).map(r => {
+    if (typeof r === 'string') return `- ${r}`;
+    return `- ${r.title}`;
 }).join('\n') || 'N/A'}
 `;
         }

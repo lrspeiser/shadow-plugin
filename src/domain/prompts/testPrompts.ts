@@ -49,22 +49,17 @@ export function buildPlanningPrompt(
     productDocs?: any,
     architectureInsights?: any
 ): string {
-    const functionList = functions.slice(0, 100).map((f, i) => 
-        `${i + 1}. ${f.name} in ${f.file} (lines ${f.startLine}-${f.endLine}, ${f.lines} lines, complexity: ${f.complexity || 'unknown'})`
-    ).join('\n');
-
-    let prompt = `You are a test strategy expert. Analyze these functions and create a prioritized test plan.
+    // Use only high-level statistics, not all function details
+    // The LLM should rely on synthesized docs to understand what to test
+    let prompt = `You are a test strategy expert. Create a prioritized test plan for this codebase.
 
 ## Codebase Statistics
 - Total Files: ${context.totalFiles}
-- Total Functions: ${context.totalFunctions}
+- Total Functions: ${context.totalFunctions} functions available
 - Entry Points: ${context.entryPoints.length}
 
-## Functions to Analyze
-${functionList}
-
 ## Entry Points (Critical for Testing)
-${context.entryPoints.map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
+${context.entryPoints.slice(0, 10).map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
 `;
 
     if (productDocs) {
