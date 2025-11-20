@@ -35,17 +35,12 @@ export interface ExtensionComponents {
     diagnosticsProvider: DiagnosticsProvider;
     cache: AnalysisCache;
     statusBarItem: vscode.StatusBarItem;
-    productNavigatorView: vscode.TreeView<ProductNavItem>;
-    analysisViewerView: vscode.TreeView<AnalysisItem>;
-    insightsViewerView: vscode.TreeView<InsightItem>;
-    staticAnalysisViewerView: vscode.TreeView<StaticAnalysisItem>;
-    unitTestsNavigatorView: vscode.TreeView<UnitTestItem>;
     reportsViewerView: vscode.TreeView<ReportTreeItem>;
+    reportsTreeProvider: ReportsTreeProvider;
+    treeView: vscode.TreeView<any>;
     analysisViewer: AnalysisViewerProvider;
     insightsViewer: InsightsViewerProvider;
     staticAnalysisViewer: StaticAnalysisViewerProvider;
-    reportsTreeProvider: ReportsTreeProvider;
-    treeView: vscode.TreeView<any>;
 }
 
 export class ExtensionBootstrapper {
@@ -116,35 +111,6 @@ export class ExtensionBootstrapper {
                 showCollapseAll: true
             });
 
-            // Register product navigator tree view
-            const productNavigatorView = vscode.window.createTreeView('shadowWatch.productNavigator', {
-                treeDataProvider: productNavigator,
-                showCollapseAll: true
-            });
-
-            // Register analysis viewer tree view
-            const analysisViewerView = vscode.window.createTreeView('shadowWatch.analysisViewer', {
-                treeDataProvider: analysisViewer,
-                showCollapseAll: true
-            });
-
-            // Register insights viewer tree view
-            const insightsViewerView = vscode.window.createTreeView('shadowWatch.insightsViewer', {
-                treeDataProvider: insightsViewer,
-                showCollapseAll: true
-            });
-
-            // Register static analysis viewer tree view
-            const staticAnalysisViewerView = vscode.window.createTreeView('shadowWatch.staticAnalysisViewer', {
-                treeDataProvider: staticAnalysisViewer,
-                showCollapseAll: true
-            });
-
-            // Register unit tests navigator tree view
-            const unitTestsNavigatorView = vscode.window.createTreeView('shadowWatch.unitTestsNavigator', {
-                treeDataProvider: unitTestsNavigator,
-                showCollapseAll: true
-            });
 
             // Register reports tree view
             const reportsViewerView = vscode.window.createTreeView('shadowWatch.reportsViewer', {
@@ -169,17 +135,12 @@ export class ExtensionBootstrapper {
                 diagnosticsProvider,
                 cache,
                 statusBarItem,
-                productNavigatorView,
-                analysisViewerView,
-                insightsViewerView,
-                staticAnalysisViewerView,
-                unitTestsNavigatorView,
                 reportsViewerView,
+                reportsTreeProvider,
+                treeView,
                 analysisViewer,
                 insightsViewer,
-                staticAnalysisViewer,
-                reportsTreeProvider,
-                treeView
+                staticAnalysisViewer
             };
         } catch (error) {
             ErrorHandler.handleSync(

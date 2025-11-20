@@ -180,26 +180,6 @@
           "name": "Menu"
         },
         {
-          "id": "shadowWatch.analysisViewer",
-          "name": "Analyze Workspace"
-        },
-        {
-          "id": "shadowWatch.productNavigator",
-          "name": "Product Navigator"
-        },
-        {
-          "id": "shadowWatch.insightsViewer",
-          "name": "AI Architecture Insights"
-        },
-        {
-          "id": "shadowWatch.unitTestsNavigator",
-          "name": "Unit Tests"
-        },
-        {
-          "id": "shadowWatch.staticAnalysisViewer",
-          "name": "Static Analysis"
-        },
-        {
           "id": "shadowWatch.reportsViewer",
           "name": "Reports"
         }

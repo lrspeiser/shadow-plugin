@@ -8,11 +8,6 @@ import { InsightsTreeProvider, TreeItem } from './insightsTreeView';
 import { DiagnosticsProvider } from './diagnosticsProvider';
 import { AnalysisCache } from './cache';
 import * as llmIntegration from './llmIntegration';
-import { ProductNavigatorProvider, ProductNavItem } from './productNavigator';
-import { AnalysisViewerProvider, AnalysisItem } from './analysisViewer';
-import { InsightsViewerProvider, InsightItem } from './insightsViewer';
-import { StaticAnalysisViewerProvider, StaticAnalysisItem } from './staticAnalysisViewer';
-import { UnitTestsNavigatorProvider, UnitTestItem } from './unitTestsNavigator';
 import { getConfigurationManager } from './config/configurationManager';
 import { ErrorHandler } from './utils/errorHandler';
 import { WebviewTemplateEngine } from './ui/webview/webviewTemplateEngine';
@@ -30,9 +25,6 @@ let treeProvider: InsightsTreeProvider;
 let diagnosticsProvider: DiagnosticsProvider;
 let cache: AnalysisCache;
 let statusBarItem: vscode.StatusBarItem;
-let analysisViewer: AnalysisViewerProvider;
-let insightsViewer: InsightsViewerProvider;
-let staticAnalysisViewer: StaticAnalysisViewerProvider;
 let navigationHandler: NavigationHandler;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -49,9 +41,6 @@ export function activate(context: vscode.ExtensionContext) {
         diagnosticsProvider = components.diagnosticsProvider;
         cache = components.cache;
         statusBarItem = components.statusBarItem;
-        analysisViewer = components.analysisViewer;
-        insightsViewer = components.insightsViewer;
-        staticAnalysisViewer = components.staticAnalysisViewer;
         
         // Initialize navigation handler
         navigationHandler = new NavigationHandler();
@@ -118,8 +107,6 @@ function createCommandHandlers(components: ExtensionComponents): CommandHandlers
         switchProvider: () => switchProvider(),
         copyMenuStructure: () => copyMenuStructure(),
         showProviderStatus: () => showProviderStatus(),
-        navigateToProductItem: (item: ProductNavItem) => navigationHandler.navigateToProductItem(item),
-        navigateToAnalysisItem: (item: AnalysisItem) => navigationHandler.navigateToAnalysisItem(item),
         copyInsightItem: (item: any) => navigationHandler.copyInsightItem(item),
         showProductItemDetails: (item: ProductNavItem) => navigationHandler.showProductItemDetails(item),
         showInsightItemDetails: (item: any) => navigationHandler.showInsightItemDetails(item),
@@ -142,26 +129,7 @@ async function analyzeWorkspace() {
         return;
     }
 
-    // Clear product navigator and insights viewer state to prevent showing stale data
     console.log('[Extension] ========== analyzeWorkspace() STARTING ==========');
-    console.log('[Extension] Clearing state before analysis...');
-    const { getStateManager } = await import('./state/llmStateManager');
-    const stateManager = getStateManager();
-    const productNavigator = stateManager.getProductNavigator();
-    if (productNavigator) {
-        console.log('[Extension] Calling productNavigator.clearState()...');
-        productNavigator.clearState();
-    } else {
-        console.log('[Extension] WARNING: productNavigator is null!');
-    }
-    const insightsViewer = stateManager.getInsightsViewer();
-    if (insightsViewer) {
-        console.log('[Extension] Calling insightsViewer.setInsights(null)...');
-        insightsViewer.setInsights(null);
-    } else {
-        console.log('[Extension] WARNING: insightsViewer is null!');
-    }
-    console.log('[Extension] State cleared, starting analysis...');
 
     statusBarItem.text = '$(sync~spin) Analyzing...';
     
@@ -188,11 +156,6 @@ async function analyzeWorkspace() {
             
             // Set analysis context for LLM features (setCodeAnalysis will also set the context)
             llmIntegration.setCodeAnalysis(analysis);
-            
-            // Update analysis viewer
-            if (analysisViewer) {
-                analysisViewer.setAnalysis(analysis);
-            }
             
             // Update diagnostics
             diagnosticsProvider.updateDiagnostics(insights);
@@ -440,11 +403,6 @@ async function clearAllData() {
         await cache.clear();
         diagnosticsProvider.clear();
         treeProvider.clear();
-        
-        // Clear static analysis viewer
-        if (staticAnalysisViewer) {
-            staticAnalysisViewer.setInsights([]);
-        }
         
         // Clear all LLM-related data (saved files, in-memory state, etc.)
         await llmIntegration.clearAllData();
