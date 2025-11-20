@@ -3011,5 +3011,177 @@ Return ONLY the Markdown report, no additional text or explanations.`;
             }
         }).join('\n');
     }
+
+    /**
+     * Generate test setup plan (Phase 1 of new test generation system)
+     */
+    public async generateTestSetupPlan(prompt: string): Promise<any> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+
+        const isClaude = provider.getName() === 'claude';
+        SWLogger.log('[LLM] Generating test setup plan...');
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+            const response = await this.retryHandler.executeWithRetry(
+                async () => {
+                    const llmResponse = await provider.sendRequest({
+                        model: this.getModelForProvider(provider.getName()),
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                    });
+                    
+                    this.rateLimiter.recordRequest(provider.getName() as any);
+                    return llmResponse;
+                }
+            );
+
+            // Parse JSON from response
+            const content = response.content || '';
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('No JSON found in response');
+        } catch (error: any) {
+            SWLogger.log(`[LLM] Error generating test setup plan: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate test strategy (Phase 2 of new test generation system)
+     */
+    public async generateTestStrategy(prompt: string): Promise<any> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+
+        const isClaude = provider.getName() === 'claude';
+        SWLogger.log('[LLM] Generating test strategy...');
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+            const response = await this.retryHandler.executeWithRetry(
+                async () => {
+                    const llmResponse = await provider.sendRequest({
+                        model: this.getModelForProvider(provider.getName()),
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                    });
+                    
+                    this.rateLimiter.recordRequest(provider.getName() as any);
+                    return llmResponse;
+                }
+            );
+
+            // Parse JSON from response
+            const content = response.content || '';
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('No JSON found in response');
+        } catch (error: any) {
+            SWLogger.log(`[LLM] Error generating test strategy: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate test for a single function (Phase 3 of new test generation system)
+     */
+    public async generateTestForFunction(prompt: string): Promise<any> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+
+        const isClaude = provider.getName() === 'claude';
+        SWLogger.log('[LLM] Generating test for function...');
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+            const response = await this.retryHandler.executeWithRetry(
+                async () => {
+                    const llmResponse = await provider.sendRequest({
+                        model: this.getModelForProvider(provider.getName()),
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                    });
+                    
+                    this.rateLimiter.recordRequest(provider.getName() as any);
+                    return llmResponse;
+                }
+            );
+
+            // Parse JSON from response
+            const content = response.content || '';
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('No JSON found in response');
+        } catch (error: any) {
+            SWLogger.log(`[LLM] Error generating test for function: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Fix failing test (Phase 4 of new test generation system)
+     */
+    public async fixFailingTest(prompt: string): Promise<any> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+
+        const isClaude = provider.getName() === 'claude';
+        SWLogger.log('[LLM] Fixing failing test...');
+
+        try {
+            await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+            const response = await this.retryHandler.executeWithRetry(
+                async () => {
+                    const llmResponse = await provider.sendRequest({
+                        model: this.getModelForProvider(provider.getName()),
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                    });
+                    
+                    this.rateLimiter.recordRequest(provider.getName() as any);
+                    return llmResponse;
+                }
+            );
+
+            // Parse JSON from response
+            const content = response.content || '';
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('No JSON found in response');
+        } catch (error: any) {
+            SWLogger.log(`[LLM] Error fixing failing test: ${error.message}`);
+            throw error;
+        }
+    }
 }
 

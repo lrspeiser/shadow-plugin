@@ -106,8 +106,31 @@ if (isClaude) {
 ## Recommended Action
 Implement Option 1 (validation & fallback) immediately to unblock users, then investigate Option 2 (fix schema/prompt) for a proper long-term solution.
 
+## Implementation Status
+
+✅ **IMPLEMENTED** - Option 1 (validation & fallback)
+
+**Changes made in `src/llmService.ts` (lines 786-821):**
+- Added detection for malformed Claude responses (array or object with numeric keys)
+- Extracts strengths data from malformed response
+- Preserves `productPurposeAnalysis` if present
+- Reconstructs minimal valid `LLMInsights` structure
+- Logs detailed error information for debugging
+- Ensures markdown formatter always receives valid structure
+
+**Result:**
+- Architecture insights reports will now generate with at least the strengths section populated
+- Users get partial insights instead of empty reports
+- Clear error logging helps identify when Claude returns malformed responses
+
+**Next Steps:**
+- Monitor logs to see frequency of malformed responses
+- Investigate Option 2 (fix schema/prompt) if issue persists
+- Consider Option 3 (switch to text parsing) if structured output remains unreliable
+
 ## Testing
 After fix, verify:
-1. Architecture insights JSON has proper object structure
-2. Markdown file contains all sections (assessment, strengths, issues, etc.)
+1. Architecture insights JSON has proper object structure (or reconstructed structure)
+2. Markdown file contains at least header + strengths section
 3. Both Claude and OpenAI providers generate valid insights
+4. Console logs show validation warnings when Claude returns malformed data

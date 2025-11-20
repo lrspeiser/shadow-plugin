@@ -1432,6 +1432,13 @@ async function writeTestFilesFromPlan(
     return writtenFiles;
 }
 
+/**
+ * New 4-phase LLM-based test generation system
+ * Phase 1: Setup - Detect environment and configure test framework
+ * Phase 2: Planning - Analyze functions and create prioritized test plan
+ * Phase 3: Generation - Generate tests incrementally in small batches
+ * Phase 4: Validation - Run tests and auto-fix failures with LLM
+ */
 export async function generateUnitTests(): Promise<void> {
     const llmService = stateManager.getLLMService();
     const treeProvider = stateManager.getTreeProvider();
@@ -1477,7 +1484,7 @@ export async function generateUnitTests(): Promise<void> {
 
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
-    // Load product docs and architecture insights from local files
+    // Load product docs and architecture insights
     let lastEnhancedProductDocs = stateManager.getEnhancedProductDocs();
     if (!lastEnhancedProductDocs) {
         await loadSavedProductDocs();
@@ -1489,170 +1496,185 @@ export async function generateUnitTests(): Promise<void> {
         lastLLMInsights = stateManager.getLLMInsights();
     }
 
-    SWLogger.section('Generate Unit Tests');
+    SWLogger.section('Generate Unit Tests (4-Phase System)');
     SWLogger.log(`Workspace: ${workspaceRoot}`);
 
-    // Update UI to show generating status
+    // Update UI
     if (treeProvider) {
         treeProvider.setUnitTestStatus('generating');
     }
-    SWLogger.section('Generate Unit Tests');
-    SWLogger.log('Status: generating');
 
     const { progressService } = await import('./infrastructure/progressService');
     
-    await progressService.withProgress('Generating Unit Test Plan with AI...', async (reporter) => {
+    // Import new test services
+    const { LLMTestSetupService } = await import('./domain/services/testing/llmTestSetupService');
+    const { LLMTestPlanningService } = await import('./domain/services/testing/llmTestPlanningService');
+    const { LLMTestGenerationService } = await import('./domain/services/testing/llmTestGenerationService');
+    const { LLMTestValidationService } = await import('./domain/services/testing/llmTestValidationService');
+    
+    await progressService.withProgress('Generating Unit Tests with AI (4-Phase System)...', async (reporter) => {
         try {
-            // Check for cancellation
-            if (reporter.cancellationToken?.isCancellationRequested) {
-                throw new Error('Cancelled by user');
-            }
-
-            reporter.report('Generating unit test plan...');
+            // PHASE 1: TEST SETUP
+            reporter.report('Phase 1/4: Detecting test environment...');
+            SWLogger.log('[Phase 1] Detecting test environment...');
             
-            // Check for cancellation before LLM call
-            if (reporter.cancellationToken?.isCancellationRequested) {
-                throw new Error('Cancelled by user');
-            }
-
-            // Generate unit test plan using LLM service
-            const lastCodeAnalysis = stateManager.getCodeAnalysis();
-            const unitTestPlan = await llmService.generateUnitTestPlan(
-                lastAnalysisContext!,
-                lastCodeAnalysis || undefined,
-                lastEnhancedProductDocs || undefined,
-                lastLLMInsights || undefined,
-                workspaceRoot,
-                reporter.cancellationToken
-            );
-
-            // Check for cancellation before saving
-            if (reporter.cancellationToken?.isCancellationRequested) {
-                throw new Error('Cancelled by user');
-            }
-
-            // Save unit test plan
-            reporter.report('Saving unit test plan...');
-            const unitTestDir = path.join(workspaceRoot, 'UnitTests');
-            if (!fs.existsSync(unitTestDir)) {
-                fs.mkdirSync(unitTestDir, { recursive: true });
-            }
-
-            // Helper function to strip HTML and markdown from test_code
-            function stripHtmlAndMarkdown(text: string): string {
-                if (!text) return text;
-                let cleaned = text;
-                // Remove markdown code blocks (```language ... ```)
-                cleaned = cleaned.replace(/```[\w]*\n?/g, '');
-                cleaned = cleaned.replace(/```/g, '');
-                // Remove HTML tags
-                cleaned = cleaned.replace(/<[^>]*>/g, '');
-                // Decode HTML entities
-                cleaned = cleaned.replace(/&lt;/g, '<');
-                cleaned = cleaned.replace(/&gt;/g, '>');
-                cleaned = cleaned.replace(/&amp;/g, '&');
-                cleaned = cleaned.replace(/&quot;/g, '"');
-                cleaned = cleaned.replace(/&#39;/g, "'");
-                // Trim whitespace
-                return cleaned.trim();
-            }
-
-            // Clean test_code in all test cases
-            const cleanedTestSuites = (unitTestPlan.test_suites || []).map((suite: any) => ({
-                ...suite,
-                test_cases: (suite.test_cases || []).map((testCase: any) => ({
-                    ...testCase,
-                    test_code: testCase.test_code ? stripHtmlAndMarkdown(testCase.test_code) : testCase.test_code
-                }))
-            }));
-
-            // Transform LLM response to match navigator's expected structure
-            const transformedPlan = {
-                rationale: unitTestPlan.rationale,
-                aggregated_plan: {
-                    unit_test_plan: unitTestPlan.unit_test_strategy ? {
-                        strategy: unitTestPlan.unit_test_strategy.overall_approach,
-                        testing_framework: Array.isArray(unitTestPlan.unit_test_strategy.testing_frameworks) 
-                            ? unitTestPlan.unit_test_strategy.testing_frameworks[0] 
-                            : unitTestPlan.unit_test_strategy.testing_frameworks,
-                        mocking_approach: unitTestPlan.unit_test_strategy.mocking_strategy,
-                        isolation_strategy: unitTestPlan.unit_test_strategy.isolation_level
-                    } : undefined,
-                    test_suites: cleanedTestSuites,
-                    read_write_test_suites: [],
-                    user_workflow_test_suites: []
-                }
-            };
-
-            const planFile = path.join(unitTestDir, 'unit_test_plan.json');
-            fs.writeFileSync(planFile, JSON.stringify(transformedPlan, null, 2), 'utf-8');
-
-            SWLogger.log(`Unit test plan saved to: ${planFile}`);
+            const testEnv = LLMTestSetupService.detectTestEnvironment(workspaceRoot);
+            SWLogger.log(`[Phase 1] Language: ${testEnv.primaryLanguage}, Framework: ${testEnv.existingTestFramework || 'none'}`);
             
-            // Auto-detect and setup test configuration before writing tests
-            reporter.report('Checking test configuration...');
-            const { TestConfigurationService } = await import('./domain/services/testConfigurationService');
-            const configStatus = TestConfigurationService.detectTestConfiguration(workspaceRoot);
-            
-            if (configStatus.setupRequired) {
-                reporter.report('Setting up test configuration...');
-                const framework = configStatus.framework === 'unknown' || configStatus.framework === 'pytest' 
-                    ? 'jest' 
-                    : configStatus.framework;
-                const setupResult = await TestConfigurationService.setupTestConfiguration(
-                    workspaceRoot,
-                    framework
+            // Check if setup is needed
+            if (!testEnv.hasJestConfig || testEnv.missingDependencies.length > 0) {
+                reporter.report('Phase 1/4: Generating test setup plan...');
+                const setupPlan = await LLMTestSetupService.generateSetupPlan(workspaceRoot, llmService);
+                
+                // Ask user for confirmation
+                const setupConfirm = await vscode.window.showInformationMessage(
+                    `Setup test environment? Will install ${setupPlan.dependencies.length} dependencies and create ${setupPlan.config_files.length} config files.`,
+                    'Yes', 'Skip'
                 );
                 
-                if (setupResult.success) {
-                    SWLogger.log(`Test configuration setup: ${setupResult.message}`);
-                    if (setupResult.filesCreated.length > 0) {
-                        vscode.window.showInformationMessage(
-                            `✅ Auto-configured test setup. Created: ${setupResult.filesCreated.join(', ')}`
-                        );
-                    }
-                } else {
-                    SWLogger.log(`Warning: ${setupResult.message}`);
-                    const instructions = TestConfigurationService.generateSetupInstructions(configStatus);
-                    if (instructions) {
-                        SWLogger.log(`Setup instructions:\n${instructions}`);
+                if (setupConfirm === 'Yes') {
+                    reporter.report('Phase 1/4: Setting up test environment...');
+                    const setupResult = await LLMTestSetupService.executeSetup(workspaceRoot, setupPlan);
+                    
+                    if (setupResult.success) {
+                        SWLogger.log(`[Phase 1] Setup complete: ${setupResult.filesCreated.length} files created`);
+                    } else {
+                        throw new Error(`Setup failed: ${setupResult.message}`);
                     }
                 }
             } else {
-                SWLogger.log('Test configuration already present, skipping auto-setup');
+                SWLogger.log('[Phase 1] Test environment already configured');
             }
             
-            // Extract and write actual test files from the plan
-            reporter.report('Writing test files...');
-            const testFilesWritten = await writeTestFilesFromPlan(transformedPlan, workspaceRoot);
-            SWLogger.log(`Written ${testFilesWritten.length} test file(s): ${testFilesWritten.join(', ')}`);
+            // PHASE 2: TEST PLANNING
+            reporter.report('Phase 2/4: Creating test plan...');
+            SWLogger.log('[Phase 2] Analyzing functions and creating test plan...');
             
-            // Refresh the unit tests navigator to show the new plan
-            const unitTestsNavigator = stateManager.getUnitTestsNavigator();
-            if (unitTestsNavigator) {
-                // Load the plan directly into the navigator
-                try {
-                    const content = fs.readFileSync(planFile, 'utf-8');
-                    const plan = JSON.parse(content);
-                    unitTestsNavigator.setUnitTestPlan(plan);
-                } catch (error) {
-                    console.error('Error loading unit test plan into navigator:', error);
-                    // Fall back to file watcher refresh
-                    unitTestsNavigator.refresh();
+            const lastCodeAnalysis = stateManager.getCodeAnalysis();
+            const functions = LLMTestPlanningService.analyzeFunctions(lastCodeAnalysis);
+            
+            if (functions.length === 0) {
+                throw new Error('No functions found to test. Please run workspace analysis first.');
+            }
+            
+            const testPlan = await LLMTestPlanningService.createTestPlan(
+                lastAnalysisContext,
+                functions,
+                llmService,
+                lastEnhancedProductDocs,
+                lastLLMInsights
+            );
+            
+            await LLMTestPlanningService.saveTestPlan(workspaceRoot, testPlan);
+            SWLogger.log(`[Phase 2] Test plan created with ${testPlan.testable_functions} testable functions in ${testPlan.function_groups.length} groups`);
+            
+            // PHASE 3: TEST GENERATION
+            reporter.report('Phase 3/4: Generating tests...');
+            SWLogger.log('[Phase 3] Generating tests incrementally...');
+            
+            const prioritizedFunctions = LLMTestPlanningService.getPrioritizedFunctions(testPlan);
+            const batchSize = 5; // Generate 5 tests at a time
+            const maxFunctions = Math.min(30, prioritizedFunctions.length); // Limit to 30 for first run
+            const functionsToTest = prioritizedFunctions.slice(0, maxFunctions);
+            
+            SWLogger.log(`[Phase 3] Will generate tests for ${functionsToTest.length} functions`);
+            
+            let generatedCount = 0;
+            const testFiles: string[] = [];
+            
+            // Process in batches
+            for (let i = 0; i < functionsToTest.length; i += batchSize) {
+                const batch = functionsToTest.slice(i, Math.min(i + batchSize, functionsToTest.length));
+                
+                reporter.report(`Phase 3/4: Generating tests (${generatedCount}/${functionsToTest.length})...`);
+                
+                const testResults = await LLMTestGenerationService.generateTestBatch(
+                    batch,
+                    workspaceRoot,
+                    llmService,
+                    (current, total, funcName) => {
+                        SWLogger.log(`[Phase 3] Generated test ${current}/${total}: ${funcName}`);
+                    }
+                );
+                
+                // Write test files
+                for (const [funcName, testResult] of testResults.entries()) {
+                    const testFilePath = await LLMTestGenerationService.writeTestFile(testResult, workspaceRoot);
+                    testFiles.push(testFilePath);
+                    
+                    // Validate syntax
+                    const syntaxCheck = await LLMTestGenerationService.validateSyntax(testFilePath, workspaceRoot);
+                    if (!syntaxCheck.valid) {
+                        SWLogger.log(`[Phase 3] Syntax error in ${testFilePath}, attempting fix...`);
+                        const fixResult = await LLMTestGenerationService.fixSyntaxError(
+                            testFilePath,
+                            syntaxCheck.error || 'Unknown syntax error',
+                            workspaceRoot,
+                            llmService
+                        );
+                        if (fixResult.success) {
+                            SWLogger.log(`[Phase 3] Fixed syntax error in ${testFilePath}`);
+                        }
+                    }
+                    
+                    generatedCount++;
                 }
             }
             
-            const message = testFilesWritten.length > 0
-                ? `✅ Unit test plan generated and ${testFilesWritten.length} test file(s) written! Check the "Unit Tests" panel.`
-                : '✅ Unit test plan generated! Check the "Unit Tests" panel to view it.';
-            vscode.window.showInformationMessage(message);
+            SWLogger.log(`[Phase 3] Generated ${testFiles.length} test files`);
             
-            // Reset status to complete on success
+            // PHASE 4: TEST VALIDATION
+            reporter.report('Phase 4/4: Running tests and validating...');
+            SWLogger.log('[Phase 4] Running all generated tests...');
+            
+            const testResults = await LLMTestValidationService.runTests(workspaceRoot);
+            
+            // Auto-fix failing tests (up to 3 attempts each)
+            const failingTests = testResults.filter(r => r.status !== 'pass');
+            if (failingTests.length > 0) {
+                SWLogger.log(`[Phase 4] Found ${failingTests.length} failing tests, attempting fixes...`);
+                
+                for (const failedTest of failingTests.slice(0, 5)) { // Limit to 5 fixes for time
+                    reporter.report(`Phase 4/4: Fixing ${failedTest.test_file}...`);
+                    const fixResult = await LLMTestValidationService.fixFailingTest(
+                        failedTest.test_file,
+                        failedTest,
+                        workspaceRoot,
+                        llmService,
+                        3 // Max 3 attempts
+                    );
+                    
+                    if (fixResult.success) {
+                        SWLogger.log(`[Phase 4] Fixed ${failedTest.test_file} in ${fixResult.attempts} attempt(s)`);
+                    } else {
+                        SWLogger.log(`[Phase 4] Could not fix ${failedTest.test_file}: ${fixResult.finalError}`);
+                    }
+                }
+                
+                // Re-run tests after fixes
+                const finalResults = await LLMTestValidationService.runTests(workspaceRoot);
+                await LLMTestValidationService.generateTestReport(workspaceRoot, finalResults);
+            } else {
+                await LLMTestValidationService.generateTestReport(workspaceRoot, testResults);
+            }
+            
+            // Show summary
+            const totalTests = testResults.reduce((sum, r) => sum + r.passed + r.failed, 0);
+            const passed = testResults.reduce((sum, r) => sum + r.passed, 0);
+            const passRate = totalTests > 0 ? Math.round((passed / totalTests) * 100) : 0;
+            
+            vscode.window.showInformationMessage(
+                `✅ Test generation complete! Generated ${testFiles.length} test files. ` +
+                `Tests: ${passed}/${totalTests} passing (${passRate}%). Check Output for details.`
+            );
+            
+            SWLogger.log(`[Complete] ${testFiles.length} test files, ${passed}/${totalTests} tests passing (${passRate}%)`);
+            
             if (treeProvider) {
                 treeProvider.setUnitTestStatus('complete');
             }
+            
         } catch (error: any) {
-            // Reset status to idle on error
             if (treeProvider) {
                 treeProvider.setUnitTestStatus('idle');
             }
