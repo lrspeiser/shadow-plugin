@@ -3093,18 +3093,40 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                 throw new Error('LLM returned empty response');
             }
             
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
+            // Prefer <json>...</json> block
+            let jsonText: string | null = null;
+            const tagMatch = content.match(/<json>([\s\S]*?)<\/json>/i);
+            if (tagMatch) {
+                jsonText = tagMatch[1].trim();
+            }
+            
+            // Fallback: ```json ... ``` fenced block
+            if (!jsonText) {
+                const fenceMatch = content.match(/```json\s*([\s\S]*?)```/i);
+                if (fenceMatch) {
+                    jsonText = fenceMatch[1].trim();
+                }
+            }
+            
+            // Fallback: whole content if it looks like JSON
+            if (!jsonText) {
+                const trimmed = content.trim();
+                if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                    jsonText = trimmed;
+                }
+            }
+            
+            if (!jsonText) {
                 SWLogger.log(`[LLM] No JSON found in response. Content: ${content.substring(0, 200)}...`);
                 throw new Error('No JSON found in response');
             }
             
             try {
-                const parsed = JSON.parse(jsonMatch[0]);
+                const parsed = JSON.parse(jsonText);
                 return parsed;
             } catch (parseError: any) {
                 SWLogger.log(`[LLM] JSON parse error: ${parseError.message}`);
-                SWLogger.log(`[LLM] Attempted to parse: ${jsonMatch[0].substring(0, 500)}...`);
+                SWLogger.log(`[LLM] Attempted to parse: ${jsonText.substring(0, 500)}...`);
                 throw new Error(`Invalid JSON in response: ${parseError.message}`);
             }
         } catch (error: any) {
@@ -3150,18 +3172,40 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                 throw new Error('LLM returned empty response');
             }
             
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
+            // Prefer <json>...</json> block
+            let jsonText: string | null = null;
+            const tagMatch = content.match(/<json>([\s\S]*?)<\/json>/i);
+            if (tagMatch) {
+                jsonText = tagMatch[1].trim();
+            }
+            
+            // Fallback: ```json ... ``` fenced block
+            if (!jsonText) {
+                const fenceMatch = content.match(/```json\s*([\s\S]*?)```/i);
+                if (fenceMatch) {
+                    jsonText = fenceMatch[1].trim();
+                }
+            }
+            
+            // Fallback: whole content if it looks like JSON
+            if (!jsonText) {
+                const trimmed = content.trim();
+                if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                    jsonText = trimmed;
+                }
+            }
+            
+            if (!jsonText) {
                 SWLogger.log(`[LLM] No JSON found in response. Content: ${content.substring(0, 200)}...`);
                 throw new Error('No JSON found in response');
             }
             
             try {
-                const parsed = JSON.parse(jsonMatch[0]);
+                const parsed = JSON.parse(jsonText);
                 return parsed;
             } catch (parseError: any) {
                 SWLogger.log(`[LLM] JSON parse error: ${parseError.message}`);
-                SWLogger.log(`[LLM] Attempted to parse: ${jsonMatch[0].substring(0, 500)}...`);
+                SWLogger.log(`[LLM] Attempted to parse: ${jsonText.substring(0, 500)}...`);
                 throw new Error(`Invalid JSON in response: ${parseError.message}`);
             }
         } catch (error: any) {

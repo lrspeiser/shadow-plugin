@@ -157,16 +157,13 @@ Generate a complete ${testingFramework} test that:
 4. Uses proper assertions
 5. Is syntactically valid and ready to run
 
-**IMPORTANT:**
-- Write COMPLETE, RUNNABLE test code
-- Include proper imports for the function being tested
-- Include mock setup if mocking_needed is true
-- Test at least 3 scenarios
-- Use descriptive test names
-- NO markdown formatting - just raw TypeScript code
+IMPORTANT OUTPUT RULES:
+- Return ONLY JSON wrapped between <json> and </json> tags.
+- Do NOT include code fences, prose, or any content outside the <json>...</json> block.
+- The JSON must be valid and parseable with JSON.parse (all keys quoted).
 
-Return your response in this JSON format:
-{
+Expected JSON shape:
+<json>{
   "test_file_path": "${func.file.replace(/\\.ts$/, '.test.ts')}",
   "imports": [
     "import { ${func.name} } from '../${func.file.replace('src/', '')}';",
@@ -179,7 +176,7 @@ Return your response in this JSON format:
     }
   ],
   "test_code": "describe('${func.name}', () => {\\n  test('should handle valid input', () => {\\n    // test implementation\\n  });\\n});"
-}`;
+}</json>`;
 }
 
 export function buildFixPrompt(
@@ -212,11 +209,16 @@ Analyze the error and fix the test code. Common issues:
 - Incorrect assertions
 - Type mismatches
 
-Return your response in this JSON format:
-{
+IMPORTANT OUTPUT RULES:
+- Return ONLY JSON wrapped between <json> and </json> tags.
+- Do NOT include code fences, prose, or any content outside the <json>...</json> block.
+- The JSON must be valid and parseable with JSON.parse (all keys quoted).
+
+Expected JSON shape:
+<json>{
   "status": "pass|fail|error",
   "fixed_code": "Complete fixed test code here",
   "explanation": "Explanation of what was wrong and how you fixed it",
   "remaining_issues": ["Any issues that couldn't be fixed automatically"]
-}`;
+}</json>`;
 }
