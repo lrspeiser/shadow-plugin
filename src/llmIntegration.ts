@@ -1919,11 +1919,56 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                 treeProvider.setReportPath(reportPath);
             }
 
+            // Generate additional reports (workspace, product, architecture)
+            // These use the same data we just generated
+            SWLogger.log('Generating workspace report...');
+            reporter.report('Generating workspace report...', 0);
+            const workspaceReport = await llmService.generateWorkspaceReport(
+                lastAnalysisContext,
+                lastCodeAnalysis || undefined,
+                reporter.cancellationToken
+            );
+            const workspaceReportPath = path.join(docsDir, `workspace-report-${timestamp}.md`);
+            fs.writeFileSync(workspaceReportPath, workspaceReport, 'utf-8');
+            if (treeProvider) {
+                treeProvider.setWorkspaceReportPath(workspaceReportPath);
+            }
+            SWLogger.log(`Workspace report saved to: ${workspaceReportPath}`);
+
+            SWLogger.log('Generating product report...');
+            reporter.report('Generating product report...', 0);
+            const productReport = await llmService.generateProductReport(
+                lastEnhancedProductDocs!,
+                lastAnalysisContext || undefined,
+                reporter.cancellationToken
+            );
+            const productReportPath = path.join(docsDir, `product-report-${timestamp}.md`);
+            fs.writeFileSync(productReportPath, productReport, 'utf-8');
+            if (treeProvider) {
+                treeProvider.setProductReportPath(productReportPath);
+            }
+            SWLogger.log(`Product report saved to: ${productReportPath}`);
+
+            SWLogger.log('Generating architecture report...');
+            reporter.report('Generating architecture report...', 0);
+            const architectureReport = await llmService.generateArchitectureReport(
+                lastLLMInsights!,
+                lastAnalysisContext || undefined,
+                lastCodeAnalysis || undefined,
+                reporter.cancellationToken
+            );
+            const architectureReportPath = path.join(docsDir, `architecture-report-${timestamp}.md`);
+            fs.writeFileSync(architectureReportPath, architectureReport, 'utf-8');
+            if (treeProvider) {
+                treeProvider.setArchitectureReportPath(architectureReportPath);
+            }
+            SWLogger.log(`Architecture report saved to: ${architectureReportPath}`);
+
             // Update Reports viewer (both webview and tree view)
             await refreshReportsViewer();
 
             vscode.window.showInformationMessage(
-                `✅ Comprehensive analysis complete! Refactoring report generated. View it in the Reports pane.`
+                `✅ Comprehensive analysis complete! All reports generated. View them in the Reports pane.`
             );
 
         } catch (error: any) {
