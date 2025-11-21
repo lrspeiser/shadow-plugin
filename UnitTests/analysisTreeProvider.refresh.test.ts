@@ -4,11 +4,6 @@ import * as vscode from 'vscode';
 // Mocks
 jest.mock('vscode');
 
-import { EventEmitter } from 'vscode';
-import * as vscode from 'vscode';
-
-jest.mock('vscode');
-
 class MockAnalysisTreeProvider {
   private _onDidChangeTreeData: EventEmitter<any | undefined | null | void>;
   readonly onDidChangeTreeData: any;

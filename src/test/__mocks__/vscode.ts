@@ -13,6 +13,29 @@ const createMockFn = () => {
   return fn;
 };
 
+// EventEmitter mock
+export class EventEmitter<T> {
+  private listeners: ((e: T) => any)[] = [];
+  
+  event = (listener: (e: T) => any) => {
+    this.listeners.push(listener);
+    return { dispose: () => {
+      const index = this.listeners.indexOf(listener);
+      if (index > -1) {
+        this.listeners.splice(index, 1);
+      }
+    } };
+  };
+  
+  fire(data: T): void {
+    this.listeners.forEach(listener => listener(data));
+  }
+  
+  dispose(): void {
+    this.listeners = [];
+  }
+}
+
 export const window = {
   showInformationMessage: createMockFn(),
   showErrorMessage: createMockFn(),
@@ -114,3 +137,33 @@ export const ProgressLocation = {
   Window: 10,
   Notification: 15
 };
+
+export class TreeItem {
+  label: string | any;
+  collapsibleState?: TreeItemCollapsibleState;
+  command?: any;
+  contextValue?: string;
+  description?: string;
+  iconPath?: any;
+  tooltip?: string;
+  
+  constructor(
+    label: string | any,
+    collapsibleState?: TreeItemCollapsibleState
+  ) {
+    this.label = label;
+    this.collapsibleState = collapsibleState;
+  }
+}
+
+export class Disposable {
+  constructor(private callOnDispose: () => void) {}
+  dispose() {
+    this.callOnDispose();
+  }
+  static from(...disposables: { dispose(): any }[]): Disposable {
+    return new Disposable(() => {
+      disposables.forEach(d => d.dispose());
+    });
+  }
+}

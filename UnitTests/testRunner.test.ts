@@ -5,12 +5,6 @@ import { EventEmitter } from 'events';
 // Mocks
 jest.mock('child_process');
 
-import { executeTestBatch } from '../testRunner';
-import { spawn } from 'child_process';
-import { EventEmitter } from 'events';
-
-jest.mock('child_process');
-
 const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
 
 describe('executeTestBatch', () => {

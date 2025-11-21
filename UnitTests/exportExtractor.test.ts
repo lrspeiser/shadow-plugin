@@ -4,11 +4,6 @@ import * as astParser from '../astParser';
 // Mocks
 jest.mock('../astParser');
 
-import { extractExports } from '../exportExtractor';
-import * as astParser from '../astParser';
-
-jest.mock('../astParser');
-
 const mockAstParser = astParser as jest.Mocked<typeof astParser>;
 
 describe('extractExports', () => {

@@ -7,17 +7,6 @@ jest.mock('../../ai/aiClient');
 jest.mock('../../analysis/errorAnalyzer');
 jest.mock('../../utils/testCode');
 
-import { fixFailingTests } from '../testFixer';
-import * as vscode from 'vscode';
-import { aiClient } from '../../ai/aiClient';
-import { errorAnalyzer } from '../../analysis/errorAnalyzer';
-import { testCode } from '../../utils/testCode';
-
-jest.mock('vscode');
-jest.mock('../../ai/aiClient');
-jest.mock('../../analysis/errorAnalyzer');
-jest.mock('../../utils/testCode');
-
 describe('fixFailingTests', () => {
   let mockAiClient: any;
   let mockErrorAnalyzer: any;

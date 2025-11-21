@@ -3,15 +3,6 @@ import * as vscode from 'vscode';
 
 // Mocks
 jest.mock('vscode');
-const mockAiProvider = { generateCompletion: jest.fn() };
-const mockBuildPrompt = jest.fn();
-const mockParseResponse = jest.fn();
-const mockAnalysisResults = { complexity: 5, dependencies: ['dep1'], issues: [] };
-
-import { generateProductDocumentation } from '../productDoc';
-import * as vscode from 'vscode';
-
-jest.mock('vscode');
 
 const mockAiProvider = {
   generateCompletion: jest.fn(),

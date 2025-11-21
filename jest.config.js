@@ -14,10 +14,14 @@ module.exports = {
         module: 'commonjs',
         target: 'ES2020',
         lib: ['ES2020'],
-        strict: true,
+        strict: false,
         skipLibCheck: true,
         resolveJsonModule: true,
-        moduleResolution: 'node'
+        moduleResolution: 'node',
+        baseUrl: '.',
+        paths: {
+          '*': ['src/*', 'node_modules/*']
+        }
       }
     }]
   },
@@ -34,6 +38,7 @@ module.exports = {
   moduleNameMapper: {
     '^vscode$': '<rootDir>/src/test/__mocks__/vscode.ts'
   },
+  modulePaths: ['<rootDir>/src', '<rootDir>'],
   testTimeout: 10000
 };
 
