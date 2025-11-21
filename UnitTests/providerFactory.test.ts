@@ -1,10 +1,10 @@
 import { ProviderFactory } from '../src/ai/providers/providerFactory';
-import { OpenAIProvider } from '../src/ai/providers/openaiProvider';
-import { AnthropicProvider } from '../src/ai/providers/anthropicProvider';
+import { OpenAIProvider } from '../src/ai/providers/openai/openaiProvider';
+import { AnthropicProvider } from '../src/ai/providers/anthropic/anthropicProvider';
 
 // Mocks
-jest.mock('../src/ai/providers/openaiProvider');
-jest.mock('../src/ai/providers/anthropicProvider');
+jest.mock('../src/ai/providers/openai/openaiProvider');
+jest.mock('../src/ai/providers/anthropic/anthropicProvider');
 
 describe('ProviderFactory.getProvider', () => {
   let providerFactory: ProviderFactory;
@@ -18,66 +18,82 @@ describe('ProviderFactory.getProvider', () => {
     mockAnthropicProvider = new AnthropicProvider() as jest.Mocked<AnthropicProvider>;
   });
 
-  describe('OpenAI Provider', () => {
-    test('should return OpenAI provider when provider is "openai"', () => {
-      const provider = providerFactory.getProvider('openai');
+  describe('openai provider', () => {
+    test('should return OpenAIProvider instance when provider is openai', () => {
+      const result = providerFactory.getProvider('openai');
       
-      expect(provider).toBeDefined();
-      expect(provider).toBeInstanceOf(OpenAIProvider);
+      expect(result).toBeDefined();
+      expect(OpenAIProvider).toHaveBeenCalledTimes(1);
+      expect(result).toBeInstanceOf(OpenAIProvider);
     });
 
-    test('should cache and reuse OpenAI provider on subsequent calls', () => {
-      const provider1 = providerFactory.getProvider('openai');
-      const provider2 = providerFactory.getProvider('openai');
+    test('should return same OpenAIProvider instance on subsequent calls (singleton pattern)', () => {
+      const result1 = providerFactory.getProvider('openai');
+      const result2 = providerFactory.getProvider('openai');
       
-      expect(provider1).toBe(provider2);
+      expect(result1).toBe(result2);
       expect(OpenAIProvider).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('Claude Provider', () => {
-    test('should return Anthropic provider when provider is "claude"', () => {
-      const provider = providerFactory.getProvider('claude');
+  describe('claude provider', () => {
+    test('should return AnthropicProvider instance when provider is claude', () => {
+      const result = providerFactory.getProvider('claude');
       
-      expect(provider).toBeDefined();
-      expect(provider).toBeInstanceOf(AnthropicProvider);
+      expect(result).toBeDefined();
+      expect(AnthropicProvider).toHaveBeenCalledTimes(1);
+      expect(result).toBeInstanceOf(AnthropicProvider);
     });
 
-    test('should cache and reuse Anthropic provider on subsequent calls', () => {
-      const provider1 = providerFactory.getProvider('claude');
-      const provider2 = providerFactory.getProvider('claude');
+    test('should return same AnthropicProvider instance on subsequent calls (singleton pattern)', () => {
+      const result1 = providerFactory.getProvider('claude');
+      const result2 = providerFactory.getProvider('claude');
       
-      expect(provider1).toBe(provider2);
+      expect(result1).toBe(result2);
       expect(AnthropicProvider).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('Multiple Providers', () => {
+  describe('multiple providers', () => {
     test('should maintain separate instances for different providers', () => {
-      const openaiProvider = providerFactory.getProvider('openai');
-      const claudeProvider = providerFactory.getProvider('claude');
+      const openaiResult = providerFactory.getProvider('openai');
+      const claudeResult = providerFactory.getProvider('claude');
       
-      expect(openaiProvider).not.toBe(claudeProvider);
-      expect(openaiProvider).toBeInstanceOf(OpenAIProvider);
-      expect(claudeProvider).toBeInstanceOf(AnthropicProvider);
+      expect(openaiResult).not.toBe(claudeResult);
+      expect(OpenAIProvider).toHaveBeenCalledTimes(1);
+      expect(AnthropicProvider).toHaveBeenCalledTimes(1);
     });
 
-    test('should cache each provider independently', () => {
-      providerFactory.getProvider('openai');
-      providerFactory.getProvider('claude');
-      providerFactory.getProvider('openai');
-      providerFactory.getProvider('claude');
+    test('should return cached instances when switching between providers', () => {
+      const openai1 = providerFactory.getProvider('openai');
+      const claude1 = providerFactory.getProvider('claude');
+      const openai2 = providerFactory.getProvider('openai');
+      const claude2 = providerFactory.getProvider('claude');
       
+      expect(openai1).toBe(openai2);
+      expect(claude1).toBe(claude2);
       expect(OpenAIProvider).toHaveBeenCalledTimes(1);
       expect(AnthropicProvider).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('Error Handling', () => {
+  describe('error handling', () => {
     test('should throw error for unknown provider', () => {
       expect(() => {
         providerFactory.getProvider('unknown' as any);
       }).toThrow('Unknown provider: unknown');
+    });
+
+    test('should throw error for null provider', () => {
+      expect(() => {
+        providerFactory.getProvider(null as any);
+      }).toThrow('Unknown provider: null');
+    });
+
+    test('should throw error for undefined provider', () => {
+      expect(() => {
+        providerFactory.getProvider(undefined as any);
+      }).toThrow('Unknown provider: undefined');
     });
 
     test('should throw error for empty string provider', () => {
@@ -86,27 +102,11 @@ describe('ProviderFactory.getProvider', () => {
       }).toThrow('Unknown provider: ');
     });
 
-    test('should throw error for null provider', () => {
-      expect(() => {
-        providerFactory.getProvider(null as any);
-      }).toThrow();
-    });
-
-    test('should throw error for undefined provider', () => {
-      expect(() => {
-        providerFactory.getProvider(undefined as any);
-      }).toThrow();
-    });
-  });
-
-  describe('Case Sensitivity', () => {
-    test('should not match providers with different casing', () => {
+    test('should throw error for case-sensitive mismatch', () => {
       expect(() => {
         providerFactory.getProvider('OpenAI' as any);
       }).toThrow('Unknown provider: OpenAI');
-    });
-
-    test('should not match "Claude" with capital C', () => {
+      
       expect(() => {
         providerFactory.getProvider('Claude' as any);
       }).toThrow('Unknown provider: Claude');
