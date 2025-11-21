@@ -9,12 +9,35 @@ import { TestPlan, TestableFunction } from './types/testPlanTypes';
 import { buildPlanningPrompt } from '../../prompts/testPrompts';
 import { CodeAnalysis } from '../../../analyzer';
 import { SWLogger } from '../../../logger';
+import { LLMFunctionExtractionService } from './llmFunctionExtractionService';
 
 export class LLMTestPlanningService {
     /**
-     * Analyze functions from code analysis
+     * Analyze functions from workspace using LLM extraction
+     * This replaces regex-based extraction which incorrectly captured control flow keywords (for, if, switch, etc.)
      */
-    static analyzeFunctions(codeAnalysis: any): any[] {
+    static async analyzeFunctions(
+        workspaceRoot: string,
+        codeFiles: string[],
+        llmService: any
+    ): Promise<any[]> {
+        SWLogger.log('[TestPlanning] Extracting functions using LLM (replaces regex extraction)...');
+        
+        const extractedFunctions = await LLMFunctionExtractionService.extractFunctionsFromWorkspace(
+            workspaceRoot,
+            codeFiles,
+            llmService
+        );
+        
+        // Convert to test plan format
+        return LLMFunctionExtractionService.convertToTestPlanFormat(extractedFunctions);
+    }
+    
+    /**
+     * @deprecated Use analyzeFunctions with LLM extraction instead
+     * Legacy method that used regex-based extraction (captured control flow keywords incorrectly)
+     */
+    static analyzeFunctionsLegacy(codeAnalysis: any): any[] {
         if (!codeAnalysis || !codeAnalysis.functions) {
             return [];
         }

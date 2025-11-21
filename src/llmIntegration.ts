@@ -1599,18 +1599,31 @@ export async function generateUnitTests(): Promise<void> {
             }
             
             // PHASE 2: TEST PLANNING
-            reporter.report('Phase 2/4: Creating test plan...');
+            reporter.report('Phase 2/4: Analyzing functions with LLM...');
             SWLogger.log('[Phase 2] Analyzing functions and creating test plan...');
+            SWLogger.log('[TestPlanning] Creating test plan with LLM (two-phase)...');
             
             const lastCodeAnalysis = stateManager.getCodeAnalysis();
-            const functions = LLMTestPlanningService.analyzeFunctions(lastCodeAnalysis);
-            
-            if (functions.length === 0) {
-                throw new Error('No functions found to test. Please run workspace analysis first.');
-            }
-            
             if (!lastCodeAnalysis) {
                 throw new Error('Code analysis is missing. Please run workspace analysis first.');
+            }
+            
+            // Get code files from workspace
+            const { CodeAnalyzer } = await import('./analyzer');
+            const analyzer = new CodeAnalyzer(cache);
+            const codeFiles = (analyzer as any).findCodeFiles(workspaceRoot);
+            
+            SWLogger.log(`[Phase 2] Found ${codeFiles.length} code files to analyze`);
+            
+            // Use LLM-based function extraction (replaces regex that captured "for", "if", etc.)
+            const functions = await LLMTestPlanningService.analyzeFunctions(
+                workspaceRoot,
+                codeFiles,
+                llmService
+            );
+            
+            if (functions.length === 0) {
+                throw new Error('No functions found to test. Try running workspace analysis again or check if code files contain testable functions.');
             }
             
             const testPlan = await LLMTestPlanningService.createTestPlan(
