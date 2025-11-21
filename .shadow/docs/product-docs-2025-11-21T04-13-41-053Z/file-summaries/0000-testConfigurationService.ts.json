@@ -1,0 +1,39 @@
+{
+  "file": "src/domain/services/testConfigurationService.ts",
+  "role": "Core Logic",
+  "purpose": "Automatically detects and configures test frameworks (Jest, Mocha, Vitest, Pytest) to ensure generated tests work without manual user setup",
+  "userVisibleActions": [
+    "Automatically detects which test framework is being used in the project",
+    "Identifies missing test dependencies and configuration files",
+    "Provides setup actions needed to make tests work",
+    "Ensures generated tests run without manual configuration"
+  ],
+  "developerVisibleActions": [
+    "Scans workspace for package.json to detect test framework from scripts and dependencies",
+    "Checks for framework-specific config files (jest.config.js, vitest.config.ts, pytest.ini, etc.)",
+    "Validates that required test dependencies are installed",
+    "Returns configuration status with framework type, missing dependencies, and setup requirements",
+    "Detects TypeScript test setups (ts-jest, @jest/globals) for Jest projects",
+    "Identifies Python virtual environments and pytest installations"
+  ],
+  "keyFunctions": [
+    {
+      "name": "detectTestConfiguration",
+      "desc": "Analyzes workspace to detect test framework and configuration completeness",
+      "inputs": "workspaceRoot: string (path to project root)",
+      "outputs": "TestConfigStatus object with framework type, configuration state, missing dependencies, and required setup actions"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "../../logger"
+  ],
+  "intent": "This file exists to eliminate the friction of setting up test environments by automatically detecting what test framework a project uses and determining if it's properly configured. It solves the problem of generated tests failing due to missing configuration, making the test generation feature work seamlessly across different project setups without requiring users to manually configure test frameworks.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Automatically detects and configures test frameworks (Jest, Mocha, Vitest, Pytest) to ensure generated tests work without manual user setup\",\n  \"userVisibleActions\": [\n    \"Automatically detects which test framework is being used in the project\",\n    \"Identifies missing test dependencies and configuration files\",\n    \"Provides setup actions needed to make tests work\",\n    \"Ensures generated tests run without manual configuration\"\n  ],\n  \"developerVisibleActions\": [\n    \"Scans workspace for package.json to detect test framework from scripts and dependencies\",\n    \"Checks for framework-specific config files (jest.config.js, vitest.config.ts, pytest.ini, etc.)\",\n    \"Validates that required test dependencies are installed\",\n    \"Returns configuration status with framework type, missing dependencies, and setup requirements\",\n    \"Detects TypeScript test setups (ts-jest, @jest/globals) for Jest projects\",\n    \"Identifies Python virtual environments and pytest installations\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestConfiguration\",\n      \"desc\": \"Analyzes workspace to detect test framework and configuration completeness\",\n      \"inputs\": \"workspaceRoot: string (path to project root)\",\n      \"outputs\": \"TestConfigStatus object with framework type, configuration state, missing dependencies, and required setup actions\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"../../logger\"\n  ],\n  \"intent\": \"This file exists to eliminate the friction of setting up test environments by automatically detecting what test framework a project uses and determining if it's properly configured. It solves the problem of generated tests failing due to missing configuration, making the test generation feature work seamlessly across different project setups without requiring users to manually configure test frameworks.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:19:02.046Z"
+  }
+}

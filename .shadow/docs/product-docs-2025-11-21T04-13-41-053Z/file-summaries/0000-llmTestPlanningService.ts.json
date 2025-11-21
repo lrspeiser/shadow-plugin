@@ -1,0 +1,48 @@
+{
+  "file": "src/domain/services/testing/llmTestPlanningService.ts",
+  "role": "Core Logic",
+  "purpose": "Analyzes code and creates prioritized test plans using LLM to recommend which functions should be tested and how",
+  "userVisibleActions": [
+    "Receives automated test recommendations for code functions",
+    "Gets prioritized list of functions that should be tested",
+    "Views test plans organized by testing areas (e.g., core logic, edge cases, integration points)",
+    "Sees confidence scores and rationale for each test recommendation"
+  ],
+  "developerVisibleActions": [
+    "Calls service to generate test plans from code analysis results",
+    "Provides optional product documentation and architecture insights to improve test recommendations",
+    "Receives structured test plan with testable functions organized by priority and category",
+    "Uses two-phase planning approach: high-level strategy first, then specific function selection",
+    "Leverages pre-existing architecture analysis test recommendations when available"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeFunctions",
+      "desc": "Extracts and normalizes function information from code analysis",
+      "inputs": "codeAnalysis object containing functions array",
+      "outputs": "Array of function objects with name, file, lines, complexity, parameters, and return type"
+    },
+    {
+      "name": "createTestPlan",
+      "desc": "Generates comprehensive test plan using LLM with two-phase approach (strategy then function selection)",
+      "inputs": "CodeAnalysis context, functions array, llmService, optional productDocs and architectureInsights",
+      "outputs": "TestPlan object with prioritized testable functions and testing strategy"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "TestPlan types",
+    "TestableFunction types",
+    "buildPlanningPrompt",
+    "CodeAnalysis",
+    "SWLogger"
+  ],
+  "intent": "Automates the test planning process by using AI to analyze code and intelligently recommend which functions need testing, what types of tests to write, and in what order to prioritize them, reducing manual test planning effort and improving test coverage",
+  "rawContent": "```json\n{\n  \"purpose\": \"Analyzes code and creates prioritized test plans using LLM to recommend which functions should be tested and how\",\n  \"userVisibleActions\": [\n    \"Receives automated test recommendations for code functions\",\n    \"Gets prioritized list of functions that should be tested\",\n    \"Views test plans organized by testing areas (e.g., core logic, edge cases, integration points)\",\n    \"Sees confidence scores and rationale for each test recommendation\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls service to generate test plans from code analysis results\",\n    \"Provides optional product documentation and architecture insights to improve test recommendations\",\n    \"Receives structured test plan with testable functions organized by priority and category\",\n    \"Uses two-phase planning approach: high-level strategy first, then specific function selection\",\n    \"Leverages pre-existing architecture analysis test recommendations when available\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Extracts and normalizes function information from code analysis\",\n      \"inputs\": \"codeAnalysis object containing functions array\",\n      \"outputs\": \"Array of function objects with name, file, lines, complexity, parameters, and return type\"\n    },\n    {\n      \"name\": \"createTestPlan\",\n      \"desc\": \"Generates comprehensive test plan using LLM with two-phase approach (strategy then function selection)\",\n      \"inputs\": \"CodeAnalysis context, functions array, llmService, optional productDocs and architectureInsights\",\n      \"outputs\": \"TestPlan object with prioritized testable functions and testing strategy\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestPlan types\",\n    \"TestableFunction types\",\n    \"buildPlanningPrompt\",\n    \"CodeAnalysis\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"Automates the test planning process by using AI to analyze code and intelligently recommend which functions need testing, what types of tests to write, and in what order to prioritize them, reducing manual test planning effort and improving test coverage\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:19:24.564Z"
+  }
+}

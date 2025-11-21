@@ -1,0 +1,26 @@
+{
+  "file": "src/domain/services/testing/types/testSetupTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript interfaces for test setup planning, environment detection, and execution results used throughout the testing setup service.",
+  "userVisibleActions": [
+    "User receives information about test setup plans including frameworks and dependencies",
+    "User sees which configuration files will be created",
+    "User gets feedback on setup execution success or failures",
+    "User views list of files created and dependencies installed during setup"
+  ],
+  "developerVisibleActions": [
+    "Developer structures test setup plans with language, framework, and dependency information",
+    "Developer accesses environment detection results showing existing test infrastructure",
+    "Developer receives structured execution results with success status and error details",
+    "Developer defines mock requirements with types and reasons for test setup"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides type safety and contract definitions for the test setup service, ensuring consistent data structures across test environment detection, setup planning, and execution phases. Enables developers to work with strongly-typed data when configuring and setting up testing infrastructure.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript interfaces for test setup planning, environment detection, and execution results used throughout the testing setup service.\",\n  \"userVisibleActions\": [\n    \"User receives information about test setup plans including frameworks and dependencies\",\n    \"User sees which configuration files will be created\",\n    \"User gets feedback on setup execution success or failures\",\n    \"User views list of files created and dependencies installed during setup\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer structures test setup plans with language, framework, and dependency information\",\n    \"Developer accesses environment detection results showing existing test infrastructure\",\n    \"Developer receives structured execution results with success status and error details\",\n    \"Developer defines mock requirements with types and reasons for test setup\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides type safety and contract definitions for the test setup service, ensuring consistent data structures across test environment detection, setup planning, and execution phases. Enables developers to work with strongly-typed data when configuring and setting up testing infrastructure.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:20:28.428Z"
+  }
+}

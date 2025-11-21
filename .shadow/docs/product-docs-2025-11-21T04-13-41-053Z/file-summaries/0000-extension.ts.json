@@ -1,0 +1,106 @@
+{
+  "file": "src/extension.ts",
+  "role": "Core Logic",
+  "purpose": "Main entry point that initializes and coordinates the VS Code extension, registering all commands, views, and handlers for code analysis and navigation features.",
+  "userVisibleActions": [
+    "Analyze entire workspace to understand code structure and behavior",
+    "Analyze current file to extract insights about active code",
+    "View code insights in a tree view sidebar showing entry points and connections",
+    "Navigate to specific code locations by clicking on insights",
+    "See analysis progress in status bar showing active analysis state",
+    "Refresh insights view to update analysis results",
+    "Clear analysis cache to force fresh analysis",
+    "Export analysis results in different formats (markdown, JSON)",
+    "Navigate through product features using a product navigator panel",
+    "View code behavior extracted and formatted for LLM consumption",
+    "See diagnostic warnings and errors from code analysis"
+  ],
+  "developerVisibleActions": [
+    "Trigger workspace analysis via command palette or on extension activation",
+    "Trigger file analysis when opening or switching between files",
+    "Access cached analysis results to avoid re-processing unchanged code",
+    "Watch for file system changes that invalidate cached analysis",
+    "Register commands that appear in VS Code command palette",
+    "Initialize analysis cache with configurable storage backend",
+    "Handle errors during analysis with graceful fallback and user notifications",
+    "Bootstrap extension components in dependency injection container",
+    "Configure analysis behavior through VS Code settings",
+    "Access configuration manager for reading extension settings"
+  ],
+  "keyFunctions": [
+    {
+      "name": "activate",
+      "desc": "Initializes the extension, sets up all components, registers commands and views, and starts file watching",
+      "inputs": "context: vscode.ExtensionContext",
+      "outputs": "void"
+    },
+    {
+      "name": "deactivate",
+      "desc": "Cleans up resources when extension is deactivated, disposing watchers and providers",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "analyzeWorkspace",
+      "desc": "Analyzes all code files in the workspace to extract entry points, insights, and behavior",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "analyzeCurrentFile",
+      "desc": "Analyzes the currently active file and updates insights for that file",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "navigateToDefinition",
+      "desc": "Navigates the editor to a specific code location based on tree item selection",
+      "inputs": "item: TreeItem",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "refreshInsights",
+      "desc": "Forces a refresh of the insights tree view with latest analysis data",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "clearCache",
+      "desc": "Clears all cached analysis data and forces re-analysis on next request",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "exportInsights",
+      "desc": "Exports analysis results to a file in selected format (markdown or JSON)",
+      "inputs": "format: string",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "./analyzer",
+    "./insightGenerator",
+    "./llmFormatter",
+    "./fileWatcher",
+    "./insightsTreeView",
+    "./diagnosticsProvider",
+    "./cache",
+    "./llmIntegration",
+    "./config/configurationManager",
+    "./utils/errorHandler",
+    "./ui/webview/webviewTemplateEngine",
+    "./domain/bootstrap/extensionBootstrapper",
+    "./domain/bootstrap/commandRegistry",
+    "./domain/handlers/navigationHandler",
+    "./productNavigator"
+  ],
+  "intent": "This file exists to serve as the central coordination point for the VS Code extension, solving the problem of organizing and connecting all analysis, navigation, and visualization features into a cohesive user experience. It ensures proper initialization, command registration, and lifecycle management so users can seamlessly analyze code behavior and navigate through insights without worrying about underlying complexity.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Main entry point that initializes and coordinates the VS Code extension, registering all commands, views, and handlers for code analysis and navigation features.\",\n  \"userVisibleActions\": [\n    \"Analyze entire workspace to understand code structure and behavior\",\n    \"Analyze current file to extract insights about active code\",\n    \"View code insights in a tree view sidebar showing entry points and connections\",\n    \"Navigate to specific code locations by clicking on insights\",\n    \"See analysis progress in status bar showing active analysis state\",\n    \"Refresh insights view to update analysis results\",\n    \"Clear analysis cache to force fresh analysis\",\n    \"Export analysis results in different formats (markdown, JSON)\",\n    \"Navigate through product features using a product navigator panel\",\n    \"View code behavior extracted and formatted for LLM consumption\",\n    \"See diagnostic warnings and errors from code analysis\"\n  ],\n  \"developerVisibleActions\": [\n    \"Trigger workspace analysis via command palette or on extension activation\",\n    \"Trigger file analysis when opening or switching between files\",\n    \"Access cached analysis results to avoid re-processing unchanged code\",\n    \"Watch for file system changes that invalidate cached analysis\",\n    \"Register commands that appear in VS Code command palette\",\n    \"Initialize analysis cache with configurable storage backend\",\n    \"Handle errors during analysis with graceful fallback and user notifications\",\n    \"Bootstrap extension components in dependency injection container\",\n    \"Configure analysis behavior through VS Code settings\",\n    \"Access configuration manager for reading extension settings\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"activate\",\n      \"desc\": \"Initializes the extension, sets up all components, registers commands and views, and starts file watching\",\n      \"inputs\": \"context: vscode.ExtensionContext\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"deactivate\",\n      \"desc\": \"Cleans up resources when extension is deactivated, disposing watchers and providers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeWorkspace\",\n      \"desc\": \"Analyzes all code files in the workspace to extract entry points, insights, and behavior\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"analyzeCurrentFile\",\n      \"desc\": \"Analyzes the currently active file and updates insights for that file\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"navigateToDefinition\",\n      \"desc\": \"Navigates the editor to a specific code location based on tree item selection\",\n      \"inputs\": \"item: TreeItem\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"refreshInsights\",\n      \"desc\": \"Forces a refresh of the insights tree view with latest analysis data\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"clearCache\",\n      \"desc\": \"Clears all cached analysis data and forces re-analysis on next request\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"exportInsights\",\n      \"desc\": \"Exports analysis results to a file in selected format (markdown or JSON)\",\n      \"inputs\": \"format: string\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"./analyzer\",\n    \"./insightGenerator\",\n    \"./llmFormatter\",\n    \"./fileWatcher\",\n    \"./insightsTreeView\",\n    \"./diagnosticsProvider\",\n    \"./cache\",\n    \"./llmIntegration\",\n    \"./config/configurationManager\",\n    \"./utils/errorHandler\",\n    \"./ui/webview/webviewTemplateEngine\",\n    \"./domain/bootstrap/extensionBootstrapper\",\n    \"./domain/bootstrap/commandRegistry\",\n    \"./domain/handlers/navigationHandler\",\n    \"./productNavigator\"\n  ],\n  \"intent\": \"This file exists to serve as the central coordination point for the VS Code extension, solving the problem of organizing and connecting all analysis, navigation, and visualization features into a cohesive user experience. It ensures proper initialization, command registration, and lifecycle management so users can seamlessly analyze code behavior and navigate through insights without worrying about underlying complexity.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:20:47.922Z"
+  }
+}

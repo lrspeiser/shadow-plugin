@@ -1,0 +1,75 @@
+{
+  "file": "src/ai/llmResponseParser.ts",
+  "role": "Core Logic",
+  "purpose": "Parses and extracts structured data from LLM text responses into typed objects for file summaries, module summaries, and product documentation.",
+  "userVisibleActions": [
+    "Converts AI-generated text responses into structured documentation format",
+    "Extracts meaningful information from AI responses even when JSON parsing fails",
+    "Provides fallback text extraction when AI responses are not in expected format"
+  ],
+  "developerVisibleActions": [
+    "Call parseFileSummary() to convert LLM text into FileSummary object with file path, role, purpose, actions, and dependencies",
+    "Call parseModuleSummary() to convert LLM text into ModuleSummary object with module overview and file relationships",
+    "Call parseProductDocumentation() to convert LLM text into EnhancedProductDocumentation with product purpose, features, and user flows",
+    "Call parseLLMInsights() to extract analysis insights about product behavior and architecture",
+    "Call parseProductPurposeAnalysis() to get structured product purpose information",
+    "Automatically handles both JSON-formatted and plain text LLM responses",
+    "Receives original LLM response content plus metadata like file paths and roles",
+    "Gets structured objects back with typed fields ready for documentation generation"
+  ],
+  "keyFunctions": [
+    {
+      "name": "parseFileSummary",
+      "desc": "Converts LLM response text into FileSummary object with file metadata, purpose, actions, and dependencies",
+      "inputs": "content (string), filePath (string), role (string)",
+      "outputs": "FileSummary object"
+    },
+    {
+      "name": "parseModuleSummary",
+      "desc": "Converts LLM response text into ModuleSummary object with module overview and file relationships",
+      "inputs": "content (string)",
+      "outputs": "ModuleSummary object"
+    },
+    {
+      "name": "parseProductDocumentation",
+      "desc": "Converts LLM response text into EnhancedProductDocumentation with complete product information",
+      "inputs": "content (string)",
+      "outputs": "EnhancedProductDocumentation object"
+    },
+    {
+      "name": "parseLLMInsights",
+      "desc": "Extracts LLM analysis insights about product behavior and architecture from response text",
+      "inputs": "content (string)",
+      "outputs": "LLMInsights object"
+    },
+    {
+      "name": "parseProductPurposeAnalysis",
+      "desc": "Extracts structured product purpose information from LLM response",
+      "inputs": "content (string)",
+      "outputs": "ProductPurposeAnalysis object"
+    },
+    {
+      "name": "extractSection",
+      "desc": "Helper that extracts a specific named section from text content",
+      "inputs": "content (string), sectionName (string)",
+      "outputs": "Extracted section text as string"
+    },
+    {
+      "name": "extractListSection",
+      "desc": "Helper that extracts a list of items from a named section in text",
+      "inputs": "content (string), sectionName (string)",
+      "outputs": "Array of strings"
+    }
+  ],
+  "dependencies": [
+    "../fileDocumentation",
+    "../llmService"
+  ],
+  "intent": "This file exists to reliably transform free-form AI-generated text responses into consistent, typed data structures that the application can use programmatically. It solves the problem of working with unpredictable LLM output formats by providing intelligent parsing with JSON fallback to text extraction, ensuring the application always gets usable structured data regardless of how the AI formats its response.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Parses and extracts structured data from LLM text responses into typed objects for file summaries, module summaries, and product documentation.\",\n  \"userVisibleActions\": [\n    \"Converts AI-generated text responses into structured documentation format\",\n    \"Extracts meaningful information from AI responses even when JSON parsing fails\",\n    \"Provides fallback text extraction when AI responses are not in expected format\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call parseFileSummary() to convert LLM text into FileSummary object with file path, role, purpose, actions, and dependencies\",\n    \"Call parseModuleSummary() to convert LLM text into ModuleSummary object with module overview and file relationships\",\n    \"Call parseProductDocumentation() to convert LLM text into EnhancedProductDocumentation with product purpose, features, and user flows\",\n    \"Call parseLLMInsights() to extract analysis insights about product behavior and architecture\",\n    \"Call parseProductPurposeAnalysis() to get structured product purpose information\",\n    \"Automatically handles both JSON-formatted and plain text LLM responses\",\n    \"Receives original LLM response content plus metadata like file paths and roles\",\n    \"Gets structured objects back with typed fields ready for documentation generation\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"parseFileSummary\",\n      \"desc\": \"Converts LLM response text into FileSummary object with file metadata, purpose, actions, and dependencies\",\n      \"inputs\": \"content (string), filePath (string), role (string)\",\n      \"outputs\": \"FileSummary object\"\n    },\n    {\n      \"name\": \"parseModuleSummary\",\n      \"desc\": \"Converts LLM response text into ModuleSummary object with module overview and file relationships\",\n      \"inputs\": \"content (string)\",\n      \"outputs\": \"ModuleSummary object\"\n    },\n    {\n      \"name\": \"parseProductDocumentation\",\n      \"desc\": \"Converts LLM response text into EnhancedProductDocumentation with complete product information\",\n      \"inputs\": \"content (string)\",\n      \"outputs\": \"EnhancedProductDocumentation object\"\n    },\n    {\n      \"name\": \"parseLLMInsights\",\n      \"desc\": \"Extracts LLM analysis insights about product behavior and architecture from response text\",\n      \"inputs\": \"content (string)\",\n      \"outputs\": \"LLMInsights object\"\n    },\n    {\n      \"name\": \"parseProductPurposeAnalysis\",\n      \"desc\": \"Extracts structured product purpose information from LLM response\",\n      \"inputs\": \"content (string)\",\n      \"outputs\": \"ProductPurposeAnalysis object\"\n    },\n    {\n      \"name\": \"extractSection\",\n      \"desc\": \"Helper that extracts a specific named section from text content\",\n      \"inputs\": \"content (string), sectionName (string)\",\n      \"outputs\": \"Extracted section text as string\"\n    },\n    {\n      \"name\": \"extractListSection\",\n      \"desc\": \"Helper that extracts a list of items from a named section in text\",\n      \"inputs\": \"content (string), sectionName (string)\",\n      \"outputs\": \"Array of strings\"\n    }\n  ],\n  \"dependencies\": [\n    \"../fileDocumentation\",\n    \"../llmService\"\n  ],\n  \"intent\": \"This file exists to reliably transform free-form AI-generated text responses into consistent, typed data structures that the application can use programmatically. It solves the problem of working with unpredictable LLM output formats by providing intelligent parsing with JSON fallback to text extraction, ensuring the application always gets usable structured data regardless of how the AI formats its response.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:14:06.616Z"
+  }
+}

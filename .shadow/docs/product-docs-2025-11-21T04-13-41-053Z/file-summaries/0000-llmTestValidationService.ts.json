@@ -1,0 +1,52 @@
+{
+  "file": "src/domain/services/testing/llmTestValidationService.ts",
+  "role": "Core Logic",
+  "purpose": "Validates tests by running them, capturing failures, and automatically fixing failing tests using LLM analysis and code generation.",
+  "userVisibleActions": [
+    "Tests are automatically run and validated in the workspace",
+    "Failing tests are automatically fixed without manual intervention",
+    "Test results show pass/fail counts and error messages",
+    "Multiple fix attempts are made automatically if initial fixes don't work",
+    "Final test results indicate whether fixes were successful"
+  ],
+  "developerVisibleActions": [
+    "Run all tests or a specific test file in the workspace",
+    "Get detailed test execution results with pass/fail counts",
+    "Automatically fix failing tests by providing test file path and execution results",
+    "Configure maximum retry attempts for test fixes (default 3)",
+    "Receive feedback on fix success/failure with attempt counts",
+    "Test fixes are applied by reading test code, analyzing errors, generating fixes via LLM, and writing corrected code back",
+    "Each fix attempt re-runs tests to verify the correction worked"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runTests",
+      "desc": "Executes all tests or a specific test file and returns results with pass/fail counts",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]> - Array of test results with passed/failed/error counts"
+    },
+    {
+      "name": "fixFailingTest",
+      "desc": "Attempts to fix a failing test by analyzing errors and generating corrected code using LLM",
+      "inputs": "testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts: number (default 3)",
+      "outputs": "Promise<{success: boolean, attempts: number, finalError?: string}> - Fix result with success status and attempt count"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "TestExecutionService",
+    "TestExecutionResult",
+    "TestReport",
+    "TestReportSummary",
+    "buildFixPrompt",
+    "SWLogger"
+  ],
+  "intent": "This file exists to automate the test validation and correction workflow, allowing failing tests to be automatically fixed using AI analysis rather than requiring manual debugging and code changes by developers.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Validates tests by running them, capturing failures, and automatically fixing failing tests using LLM analysis and code generation.\",\n  \"userVisibleActions\": [\n    \"Tests are automatically run and validated in the workspace\",\n    \"Failing tests are automatically fixed without manual intervention\",\n    \"Test results show pass/fail counts and error messages\",\n    \"Multiple fix attempts are made automatically if initial fixes don't work\",\n    \"Final test results indicate whether fixes were successful\"\n  ],\n  \"developerVisibleActions\": [\n    \"Run all tests or a specific test file in the workspace\",\n    \"Get detailed test execution results with pass/fail counts\",\n    \"Automatically fix failing tests by providing test file path and execution results\",\n    \"Configure maximum retry attempts for test fixes (default 3)\",\n    \"Receive feedback on fix success/failure with attempt counts\",\n    \"Test fixes are applied by reading test code, analyzing errors, generating fixes via LLM, and writing corrected code back\",\n    \"Each fix attempt re-runs tests to verify the correction worked\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runTests\",\n      \"desc\": \"Executes all tests or a specific test file and returns results with pass/fail counts\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]> - Array of test results with passed/failed/error counts\"\n    },\n    {\n      \"name\": \"fixFailingTest\",\n      \"desc\": \"Attempts to fix a failing test by analyzing errors and generating corrected code using LLM\",\n      \"inputs\": \"testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts: number (default 3)\",\n      \"outputs\": \"Promise<{success: boolean, attempts: number, finalError?: string}> - Fix result with success status and attempt count\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestExecutionService\",\n    \"TestExecutionResult\",\n    \"TestReport\",\n    \"TestReportSummary\",\n    \"buildFixPrompt\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file exists to automate the test validation and correction workflow, allowing failing tests to be automatically fixed using AI analysis rather than requiring manual debugging and code changes by developers.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:19:52.490Z"
+  }
+}

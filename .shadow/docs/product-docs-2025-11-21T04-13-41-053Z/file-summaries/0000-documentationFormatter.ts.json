@@ -1,0 +1,46 @@
+{
+  "file": "src/domain/formatters/documentationFormatter.ts",
+  "role": "Core Logic",
+  "purpose": "Formats product documentation and code analysis insights into structured Markdown documents for human reading.",
+  "userVisibleActions": [
+    "Receives formatted product documentation in Markdown with timestamps, overview, features, and user perspectives",
+    "Sees documentation organized by sections: What It Does, User Perspective (GUI/CLI/API), Key Features, Technical Details",
+    "Views LLM analysis insights formatted as Markdown with file-by-file behavioral descriptions",
+    "Reads structured sections for product patterns, architecture decisions, user workflows, and technical stack",
+    "Sees formatted usage examples, configuration requirements, and deployment considerations",
+    "Gets human-readable summaries of code behavior grouped by file role and type"
+  ],
+  "developerVisibleActions": [
+    "Calls formatEnhancedDocsAsMarkdown() to convert EnhancedProductDocumentation objects to Markdown strings",
+    "Calls formatLLMInsightsAsMarkdown() to convert LLMInsights objects to Markdown strings",
+    "Receives Markdown with timestamps (both UTC and local time) automatically included",
+    "Gets documentation sections conditionally included based on data availability",
+    "Obtains formatted lists with bullet points for features, workflows, and technical details",
+    "Receives structured file analysis organized by user-facing, developer-facing, and technical aspects"
+  ],
+  "keyFunctions": [
+    {
+      "name": "formatEnhancedDocsAsMarkdown",
+      "desc": "Converts enhanced product documentation object into a formatted Markdown document with sections for overview, features, user perspectives, and technical details",
+      "inputs": "EnhancedProductDocumentation object containing overview, features, user perspectives, technical details, etc.",
+      "outputs": "String containing formatted Markdown document with headers, timestamps, and structured sections"
+    },
+    {
+      "name": "formatLLMInsightsAsMarkdown",
+      "desc": "Converts LLM analysis insights into a formatted Markdown document with product summary and per-file behavioral descriptions",
+      "inputs": "LLMInsights object containing product summary and array of file insights with behavior descriptions",
+      "outputs": "String containing formatted Markdown document with product overview and file-by-file analysis sections"
+    }
+  ],
+  "dependencies": [
+    "../../fileDocumentation (EnhancedProductDocumentation type)",
+    "../../llmService (LLMInsights type)"
+  ],
+  "intent": "Separates formatting concerns from business logic by providing dedicated functions to transform structured documentation data into human-readable Markdown format, making it easier to generate consistent, well-organized documentation output for users and developers.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Formats product documentation and code analysis insights into structured Markdown documents for human reading.\",\n  \"userVisibleActions\": [\n    \"Receives formatted product documentation in Markdown with timestamps, overview, features, and user perspectives\",\n    \"Sees documentation organized by sections: What It Does, User Perspective (GUI/CLI/API), Key Features, Technical Details\",\n    \"Views LLM analysis insights formatted as Markdown with file-by-file behavioral descriptions\",\n    \"Reads structured sections for product patterns, architecture decisions, user workflows, and technical stack\",\n    \"Sees formatted usage examples, configuration requirements, and deployment considerations\",\n    \"Gets human-readable summaries of code behavior grouped by file role and type\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls formatEnhancedDocsAsMarkdown() to convert EnhancedProductDocumentation objects to Markdown strings\",\n    \"Calls formatLLMInsightsAsMarkdown() to convert LLMInsights objects to Markdown strings\",\n    \"Receives Markdown with timestamps (both UTC and local time) automatically included\",\n    \"Gets documentation sections conditionally included based on data availability\",\n    \"Obtains formatted lists with bullet points for features, workflows, and technical details\",\n    \"Receives structured file analysis organized by user-facing, developer-facing, and technical aspects\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatEnhancedDocsAsMarkdown\",\n      \"desc\": \"Converts enhanced product documentation object into a formatted Markdown document with sections for overview, features, user perspectives, and technical details\",\n      \"inputs\": \"EnhancedProductDocumentation object containing overview, features, user perspectives, technical details, etc.\",\n      \"outputs\": \"String containing formatted Markdown document with headers, timestamps, and structured sections\"\n    },\n    {\n      \"name\": \"formatLLMInsightsAsMarkdown\",\n      \"desc\": \"Converts LLM analysis insights into a formatted Markdown document with product summary and per-file behavioral descriptions\",\n      \"inputs\": \"LLMInsights object containing product summary and array of file insights with behavior descriptions\",\n      \"outputs\": \"String containing formatted Markdown document with product overview and file-by-file analysis sections\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../fileDocumentation (EnhancedProductDocumentation type)\",\n    \"../../llmService (LLMInsights type)\"\n  ],\n  \"intent\": \"Separates formatting concerns from business logic by providing dedicated functions to transform structured documentation data into human-readable Markdown format, making it easier to generate consistent, well-organized documentation output for users and developers.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:17:29.278Z"
+  }
+}

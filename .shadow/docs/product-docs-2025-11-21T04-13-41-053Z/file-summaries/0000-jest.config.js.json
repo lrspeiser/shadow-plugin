@@ -1,0 +1,28 @@
+{
+  "file": "jest.config.js",
+  "role": "Core Logic",
+  "purpose": "Configures Jest testing framework for TypeScript test execution with coverage reporting and module resolution.",
+  "userVisibleActions": [
+    "No direct user-visible actions - this is a testing configuration file"
+  ],
+  "developerVisibleActions": [
+    "Developer runs test suites located in src and UnitTests directories",
+    "Developer views test coverage reports in text, lcov, and HTML formats",
+    "Developer writes tests in TypeScript with .spec.ts or .test.ts extensions",
+    "Developer sees test results with a 10 second timeout per test",
+    "Developer gets code coverage metrics excluding test files, type definitions, and mock files"
+  ],
+  "keyFunctions": [],
+  "dependencies": [
+    "ts-jest",
+    "jest",
+    "typescript"
+  ],
+  "intent": "This file exists to configure the Jest testing framework for a TypeScript-based VSCode extension project, ensuring tests can be run with proper TypeScript compilation, module resolution (including VSCode API mocking), and coverage reporting to maintain code quality.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Configures Jest testing framework for TypeScript test execution with coverage reporting and module resolution.\",\n  \"userVisibleActions\": [\n    \"No direct user-visible actions - this is a testing configuration file\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer runs test suites located in src and UnitTests directories\",\n    \"Developer views test coverage reports in text, lcov, and HTML formats\",\n    \"Developer writes tests in TypeScript with .spec.ts or .test.ts extensions\",\n    \"Developer sees test results with a 10 second timeout per test\",\n    \"Developer gets code coverage metrics excluding test files, type definitions, and mock files\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"ts-jest\",\n    \"jest\",\n    \"typescript\"\n  ],\n  \"intent\": \"This file exists to configure the Jest testing framework for a TypeScript-based VSCode extension project, ensuring tests can be run with proper TypeScript compilation, module resolution (including VSCode API mocking), and coverage reporting to maintain code quality.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:13:41.053Z"
+  }
+}

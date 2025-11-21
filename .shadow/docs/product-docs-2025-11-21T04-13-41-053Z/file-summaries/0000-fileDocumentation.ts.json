@@ -1,0 +1,32 @@
+{
+  "file": "src/fileDocumentation.ts",
+  "role": "Core Logic",
+  "purpose": "Defines type interfaces and structures for organizing extracted documentation from code files into hierarchical summaries (file → module → product → full aggregation).",
+  "userVisibleActions": [
+    "Users see documentation organized by what actions they can take through GUI, CLI, API, or CI/CD interfaces",
+    "Users understand what problems the product solves and how it fits into their workflow",
+    "Users view structured capabilities grouped by module type (API endpoints, CLI commands, workers)"
+  ],
+  "developerVisibleActions": [
+    "Developers use FileSummary to document individual files with role, purpose, and key functions",
+    "Developers use ModuleSummary to group related files and expose endpoints, commands, or worker flows",
+    "Developers use EnhancedProductDocumentation to create complete product documentation with overview, architecture diagrams, and user perspectives",
+    "Developers structure documentation with userVisibleActions and developerVisibleActions to separate concerns",
+    "Developers can include Mermaid diagrams for component and flow visualization",
+    "Developers organize features, modules, and components with titles and descriptions"
+  ],
+  "keyFunctions": [],
+  "dependencies": [
+    "fs",
+    "path",
+    "CodeAnalysis from ./analyzer",
+    "FileInfo from ./analyzer"
+  ],
+  "intent": "This file exists to establish a standardized documentation schema that follows a four-level hierarchy (file → module → product → full aggregation), enabling systematic extraction and organization of codebase documentation with clear separation between user-facing and developer-facing information.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines type interfaces and structures for organizing extracted documentation from code files into hierarchical summaries (file → module → product → full aggregation).\",\n  \"userVisibleActions\": [\n    \"Users see documentation organized by what actions they can take through GUI, CLI, API, or CI/CD interfaces\",\n    \"Users understand what problems the product solves and how it fits into their workflow\",\n    \"Users view structured capabilities grouped by module type (API endpoints, CLI commands, workers)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developers use FileSummary to document individual files with role, purpose, and key functions\",\n    \"Developers use ModuleSummary to group related files and expose endpoints, commands, or worker flows\",\n    \"Developers use EnhancedProductDocumentation to create complete product documentation with overview, architecture diagrams, and user perspectives\",\n    \"Developers structure documentation with userVisibleActions and developerVisibleActions to separate concerns\",\n    \"Developers can include Mermaid diagrams for component and flow visualization\",\n    \"Developers organize features, modules, and components with titles and descriptions\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"CodeAnalysis from ./analyzer\",\n    \"FileInfo from ./analyzer\"\n  ],\n  \"intent\": \"This file exists to establish a standardized documentation schema that follows a four-level hierarchy (file → module → product → full aggregation), enabling systematic extraction and organization of codebase documentation with clear separation between user-facing and developer-facing information.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:21:09.722Z"
+  }
+}

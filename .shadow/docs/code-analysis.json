@@ -1,7 +1,7 @@
 {
   "totalFiles": 65,
-  "totalLines": 25443,
-  "totalFunctions": 1203,
+  "totalLines": 25708,
+  "totalFunctions": 1217,
   "largeFiles": 11,
   "files": [
     {
@@ -126,7 +126,7 @@
     },
     {
       "path": "src/domain/prompts/promptBuilder.ts",
-      "lines": 1117,
+      "lines": 1157,
       "functions": 18,
       "language": "typescript"
     },
@@ -138,7 +138,7 @@
     },
     {
       "path": "src/domain/prompts/testPrompts.ts",
-      "lines": 242,
+      "lines": 267,
       "functions": 8,
       "language": "typescript"
     },
@@ -168,8 +168,8 @@
     },
     {
       "path": "src/domain/services/testing/llmTestPlanningService.ts",
-      "lines": 124,
-      "functions": 4,
+      "lines": 265,
+      "functions": 11,
       "language": "typescript"
     },
     {
@@ -294,8 +294,8 @@
     },
     {
       "path": "src/llmService.ts",
-      "lines": 3229,
-      "functions": 133,
+      "lines": 3288,
+      "functions": 140,
       "language": "typescript"
     },
     {
@@ -570,7 +570,7 @@
     },
     {
       "path": "shadow-watch-1.0.0.vsix",
-      "lines": 5953,
+      "lines": 5855,
       "functions": 0,
       "language": "vsix"
     },
@@ -2711,144 +2711,144 @@
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 465,
-      "endLine": 483,
+      "startLine": 505,
+      "endLine": 523,
       "lines": 19,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 469,
-      "endLine": 471,
+      "startLine": 509,
+      "endLine": 511,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 472,
-      "endLine": 474,
+      "startLine": 512,
+      "endLine": 514,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 475,
-      "endLine": 477,
+      "startLine": 515,
+      "endLine": 517,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 486,
-      "endLine": 494,
+      "startLine": 526,
+      "endLine": 534,
       "lines": 9,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 488,
-      "endLine": 490,
+      "startLine": 528,
+      "endLine": 530,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 491,
-      "endLine": 493,
+      "startLine": 531,
+      "endLine": 533,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 497,
-      "endLine": 511,
+      "startLine": 537,
+      "endLine": 551,
       "lines": 15,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 499,
-      "endLine": 510,
+      "startLine": 539,
+      "endLine": 550,
       "lines": 12,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 503,
-      "endLine": 505,
+      "startLine": 543,
+      "endLine": 545,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 816,
-      "endLine": 828,
+      "startLine": 856,
+      "endLine": 868,
       "lines": 13,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 822,
-      "endLine": 824,
+      "startLine": 862,
+      "endLine": 864,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 832,
-      "endLine": 835,
+      "startLine": 872,
+      "endLine": 875,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 839,
-      "endLine": 842,
+      "startLine": 879,
+      "endLine": 882,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 848,
-      "endLine": 853,
+      "startLine": 888,
+      "endLine": 893,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 850,
-      "endLine": 852,
+      "startLine": 890,
+      "endLine": 892,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 859,
-      "endLine": 861,
+      "startLine": 899,
+      "endLine": 901,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/prompts/promptBuilder.ts",
-      "startLine": 878,
-      "endLine": 882,
+      "startLine": 918,
+      "endLine": 922,
       "lines": 5,
       "language": "javascript"
     },
@@ -2928,8 +2928,8 @@
       "name": "buildPlanningPrompt",
       "file": "src/domain/prompts/testPrompts.ts",
       "startLine": 46,
-      "endLine": 140,
-      "lines": 95,
+      "endLine": 116,
+      "lines": 71,
       "language": "javascript"
     },
     {
@@ -2949,34 +2949,34 @@
       "language": "javascript"
     },
     {
-      "name": "for",
+      "name": "buildFunctionSelectionPrompt",
       "file": "src/domain/prompts/testPrompts.ts",
-      "startLine": 95,
-      "endLine": 97,
-      "lines": 3,
+      "startLine": 118,
+      "endLine": 165,
+      "lines": 48,
       "language": "javascript"
     },
     {
-      "name": "if",
+      "name": "for",
       "file": "src/domain/prompts/testPrompts.ts",
-      "startLine": 99,
-      "endLine": 101,
+      "startLine": 133,
+      "endLine": 135,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "buildGenerationPrompt",
       "file": "src/domain/prompts/testPrompts.ts",
-      "startLine": 142,
-      "endLine": 197,
+      "startLine": 167,
+      "endLine": 222,
       "lines": 56,
       "language": "javascript"
     },
     {
       "name": "buildFixPrompt",
       "file": "src/domain/prompts/testPrompts.ts",
-      "startLine": 199,
-      "endLine": 241,
+      "startLine": 224,
+      "endLine": 266,
       "lines": 43,
       "language": "javascript"
     },
@@ -3509,26 +3509,82 @@
       "language": "javascript"
     },
     {
-      "name": "for",
+      "name": "if",
       "file": "src/domain/services/testing/llmTestPlanningService.ts",
-      "startLine": 103,
-      "endLine": 105,
+      "startLine": 79,
+      "endLine": 81,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/services/testing/llmTestPlanningService.ts",
-      "startLine": 109,
-      "endLine": 113,
+      "startLine": 88,
+      "endLine": 121,
+      "lines": 34,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 100,
+      "endLine": 103,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 111,
+      "endLine": 120,
+      "lines": 10,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 184,
+      "endLine": 199,
+      "lines": 16,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 201,
+      "endLine": 216,
+      "lines": 16,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 218,
+      "endLine": 233,
+      "lines": 16,
+      "language": "javascript"
+    },
+    {
+      "name": "for",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 244,
+      "endLine": 246,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "for",
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "startLine": 250,
+      "endLine": 254,
       "lines": 5,
       "language": "javascript"
     },
     {
       "name": "for",
       "file": "src/domain/services/testing/llmTestPlanningService.ts",
-      "startLine": 110,
-      "endLine": 112,
+      "startLine": 251,
+      "endLine": 253,
       "lines": 3,
       "language": "javascript"
     },
@@ -8543,96 +8599,152 @@
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3103,
-      "endLine": 3105,
+      "startLine": 3069,
+      "endLine": 3071,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3110,
-      "endLine": 3112,
-      "lines": 3,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/llmService.ts",
-      "startLine": 3115,
-      "endLine": 3120,
+      "startLine": 3074,
+      "endLine": 3079,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3117,
-      "endLine": 3119,
+      "startLine": 3076,
+      "endLine": 3078,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3123,
-      "endLine": 3143,
-      "lines": 21,
+      "startLine": 3082,
+      "endLine": 3088,
+      "lines": 7,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3130,
-      "endLine": 3133,
+      "startLine": 3085,
+      "endLine": 3087,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3090,
+      "endLine": 3093,
       "lines": 4,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3182,
-      "endLine": 3184,
-      "lines": 3,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/llmService.ts",
-      "startLine": 3189,
-      "endLine": 3191,
-      "lines": 3,
-      "language": "javascript"
-    },
-    {
-      "name": "if",
-      "file": "src/llmService.ts",
-      "startLine": 3194,
-      "endLine": 3199,
+      "startLine": 3105,
+      "endLine": 3110,
       "lines": 6,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3196,
-      "endLine": 3198,
+      "startLine": 3162,
+      "endLine": 3164,
       "lines": 3,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3202,
-      "endLine": 3222,
+      "startLine": 3169,
+      "endLine": 3171,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3174,
+      "endLine": 3179,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3176,
+      "endLine": 3178,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3182,
+      "endLine": 3202,
       "lines": 21,
       "language": "javascript"
     },
     {
       "name": "if",
       "file": "src/llmService.ts",
-      "startLine": 3209,
-      "endLine": 3212,
+      "startLine": 3189,
+      "endLine": 3192,
+      "lines": 4,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3241,
+      "endLine": 3243,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3248,
+      "endLine": 3250,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3253,
+      "endLine": 3258,
+      "lines": 6,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3255,
+      "endLine": 3257,
+      "lines": 3,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3261,
+      "endLine": 3281,
+      "lines": 21,
+      "language": "javascript"
+    },
+    {
+      "name": "if",
+      "file": "src/llmService.ts",
+      "startLine": 3268,
+      "endLine": 3271,
       "lines": 4,
       "language": "javascript"
     },
@@ -10376,7 +10488,8 @@
       "./types/testPlanTypes",
       "../../prompts/testPrompts",
       "../../../analyzer",
-      "../../../logger"
+      "../../../logger",
+      "../../prompts/testPrompts"
     ],
     "src/domain/services/testing/llmTestSetupService.ts": [
       "fs",
@@ -10524,7 +10637,9 @@
       "./domain/prompts/promptBuilder",
       "./domain/services/incrementalAnalysisService",
       "./domain/prompts/refactoringPromptBuilder",
-      "./analysis/functionAnalyzer"
+      "./analysis/functionAnalyzer",
+      "os",
+      "fs"
     ],
     "src/logger.ts": [
       "fs",
@@ -10676,7 +10791,7 @@
     }
   ],
   "_metadata": {
-    "generatedAt": "2025-11-21T01:32:51.261Z",
-    "generatedAtLocal": "11/20/2025, 5:32:51 PM"
+    "generatedAt": "2025-11-21T04:13:34.220Z",
+    "generatedAtLocal": "11/20/2025, 8:13:34 PM"
   }
 }

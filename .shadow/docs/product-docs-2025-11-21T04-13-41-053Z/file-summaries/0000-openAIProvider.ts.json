@@ -1,0 +1,64 @@
+{
+  "file": "src/ai/providers/openAIProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Provides integration with OpenAI's API to send chat completion requests and receive AI-generated responses",
+  "userVisibleActions": [
+    "Receives AI-generated text responses from OpenAI models (like GPT-4)",
+    "Gets structured JSON responses when requesting formatted output",
+    "Experiences timeout after 5 minutes if AI response takes too long",
+    "Sees error messages when OpenAI API key is not configured"
+  ],
+  "developerVisibleActions": [
+    "Configure OpenAI API key through configuration manager to enable the provider",
+    "Send chat completion requests with system prompts and conversation messages",
+    "Request structured JSON output by specifying response format",
+    "Check if provider is configured before making requests",
+    "Receive responses with content, finish reason, and token usage information",
+    "Handle errors when API key is missing or requests fail"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initialize",
+      "desc": "Sets up the OpenAI client with API key from configuration",
+      "inputs": "None",
+      "outputs": "void"
+    },
+    {
+      "name": "isConfigured",
+      "desc": "Checks if the provider has a valid API key and is ready to use",
+      "inputs": "None",
+      "outputs": "boolean indicating configuration status"
+    },
+    {
+      "name": "getName",
+      "desc": "Returns the provider identifier",
+      "inputs": "None",
+      "outputs": "string 'openai'"
+    },
+    {
+      "name": "sendRequest",
+      "desc": "Sends a chat completion request to OpenAI and returns the response",
+      "inputs": "LLMRequestOptions (model, messages, system prompt, response format)",
+      "outputs": "Promise<LLMResponse> with content, finish reason, and usage"
+    },
+    {
+      "name": "sendRequestStructured",
+      "desc": "Sends a request expecting structured JSON output and parses the result",
+      "inputs": "LLMRequestOptions with json_object response format",
+      "outputs": "Promise<StructuredOutputResponse> with parsed JSON data and raw content"
+    }
+  ],
+  "dependencies": [
+    "openai",
+    "../../config/configurationManager",
+    "../../utils/jsonExtractor",
+    "./ILLMProvider"
+  ],
+  "intent": "This file exists to abstract OpenAI's API behind a common provider interface, allowing the application to send AI requests and receive responses while handling configuration, error cases, and both text and structured JSON outputs consistently with other AI providers",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides integration with OpenAI's API to send chat completion requests and receive AI-generated responses\",\n  \"userVisibleActions\": [\n    \"Receives AI-generated text responses from OpenAI models (like GPT-4)\",\n    \"Gets structured JSON responses when requesting formatted output\",\n    \"Experiences timeout after 5 minutes if AI response takes too long\",\n    \"Sees error messages when OpenAI API key is not configured\"\n  ],\n  \"developerVisibleActions\": [\n    \"Configure OpenAI API key through configuration manager to enable the provider\",\n    \"Send chat completion requests with system prompts and conversation messages\",\n    \"Request structured JSON output by specifying response format\",\n    \"Check if provider is configured before making requests\",\n    \"Receive responses with content, finish reason, and token usage information\",\n    \"Handle errors when API key is missing or requests fail\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initialize\",\n      \"desc\": \"Sets up the OpenAI client with API key from configuration\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if the provider has a valid API key and is ready to use\",\n      \"inputs\": \"None\",\n      \"outputs\": \"boolean indicating configuration status\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the provider identifier\",\n      \"inputs\": \"None\",\n      \"outputs\": \"string 'openai'\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a chat completion request to OpenAI and returns the response\",\n      \"inputs\": \"LLMRequestOptions (model, messages, system prompt, response format)\",\n      \"outputs\": \"Promise<LLMResponse> with content, finish reason, and usage\"\n    },\n    {\n      \"name\": \"sendRequestStructured\",\n      \"desc\": \"Sends a request expecting structured JSON output and parses the result\",\n      \"inputs\": \"LLMRequestOptions with json_object response format\",\n      \"outputs\": \"Promise<StructuredOutputResponse> with parsed JSON data and raw content\"\n    }\n  ],\n  \"dependencies\": [\n    \"openai\",\n    \"../../config/configurationManager\",\n    \"../../utils/jsonExtractor\",\n    \"./ILLMProvider\"\n  ],\n  \"intent\": \"This file exists to abstract OpenAI's API behind a common provider interface, allowing the application to send AI requests and receive responses while handling configuration, error cases, and both text and structured JSON outputs consistently with other AI providers\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:14:53.868Z"
+  }
+}

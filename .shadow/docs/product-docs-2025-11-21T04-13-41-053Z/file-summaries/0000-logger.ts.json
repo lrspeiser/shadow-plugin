@@ -1,0 +1,54 @@
+{
+  "file": "src/logger.ts",
+  "role": "Core Logic",
+  "purpose": "Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory",
+  "userVisibleActions": [
+    "Creates a .shadow/logs directory in the workspace root if it doesn't exist",
+    "Writes log entries to a shadow-watch.log file with timestamps",
+    "Logs are persistent and can be reviewed to troubleshoot extension behavior"
+  ],
+  "developerVisibleActions": [
+    "Call SWLogger.log() to write timestamped messages to the log file",
+    "Call SWLogger.section() to create visual separators in the log with section titles",
+    "Logging automatically handles errors silently without crashing the extension",
+    "Log files are stored at workspace-root/.shadow/logs/shadow-watch.log"
+  ],
+  "keyFunctions": [
+    {
+      "name": "log",
+      "desc": "Writes a timestamped message to the shadow-watch.log file",
+      "inputs": "message (string): The text to log",
+      "outputs": "void (no return value)"
+    },
+    {
+      "name": "section",
+      "desc": "Creates a formatted section header in the log file with blank lines for readability",
+      "inputs": "title (string): The section heading text",
+      "outputs": "void (no return value)"
+    },
+    {
+      "name": "getLogPath",
+      "desc": "Determines the file path where logs should be written, creating directories if needed",
+      "inputs": "none",
+      "outputs": "string | null: The log file path, or null if no workspace is open"
+    },
+    {
+      "name": "ensureDir",
+      "desc": "Creates a directory and its parent directories if they don't exist",
+      "inputs": "dir (string): The directory path to create",
+      "outputs": "void (no return value)"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "vscode"
+  ],
+  "intent": "This file exists to provide a centralized, reliable logging mechanism for debugging and monitoring the extension's behavior, storing logs in a predictable location within the workspace that users can access to troubleshoot issues without interfering with normal extension operation.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory\",\n  \"userVisibleActions\": [\n    \"Creates a .shadow/logs directory in the workspace root if it doesn't exist\",\n    \"Writes log entries to a shadow-watch.log file with timestamps\",\n    \"Logs are persistent and can be reviewed to troubleshoot extension behavior\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call SWLogger.log() to write timestamped messages to the log file\",\n    \"Call SWLogger.section() to create visual separators in the log with section titles\",\n    \"Logging automatically handles errors silently without crashing the extension\",\n    \"Log files are stored at workspace-root/.shadow/logs/shadow-watch.log\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"log\",\n      \"desc\": \"Writes a timestamped message to the shadow-watch.log file\",\n      \"inputs\": \"message (string): The text to log\",\n      \"outputs\": \"void (no return value)\"\n    },\n    {\n      \"name\": \"section\",\n      \"desc\": \"Creates a formatted section header in the log file with blank lines for readability\",\n      \"inputs\": \"title (string): The section heading text\",\n      \"outputs\": \"void (no return value)\"\n    },\n    {\n      \"name\": \"getLogPath\",\n      \"desc\": \"Determines the file path where logs should be written, creating directories if needed\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string | null: The log file path, or null if no workspace is open\"\n    },\n    {\n      \"name\": \"ensureDir\",\n      \"desc\": \"Creates a directory and its parent directories if they don't exist\",\n      \"inputs\": \"dir (string): The directory path to create\",\n      \"outputs\": \"void (no return value)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide a centralized, reliable logging mechanism for debugging and monitoring the extension's behavior, storing logs in a predictable location within the workspace that users can access to troubleshoot issues without interfering with normal extension operation.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:24:30.845Z"
+  }
+}

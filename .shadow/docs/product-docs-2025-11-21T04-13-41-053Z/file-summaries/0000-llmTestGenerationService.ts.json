@@ -1,0 +1,51 @@
+{
+  "file": "src/domain/services/testing/llmTestGenerationService.ts",
+  "role": "Core Logic",
+  "purpose": "Generates unit tests for code functions incrementally using an LLM service, executing tests in small batches and providing progress feedback.",
+  "userVisibleActions": [
+    "Receive progress updates showing which function is currently being tested (e.g., 'Generating test 5 of 20 for functionName')",
+    "See test generation results for each function including success/failure status",
+    "View generated test code for functions",
+    "Get feedback on test execution results including pass/fail outcomes"
+  ],
+  "developerVisibleActions": [
+    "Call generateTestBatch() to generate tests for multiple functions at once",
+    "Provide a progress callback to monitor test generation as it proceeds",
+    "Receive a Map of test generation results keyed by function name",
+    "Access generated test code, mock requirements, and execution status for each function",
+    "Integrate with LLM service to automatically generate test code based on source code analysis",
+    "Automatically check for and reuse existing mock files (e.g., vscode mocks)",
+    "Get structured results indicating which tests passed, failed, or couldn't be generated"
+  ],
+  "keyFunctions": [
+    {
+      "name": "generateTestBatch",
+      "desc": "Generates tests for a batch of functions by calling the LLM service for each one and tracking progress",
+      "inputs": "functions array, workspace root path, LLM service instance, optional progress callback",
+      "outputs": "Map of function names to TestGenerationResult objects"
+    },
+    {
+      "name": "extractFunctionSource",
+      "desc": "Extracts the source code for a specific function from the workspace",
+      "inputs": "TestableFunction object, workspace root path",
+      "outputs": "Source code string for the function"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "TestableFunction",
+    "TestGenerationState",
+    "TestGenerationResult",
+    "buildGenerationPrompt",
+    "TestExecutionService",
+    "SWLogger"
+  ],
+  "intent": "This file exists to automate the creation of unit tests by leveraging LLM capabilities to analyze source code and generate appropriate test cases. It solves the problem of manually writing repetitive test code by processing functions in batches, providing real-time progress feedback, and handling the complete workflow from test generation through execution and result reporting.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Generates unit tests for code functions incrementally using an LLM service, executing tests in small batches and providing progress feedback.\",\n  \"userVisibleActions\": [\n    \"Receive progress updates showing which function is currently being tested (e.g., 'Generating test 5 of 20 for functionName')\",\n    \"See test generation results for each function including success/failure status\",\n    \"View generated test code for functions\",\n    \"Get feedback on test execution results including pass/fail outcomes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call generateTestBatch() to generate tests for multiple functions at once\",\n    \"Provide a progress callback to monitor test generation as it proceeds\",\n    \"Receive a Map of test generation results keyed by function name\",\n    \"Access generated test code, mock requirements, and execution status for each function\",\n    \"Integrate with LLM service to automatically generate test code based on source code analysis\",\n    \"Automatically check for and reuse existing mock files (e.g., vscode mocks)\",\n    \"Get structured results indicating which tests passed, failed, or couldn't be generated\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"generateTestBatch\",\n      \"desc\": \"Generates tests for a batch of functions by calling the LLM service for each one and tracking progress\",\n      \"inputs\": \"functions array, workspace root path, LLM service instance, optional progress callback\",\n      \"outputs\": \"Map of function names to TestGenerationResult objects\"\n    },\n    {\n      \"name\": \"extractFunctionSource\",\n      \"desc\": \"Extracts the source code for a specific function from the workspace\",\n      \"inputs\": \"TestableFunction object, workspace root path\",\n      \"outputs\": \"Source code string for the function\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestableFunction\",\n    \"TestGenerationState\",\n    \"TestGenerationResult\",\n    \"buildGenerationPrompt\",\n    \"TestExecutionService\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file exists to automate the creation of unit tests by leveraging LLM capabilities to analyze source code and generate appropriate test cases. It solves the problem of manually writing repetitive test code by processing functions in batches, providing real-time progress feedback, and handling the complete workflow from test generation through execution and result reporting.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:19:14.239Z"
+  }
+}

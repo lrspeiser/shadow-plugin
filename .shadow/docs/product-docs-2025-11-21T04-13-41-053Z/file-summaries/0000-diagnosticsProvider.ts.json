@@ -1,0 +1,56 @@
+{
+  "file": "src/diagnosticsProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Displays code insights as visual diagnostic messages (warnings, errors, info) in the VS Code Problems panel and editor gutter",
+  "userVisibleActions": [
+    "See colored underlines/squiggles in code where insights are detected",
+    "View insights listed in the Problems panel (Ctrl+Shift+M)",
+    "Hover over underlined code to see insight descriptions",
+    "Click on problems to navigate to specific code locations",
+    "See insight severity indicated by icon color (error/warning/info)"
+  ],
+  "developerVisibleActions": [
+    "Developer triggers insight generation which updates diagnostics automatically",
+    "Diagnostics update in real-time as insights are discovered",
+    "Diagnostics are grouped by file for organized viewing",
+    "Diagnostics clear when insights are refreshed or extension is reset",
+    "Each diagnostic shows source as 'Shadow Watch' and includes insight ID"
+  ],
+  "keyFunctions": [
+    {
+      "name": "updateDiagnostics",
+      "desc": "Updates all diagnostics across all files based on new insights",
+      "inputs": "Array of insights",
+      "outputs": "Visual diagnostics in editor and Problems panel"
+    },
+    {
+      "name": "updateDiagnosticsForFile",
+      "desc": "Updates diagnostics for a single specific file",
+      "inputs": "File URI and array of insights for that file",
+      "outputs": "Visual diagnostics for that file only"
+    },
+    {
+      "name": "createDiagnostic",
+      "desc": "Converts an insight into a VS Code diagnostic message with appropriate severity and location",
+      "inputs": "Single insight object",
+      "outputs": "VS Code Diagnostic object"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all diagnostic messages from the editor and Problems panel",
+      "inputs": "None",
+      "outputs": "Cleared diagnostics UI"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./insightGenerator"
+  ],
+  "intent": "Bridges the gap between generated code insights and VS Code's native diagnostics system, making insights visible to users through familiar VS Code UI elements (squiggles, Problems panel) rather than requiring custom UI",
+  "rawContent": "```json\n{\n  \"purpose\": \"Displays code insights as visual diagnostic messages (warnings, errors, info) in the VS Code Problems panel and editor gutter\",\n  \"userVisibleActions\": [\n    \"See colored underlines/squiggles in code where insights are detected\",\n    \"View insights listed in the Problems panel (Ctrl+Shift+M)\",\n    \"Hover over underlined code to see insight descriptions\",\n    \"Click on problems to navigate to specific code locations\",\n    \"See insight severity indicated by icon color (error/warning/info)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer triggers insight generation which updates diagnostics automatically\",\n    \"Diagnostics update in real-time as insights are discovered\",\n    \"Diagnostics are grouped by file for organized viewing\",\n    \"Diagnostics clear when insights are refreshed or extension is reset\",\n    \"Each diagnostic shows source as 'Shadow Watch' and includes insight ID\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"updateDiagnostics\",\n      \"desc\": \"Updates all diagnostics across all files based on new insights\",\n      \"inputs\": \"Array of insights\",\n      \"outputs\": \"Visual diagnostics in editor and Problems panel\"\n    },\n    {\n      \"name\": \"updateDiagnosticsForFile\",\n      \"desc\": \"Updates diagnostics for a single specific file\",\n      \"inputs\": \"File URI and array of insights for that file\",\n      \"outputs\": \"Visual diagnostics for that file only\"\n    },\n    {\n      \"name\": \"createDiagnostic\",\n      \"desc\": \"Converts an insight into a VS Code diagnostic message with appropriate severity and location\",\n      \"inputs\": \"Single insight object\",\n      \"outputs\": \"VS Code Diagnostic object\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all diagnostic messages from the editor and Problems panel\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Cleared diagnostics UI\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"Bridges the gap between generated code insights and VS Code's native diagnostics system, making insights visible to users through familiar VS Code UI elements (squiggles, Problems panel) rather than requiring custom UI\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:16:51.360Z"
+  }
+}

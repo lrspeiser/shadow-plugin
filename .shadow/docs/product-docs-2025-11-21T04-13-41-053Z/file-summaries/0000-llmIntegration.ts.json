@@ -1,0 +1,121 @@
+{
+  "file": "src/llmIntegration.ts",
+  "role": "Core Logic",
+  "purpose": "Integrates LLM-powered code analysis features into VSCode, managing documentation generation, insights, and code analysis visualization through various tree view providers and command handlers.",
+  "userVisibleActions": [
+    "Generate product documentation from codebase with progress notifications",
+    "View generated documentation in formatted output channel and webview",
+    "Analyze codebase to extract architecture insights and patterns",
+    "View insights organized in tree view with categories (Entry Points, Components, etc.)",
+    "Navigate codebase through product navigator showing modules and components",
+    "View analysis results in interactive viewer with file structure",
+    "Search and filter analysis results and insights",
+    "Jump to code locations from tree views and documentation",
+    "Export documentation and insights to files",
+    "Refresh analysis and documentation on demand",
+    "View unit test coverage and navigate to test files",
+    "See error messages when API keys are missing or invalid",
+    "Receive notifications when documentation or analysis completes"
+  ],
+  "developerVisibleActions": [
+    "Trigger analysis through command palette or tree view actions",
+    "Configure LLM API keys and providers in settings",
+    "Access cached analysis results to avoid redundant processing",
+    "Monitor analysis progress through status bar and notifications",
+    "Debug LLM interactions through logging output",
+    "Access saved analysis state across sessions",
+    "Handle API rate limits and errors gracefully",
+    "Customize documentation formatting through settings",
+    "Integrate analysis results into custom workflows",
+    "Load and save analysis contexts programmatically"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeLLMService",
+      "desc": "Initializes LLM service, registers configuration change handlers, and loads saved analysis state",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "desc": "Analyzes codebase and generates comprehensive product documentation using LLM",
+      "inputs": "workspace folder",
+      "outputs": "Promise<EnhancedProductDocumentation>"
+    },
+    {
+      "name": "analyzeCodebase",
+      "desc": "Performs deep code analysis to extract architecture, patterns, and insights",
+      "inputs": "workspace folder, options",
+      "outputs": "Promise<CodeAnalysis>"
+    },
+    {
+      "name": "getInsights",
+      "desc": "Retrieves LLM-generated insights from analyzed codebase",
+      "inputs": "analysis context",
+      "outputs": "Promise<LLMInsights>"
+    },
+    {
+      "name": "refreshInsights",
+      "desc": "Re-analyzes codebase and updates insights tree view",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "showDocumentation",
+      "desc": "Displays generated documentation in formatted output channel or webview",
+      "inputs": "documentation object",
+      "outputs": "void"
+    },
+    {
+      "name": "exportDocumentation",
+      "desc": "Saves documentation to markdown or HTML file",
+      "inputs": "documentation, format, output path",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "loadSavedCodeAnalysis",
+      "desc": "Loads previously saved analysis results from disk",
+      "inputs": "workspace folder",
+      "outputs": "Promise<CodeAnalysis | null>"
+    },
+    {
+      "name": "saveAnalysisResults",
+      "desc": "Persists analysis results and insights to disk for later use",
+      "inputs": "analysis data, workspace folder",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "registerCommands",
+      "desc": "Registers all VSCode commands for LLM features in command palette",
+      "inputs": "extension context",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "child_process",
+    "util",
+    "llmService",
+    "insightsTreeView",
+    "fileDocumentation",
+    "analyzer",
+    "productNavigator",
+    "analysisViewer",
+    "insightsViewer",
+    "unitTestsNavigator",
+    "logger",
+    "llmStateManager",
+    "analysisContextBuilder",
+    "documentationFormatter",
+    "analysisResultRepository"
+  ],
+  "intent": "This file exists to bridge the gap between raw code analysis and user-friendly LLM-powered features in VSCode. It solves the problem of understanding large codebases by providing automated documentation generation, architectural insights extraction, and interactive navigation through analysis results. It manages the entire lifecycle of LLM-powered analysis including initialization, execution, caching, persistence, and presentation through various UI components like tree views and webviews.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Integrates LLM-powered code analysis features into VSCode, managing documentation generation, insights, and code analysis visualization through various tree view providers and command handlers.\",\n  \"userVisibleActions\": [\n    \"Generate product documentation from codebase with progress notifications\",\n    \"View generated documentation in formatted output channel and webview\",\n    \"Analyze codebase to extract architecture insights and patterns\",\n    \"View insights organized in tree view with categories (Entry Points, Components, etc.)\",\n    \"Navigate codebase through product navigator showing modules and components\",\n    \"View analysis results in interactive viewer with file structure\",\n    \"Search and filter analysis results and insights\",\n    \"Jump to code locations from tree views and documentation\",\n    \"Export documentation and insights to files\",\n    \"Refresh analysis and documentation on demand\",\n    \"View unit test coverage and navigate to test files\",\n    \"See error messages when API keys are missing or invalid\",\n    \"Receive notifications when documentation or analysis completes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Trigger analysis through command palette or tree view actions\",\n    \"Configure LLM API keys and providers in settings\",\n    \"Access cached analysis results to avoid redundant processing\",\n    \"Monitor analysis progress through status bar and notifications\",\n    \"Debug LLM interactions through logging output\",\n    \"Access saved analysis state across sessions\",\n    \"Handle API rate limits and errors gracefully\",\n    \"Customize documentation formatting through settings\",\n    \"Integrate analysis results into custom workflows\",\n    \"Load and save analysis contexts programmatically\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeLLMService\",\n      \"desc\": \"Initializes LLM service, registers configuration change handlers, and loads saved analysis state\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"generateProductDocumentation\",\n      \"desc\": \"Analyzes codebase and generates comprehensive product documentation using LLM\",\n      \"inputs\": \"workspace folder\",\n      \"outputs\": \"Promise<EnhancedProductDocumentation>\"\n    },\n    {\n      \"name\": \"analyzeCodebase\",\n      \"desc\": \"Performs deep code analysis to extract architecture, patterns, and insights\",\n      \"inputs\": \"workspace folder, options\",\n      \"outputs\": \"Promise<CodeAnalysis>\"\n    },\n    {\n      \"name\": \"getInsights\",\n      \"desc\": \"Retrieves LLM-generated insights from analyzed codebase\",\n      \"inputs\": \"analysis context\",\n      \"outputs\": \"Promise<LLMInsights>\"\n    },\n    {\n      \"name\": \"refreshInsights\",\n      \"desc\": \"Re-analyzes codebase and updates insights tree view\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"showDocumentation\",\n      \"desc\": \"Displays generated documentation in formatted output channel or webview\",\n      \"inputs\": \"documentation object\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"exportDocumentation\",\n      \"desc\": \"Saves documentation to markdown or HTML file\",\n      \"inputs\": \"documentation, format, output path\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"loadSavedCodeAnalysis\",\n      \"desc\": \"Loads previously saved analysis results from disk\",\n      \"inputs\": \"workspace folder\",\n      \"outputs\": \"Promise<CodeAnalysis | null>\"\n    },\n    {\n      \"name\": \"saveAnalysisResults\",\n      \"desc\": \"Persists analysis results and insights to disk for later use\",\n      \"inputs\": \"analysis data, workspace folder\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"registerCommands\",\n      \"desc\": \"Registers all VSCode commands for LLM features in command palette\",\n      \"inputs\": \"extension context\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"util\",\n    \"llmService\",\n    \"insightsTreeView\",\n    \"fileDocumentation\",\n    \"analyzer\",\n    \"productNavigator\",\n    \"analysisViewer\",\n    \"insightsViewer\",\n    \"unitTestsNavigator\",\n    \"logger\",\n    \"llmStateManager\",\n    \"analysisContextBuilder\",\n    \"documentationFormatter\",\n    \"analysisResultRepository\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between raw code analysis and user-friendly LLM-powered features in VSCode. It solves the problem of understanding large codebases by providing automated documentation generation, architectural insights extraction, and interactive navigation through analysis results. It manages the entire lifecycle of LLM-powered analysis including initialization, execution, caching, persistence, and presentation through various UI components like tree views and webviews.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:23:46.962Z"
+  }
+}

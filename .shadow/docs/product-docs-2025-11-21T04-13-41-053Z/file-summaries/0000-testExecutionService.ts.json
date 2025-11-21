@@ -1,0 +1,84 @@
+{
+  "file": "src/domain/services/testing/testExecutionService.ts",
+  "role": "Core Logic",
+  "purpose": "Executes test suites (Jest, Mocha, Pytest, Vitest) and captures their results for display and analysis",
+  "userVisibleActions": [
+    "Run tests for a specific file or all tests in the workspace",
+    "View test execution results including pass/fail status and duration",
+    "See detailed error messages and stack traces when tests fail",
+    "Get notified when test execution fails or times out",
+    "View test coverage information when available"
+  ],
+  "developerVisibleActions": [
+    "Execute Jest tests with JSON output parsing",
+    "Execute Mocha tests with JSON reporter",
+    "Execute Pytest tests with JSON output",
+    "Execute Vitest tests with JSON reporter",
+    "Parse test framework output into standardized result format",
+    "Handle test execution errors and timeouts gracefully",
+    "Extract error details including test names, messages, and stack traces",
+    "Configure test execution with custom buffer sizes and timeouts"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runJest",
+      "desc": "Runs Jest tests for a specific file or entire test suite",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runMocha",
+      "desc": "Runs Mocha tests for a specific file or entire test suite",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runPytest",
+      "desc": "Runs Pytest tests for a specific file or entire test suite",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runVitest",
+      "desc": "Runs Vitest tests for a specific file or entire test suite",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "parseJestOutput",
+      "desc": "Parses Jest JSON output into standardized test results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parseMochaOutput",
+      "desc": "Parses Mocha JSON output into standardized test results",
+      "inputs": "stdout: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parsePytestOutput",
+      "desc": "Parses Pytest JSON output into standardized test results",
+      "inputs": "stdout: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parseVitestOutput",
+      "desc": "Parses Vitest JSON output into standardized test results",
+      "inputs": "stdout: string",
+      "outputs": "TestExecutionResult[]"
+    }
+  ],
+  "dependencies": [
+    "child_process",
+    "path",
+    "./types/testResultTypes"
+  ],
+  "intent": "This file exists to provide a unified interface for executing different test frameworks (Jest, Mocha, Pytest, Vitest) and normalizing their output into a consistent format. It solves the problem of supporting multiple testing frameworks with different output formats by handling execution, parsing, and error handling for each framework, making test results available in a standardized structure for display and analysis.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Executes test suites (Jest, Mocha, Pytest, Vitest) and captures their results for display and analysis\",\n  \"userVisibleActions\": [\n    \"Run tests for a specific file or all tests in the workspace\",\n    \"View test execution results including pass/fail status and duration\",\n    \"See detailed error messages and stack traces when tests fail\",\n    \"Get notified when test execution fails or times out\",\n    \"View test coverage information when available\"\n  ],\n  \"developerVisibleActions\": [\n    \"Execute Jest tests with JSON output parsing\",\n    \"Execute Mocha tests with JSON reporter\",\n    \"Execute Pytest tests with JSON output\",\n    \"Execute Vitest tests with JSON reporter\",\n    \"Parse test framework output into standardized result format\",\n    \"Handle test execution errors and timeouts gracefully\",\n    \"Extract error details including test names, messages, and stack traces\",\n    \"Configure test execution with custom buffer sizes and timeouts\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runJest\",\n      \"desc\": \"Runs Jest tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runMocha\",\n      \"desc\": \"Runs Mocha tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runPytest\",\n      \"desc\": \"Runs Pytest tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runVitest\",\n      \"desc\": \"Runs Vitest tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"parseJestOutput\",\n      \"desc\": \"Parses Jest JSON output into standardized test results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseMochaOutput\",\n      \"desc\": \"Parses Mocha JSON output into standardized test results\",\n      \"inputs\": \"stdout: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parsePytestOutput\",\n      \"desc\": \"Parses Pytest JSON output into standardized test results\",\n      \"inputs\": \"stdout: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseVitestOutput\",\n      \"desc\": \"Parses Vitest JSON output into standardized test results\",\n      \"inputs\": \"stdout: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    }\n  ],\n  \"dependencies\": [\n    \"child_process\",\n    \"path\",\n    \"./types/testResultTypes\"\n  ],\n  \"intent\": \"This file exists to provide a unified interface for executing different test frameworks (Jest, Mocha, Pytest, Vitest) and normalizing their output into a consistent format. It solves the problem of supporting multiple testing frameworks with different output formats by handling execution, parsing, and error handling for each framework, making test results available in a standardized structure for display and analysis.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:20:04.859Z"
+  }
+}

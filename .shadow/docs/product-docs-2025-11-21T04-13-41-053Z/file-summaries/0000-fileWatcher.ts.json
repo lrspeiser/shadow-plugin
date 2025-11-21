@@ -1,0 +1,73 @@
+{
+  "file": "src/fileWatcher.ts",
+  "role": "Core Logic",
+  "purpose": "Monitors file changes in the workspace and automatically triggers code analysis when files are saved",
+  "userVisibleActions": [
+    "Code is automatically analyzed when a file is saved (if 'analyzeOnSave' is enabled in settings)",
+    "Analysis results appear in diagnostics/problems panel after file save",
+    "Insights tree view updates automatically after file analysis completes",
+    "Analysis is throttled to prevent excessive re-analysis (minimum 1 second between analyses)",
+    "Analysis skips if configuration is disabled or invalid workspace"
+  ],
+  "developerVisibleActions": [
+    "FileWatcher coordinates automatic analysis workflow when files are saved",
+    "Debounces file save events to avoid duplicate analysis runs",
+    "Checks configuration settings to determine if analysis should run",
+    "Validates workspace folders exist before triggering analysis",
+    "Orchestrates analyzer, insight generator, diagnostics provider, and tree view updates",
+    "Maintains analysis state to prevent concurrent analysis runs",
+    "Handles errors during analysis and reports them appropriately",
+    "Can be started/stopped programmatically to enable/disable file watching",
+    "Cleans up resources and timers when stopped or disposed"
+  ],
+  "keyFunctions": [
+    {
+      "name": "start",
+      "desc": "Begins watching for file save events to trigger automatic analysis",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "stop",
+      "desc": "Stops watching file changes and cleans up pending analysis",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "onFileSaved",
+      "desc": "Handles file save event by scheduling/triggering code analysis with debouncing",
+      "inputs": "document (TextDocument)",
+      "outputs": "void"
+    },
+    {
+      "name": "triggerAnalysis",
+      "desc": "Executes the full analysis workflow: analyzes code, generates insights, updates diagnostics and tree view",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up all resources, stops watching, and cancels pending operations",
+      "inputs": "none",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "CodeAnalyzer",
+    "InsightGenerator",
+    "DiagnosticsProvider",
+    "InsightsTreeProvider",
+    "ConfigurationManager",
+    "ErrorHandler",
+    "FileWatcherService"
+  ],
+  "intent": "This file exists to provide automatic, background code analysis triggered by file saves. It solves the problem of keeping code insights up-to-date without requiring manual user action, while intelligently throttling analysis to avoid performance issues. It acts as the orchestration layer that connects file system events to the analysis pipeline.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Monitors file changes in the workspace and automatically triggers code analysis when files are saved\",\n  \"userVisibleActions\": [\n    \"Code is automatically analyzed when a file is saved (if 'analyzeOnSave' is enabled in settings)\",\n    \"Analysis results appear in diagnostics/problems panel after file save\",\n    \"Insights tree view updates automatically after file analysis completes\",\n    \"Analysis is throttled to prevent excessive re-analysis (minimum 1 second between analyses)\",\n    \"Analysis skips if configuration is disabled or invalid workspace\"\n  ],\n  \"developerVisibleActions\": [\n    \"FileWatcher coordinates automatic analysis workflow when files are saved\",\n    \"Debounces file save events to avoid duplicate analysis runs\",\n    \"Checks configuration settings to determine if analysis should run\",\n    \"Validates workspace folders exist before triggering analysis\",\n    \"Orchestrates analyzer, insight generator, diagnostics provider, and tree view updates\",\n    \"Maintains analysis state to prevent concurrent analysis runs\",\n    \"Handles errors during analysis and reports them appropriately\",\n    \"Can be started/stopped programmatically to enable/disable file watching\",\n    \"Cleans up resources and timers when stopped or disposed\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"start\",\n      \"desc\": \"Begins watching for file save events to trigger automatic analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"stop\",\n      \"desc\": \"Stops watching file changes and cleans up pending analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"onFileSaved\",\n      \"desc\": \"Handles file save event by scheduling/triggering code analysis with debouncing\",\n      \"inputs\": \"document (TextDocument)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"triggerAnalysis\",\n      \"desc\": \"Executes the full analysis workflow: analyzes code, generates insights, updates diagnostics and tree view\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up all resources, stops watching, and cancels pending operations\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"DiagnosticsProvider\",\n    \"InsightsTreeProvider\",\n    \"ConfigurationManager\",\n    \"ErrorHandler\",\n    \"FileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide automatic, background code analysis triggered by file saves. It solves the problem of keeping code insights up-to-date without requiring manual user action, while intelligently throttling analysis to avoid performance issues. It acts as the orchestration layer that connects file system events to the analysis pipeline.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:21:23.607Z"
+  }
+}

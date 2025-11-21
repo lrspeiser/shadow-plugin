@@ -1,0 +1,38 @@
+{
+  "file": "src/domain/services/incrementalAnalysisService.ts",
+  "role": "Core Logic",
+  "purpose": "Manages iterative analysis where an LLM can request additional files or grep searches across multiple rounds until it has enough information to complete its task",
+  "userVisibleActions": [
+    "Analysis progresses through multiple iterations automatically when the LLM needs more context",
+    "Additional files are read and included in the analysis when requested",
+    "Grep searches are performed across the codebase when the LLM needs to find specific patterns",
+    "Analysis stops after reaching maximum iterations or when the LLM has sufficient information"
+  ],
+  "developerVisibleActions": [
+    "Create an IncrementalAnalysisService instance with a FileAccessHelper",
+    "Call processRequests() to handle LLM file and grep requests within an iteration",
+    "Receive ProcessRequestsResult containing formatted additional information and updated conversation messages",
+    "Use IterationCallbacks to monitor iteration start and completion events",
+    "Access IterationResult to see final result, iteration count, all requests made, and continuation status",
+    "LLM requests are automatically limited to 5 per iteration to prevent excessive processing"
+  ],
+  "keyFunctions": [
+    {
+      "name": "processRequests",
+      "desc": "Processes LLM-requested file reads and grep searches, returning formatted results and updated conversation messages",
+      "inputs": "requests (array of LLMRequest), currentResult (any), messages (conversation history)",
+      "outputs": "ProcessRequestsResult containing additionalInfo string and updated messages array"
+    }
+  ],
+  "dependencies": [
+    "FileAccessHelper",
+    "LLMRequest"
+  ],
+  "intent": "This file exists to eliminate code duplication from llmService.ts by extracting the iterative analysis logic into a reusable, testable service. It solves the problem of LLMs needing multiple rounds of context gathering (files and grep searches) before producing a final analysis, converting while-loop patterns into structured async iteration patterns for better testing and maintainability.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages iterative analysis where an LLM can request additional files or grep searches across multiple rounds until it has enough information to complete its task\",\n  \"userVisibleActions\": [\n    \"Analysis progresses through multiple iterations automatically when the LLM needs more context\",\n    \"Additional files are read and included in the analysis when requested\",\n    \"Grep searches are performed across the codebase when the LLM needs to find specific patterns\",\n    \"Analysis stops after reaching maximum iterations or when the LLM has sufficient information\"\n  ],\n  \"developerVisibleActions\": [\n    \"Create an IncrementalAnalysisService instance with a FileAccessHelper\",\n    \"Call processRequests() to handle LLM file and grep requests within an iteration\",\n    \"Receive ProcessRequestsResult containing formatted additional information and updated conversation messages\",\n    \"Use IterationCallbacks to monitor iteration start and completion events\",\n    \"Access IterationResult to see final result, iteration count, all requests made, and continuation status\",\n    \"LLM requests are automatically limited to 5 per iteration to prevent excessive processing\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"processRequests\",\n      \"desc\": \"Processes LLM-requested file reads and grep searches, returning formatted results and updated conversation messages\",\n      \"inputs\": \"requests (array of LLMRequest), currentResult (any), messages (conversation history)\",\n      \"outputs\": \"ProcessRequestsResult containing additionalInfo string and updated messages array\"\n    }\n  ],\n  \"dependencies\": [\n    \"FileAccessHelper\",\n    \"LLMRequest\"\n  ],\n  \"intent\": \"This file exists to eliminate code duplication from llmService.ts by extracting the iterative analysis logic into a reusable, testable service. It solves the problem of LLMs needing multiple rounds of context gathering (files and grep searches) before producing a final analysis, converting while-loop patterns into structured async iteration patterns for better testing and maintainability.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:18:53.153Z"
+  }
+}

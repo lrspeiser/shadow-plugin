@@ -1,0 +1,328 @@
+{
+  "module": "src/domain/services/testing",
+  "moduleType": "tests",
+  "capabilities": [
+    "Automated test generation for code functions using AI-powered analysis",
+    "Intelligent test planning with prioritized recommendations based on code structure",
+    "Automatic test environment detection and setup for multiple frameworks and languages",
+    "Test execution across multiple test frameworks (Jest, Mocha, Pytest, Vitest)",
+    "Automated test validation and fixing of failing tests using LLM analysis",
+    "Real-time progress tracking during test generation and execution",
+    "Test coverage analysis and reporting"
+  ],
+  "summary": "This module provides a comprehensive AI-powered testing workflow that automates the entire testing lifecycle from environment setup through test generation, execution, and validation. Users can leverage LLM capabilities to automatically generate unit tests for their code functions, receive intelligent recommendations on which functions should be tested, and get prioritized test plans organized by testing areas such as core logic, edge cases, and integration points.\n\nThe module supports multiple programming languages (TypeScript, JavaScript, Python, Java, C++) and test frameworks (Jest, Mocha, Pytest, Vitest), automatically detecting the project's configuration and setting up the necessary test environment. During test generation, users receive incremental progress updates showing which functions are being tested and can view the generated test code along with execution results. The system executes tests in small batches to provide immediate feedback on test outcomes.\n\nWhen tests fail, the module automatically attempts to fix them using LLM analysis, making multiple fix attempts if needed and providing detailed error messages and stack traces. Users can run tests for specific files or the entire workspace, view comprehensive test results including pass/fail counts, execution duration, and coverage information, all without requiring manual intervention for test creation or failure remediation.",
+  "files": [
+    {
+      "file": "src/domain/services/testing/llmTestGenerationService.ts",
+      "role": "Core Logic",
+      "purpose": "Generates unit tests for code functions incrementally using an LLM service, executing tests in small batches and providing progress feedback.",
+      "userVisibleActions": [
+        "Receive progress updates showing which function is currently being tested (e.g., 'Generating test 5 of 20 for functionName')",
+        "See test generation results for each function including success/failure status",
+        "View generated test code for functions",
+        "Get feedback on test execution results including pass/fail outcomes"
+      ],
+      "developerVisibleActions": [
+        "Call generateTestBatch() to generate tests for multiple functions at once",
+        "Provide a progress callback to monitor test generation as it proceeds",
+        "Receive a Map of test generation results keyed by function name",
+        "Access generated test code, mock requirements, and execution status for each function",
+        "Integrate with LLM service to automatically generate test code based on source code analysis",
+        "Automatically check for and reuse existing mock files (e.g., vscode mocks)",
+        "Get structured results indicating which tests passed, failed, or couldn't be generated"
+      ],
+      "keyFunctions": [
+        {
+          "name": "generateTestBatch",
+          "desc": "Generates tests for a batch of functions by calling the LLM service for each one and tracking progress",
+          "inputs": "functions array, workspace root path, LLM service instance, optional progress callback",
+          "outputs": "Map of function names to TestGenerationResult objects"
+        },
+        {
+          "name": "extractFunctionSource",
+          "desc": "Extracts the source code for a specific function from the workspace",
+          "inputs": "TestableFunction object, workspace root path",
+          "outputs": "Source code string for the function"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "TestableFunction",
+        "TestGenerationState",
+        "TestGenerationResult",
+        "buildGenerationPrompt",
+        "TestExecutionService",
+        "SWLogger"
+      ],
+      "intent": "This file exists to automate the creation of unit tests by leveraging LLM capabilities to analyze source code and generate appropriate test cases. It solves the problem of manually writing repetitive test code by processing functions in batches, providing real-time progress feedback, and handling the complete workflow from test generation through execution and result reporting.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Generates unit tests for code functions incrementally using an LLM service, executing tests in small batches and providing progress feedback.\",\n  \"userVisibleActions\": [\n    \"Receive progress updates showing which function is currently being tested (e.g., 'Generating test 5 of 20 for functionName')\",\n    \"See test generation results for each function including success/failure status\",\n    \"View generated test code for functions\",\n    \"Get feedback on test execution results including pass/fail outcomes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call generateTestBatch() to generate tests for multiple functions at once\",\n    \"Provide a progress callback to monitor test generation as it proceeds\",\n    \"Receive a Map of test generation results keyed by function name\",\n    \"Access generated test code, mock requirements, and execution status for each function\",\n    \"Integrate with LLM service to automatically generate test code based on source code analysis\",\n    \"Automatically check for and reuse existing mock files (e.g., vscode mocks)\",\n    \"Get structured results indicating which tests passed, failed, or couldn't be generated\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"generateTestBatch\",\n      \"desc\": \"Generates tests for a batch of functions by calling the LLM service for each one and tracking progress\",\n      \"inputs\": \"functions array, workspace root path, LLM service instance, optional progress callback\",\n      \"outputs\": \"Map of function names to TestGenerationResult objects\"\n    },\n    {\n      \"name\": \"extractFunctionSource\",\n      \"desc\": \"Extracts the source code for a specific function from the workspace\",\n      \"inputs\": \"TestableFunction object, workspace root path\",\n      \"outputs\": \"Source code string for the function\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestableFunction\",\n    \"TestGenerationState\",\n    \"TestGenerationResult\",\n    \"buildGenerationPrompt\",\n    \"TestExecutionService\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file exists to automate the creation of unit tests by leveraging LLM capabilities to analyze source code and generate appropriate test cases. It solves the problem of manually writing repetitive test code by processing functions in batches, providing real-time progress feedback, and handling the complete workflow from test generation through execution and result reporting.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/llmTestPlanningService.ts",
+      "role": "Core Logic",
+      "purpose": "Analyzes code and creates prioritized test plans using LLM to recommend which functions should be tested and how",
+      "userVisibleActions": [
+        "Receives automated test recommendations for code functions",
+        "Gets prioritized list of functions that should be tested",
+        "Views test plans organized by testing areas (e.g., core logic, edge cases, integration points)",
+        "Sees confidence scores and rationale for each test recommendation"
+      ],
+      "developerVisibleActions": [
+        "Calls service to generate test plans from code analysis results",
+        "Provides optional product documentation and architecture insights to improve test recommendations",
+        "Receives structured test plan with testable functions organized by priority and category",
+        "Uses two-phase planning approach: high-level strategy first, then specific function selection",
+        "Leverages pre-existing architecture analysis test recommendations when available"
+      ],
+      "keyFunctions": [
+        {
+          "name": "analyzeFunctions",
+          "desc": "Extracts and normalizes function information from code analysis",
+          "inputs": "codeAnalysis object containing functions array",
+          "outputs": "Array of function objects with name, file, lines, complexity, parameters, and return type"
+        },
+        {
+          "name": "createTestPlan",
+          "desc": "Generates comprehensive test plan using LLM with two-phase approach (strategy then function selection)",
+          "inputs": "CodeAnalysis context, functions array, llmService, optional productDocs and architectureInsights",
+          "outputs": "TestPlan object with prioritized testable functions and testing strategy"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "TestPlan types",
+        "TestableFunction types",
+        "buildPlanningPrompt",
+        "CodeAnalysis",
+        "SWLogger"
+      ],
+      "intent": "Automates the test planning process by using AI to analyze code and intelligently recommend which functions need testing, what types of tests to write, and in what order to prioritize them, reducing manual test planning effort and improving test coverage",
+      "rawContent": "```json\n{\n  \"purpose\": \"Analyzes code and creates prioritized test plans using LLM to recommend which functions should be tested and how\",\n  \"userVisibleActions\": [\n    \"Receives automated test recommendations for code functions\",\n    \"Gets prioritized list of functions that should be tested\",\n    \"Views test plans organized by testing areas (e.g., core logic, edge cases, integration points)\",\n    \"Sees confidence scores and rationale for each test recommendation\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls service to generate test plans from code analysis results\",\n    \"Provides optional product documentation and architecture insights to improve test recommendations\",\n    \"Receives structured test plan with testable functions organized by priority and category\",\n    \"Uses two-phase planning approach: high-level strategy first, then specific function selection\",\n    \"Leverages pre-existing architecture analysis test recommendations when available\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Extracts and normalizes function information from code analysis\",\n      \"inputs\": \"codeAnalysis object containing functions array\",\n      \"outputs\": \"Array of function objects with name, file, lines, complexity, parameters, and return type\"\n    },\n    {\n      \"name\": \"createTestPlan\",\n      \"desc\": \"Generates comprehensive test plan using LLM with two-phase approach (strategy then function selection)\",\n      \"inputs\": \"CodeAnalysis context, functions array, llmService, optional productDocs and architectureInsights\",\n      \"outputs\": \"TestPlan object with prioritized testable functions and testing strategy\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestPlan types\",\n    \"TestableFunction types\",\n    \"buildPlanningPrompt\",\n    \"CodeAnalysis\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"Automates the test planning process by using AI to analyze code and intelligently recommend which functions need testing, what types of tests to write, and in what order to prioritize them, reducing manual test planning effort and improving test coverage\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/llmTestSetupService.ts",
+      "role": "Core Logic",
+      "purpose": "Detects test environment configuration and generates test setup plans using LLM-based analysis of the workspace.",
+      "userVisibleActions": [
+        "Automatically detects the programming language used in the project (TypeScript, JavaScript, Python, Java, C++)",
+        "Identifies existing test framework configuration (Jest, package.json, tsconfig.json)",
+        "Generates a test setup plan with required dependencies and configuration files",
+        "Executes test setup by installing dependencies and creating configuration files",
+        "Verifies test setup by running a test command and checking for success"
+      ],
+      "developerVisibleActions": [
+        "Scans workspace to detect test environment (test directories, config files, language distribution)",
+        "Analyzes package.json and tsconfig.json to understand project structure",
+        "Uses LLM to generate appropriate test setup based on detected environment",
+        "Installs test framework dependencies via package manager (npm/yarn)",
+        "Creates or updates test configuration files (jest.config.js, tsconfig.json)",
+        "Runs test verification command and reports success or failure with error messages",
+        "Provides detailed execution results including stdout, stderr, and exit codes"
+      ],
+      "keyFunctions": [
+        {
+          "name": "detectTestEnvironment",
+          "desc": "Scans workspace to identify project language, existing test configurations, and test directories",
+          "inputs": "workspaceRoot: string (path to project root)",
+          "outputs": "TestEnvironment object with framework, language, directories, and config file information"
+        },
+        {
+          "name": "generateSetupPlan",
+          "desc": "Uses LLM to create a test setup plan based on detected environment",
+          "inputs": "environment: TestEnvironment, llmResponse: function",
+          "outputs": "Promise<TestSetupPlan> with dependencies, config files, and setup steps"
+        },
+        {
+          "name": "executeSetup",
+          "desc": "Executes the generated setup plan by installing dependencies and creating config files",
+          "inputs": "plan: TestSetupPlan, workspaceRoot: string",
+          "outputs": "Promise<SetupExecutionResult> with success status, messages, and any errors"
+        },
+        {
+          "name": "verifySetup",
+          "desc": "Runs test command to verify the test environment is correctly configured",
+          "inputs": "workspaceRoot: string, testCommand: string",
+          "outputs": "Promise<SetupExecutionResult> indicating if tests can run successfully"
+        },
+        {
+          "name": "getAllFiles",
+          "desc": "Recursively retrieves all files in a directory for language detection",
+          "inputs": "dir: string (directory path)",
+          "outputs": "string[] (array of file paths)"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "child_process",
+        "./types/testSetupTypes",
+        "../../prompts/testPrompts",
+        "../../../logger"
+      ],
+      "intent": "This service automates test environment setup by intelligently detecting the project's configuration and generating appropriate test framework setup. It solves the problem of manual test configuration by analyzing the workspace, determining the best test setup approach using LLM, and automatically installing and configuring the necessary testing infrastructure. This eliminates the need for developers to manually configure test frameworks and ensures consistent test setup across projects.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Detects test environment configuration and generates test setup plans using LLM-based analysis of the workspace.\",\n  \"userVisibleActions\": [\n    \"Automatically detects the programming language used in the project (TypeScript, JavaScript, Python, Java, C++)\",\n    \"Identifies existing test framework configuration (Jest, package.json, tsconfig.json)\",\n    \"Generates a test setup plan with required dependencies and configuration files\",\n    \"Executes test setup by installing dependencies and creating configuration files\",\n    \"Verifies test setup by running a test command and checking for success\"\n  ],\n  \"developerVisibleActions\": [\n    \"Scans workspace to detect test environment (test directories, config files, language distribution)\",\n    \"Analyzes package.json and tsconfig.json to understand project structure\",\n    \"Uses LLM to generate appropriate test setup based on detected environment\",\n    \"Installs test framework dependencies via package manager (npm/yarn)\",\n    \"Creates or updates test configuration files (jest.config.js, tsconfig.json)\",\n    \"Runs test verification command and reports success or failure with error messages\",\n    \"Provides detailed execution results including stdout, stderr, and exit codes\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestEnvironment\",\n      \"desc\": \"Scans workspace to identify project language, existing test configurations, and test directories\",\n      \"inputs\": \"workspaceRoot: string (path to project root)\",\n      \"outputs\": \"TestEnvironment object with framework, language, directories, and config file information\"\n    },\n    {\n      \"name\": \"generateSetupPlan\",\n      \"desc\": \"Uses LLM to create a test setup plan based on detected environment\",\n      \"inputs\": \"environment: TestEnvironment, llmResponse: function\",\n      \"outputs\": \"Promise<TestSetupPlan> with dependencies, config files, and setup steps\"\n    },\n    {\n      \"name\": \"executeSetup\",\n      \"desc\": \"Executes the generated setup plan by installing dependencies and creating config files\",\n      \"inputs\": \"plan: TestSetupPlan, workspaceRoot: string\",\n      \"outputs\": \"Promise<SetupExecutionResult> with success status, messages, and any errors\"\n    },\n    {\n      \"name\": \"verifySetup\",\n      \"desc\": \"Runs test command to verify the test environment is correctly configured\",\n      \"inputs\": \"workspaceRoot: string, testCommand: string\",\n      \"outputs\": \"Promise<SetupExecutionResult> indicating if tests can run successfully\"\n    },\n    {\n      \"name\": \"getAllFiles\",\n      \"desc\": \"Recursively retrieves all files in a directory for language detection\",\n      \"inputs\": \"dir: string (directory path)\",\n      \"outputs\": \"string[] (array of file paths)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"./types/testSetupTypes\",\n    \"../../prompts/testPrompts\",\n    \"../../../logger\"\n  ],\n  \"intent\": \"This service automates test environment setup by intelligently detecting the project's configuration and generating appropriate test framework setup. It solves the problem of manual test configuration by analyzing the workspace, determining the best test setup approach using LLM, and automatically installing and configuring the necessary testing infrastructure. This eliminates the need for developers to manually configure test frameworks and ensures consistent test setup across projects.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/llmTestValidationService.ts",
+      "role": "Core Logic",
+      "purpose": "Validates tests by running them, capturing failures, and automatically fixing failing tests using LLM analysis and code generation.",
+      "userVisibleActions": [
+        "Tests are automatically run and validated in the workspace",
+        "Failing tests are automatically fixed without manual intervention",
+        "Test results show pass/fail counts and error messages",
+        "Multiple fix attempts are made automatically if initial fixes don't work",
+        "Final test results indicate whether fixes were successful"
+      ],
+      "developerVisibleActions": [
+        "Run all tests or a specific test file in the workspace",
+        "Get detailed test execution results with pass/fail counts",
+        "Automatically fix failing tests by providing test file path and execution results",
+        "Configure maximum retry attempts for test fixes (default 3)",
+        "Receive feedback on fix success/failure with attempt counts",
+        "Test fixes are applied by reading test code, analyzing errors, generating fixes via LLM, and writing corrected code back",
+        "Each fix attempt re-runs tests to verify the correction worked"
+      ],
+      "keyFunctions": [
+        {
+          "name": "runTests",
+          "desc": "Executes all tests or a specific test file and returns results with pass/fail counts",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]> - Array of test results with passed/failed/error counts"
+        },
+        {
+          "name": "fixFailingTest",
+          "desc": "Attempts to fix a failing test by analyzing errors and generating corrected code using LLM",
+          "inputs": "testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts: number (default 3)",
+          "outputs": "Promise<{success: boolean, attempts: number, finalError?: string}> - Fix result with success status and attempt count"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "TestExecutionService",
+        "TestExecutionResult",
+        "TestReport",
+        "TestReportSummary",
+        "buildFixPrompt",
+        "SWLogger"
+      ],
+      "intent": "This file exists to automate the test validation and correction workflow, allowing failing tests to be automatically fixed using AI analysis rather than requiring manual debugging and code changes by developers.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Validates tests by running them, capturing failures, and automatically fixing failing tests using LLM analysis and code generation.\",\n  \"userVisibleActions\": [\n    \"Tests are automatically run and validated in the workspace\",\n    \"Failing tests are automatically fixed without manual intervention\",\n    \"Test results show pass/fail counts and error messages\",\n    \"Multiple fix attempts are made automatically if initial fixes don't work\",\n    \"Final test results indicate whether fixes were successful\"\n  ],\n  \"developerVisibleActions\": [\n    \"Run all tests or a specific test file in the workspace\",\n    \"Get detailed test execution results with pass/fail counts\",\n    \"Automatically fix failing tests by providing test file path and execution results\",\n    \"Configure maximum retry attempts for test fixes (default 3)\",\n    \"Receive feedback on fix success/failure with attempt counts\",\n    \"Test fixes are applied by reading test code, analyzing errors, generating fixes via LLM, and writing corrected code back\",\n    \"Each fix attempt re-runs tests to verify the correction worked\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runTests\",\n      \"desc\": \"Executes all tests or a specific test file and returns results with pass/fail counts\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]> - Array of test results with passed/failed/error counts\"\n    },\n    {\n      \"name\": \"fixFailingTest\",\n      \"desc\": \"Attempts to fix a failing test by analyzing errors and generating corrected code using LLM\",\n      \"inputs\": \"testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts: number (default 3)\",\n      \"outputs\": \"Promise<{success: boolean, attempts: number, finalError?: string}> - Fix result with success status and attempt count\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestExecutionService\",\n    \"TestExecutionResult\",\n    \"TestReport\",\n    \"TestReportSummary\",\n    \"buildFixPrompt\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file exists to automate the test validation and correction workflow, allowing failing tests to be automatically fixed using AI analysis rather than requiring manual debugging and code changes by developers.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testing/testExecutionService.ts",
+      "role": "Core Logic",
+      "purpose": "Executes test suites (Jest, Mocha, Pytest, Vitest) and captures their results for display and analysis",
+      "userVisibleActions": [
+        "Run tests for a specific file or all tests in the workspace",
+        "View test execution results including pass/fail status and duration",
+        "See detailed error messages and stack traces when tests fail",
+        "Get notified when test execution fails or times out",
+        "View test coverage information when available"
+      ],
+      "developerVisibleActions": [
+        "Execute Jest tests with JSON output parsing",
+        "Execute Mocha tests with JSON reporter",
+        "Execute Pytest tests with JSON output",
+        "Execute Vitest tests with JSON reporter",
+        "Parse test framework output into standardized result format",
+        "Handle test execution errors and timeouts gracefully",
+        "Extract error details including test names, messages, and stack traces",
+        "Configure test execution with custom buffer sizes and timeouts"
+      ],
+      "keyFunctions": [
+        {
+          "name": "runJest",
+          "desc": "Runs Jest tests for a specific file or entire test suite",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "runMocha",
+          "desc": "Runs Mocha tests for a specific file or entire test suite",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "runPytest",
+          "desc": "Runs Pytest tests for a specific file or entire test suite",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "runVitest",
+          "desc": "Runs Vitest tests for a specific file or entire test suite",
+          "inputs": "workspaceRoot: string, testFile?: string",
+          "outputs": "Promise<TestExecutionResult[]>"
+        },
+        {
+          "name": "parseJestOutput",
+          "desc": "Parses Jest JSON output into standardized test results",
+          "inputs": "stdout: string, stderr: string",
+          "outputs": "TestExecutionResult[]"
+        },
+        {
+          "name": "parseMochaOutput",
+          "desc": "Parses Mocha JSON output into standardized test results",
+          "inputs": "stdout: string",
+          "outputs": "TestExecutionResult[]"
+        },
+        {
+          "name": "parsePytestOutput",
+          "desc": "Parses Pytest JSON output into standardized test results",
+          "inputs": "stdout: string",
+          "outputs": "TestExecutionResult[]"
+        },
+        {
+          "name": "parseVitestOutput",
+          "desc": "Parses Vitest JSON output into standardized test results",
+          "inputs": "stdout: string",
+          "outputs": "TestExecutionResult[]"
+        }
+      ],
+      "dependencies": [
+        "child_process",
+        "path",
+        "./types/testResultTypes"
+      ],
+      "intent": "This file exists to provide a unified interface for executing different test frameworks (Jest, Mocha, Pytest, Vitest) and normalizing their output into a consistent format. It solves the problem of supporting multiple testing frameworks with different output formats by handling execution, parsing, and error handling for each framework, making test results available in a standardized structure for display and analysis.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Executes test suites (Jest, Mocha, Pytest, Vitest) and captures their results for display and analysis\",\n  \"userVisibleActions\": [\n    \"Run tests for a specific file or all tests in the workspace\",\n    \"View test execution results including pass/fail status and duration\",\n    \"See detailed error messages and stack traces when tests fail\",\n    \"Get notified when test execution fails or times out\",\n    \"View test coverage information when available\"\n  ],\n  \"developerVisibleActions\": [\n    \"Execute Jest tests with JSON output parsing\",\n    \"Execute Mocha tests with JSON reporter\",\n    \"Execute Pytest tests with JSON output\",\n    \"Execute Vitest tests with JSON reporter\",\n    \"Parse test framework output into standardized result format\",\n    \"Handle test execution errors and timeouts gracefully\",\n    \"Extract error details including test names, messages, and stack traces\",\n    \"Configure test execution with custom buffer sizes and timeouts\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runJest\",\n      \"desc\": \"Runs Jest tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runMocha\",\n      \"desc\": \"Runs Mocha tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runPytest\",\n      \"desc\": \"Runs Pytest tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runVitest\",\n      \"desc\": \"Runs Vitest tests for a specific file or entire test suite\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"parseJestOutput\",\n      \"desc\": \"Parses Jest JSON output into standardized test results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseMochaOutput\",\n      \"desc\": \"Parses Mocha JSON output into standardized test results\",\n      \"inputs\": \"stdout: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parsePytestOutput\",\n      \"desc\": \"Parses Pytest JSON output into standardized test results\",\n      \"inputs\": \"stdout: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseVitestOutput\",\n      \"desc\": \"Parses Vitest JSON output into standardized test results\",\n      \"inputs\": \"stdout: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    }\n  ],\n  \"dependencies\": [\n    \"child_process\",\n    \"path\",\n    \"./types/testResultTypes\"\n  ],\n  \"intent\": \"This file exists to provide a unified interface for executing different test frameworks (Jest, Mocha, Pytest, Vitest) and normalizing their output into a consistent format. It solves the problem of supporting multiple testing frameworks with different output formats by handling execution, parsing, and error handling for each framework, making test results available in a standardized structure for display and analysis.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [
+    {
+      "name": "Test Generation Workflow",
+      "description": "Generates unit tests for code functions using LLM analysis",
+      "jobFlow": "1) User initiates test generation for a code file or function. 2) System analyzes code structure and generates tests incrementally. 3) Progress updates show which function is being tested (e.g., 'Generating test 5 of 20 for functionName'). 4) Tests are executed in small batches. 5) Results display generated test code, success/failure status, and execution outcomes for each function."
+    },
+    {
+      "name": "Test Planning Workflow",
+      "description": "Creates prioritized test plans using LLM-based code analysis",
+      "jobFlow": "1) User requests test recommendations for their codebase. 2) System analyzes code structure and complexity. 3) LLM generates prioritized list of functions that should be tested. 4) Results include confidence scores, rationale, and organization by testing areas (core logic, edge cases, integration points). 5) User can use recommendations to guide manual or automated test generation."
+    },
+    {
+      "name": "Test Setup Workflow",
+      "description": "Detects and configures test environment automatically",
+      "jobFlow": "1) System detects project programming language and existing test framework configuration. 2) Generates test setup plan with required dependencies and configuration files. 3) Executes setup by installing dependencies (npm/pip packages) and creating config files. 4) Verifies setup by running test command and checking for successful execution. 5) Reports setup status and any configuration issues."
+    },
+    {
+      "name": "Test Validation and Fixing Workflow",
+      "description": "Validates tests and automatically fixes failures",
+      "jobFlow": "1) Tests are executed in the workspace. 2) System captures test results including pass/fail counts and error messages. 3) For failing tests, LLM analyzes errors and generates fixes. 4) Fixed tests are re-executed automatically. 5) Multiple fix attempts are made if initial fixes don't resolve issues. 6) Final results show whether all tests pass and details of any remaining failures."
+    },
+    {
+      "name": "Test Execution Workflow",
+      "description": "Runs test suites and captures results",
+      "jobFlow": "1) User triggers test execution for specific file or entire workspace. 2) System detects test framework (Jest, Mocha, Pytest, Vitest) and runs appropriate test command. 3) Captures test output including pass/fail status, duration, and coverage. 4) Displays detailed error messages and stack traces for failures. 5) Notifies user of execution completion or timeout. 6) Presents comprehensive test results for analysis."
+    }
+  ],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:27:01.792Z"
+  }
+}

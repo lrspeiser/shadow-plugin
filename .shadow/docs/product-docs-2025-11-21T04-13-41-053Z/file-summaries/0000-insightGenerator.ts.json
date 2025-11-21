@@ -1,0 +1,96 @@
+{
+  "file": "src/insightGenerator.ts",
+  "role": "Core Logic",
+  "purpose": "Generates actionable insights and recommendations by analyzing code metrics, identifying issues like large files, orphaned code, circular dependencies, and complexity problems.",
+  "userVisibleActions": [
+    "Receives insights about large files that exceed recommended line counts",
+    "Gets warnings about orphaned files that aren't referenced elsewhere",
+    "Sees alerts for missing entry points in the codebase",
+    "Views notifications about potential circular dependencies",
+    "Receives warnings about god objects (overly complex classes/modules)",
+    "Gets alerts about potential dead code that may be unused",
+    "Sees recommendations for better file organization",
+    "Receives warnings about complex functions that need refactoring"
+  ],
+  "developerVisibleActions": [
+    "Calls generateInsights() to analyze entire codebase and receive all insights",
+    "Calls generateInsightsForFile() to get insights for a specific file",
+    "Receives structured Insight objects with severity levels (error/warning/info)",
+    "Gets actionable suggestions for each identified issue",
+    "Sees categorized insights for easier filtering and prioritization",
+    "Accesses file path and line number information for navigation to issues",
+    "Views code snippets highlighting problematic areas"
+  ],
+  "keyFunctions": [
+    {
+      "name": "generateInsights",
+      "desc": "Analyzes entire codebase and returns comprehensive list of all identified issues and recommendations",
+      "inputs": "CodeAnalysis object containing analyzed code structure",
+      "outputs": "Array of Insight objects with issues, warnings, and suggestions"
+    },
+    {
+      "name": "generateInsightsForFile",
+      "desc": "Generates insights specific to a single file including size, complexity, and organization checks",
+      "inputs": "CodeAnalysis object and file path string",
+      "outputs": "Array of Insight objects specific to the requested file"
+    },
+    {
+      "name": "checkLargeFiles",
+      "desc": "Identifies files exceeding recommended line count thresholds",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for oversized files"
+    },
+    {
+      "name": "checkOrphanedFiles",
+      "desc": "Finds files that aren't imported or referenced by other files",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for isolated files"
+    },
+    {
+      "name": "checkEntryPoints",
+      "desc": "Validates presence of required entry points in the project",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for missing entry points"
+    },
+    {
+      "name": "checkCircularDependencies",
+      "desc": "Detects potential circular dependency patterns between modules",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for circular dependencies"
+    },
+    {
+      "name": "checkGodObjects",
+      "desc": "Identifies overly complex classes or modules with too many responsibilities",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for god objects"
+    },
+    {
+      "name": "checkDeadCode",
+      "desc": "Finds potentially unused or unreachable code segments",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for dead code"
+    },
+    {
+      "name": "checkFileOrganization",
+      "desc": "Evaluates project structure and file organization patterns",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for organizational improvements"
+    },
+    {
+      "name": "checkFunctionComplexity",
+      "desc": "Analyzes functions for excessive complexity and recommends refactoring",
+      "inputs": "CodeAnalysis object",
+      "outputs": "Array of insights for complex functions"
+    }
+  ],
+  "dependencies": [
+    "./analyzer"
+  ],
+  "intent": "This file exists to transform raw code analysis data into actionable, human-readable insights that help developers improve code quality, maintainability, and organization by identifying common problems and anti-patterns with specific suggestions for improvement.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Generates actionable insights and recommendations by analyzing code metrics, identifying issues like large files, orphaned code, circular dependencies, and complexity problems.\",\n  \"userVisibleActions\": [\n    \"Receives insights about large files that exceed recommended line counts\",\n    \"Gets warnings about orphaned files that aren't referenced elsewhere\",\n    \"Sees alerts for missing entry points in the codebase\",\n    \"Views notifications about potential circular dependencies\",\n    \"Receives warnings about god objects (overly complex classes/modules)\",\n    \"Gets alerts about potential dead code that may be unused\",\n    \"Sees recommendations for better file organization\",\n    \"Receives warnings about complex functions that need refactoring\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls generateInsights() to analyze entire codebase and receive all insights\",\n    \"Calls generateInsightsForFile() to get insights for a specific file\",\n    \"Receives structured Insight objects with severity levels (error/warning/info)\",\n    \"Gets actionable suggestions for each identified issue\",\n    \"Sees categorized insights for easier filtering and prioritization\",\n    \"Accesses file path and line number information for navigation to issues\",\n    \"Views code snippets highlighting problematic areas\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"generateInsights\",\n      \"desc\": \"Analyzes entire codebase and returns comprehensive list of all identified issues and recommendations\",\n      \"inputs\": \"CodeAnalysis object containing analyzed code structure\",\n      \"outputs\": \"Array of Insight objects with issues, warnings, and suggestions\"\n    },\n    {\n      \"name\": \"generateInsightsForFile\",\n      \"desc\": \"Generates insights specific to a single file including size, complexity, and organization checks\",\n      \"inputs\": \"CodeAnalysis object and file path string\",\n      \"outputs\": \"Array of Insight objects specific to the requested file\"\n    },\n    {\n      \"name\": \"checkLargeFiles\",\n      \"desc\": \"Identifies files exceeding recommended line count thresholds\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for oversized files\"\n    },\n    {\n      \"name\": \"checkOrphanedFiles\",\n      \"desc\": \"Finds files that aren't imported or referenced by other files\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for isolated files\"\n    },\n    {\n      \"name\": \"checkEntryPoints\",\n      \"desc\": \"Validates presence of required entry points in the project\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for missing entry points\"\n    },\n    {\n      \"name\": \"checkCircularDependencies\",\n      \"desc\": \"Detects potential circular dependency patterns between modules\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for circular dependencies\"\n    },\n    {\n      \"name\": \"checkGodObjects\",\n      \"desc\": \"Identifies overly complex classes or modules with too many responsibilities\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for god objects\"\n    },\n    {\n      \"name\": \"checkDeadCode\",\n      \"desc\": \"Finds potentially unused or unreachable code segments\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for dead code\"\n    },\n    {\n      \"name\": \"checkFileOrganization\",\n      \"desc\": \"Evaluates project structure and file organization patterns\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for organizational improvements\"\n    },\n    {\n      \"name\": \"checkFunctionComplexity\",\n      \"desc\": \"Analyzes functions for excessive complexity and recommends refactoring\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"Array of insights for complex functions\"\n    }\n  ],\n  \"dependencies\": [\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to transform raw code analysis data into actionable, human-readable insights that help developers improve code quality, maintainability, and organization by identifying common problems and anti-patterns with specific suggestions for improvement.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:22:31.612Z"
+  }
+}

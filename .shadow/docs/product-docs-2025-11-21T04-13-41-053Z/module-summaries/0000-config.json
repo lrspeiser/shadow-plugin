@@ -1,0 +1,121 @@
+{
+  "module": "src/config",
+  "moduleType": "other",
+  "capabilities": [
+    "Centralized management of all Shadow Watch extension settings with type-safe access",
+    "Automatic detection and propagation of configuration changes across the extension",
+    "Control of analysis behavior including auto-trigger on file save and timeout limits",
+    "Customization of editor display features like inline hints and diagnostic severity filtering",
+    "Selection and configuration of AI provider (OpenAI or Claude) for security analysis",
+    "Control of analysis output format and presentation",
+    "Real-time configuration updates without requiring extension reload"
+  ],
+  "summary": "The config module serves as the central configuration hub for Shadow Watch, providing type-safe access to all extension settings and automatically detecting when users modify preferences. It acts as the bridge between VS Code's settings system and the extension's runtime behavior, ensuring that configuration changes immediately affect how the extension operates.\n\nUsers interact with this module indirectly through VS Code's settings interface. When they modify Shadow Watch preferences, the configuration manager detects these changes and notifies relevant extension components. This enables workflows like enabling 'analyze on save' to automatically trigger security analysis whenever a file is saved, adjusting diagnostic severity thresholds to filter which security issues are displayed in the editor, or switching between OpenAI and Claude as the AI provider.\n\nThe module manages critical settings that control the entire user experience: whether inline security hints appear in the editor, how long analysis operations can run before timing out, which severity level of issues should be shown as VS Code diagnostics, and how analysis results are formatted in the output panel. All configuration access is type-safe, preventing runtime errors from misconfigured settings and ensuring consistent behavior across the extension.",
+  "files": [
+    {
+      "file": "src/config/configurationManager.ts",
+      "role": "Core Logic",
+      "purpose": "Manages all Shadow Watch extension settings with type-safe access and automatic change detection",
+      "userVisibleActions": [
+        "Extension behavior changes when user modifies settings in VS Code preferences",
+        "Analysis triggers automatically on save if analyzeOnSave is enabled",
+        "Inline hints appear in editor based on showInlineHints setting",
+        "Analysis respects configured timeout limits",
+        "Diagnostic severity threshold filters which issues are shown",
+        "LLM provider (OpenAI/Claude) determines which AI service is used",
+        "Output format controls how analysis results are displayed"
+      ],
+      "developerVisibleActions": [
+        "Provides centralized access to all extension configuration values",
+        "Automatically reloads configuration when VS Code settings change",
+        "Notifies registered listeners when configuration updates occur",
+        "Validates configuration settings and returns validation errors",
+        "Exposes typed getters for each configuration property",
+        "Handles missing configuration values with sensible defaults",
+        "Manages LLM provider selection (OpenAI vs Claude)",
+        "Controls analysis behavior through boolean flags"
+      ],
+      "keyFunctions": [
+        {
+          "name": "constructor",
+          "desc": "Initializes configuration manager and sets up change watcher",
+          "inputs": "none",
+          "outputs": "ConfigurationManager instance"
+        },
+        {
+          "name": "setupWatcher",
+          "desc": "Monitors VS Code settings changes and triggers listener callbacks",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "onConfigurationChange",
+          "desc": "Registers callback to be invoked when configuration changes",
+          "inputs": "callback function",
+          "outputs": "void"
+        },
+        {
+          "name": "removeConfigurationChangeListener",
+          "desc": "Unregisters a configuration change callback",
+          "inputs": "callback function",
+          "outputs": "void"
+        },
+        {
+          "name": "enabled (getter)",
+          "desc": "Returns whether Shadow Watch extension is enabled",
+          "inputs": "none",
+          "outputs": "boolean"
+        },
+        {
+          "name": "analyzeOnSave (getter)",
+          "desc": "Returns whether to automatically analyze files on save",
+          "inputs": "none",
+          "outputs": "boolean"
+        },
+        {
+          "name": "showInlineHints (getter)",
+          "desc": "Returns whether to display inline hints in editor",
+          "inputs": "none",
+          "outputs": "boolean"
+        },
+        {
+          "name": "llmProvider (getter)",
+          "desc": "Returns configured LLM provider (openai or claude)",
+          "inputs": "none",
+          "outputs": "LLMProvider"
+        },
+        {
+          "name": "llmFormat (getter)",
+          "desc": "Returns output format for LLM responses",
+          "inputs": "none",
+          "outputs": "LLMFormat"
+        },
+        {
+          "name": "severityThreshold (getter)",
+          "desc": "Returns minimum severity level for displaying diagnostics",
+          "inputs": "none",
+          "outputs": "SeverityThreshold"
+        },
+        {
+          "name": "validate",
+          "desc": "Validates current configuration and returns errors if any",
+          "inputs": "none",
+          "outputs": "ConfigValidationResult"
+        }
+      ],
+      "dependencies": [
+        "vscode"
+      ],
+      "intent": "Provides a single source of truth for all extension settings, ensuring type safety, automatic updates when settings change, and consistent access to configuration values throughout the extension. Eliminates direct workspace.getConfiguration calls scattered across the codebase and ensures all components react to setting changes uniformly.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Manages all Shadow Watch extension settings with type-safe access and automatic change detection\",\n  \"userVisibleActions\": [\n    \"Extension behavior changes when user modifies settings in VS Code preferences\",\n    \"Analysis triggers automatically on save if analyzeOnSave is enabled\",\n    \"Inline hints appear in editor based on showInlineHints setting\",\n    \"Analysis respects configured timeout limits\",\n    \"Diagnostic severity threshold filters which issues are shown\",\n    \"LLM provider (OpenAI/Claude) determines which AI service is used\",\n    \"Output format controls how analysis results are displayed\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides centralized access to all extension configuration values\",\n    \"Automatically reloads configuration when VS Code settings change\",\n    \"Notifies registered listeners when configuration updates occur\",\n    \"Validates configuration settings and returns validation errors\",\n    \"Exposes typed getters for each configuration property\",\n    \"Handles missing configuration values with sensible defaults\",\n    \"Manages LLM provider selection (OpenAI vs Claude)\",\n    \"Controls analysis behavior through boolean flags\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes configuration manager and sets up change watcher\",\n      \"inputs\": \"none\",\n      \"outputs\": \"ConfigurationManager instance\"\n    },\n    {\n      \"name\": \"setupWatcher\",\n      \"desc\": \"Monitors VS Code settings changes and triggers listener callbacks\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"onConfigurationChange\",\n      \"desc\": \"Registers callback to be invoked when configuration changes\",\n      \"inputs\": \"callback function\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"removeConfigurationChangeListener\",\n      \"desc\": \"Unregisters a configuration change callback\",\n      \"inputs\": \"callback function\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"enabled (getter)\",\n      \"desc\": \"Returns whether Shadow Watch extension is enabled\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"analyzeOnSave (getter)\",\n      \"desc\": \"Returns whether to automatically analyze files on save\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"showInlineHints (getter)\",\n      \"desc\": \"Returns whether to display inline hints in editor\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"llmProvider (getter)\",\n      \"desc\": \"Returns configured LLM provider (openai or claude)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"LLMProvider\"\n    },\n    {\n      \"name\": \"llmFormat (getter)\",\n      \"desc\": \"Returns output format for LLM responses\",\n      \"inputs\": \"none\",\n      \"outputs\": \"LLMFormat\"\n    },\n    {\n      \"name\": \"severityThreshold (getter)\",\n      \"desc\": \"Returns minimum severity level for displaying diagnostics\",\n      \"inputs\": \"none\",\n      \"outputs\": \"SeverityThreshold\"\n    },\n    {\n      \"name\": \"validate\",\n      \"desc\": \"Validates current configuration and returns errors if any\",\n      \"inputs\": \"none\",\n      \"outputs\": \"ConfigValidationResult\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"Provides a single source of truth for all extension settings, ensuring type safety, automatic updates when settings change, and consistent access to configuration values throughout the extension. Eliminates direct workspace.getConfiguration calls scattered across the codebase and ensures all components react to setting changes uniformly.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:25:35.509Z"
+  }
+}

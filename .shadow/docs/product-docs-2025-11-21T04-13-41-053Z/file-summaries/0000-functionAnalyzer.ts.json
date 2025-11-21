@@ -1,0 +1,53 @@
+{
+  "file": "src/analysis/functionAnalyzer.ts",
+  "role": "Core Logic",
+  "purpose": "Analyzes functions in large code files to extract detailed metadata including signatures, dependencies, dependents, and responsibilities for refactoring reports.",
+  "userVisibleActions": [
+    "Identifies which functions in large files may need refactoring",
+    "Shows function dependencies and relationships across the codebase",
+    "Reveals which functions are called by many other parts of the code",
+    "Displays function signatures and their responsibilities"
+  ],
+  "developerVisibleActions": [
+    "Filters code analysis to focus on files exceeding a size threshold (default 500 lines)",
+    "Extracts function metadata from TypeScript files including name, signature, and location",
+    "Maps out which functions depend on other functions (dependencies)",
+    "Identifies which functions are called by the analyzed function (dependents)",
+    "Generates structured function analysis data for refactoring prompt builders",
+    "Handles analysis failures gracefully with warnings for individual functions"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeFunctions",
+      "desc": "Analyzes all functions in large files to extract detailed information for refactoring",
+      "inputs": "codeAnalysis (full code analysis), largeFileThreshold (minimum lines, default 500)",
+      "outputs": "Array of FunctionAnalysis objects with detailed metadata"
+    },
+    {
+      "name": "analyzeFunction",
+      "desc": "Performs deep analysis on a single function to extract dependencies, dependents, and metadata",
+      "inputs": "filePath (file location), func (FunctionInfo), codeAnalysis (context)",
+      "outputs": "FunctionAnalysis object or null if analysis fails"
+    },
+    {
+      "name": "resolveFilePath",
+      "desc": "Resolves relative file paths to absolute paths for file system access",
+      "inputs": "filePath (relative path), codeAnalysis (for base directory)",
+      "outputs": "Absolute file path string"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "typescript",
+    "../analyzer",
+    "../domain/prompts/refactoringPromptBuilder"
+  ],
+  "intent": "This file exists to provide deep function-level analysis for large files that may need refactoring. It solves the problem of understanding complex function relationships and responsibilities when deciding how to break up large code files. By extracting detailed metadata about each function's dependencies, callers, and purpose, it enables automated generation of refactoring recommendations and reports.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Analyzes functions in large code files to extract detailed metadata including signatures, dependencies, dependents, and responsibilities for refactoring reports.\",\n  \"userVisibleActions\": [\n    \"Identifies which functions in large files may need refactoring\",\n    \"Shows function dependencies and relationships across the codebase\",\n    \"Reveals which functions are called by many other parts of the code\",\n    \"Displays function signatures and their responsibilities\"\n  ],\n  \"developerVisibleActions\": [\n    \"Filters code analysis to focus on files exceeding a size threshold (default 500 lines)\",\n    \"Extracts function metadata from TypeScript files including name, signature, and location\",\n    \"Maps out which functions depend on other functions (dependencies)\",\n    \"Identifies which functions are called by the analyzed function (dependents)\",\n    \"Generates structured function analysis data for refactoring prompt builders\",\n    \"Handles analysis failures gracefully with warnings for individual functions\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Analyzes all functions in large files to extract detailed information for refactoring\",\n      \"inputs\": \"codeAnalysis (full code analysis), largeFileThreshold (minimum lines, default 500)\",\n      \"outputs\": \"Array of FunctionAnalysis objects with detailed metadata\"\n    },\n    {\n      \"name\": \"analyzeFunction\",\n      \"desc\": \"Performs deep analysis on a single function to extract dependencies, dependents, and metadata\",\n      \"inputs\": \"filePath (file location), func (FunctionInfo), codeAnalysis (context)\",\n      \"outputs\": \"FunctionAnalysis object or null if analysis fails\"\n    },\n    {\n      \"name\": \"resolveFilePath\",\n      \"desc\": \"Resolves relative file paths to absolute paths for file system access\",\n      \"inputs\": \"filePath (relative path), codeAnalysis (for base directory)\",\n      \"outputs\": \"Absolute file path string\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"typescript\",\n    \"../analyzer\",\n    \"../domain/prompts/refactoringPromptBuilder\"\n  ],\n  \"intent\": \"This file exists to provide deep function-level analysis for large files that may need refactoring. It solves the problem of understanding complex function relationships and responsibilities when deciding how to break up large code files. By extracting detailed metadata about each function's dependencies, callers, and purpose, it enables automated generation of refactoring recommendations and reports.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:15:31.865Z"
+  }
+}

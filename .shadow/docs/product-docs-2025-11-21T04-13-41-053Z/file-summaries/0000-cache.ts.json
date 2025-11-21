@@ -1,0 +1,54 @@
+{
+  "file": "src/cache.ts",
+  "role": "Core Logic",
+  "purpose": "Manages persistent storage and retrieval of code analysis results to avoid redundant analysis operations",
+  "userVisibleActions": [
+    "Analysis results load instantly when reopening a previously analyzed workspace",
+    "Analysis cache automatically expires after 24 hours, ensuring fresh results",
+    "Cache can be cleared to force fresh analysis of the workspace"
+  ],
+  "developerVisibleActions": [
+    "Cache is automatically stored in a .shadowwatch-cache directory within the storage path",
+    "Cache files are created per workspace using base64-encoded workspace path as identifier",
+    "Cache read/write errors are logged to console without interrupting operations",
+    "Cache validation checks timestamp to determine if cached data is still valid"
+  ],
+  "keyFunctions": [
+    {
+      "name": "get",
+      "desc": "Retrieves cached analysis results for a workspace if they exist and are less than 24 hours old",
+      "inputs": "workspaceRoot (string path)",
+      "outputs": "CodeAnalysis object or null if cache is invalid/missing"
+    },
+    {
+      "name": "set",
+      "desc": "Stores analysis results in cache with current timestamp for future retrieval",
+      "inputs": "workspaceRoot (string path), data (CodeAnalysis object)",
+      "outputs": "void (Promise)"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all cached analysis files from the cache directory",
+      "inputs": "none",
+      "outputs": "void (Promise)"
+    },
+    {
+      "name": "getCacheKey",
+      "desc": "Generates a safe filename identifier from workspace path using base64 encoding",
+      "inputs": "workspaceRoot (string path)",
+      "outputs": "string (sanitized cache key)"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer (CodeAnalysis type)"
+  ],
+  "intent": "Improves user experience by caching expensive code analysis operations, allowing instant access to previously analyzed workspace data while maintaining freshness through automatic expiration",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages persistent storage and retrieval of code analysis results to avoid redundant analysis operations\",\n  \"userVisibleActions\": [\n    \"Analysis results load instantly when reopening a previously analyzed workspace\",\n    \"Analysis cache automatically expires after 24 hours, ensuring fresh results\",\n    \"Cache can be cleared to force fresh analysis of the workspace\"\n  ],\n  \"developerVisibleActions\": [\n    \"Cache is automatically stored in a .shadowwatch-cache directory within the storage path\",\n    \"Cache files are created per workspace using base64-encoded workspace path as identifier\",\n    \"Cache read/write errors are logged to console without interrupting operations\",\n    \"Cache validation checks timestamp to determine if cached data is still valid\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"get\",\n      \"desc\": \"Retrieves cached analysis results for a workspace if they exist and are less than 24 hours old\",\n      \"inputs\": \"workspaceRoot (string path)\",\n      \"outputs\": \"CodeAnalysis object or null if cache is invalid/missing\"\n    },\n    {\n      \"name\": \"set\",\n      \"desc\": \"Stores analysis results in cache with current timestamp for future retrieval\",\n      \"inputs\": \"workspaceRoot (string path), data (CodeAnalysis object)\",\n      \"outputs\": \"void (Promise)\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all cached analysis files from the cache directory\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void (Promise)\"\n    },\n    {\n      \"name\": \"getCacheKey\",\n      \"desc\": \"Generates a safe filename identifier from workspace path using base64 encoding\",\n      \"inputs\": \"workspaceRoot (string path)\",\n      \"outputs\": \"string (sanitized cache key)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer (CodeAnalysis type)\"\n  ],\n  \"intent\": \"Improves user experience by caching expensive code analysis operations, allowing instant access to previously analyzed workspace data while maintaining freshness through automatic expiration\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:16:14.536Z"
+  }
+}

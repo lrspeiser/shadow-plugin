@@ -287,13 +287,18 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }))
             .sort((a, b) => b.mtime - a.mtime);
         
-        if (reportFiles.length > 0 && !this.reportPath) {
+        // Always update to latest refactoring report
+        if (reportFiles.length > 0) {
             const latestReport = reportFiles[0];
-            this.reportPath = latestReport.path;
-            this.reportTimestamp = latestReport.mtime;
+            // Only update if file exists and is newer or path doesn't exist
+            if (fs.existsSync(latestReport.path) && 
+                (!this.reportPath || latestReport.mtime > (this.reportTimestamp || 0))) {
+                this.reportPath = latestReport.path;
+                this.reportTimestamp = latestReport.mtime;
+            }
         }
 
-        // Check for latest workspace report
+        // Always update to latest workspace report
         const workspaceReportFiles = entries
             .filter(e => e.isFile() && e.name.startsWith('workspace-report-') && e.name.endsWith('.md'))
             .map(e => ({
@@ -303,13 +308,16 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }))
             .sort((a, b) => b.mtime - a.mtime);
         
-        if (workspaceReportFiles.length > 0 && !this.workspaceReportPath) {
+        if (workspaceReportFiles.length > 0) {
             const latestReport = workspaceReportFiles[0];
-            this.workspaceReportPath = latestReport.path;
-            this.workspaceReportTimestamp = latestReport.mtime;
+            if (fs.existsSync(latestReport.path) && 
+                (!this.workspaceReportPath || latestReport.mtime > (this.workspaceReportTimestamp || 0))) {
+                this.workspaceReportPath = latestReport.path;
+                this.workspaceReportTimestamp = latestReport.mtime;
+            }
         }
 
-        // Check for latest product report
+        // Always update to latest product report
         const productReportFiles = entries
             .filter(e => e.isFile() && e.name.startsWith('product-report-') && e.name.endsWith('.md'))
             .map(e => ({
@@ -319,13 +327,16 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }))
             .sort((a, b) => b.mtime - a.mtime);
         
-        if (productReportFiles.length > 0 && !this.productReportPath) {
+        if (productReportFiles.length > 0) {
             const latestReport = productReportFiles[0];
-            this.productReportPath = latestReport.path;
-            this.productReportTimestamp = latestReport.mtime;
+            if (fs.existsSync(latestReport.path) && 
+                (!this.productReportPath || latestReport.mtime > (this.productReportTimestamp || 0))) {
+                this.productReportPath = latestReport.path;
+                this.productReportTimestamp = latestReport.mtime;
+            }
         }
 
-        // Check for latest architecture report
+        // Always update to latest architecture report
         const architectureReportFiles = entries
             .filter(e => e.isFile() && e.name.startsWith('architecture-report-') && e.name.endsWith('.md'))
             .map(e => ({
@@ -335,13 +346,16 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }))
             .sort((a, b) => b.mtime - a.mtime);
         
-        if (architectureReportFiles.length > 0 && !this.architectureReportPath) {
+        if (architectureReportFiles.length > 0) {
             const latestReport = architectureReportFiles[0];
-            this.architectureReportPath = latestReport.path;
-            this.architectureReportTimestamp = latestReport.mtime;
+            if (fs.existsSync(latestReport.path) && 
+                (!this.architectureReportPath || latestReport.mtime > (this.architectureReportTimestamp || 0))) {
+                this.architectureReportPath = latestReport.path;
+                this.architectureReportTimestamp = latestReport.mtime;
+            }
         }
 
-        // Check for latest unit test report
+        // Always update to latest unit test report
         const unitTestReportFiles = entries
             .filter(e => e.isFile() && e.name.startsWith('unit-test-report-') && e.name.endsWith('.md'))
             .map(e => ({
@@ -351,10 +365,13 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
             }))
             .sort((a, b) => b.mtime - a.mtime);
         
-        if (unitTestReportFiles.length > 0 && !this.unitTestReportPath) {
+        if (unitTestReportFiles.length > 0) {
             const latestReport = unitTestReportFiles[0];
-            this.unitTestReportPath = latestReport.path;
-            this.unitTestReportTimestamp = latestReport.mtime;
+            if (fs.existsSync(latestReport.path) && 
+                (!this.unitTestReportPath || latestReport.mtime > (this.unitTestReportTimestamp || 0))) {
+                this.unitTestReportPath = latestReport.path;
+                this.unitTestReportTimestamp = latestReport.mtime;
+            }
         }
 
         this.refresh();

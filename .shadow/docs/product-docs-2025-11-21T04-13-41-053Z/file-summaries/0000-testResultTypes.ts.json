@@ -1,0 +1,30 @@
+{
+  "file": "src/domain/services/testing/types/testResultTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type interfaces for test generation, validation, execution results, and reporting in the testing framework.",
+  "userVisibleActions": [
+    "View test execution results showing passed, failed, and error counts",
+    "See test validation status indicating if tests pass, fail, or have errors",
+    "Review test reports with summary statistics and recommendations",
+    "Access detailed error information for failed tests including error messages and stack traces",
+    "View test pass rates and overall testing metrics"
+  ],
+  "developerVisibleActions": [
+    "Define structure for test generation results including file paths, imports, mocks, and test code",
+    "Specify test validation outcomes with fixed code and explanations",
+    "Structure test execution data with status, counts, duration, and error details",
+    "Create comprehensive test reports with summaries and recommendations",
+    "Type-check mock statements with explanations",
+    "Track test setup and teardown code requirements",
+    "Define error detail structures for debugging failed tests"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides a strongly-typed contract for test generation, validation, and reporting features, ensuring consistent data structures across the testing workflow and enabling proper TypeScript type checking for test-related operations and results.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type interfaces for test generation, validation, execution results, and reporting in the testing framework.\",\n  \"userVisibleActions\": [\n    \"View test execution results showing passed, failed, and error counts\",\n    \"See test validation status indicating if tests pass, fail, or have errors\",\n    \"Review test reports with summary statistics and recommendations\",\n    \"Access detailed error information for failed tests including error messages and stack traces\",\n    \"View test pass rates and overall testing metrics\"\n  ],\n  \"developerVisibleActions\": [\n    \"Define structure for test generation results including file paths, imports, mocks, and test code\",\n    \"Specify test validation outcomes with fixed code and explanations\",\n    \"Structure test execution data with status, counts, duration, and error details\",\n    \"Create comprehensive test reports with summaries and recommendations\",\n    \"Type-check mock statements with explanations\",\n    \"Track test setup and teardown code requirements\",\n    \"Define error detail structures for debugging failed tests\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides a strongly-typed contract for test generation, validation, and reporting features, ensuring consistent data structures across the testing workflow and enabling proper TypeScript type checking for test-related operations and results.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:20:21.046Z"
+  }
+}

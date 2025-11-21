@@ -1,0 +1,44 @@
+{
+  "module": ".",
+  "moduleType": "other",
+  "capabilities": [
+    "Provides standardized Jest testing environment for TypeScript-based tests",
+    "Enables code coverage tracking and reporting across the codebase",
+    "Supports module path resolution and TypeScript transformation during test execution",
+    "Configures test file discovery patterns and execution environment"
+  ],
+  "summary": "This module establishes the testing infrastructure for the project by configuring Jest as the testing framework. It enables developers to write and execute TypeScript tests with proper module resolution, transformation, and coverage reporting.\n\nThe configuration supports developers in validating code quality and functionality through automated testing. It defines how test files are discovered, how TypeScript code is transformed for execution, and how coverage metrics are collected and reported. This ensures consistent testing practices across the development workflow.\n\nWhile this is a configuration module with no direct user-facing features, it is essential for the development process, enabling quality assurance through automated testing, continuous integration pipelines, and code coverage analysis.",
+  "files": [
+    {
+      "file": "jest.config.js",
+      "role": "Core Logic",
+      "purpose": "Configures Jest testing framework for TypeScript test execution with coverage reporting and module resolution.",
+      "userVisibleActions": [
+        "No direct user-visible actions - this is a testing configuration file"
+      ],
+      "developerVisibleActions": [
+        "Developer runs test suites located in src and UnitTests directories",
+        "Developer views test coverage reports in text, lcov, and HTML formats",
+        "Developer writes tests in TypeScript with .spec.ts or .test.ts extensions",
+        "Developer sees test results with a 10 second timeout per test",
+        "Developer gets code coverage metrics excluding test files, type definitions, and mock files"
+      ],
+      "keyFunctions": [],
+      "dependencies": [
+        "ts-jest",
+        "jest",
+        "typescript"
+      ],
+      "intent": "This file exists to configure the Jest testing framework for a TypeScript-based VSCode extension project, ensuring tests can be run with proper TypeScript compilation, module resolution (including VSCode API mocking), and coverage reporting to maintain code quality.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Configures Jest testing framework for TypeScript test execution with coverage reporting and module resolution.\",\n  \"userVisibleActions\": [\n    \"No direct user-visible actions - this is a testing configuration file\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer runs test suites located in src and UnitTests directories\",\n    \"Developer views test coverage reports in text, lcov, and HTML formats\",\n    \"Developer writes tests in TypeScript with .spec.ts or .test.ts extensions\",\n    \"Developer sees test results with a 10 second timeout per test\",\n    \"Developer gets code coverage metrics excluding test files, type definitions, and mock files\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"ts-jest\",\n    \"jest\",\n    \"typescript\"\n  ],\n  \"intent\": \"This file exists to configure the Jest testing framework for a TypeScript-based VSCode extension project, ensuring tests can be run with proper TypeScript compilation, module resolution (including VSCode API mocking), and coverage reporting to maintain code quality.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:24:38.201Z"
+  }
+}

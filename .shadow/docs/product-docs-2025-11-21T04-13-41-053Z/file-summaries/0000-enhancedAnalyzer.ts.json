@@ -1,0 +1,62 @@
+{
+  "file": "src/analysis/enhancedAnalyzer.ts",
+  "role": "Core Logic",
+  "purpose": "Provides deep code analysis capabilities by parsing TypeScript/JavaScript files to extract function metadata, including branch complexity, dependencies, state mutations, and behavioral hints",
+  "userVisibleActions": [
+    "Receives detailed analysis of code functions including complexity metrics",
+    "Gets insights into function behavior and side effects",
+    "Views branch analysis showing decision points in code",
+    "Sees dependency relationships between functions and modules",
+    "Obtains state mutation information showing what data changes"
+  ],
+  "developerVisibleActions": [
+    "Call analyzeFileMetadata() to extract comprehensive metadata for all functions in a file",
+    "Receive FunctionMetadata objects containing branch analysis, dependency info, state mutations, and behavioral hints",
+    "Get AST-based analysis for TypeScript/JavaScript files with full type information",
+    "Fallback to regex-based analysis for non-TypeScript languages",
+    "Extract function content by line ranges for targeted analysis",
+    "Analyze function complexity, conditional branches, and control flow",
+    "Identify external dependencies and function calls within code",
+    "Detect state mutations and side effects in functions",
+    "Map test coverage and relationships to test files"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeFileMetadata",
+      "desc": "Analyzes a file and extracts enhanced metadata for all functions including branches, dependencies, and mutations",
+      "inputs": "filePath: string, content: string, language: string, functions: FunctionInfo[]",
+      "outputs": "Promise<Map<string, FunctionMetadata>> - Map of function names to their detailed metadata"
+    },
+    {
+      "name": "analyzeTypeScriptFunction",
+      "desc": "Performs AST-based analysis on TypeScript/JavaScript functions to extract detailed structural and behavioral information",
+      "inputs": "filePath: string, content: string, func: FunctionInfo, functionContent: string",
+      "outputs": "Promise<FunctionMetadata> - Comprehensive function metadata"
+    },
+    {
+      "name": "analyzeFunctionWithRegex",
+      "desc": "Provides fallback regex-based analysis for non-TypeScript languages to extract basic function metadata",
+      "inputs": "filePath: string, func: FunctionInfo, functionContent: string, language: string",
+      "outputs": "FunctionMetadata - Basic function metadata"
+    },
+    {
+      "name": "extractFunctionContent",
+      "desc": "Extracts the source code content of a function given its start and end line numbers",
+      "inputs": "content: string, startLine: number, endLine: number",
+      "outputs": "string - The function's source code"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "typescript",
+    "../analyzer"
+  ],
+  "intent": "This file exists to provide advanced code analysis beyond basic function detection. It solves the problem of understanding code behavior, complexity, and relationships by parsing Abstract Syntax Trees (AST) to extract branch conditions, dependencies, state changes, and behavioral patterns. This enables intelligent code documentation, test generation, and impact analysis by understanding not just what functions exist, but how they work and what they affect.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides deep code analysis capabilities by parsing TypeScript/JavaScript files to extract function metadata, including branch complexity, dependencies, state mutations, and behavioral hints\",\n  \"userVisibleActions\": [\n    \"Receives detailed analysis of code functions including complexity metrics\",\n    \"Gets insights into function behavior and side effects\",\n    \"Views branch analysis showing decision points in code\",\n    \"Sees dependency relationships between functions and modules\",\n    \"Obtains state mutation information showing what data changes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call analyzeFileMetadata() to extract comprehensive metadata for all functions in a file\",\n    \"Receive FunctionMetadata objects containing branch analysis, dependency info, state mutations, and behavioral hints\",\n    \"Get AST-based analysis for TypeScript/JavaScript files with full type information\",\n    \"Fallback to regex-based analysis for non-TypeScript languages\",\n    \"Extract function content by line ranges for targeted analysis\",\n    \"Analyze function complexity, conditional branches, and control flow\",\n    \"Identify external dependencies and function calls within code\",\n    \"Detect state mutations and side effects in functions\",\n    \"Map test coverage and relationships to test files\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFileMetadata\",\n      \"desc\": \"Analyzes a file and extracts enhanced metadata for all functions including branches, dependencies, and mutations\",\n      \"inputs\": \"filePath: string, content: string, language: string, functions: FunctionInfo[]\",\n      \"outputs\": \"Promise<Map<string, FunctionMetadata>> - Map of function names to their detailed metadata\"\n    },\n    {\n      \"name\": \"analyzeTypeScriptFunction\",\n      \"desc\": \"Performs AST-based analysis on TypeScript/JavaScript functions to extract detailed structural and behavioral information\",\n      \"inputs\": \"filePath: string, content: string, func: FunctionInfo, functionContent: string\",\n      \"outputs\": \"Promise<FunctionMetadata> - Comprehensive function metadata\"\n    },\n    {\n      \"name\": \"analyzeFunctionWithRegex\",\n      \"desc\": \"Provides fallback regex-based analysis for non-TypeScript languages to extract basic function metadata\",\n      \"inputs\": \"filePath: string, func: FunctionInfo, functionContent: string, language: string\",\n      \"outputs\": \"FunctionMetadata - Basic function metadata\"\n    },\n    {\n      \"name\": \"extractFunctionContent\",\n      \"desc\": \"Extracts the source code content of a function given its start and end line numbers\",\n      \"inputs\": \"content: string, startLine: number, endLine: number\",\n      \"outputs\": \"string - The function's source code\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"typescript\",\n    \"../analyzer\"\n  ],\n  \"intent\": \"This file exists to provide advanced code analysis beyond basic function detection. It solves the problem of understanding code behavior, complexity, and relationships by parsing Abstract Syntax Trees (AST) to extract branch conditions, dependencies, state changes, and behavioral patterns. This enables intelligent code documentation, test generation, and impact analysis by understanding not just what functions exist, but how they work and what they affect.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T04:15:19.614Z"
+  }
+}
