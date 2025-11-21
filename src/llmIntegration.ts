@@ -186,6 +186,50 @@ export async function loadSavedCodeAnalysis(): Promise<void> {
         const context = convertCodeAnalysisToContext(analysis);
         stateManager.setAnalysisContext(context);
     }
+    
+    // Also check for existing unit tests
+    await checkForExistingUnitTests();
+}
+
+/**
+ * Check if unit tests exist on disk and update UI accordingly
+ */
+async function checkForExistingUnitTests(): Promise<void> {
+    const treeProvider = stateManager.getTreeProvider();
+    if (!treeProvider) {
+        return;
+    }
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        return;
+    }
+    
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    
+    // Check for test plan (NEW format)
+    const testPlanPath = path.join(workspaceRoot, '.shadow', 'test-plan.json');
+    const testPlanExists = fs.existsSync(testPlanPath);
+    
+    // Check for unit tests directory
+    const unitTestsDir = path.join(workspaceRoot, 'UnitTests');
+    const unitTestsDirExists = fs.existsSync(unitTestsDir);
+    
+    // Check if there are actual test files
+    let hasTestFiles = false;
+    if (unitTestsDirExists) {
+        try {
+            const files = fs.readdirSync(unitTestsDir);
+            hasTestFiles = files.some(f => f.endsWith('.test.ts') || f.endsWith('.test.js'));
+        } catch (error) {
+            console.error('Error reading UnitTests directory:', error);
+        }
+    }
+    
+    // If either test plan exists OR test files exist, mark as complete
+    if (testPlanExists || hasTestFiles) {
+        console.log(`✅ Detected existing unit tests (plan: ${testPlanExists}, files: ${hasTestFiles})`);
+        treeProvider.setUnitTestStatus('complete');
+    }
 }
 
 export async function copyLLMInsight(type: string, content: string): Promise<void> {
