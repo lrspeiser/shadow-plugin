@@ -1579,7 +1579,19 @@ export async function generateUnitTests(): Promise<void> {
                     if (setupResult.success) {
                         SWLogger.log(`[Phase 1] Setup complete: ${setupResult.filesCreated.length} files created`);
                     } else {
-                        throw new Error(`Setup failed: ${setupResult.message}`);
+                        SWLogger.log(`[Phase 1] ❌ Setup failed: ${setupResult.message}`);
+                        
+                        // Ask user whether to continue without setup or cancel
+                        const userDecision = await vscode.window.showErrorMessage(
+                            `Test environment setup failed.\n\nError: ${setupResult.message}\n\nContinue anyway?`,
+                            { modal: true },
+                            'Continue Without Setup',
+                            'Cancel'
+                        );
+                        
+                        if (userDecision !== 'Continue Without Setup') {
+                            throw new Error(`User cancelled after setup failure`);
+                        }
                     }
                 }
             } else {
@@ -1635,14 +1647,46 @@ export async function generateUnitTests(): Promise<void> {
                 
                 reporter.report(`Phase 3/4: Generating tests (${generatedCount}/${functionsToTest.length})...`);
                 
-                const testResults = await LLMTestGenerationService.generateTestBatch(
-                    batch,
-                    workspaceRoot,
-                    llmService,
-                    (current, total, funcName) => {
-                        SWLogger.log(`[Phase 3] Generated test ${current}/${total}: ${funcName}`);
+                let testResults;
+                try {
+                    testResults = await LLMTestGenerationService.generateTestBatch(
+                        batch,
+                        workspaceRoot,
+                        llmService,
+                        (current, total, funcName) => {
+                            SWLogger.log(`[Phase 3] Generated test ${current}/${total}: ${funcName}`);
+                        }
+                    );
+                } catch (batchError: any) {
+                    SWLogger.log(`[Phase 3] ❌ Error generating test batch: ${batchError.message}`);
+                    
+                    // Ask user whether to continue or cancel
+                    const userDecision = await vscode.window.showErrorMessage(
+                        `Failed to generate test batch (functions ${i + 1}-${Math.min(i + batchSize, functionsToTest.length)}).\n\nError: ${batchError.message}\n\nContinue with next batch?`,
+                        { modal: true },
+                        'Continue',
+                        'Cancel',
+                        'View Details'
+                    );
+                    
+                    if (userDecision === 'View Details') {
+                        SWLogger.log(`\n=== BATCH ERROR DETAILS ===\n${batchError.stack || batchError.message}\n=== END DETAILS ===\n`);
+                        const retryDecision = await vscode.window.showErrorMessage(
+                            `Details logged to Output. Continue with next batch?`,
+                            { modal: true },
+                            'Continue',
+                            'Cancel'
+                        );
+                        if (retryDecision !== 'Continue') {
+                            throw new Error(`User cancelled test generation after batch error`);
+                        }
+                    } else if (userDecision !== 'Continue') {
+                        throw new Error(`User cancelled test generation after batch error`);
                     }
-                );
+                    
+                    // Skip this batch and continue with next
+                    continue;
+                }
                 
                 // Write test files
                 for (const [funcName, testResult] of testResults.entries()) {
@@ -1677,8 +1721,35 @@ export async function generateUnitTests(): Promise<void> {
                         syntaxFixAttempts.set(testFilePath, currentAttempts + 1);
                         
                         if (attempts >= MAX_SYNTAX_FIX_ATTEMPTS) {
+                            const errorSummary = syntaxCheck.error?.substring(0, 200) || 'Unknown error';
                             SWLogger.log(`[Phase 3] ❌ Giving up on function '${funcName}' (${testFilePath}) after ${MAX_SYNTAX_FIX_ATTEMPTS} failed fix attempts`);
                             SWLogger.log(`[Phase 3] Final syntax error for '${funcName}': ${syntaxCheck.error}`);
+                            
+                            // Ask user whether to continue or cancel
+                            const userDecision = await vscode.window.showErrorMessage(
+                                `Test generation failed for '${funcName}' after ${MAX_SYNTAX_FIX_ATTEMPTS} attempts.\n\nError: ${errorSummary}\n\nContinue with remaining tests?`,
+                                { modal: true },
+                                'Continue',
+                                'Cancel',
+                                'View Full Error'
+                            );
+                            
+                            if (userDecision === 'View Full Error') {
+                                // Show full error in output channel and re-prompt
+                                SWLogger.log(`\n=== FULL ERROR FOR '${funcName}' ===\n${syntaxCheck.error}\n=== END ERROR ===\n`);
+                                const retryDecision = await vscode.window.showErrorMessage(
+                                    `Full error logged to Output. Continue with remaining tests?`,
+                                    { modal: true },
+                                    'Continue',
+                                    'Cancel'
+                                );
+                                if (retryDecision !== 'Continue') {
+                                    throw new Error(`User cancelled test generation at function '${funcName}'`);
+                                }
+                            } else if (userDecision !== 'Continue') {
+                                throw new Error(`User cancelled test generation at function '${funcName}'`);
+                            }
+                            
                             break;
                         }
                         
@@ -1712,6 +1783,19 @@ export async function generateUnitTests(): Promise<void> {
                             }
                         } catch (fixError: any) {
                             SWLogger.log(`[Phase 3] ❌ Exception during fix attempt for '${funcName}': ${fixError.message}`);
+                            
+                            // Ask user whether to continue or cancel
+                            const userDecision = await vscode.window.showErrorMessage(
+                                `Unexpected error while fixing test for '${funcName}'.\n\nError: ${fixError.message}\n\nContinue with remaining tests?`,
+                                { modal: true },
+                                'Continue',
+                                'Cancel'
+                            );
+                            
+                            if (userDecision !== 'Continue') {
+                                throw new Error(`User cancelled test generation at function '${funcName}' due to fix exception`);
+                            }
+                            
                             break; // Stop retrying on exceptions
                         }
                     }
