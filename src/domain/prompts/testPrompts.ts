@@ -226,6 +226,24 @@ export function buildFixPrompt(
     errorMessage: string,
     sourceCode: string
 ): string {
+    // Check if error is a dependency issue that can't be fixed by editing test code
+    const isDependencyError = errorMessage.includes('node_modules/@types/') || 
+                              errorMessage.includes('has no exported member') ||
+                              errorMessage.includes('Private identifiers are only available when targeting');
+    
+    if (isDependencyError) {
+        // Return a non-fixable status immediately without calling LLM
+        return `DEPENDENCY_ERROR: This is a package dependency or TypeScript configuration issue, not a test code issue. Cannot fix by editing test code alone.
+
+Error:
+${errorMessage}
+
+These errors must be fixed by:
+1. Upgrading or downgrading package versions
+2. Changing TypeScript compiler target
+3. Removing conflicting type definitions`;
+    }
+    
     return `You are a test debugging expert. This test is failing - fix it.
 
 ## Test Code
@@ -251,16 +269,16 @@ Analyze the error and fix the test code. Common issues:
 - Incorrect assertions
 - Type mismatches
 
-IMPORTANT OUTPUT RULES:
-- Return ONLY JSON wrapped between <json> and </json> tags.
-- Do NOT include code fences, prose, or any content outside the <json>...</json> block.
-- The JSON must be valid and parseable with JSON.parse (all keys quoted).
+⚠️ CRITICAL INSTRUCTION: You MUST respond with ONLY valid JSON in the exact format shown below.
+Do NOT write explanations, analysis, or markdown outside the JSON structure.
+Do NOT write "# Analysis" or any prose.
+Your ENTIRE response must be parseable by JSON.parse().
 
-Expected JSON shape:
+Respond with this EXACT JSON structure wrapped in <json></json> tags:
 <json>{
-  "status": "pass|fail|error",
-  "fixed_code": "Complete fixed test code here",
-  "explanation": "Explanation of what was wrong and how you fixed it",
-  "remaining_issues": ["Any issues that couldn't be fixed automatically"]
+  "status": "pass",
+  "fixed_code": "// Complete fixed test code here",
+  "explanation": "Brief explanation of the fix",
+  "remaining_issues": []
 }</json>`;
 }

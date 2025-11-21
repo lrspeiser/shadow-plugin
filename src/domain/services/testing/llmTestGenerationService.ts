@@ -140,6 +140,19 @@ export class LLMTestGenerationService {
     ): Promise<{ success: boolean; fixedCode?: string; error?: string }> {
         SWLogger.log(`[TestGeneration] Attempting to fix syntax error in ${testFilePath}`);
 
+        // Check if this is a dependency error that can't be fixed by editing test code
+        const isDependencyError = syntaxError.includes('node_modules/@types/') || 
+                                  syntaxError.includes('has no exported member') ||
+                                  syntaxError.includes('Private identifiers are only available when targeting');
+        
+        if (isDependencyError) {
+            SWLogger.log(`[TestGeneration] ⚠️ Dependency error detected - cannot fix by editing test code`);
+            return { 
+                success: false, 
+                error: 'Dependency or TypeScript configuration error - requires package/config changes, not test code edits'
+            };
+        }
+
         try {
             // Read current test code
             const testCode = fs.readFileSync(testFilePath, 'utf-8');

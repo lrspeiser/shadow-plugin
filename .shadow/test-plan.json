@@ -1,10 +1,10 @@
 {
-  "strategy": "Focus on the critical path from user interaction through analysis to AI-powered insight generation, emphasizing error handling, API integration resilience, and data transformation accuracy. Prioritize testing the core analysis engine that drives all features, AI provider integration that handles external dependencies, and the test generation/validation workflow that involves complex multi-step orchestration. Secondary focus on file system operations and VS Code UI integration points.",
+  "strategy": "Focus on the critical path from user interaction through AI-powered analysis to result presentation. Prioritize testing the core analysis engine, AI integration layer, and result persistence/navigation, as these represent the highest-risk areas where failures would break primary user workflows. Emphasize error handling and rate limiting since external API dependencies introduce failure modes. Use integration tests for end-to-end workflows and unit tests for complex business logic like parsing, formatting, and incremental processing.",
   "total_functions": 1217,
-  "testable_functions": 39,
+  "testable_functions": 37,
   "function_groups": [
     {
-      "group_id": "core-analysis",
+      "group_id": "core-analysis-engine",
       "name": "Core Analysis Engine",
       "priority": 1,
       "functions": [
@@ -15,11 +15,11 @@
           "endLine": 617,
           "complexity": "high",
           "dependencies": [
-            "AST parsing",
-            "code analysis"
+            "typescript",
+            "parser"
           ],
           "mocking_needed": true,
-          "reason": "Largest function (130 lines) in enhancedAnalyzer - likely contains core analysis logic for processing code patterns. Critical entry point for issue detection."
+          "reason": "Largest and most complex function (130 lines) in the analyzer. Likely contains core analysis logic that processes multiple code patterns and extracts metadata. Critical entry point for code analysis."
         },
         {
           "name": "for",
@@ -28,11 +28,12 @@
           "endLine": 200,
           "complexity": "high",
           "dependencies": [
-            "file system",
-            "AST parsing"
+            "typescript",
+            "fs",
+            "vscode"
           ],
           "mocking_needed": true,
-          "reason": "40-line main loop in primary analyzer - likely the workspace/file iteration logic that processes entire codebase. Entry point for analysis."
+          "reason": "Main entry point loop (40 lines) in the base analyzer. Likely orchestrates file processing and delegates to other analysis functions. Critical for workspace analysis flow."
         },
         {
           "name": "for",
@@ -41,10 +42,10 @@
           "endLine": 404,
           "complexity": "high",
           "dependencies": [
-            "dependency tracking"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "33-line complex nested loop with 28-line conditional - likely handles dependency analysis or orphaned code detection, core feature."
+          "reason": "Complex nested loop (33 lines) with significant conditional logic. Appears to handle complex code traversal or pattern matching scenarios."
         },
         {
           "name": "traverse",
@@ -53,22 +54,24 @@
           "endLine": 771,
           "complexity": "high",
           "dependencies": [
-            "AST traversal"
+            "typescript",
+            "ast"
           ],
           "mocking_needed": true,
-          "reason": "28-line traversal function - AST navigation is fundamental to all code analysis. Likely used for complexity metrics and pattern detection."
+          "reason": "AST traversal function (28 lines) that walks code structure. Core to analyzing code patterns, extracting functions, and detecting issues. Essential for metadata extraction."
         },
         {
           "name": "for",
-          "file": "src/analyzer.ts",
-          "startLine": 203,
-          "endLine": 229,
+          "file": "src/analysis/enhancedAnalyzer.ts",
+          "startLine": 31,
+          "endLine": 58,
           "complexity": "medium",
           "dependencies": [
-            "file system"
+            "typescript",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "27-line iteration in main analyzer - likely file type handling and processing logic, critical for supporting various codebases."
+          "reason": "Entry point loop (28 lines) in enhanced analyzer. Likely initializes or coordinates enhanced analysis features. Important for understanding analysis workflow."
         },
         {
           "name": "for",
@@ -77,22 +80,10 @@
           "endLine": 719,
           "complexity": "medium",
           "dependencies": [
-            "code metrics"
+            "typescript"
           ],
-          "mocking_needed": false,
-          "reason": "27-line loop with nested conditionals - likely complexity calculation or code quality metrics aggregation."
-        },
-        {
-          "name": "switch",
-          "file": "src/analyzer.ts",
-          "startLine": 527,
-          "endLine": 551,
-          "complexity": "medium",
-          "dependencies": [
-            "pattern matching"
-          ],
-          "mocking_needed": false,
-          "reason": "25-line switch statement - likely handles different node types or issue categories, central to classification logic."
+          "mocking_needed": true,
+          "reason": "Complex nested loop (27 lines) with multiple conditionals. Likely handles specific analysis patterns or issue detection logic."
         },
         {
           "name": "traverse",
@@ -101,10 +92,11 @@
           "endLine": 337,
           "complexity": "medium",
           "dependencies": [
-            "AST traversal"
+            "typescript",
+            "ast"
           ],
           "mocking_needed": true,
-          "reason": "24-line traversal in main analyzer - core AST walking logic for detecting patterns and issues across the codebase."
+          "reason": "Another AST traversal function (24 lines). Multiple traversal strategies suggest different analysis modes. Critical for comprehensive code analysis."
         },
         {
           "name": "visit",
@@ -113,22 +105,23 @@
           "endLine": 220,
           "complexity": "medium",
           "dependencies": [
-            "AST nodes"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "23-line visitor pattern - function-level analysis is critical for detecting code smells and complexity at the function granularity."
+          "reason": "Visitor pattern implementation (23 lines) for function analysis. Core to extracting function metadata, parameters, and complexity metrics."
         },
         {
           "name": "for",
           "file": "src/analyzer.ts",
-          "startLine": 420,
-          "endLine": 441,
+          "startLine": 203,
+          "endLine": 229,
           "complexity": "medium",
           "dependencies": [
-            "dependency resolution"
+            "typescript",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "22-line loop with nested conditional - likely dependency graph construction or orphaned code detection logic."
+          "reason": "File processing loop (27 lines). Likely handles batch analysis of multiple files. Critical for workspace-level analysis."
         },
         {
           "name": "for",
@@ -137,10 +130,22 @@
           "endLine": 415,
           "complexity": "medium",
           "dependencies": [
-            "function metrics"
+            "typescript"
+          ],
+          "mocking_needed": true,
+          "reason": "Complex loop (20 lines) with nested conditionals in function analyzer. Likely extracts function-specific metrics or detects function-level issues."
+        },
+        {
+          "name": "switch",
+          "file": "src/analyzer.ts",
+          "startLine": 527,
+          "endLine": 551,
+          "complexity": "medium",
+          "dependencies": [
+            "typescript"
           ],
           "mocking_needed": false,
-          "reason": "20-line nested loop - function complexity calculation or parameter analysis, essential for quality metrics."
+          "reason": "Large switch statement (25 lines) likely handling different node types or analysis modes. Important for routing analysis logic correctly."
         },
         {
           "name": "visit",
@@ -149,34 +154,22 @@
           "endLine": 122,
           "complexity": "medium",
           "dependencies": [
-            "AST nodes"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "19-line visitor in enhancedAnalyzer - enhanced detection logic for advanced code patterns and quality issues."
-        },
-        {
-          "name": "visit",
-          "file": "src/analysis/functionAnalyzer.ts",
-          "startLine": 339,
-          "endLine": 357,
-          "complexity": "medium",
-          "dependencies": [
-            "AST nodes"
-          ],
-          "mocking_needed": true,
-          "reason": "19-line visitor - another critical point for function-level analysis, likely handles specific function patterns."
+          "reason": "Enhanced visitor pattern (19 lines). Implements advanced analysis features beyond basic function extraction. Important for comprehensive insights."
         },
         {
           "name": "for",
-          "file": "src/analysis/functionAnalyzer.ts",
-          "startLine": 23,
-          "endLine": 40,
+          "file": "src/analyzer.ts",
+          "startLine": 420,
+          "endLine": 441,
           "complexity": "medium",
           "dependencies": [
-            "function parsing"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "18-line nested loop - entry point for function analysis across files, feeds into complexity and quality metrics."
+          "reason": "Complex loop (22 lines) with significant conditional logic. Likely handles specific complexity calculation or issue detection patterns."
         },
         {
           "name": "traverse",
@@ -185,314 +178,299 @@
           "endLine": 300,
           "complexity": "medium",
           "dependencies": [
-            "AST traversal"
+            "typescript",
+            "ast"
           ],
           "mocking_needed": true,
-          "reason": "18-line traversal - additional traversal logic for specific analysis patterns, complements main traversal functions."
+          "reason": "Core traversal function (18 lines). Multiple traverse implementations suggest layered analysis. Essential for walking code structure systematically."
+        },
+        {
+          "name": "for",
+          "file": "src/analysis/functionAnalyzer.ts",
+          "startLine": 23,
+          "endLine": 40,
+          "complexity": "medium",
+          "dependencies": [
+            "typescript"
+          ],
+          "mocking_needed": true,
+          "reason": "Entry point loop (18 lines) in function analyzer. Coordinates function-level analysis including complexity, parameters, and return types. Critical for function metadata extraction."
         }
       ]
     },
     {
-      "group_id": "documentation-generation",
-      "name": "Documentation & Insight Generation",
-      "priority": 4,
+      "group_id": "ai-integration-layer",
+      "name": "AI Provider Integration & Error Handling",
+      "priority": 2,
       "functions": [
         {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 133,
-          "endLine": 159,
+          "name": "for",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 155,
+          "endLine": 186,
           "complexity": "high",
           "dependencies": [
-            "AI prompt",
-            "data parsing"
+            "retry",
+            "exponential-backoff"
           ],
           "mocking_needed": true,
-          "reason": "Largest conditional block (27 lines) likely handling critical AI response parsing or complex insight generation logic. High complexity suggests multiple decision points that need thorough testing."
+          "reason": "Core retry logic with exponential backoff for handling API failures. This is critical error handling infrastructure that manages network failures and rate limits - one of the highest-risk areas identified."
         },
         {
-          "name": "dfs",
-          "file": "src/insightGenerator.ts",
-          "startLine": 201,
-          "endLine": 227,
+          "name": "for",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 60,
+          "endLine": 90,
           "complexity": "high",
           "dependencies": [
-            "data structures"
-          ],
-          "mocking_needed": false,
-          "reason": "Named function (DFS algorithm) with 27 lines indicates complex graph/tree traversal logic, likely for analyzing code dependencies or structure. Critical for accurate analysis."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 207,
-          "endLine": 224,
-          "complexity": "high",
-          "dependencies": [
-            "nested iteration"
-          ],
-          "mocking_needed": false,
-          "reason": "Nested loop within dfs function (18 lines) suggesting complex iteration over analysis data. Likely core aggregation logic that needs validation."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 80,
-          "endLine": 93,
-          "complexity": "medium",
-          "dependencies": [
-            "data collection"
-          ],
-          "mocking_needed": false,
-          "reason": "14-line loop with nested conditional, likely aggregating analysis results. Important for ensuring complete data collection."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 102,
-          "endLine": 114,
-          "complexity": "medium",
-          "dependencies": [
-            "validation"
-          ],
-          "mocking_needed": false,
-          "reason": "13-line conditional suggesting data validation or transformation logic. Critical for handling incomplete/ambiguous data as specified in requirements."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 81,
-          "endLine": 92,
-          "complexity": "medium",
-          "dependencies": [
-            "filtering"
-          ],
-          "mocking_needed": false,
-          "reason": "12-line nested conditional within a loop, likely filtering or processing analysis data. Essential for data quality."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 213,
-          "endLine": 223,
-          "complexity": "medium",
-          "dependencies": [
-            "nested processing"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line deeply nested loop (third level) with conditional, representing complex traversal logic requiring thorough edge case testing."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 259,
-          "endLine": 269,
-          "complexity": "medium",
-          "dependencies": [
-            "formatting"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line loop likely handling Markdown formatting or documentation structure generation, critical for output quality."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 53,
-          "endLine": 63,
-          "complexity": "medium",
-          "dependencies": [
-            "entry validation"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line conditional near file start, likely entry point validation or initial data processing. Important for catching issues early."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 66,
-          "endLine": 76,
-          "complexity": "medium",
-          "dependencies": [
-            "data preparation"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line conditional following entry validation, likely preparing data for analysis or insight generation."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 116,
-          "endLine": 125,
-          "complexity": "medium",
-          "dependencies": [
-            "AI response"
+            "retry",
+            "exponential-backoff"
           ],
           "mocking_needed": true,
-          "reason": "10-line conditional likely handling AI response parsing or error cases, critical for robust AI integration."
+          "reason": "Primary retry handler loop implementing the retry strategy. Essential for testing retry attempts, backoff timing, and failure scenarios across all AI provider calls."
+        },
+        {
+          "name": "for",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 390,
+          "endLine": 439,
+          "complexity": "high",
+          "dependencies": [
+            "parsing"
+          ],
+          "mocking_needed": false,
+          "reason": "Largest and most complex parsing logic (50 lines) for extracting structured data from AI text responses. This is error-prone due to unpredictable AI outputs and requires comprehensive edge case testing."
+        },
+        {
+          "name": "for",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 313,
+          "endLine": 348,
+          "complexity": "high",
+          "dependencies": [
+            "parsing"
+          ],
+          "mocking_needed": false,
+          "reason": "Complex nested parsing logic (36 lines) with multiple conditional branches. Critical for handling varied AI response formats and extracting data reliably."
+        },
+        {
+          "name": "switch",
+          "file": "src/ai/providers/providerFactory.ts",
+          "startLine": 23,
+          "endLine": 38,
+          "complexity": "medium",
+          "dependencies": [
+            "anthropic",
+            "openai"
+          ],
+          "mocking_needed": true,
+          "reason": "Provider factory entry point that determines which AI provider to instantiate. Critical routing logic that must handle provider selection correctly to avoid runtime failures."
+        },
+        {
+          "name": "for",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 120,
+          "endLine": 133,
+          "complexity": "medium",
+          "dependencies": [
+            "openai-api"
+          ],
+          "mocking_needed": true,
+          "reason": "OpenAI-specific response processing loop. Must test message format handling and API response structure parsing specific to OpenAI."
+        },
+        {
+          "name": "errorMessage",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 104,
+          "endLine": 115,
+          "complexity": "medium",
+          "dependencies": [
+            "error-handling"
+          ],
+          "mocking_needed": false,
+          "reason": "Error message extraction logic (12 lines) that determines error types for retry decisions. Critical for proper error classification and retry strategy."
+        },
+        {
+          "name": "constructor",
+          "file": "src/ai/llmRateLimiter.ts",
+          "startLine": 20,
+          "endLine": 33,
+          "complexity": "medium",
+          "dependencies": [
+            "rate-limiting"
+          ],
+          "mocking_needed": false,
+          "reason": "Rate limiter initialization that sets up quota limits and tracking. Essential infrastructure for preventing API quota exhaustion and managing concurrent requests."
         },
         {
           "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 136,
-          "endLine": 145,
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 17,
+          "endLine": 30,
           "complexity": "medium",
           "dependencies": [
             "parsing"
           ],
+          "mocking_needed": false,
+          "reason": "Primary response validation and parsing entry point (14 lines). First line of defense against malformed AI responses and must handle various response formats."
+        },
+        {
+          "name": "if",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 60,
+          "endLine": 72,
+          "complexity": "medium",
+          "dependencies": [
+            "parsing"
+          ],
+          "mocking_needed": false,
+          "reason": "Secondary parsing validation (13 lines) that handles alternative response structures. Important for robust parsing across different AI output formats."
+        },
+        {
+          "name": "if",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 20,
+          "endLine": 26,
+          "complexity": "medium",
+          "dependencies": [
+            "anthropic-api"
+          ],
           "mocking_needed": true,
-          "reason": "10-line nested conditional within largest block, likely parsing specific AI response formats as specified in requirements."
+          "reason": "Anthropic provider initialization and API key validation. Critical entry point that must fail gracefully with proper error messages when misconfigured."
         },
         {
           "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 290,
-          "endLine": 299,
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 20,
+          "endLine": 26,
           "complexity": "medium",
           "dependencies": [
-            "refactoring plans"
+            "openai-api"
+          ],
+          "mocking_needed": true,
+          "reason": "OpenAI provider initialization and API key validation. Must test configuration errors and API client setup for the most common AI provider."
+        },
+        {
+          "name": "waitTime",
+          "file": "src/ai/llmRateLimiter.ts",
+          "startLine": 100,
+          "endLine": 105,
+          "complexity": "low",
+          "dependencies": [
+            "rate-limiting"
           ],
           "mocking_needed": false,
-          "reason": "10-line conditional likely generating refactoring plans, directly addresses requirement for 'refactoring plan actionability' testing."
+          "reason": "Calculates rate limit wait times. Critical for testing that requests respect API rate limits and don't cause quota violations."
+        },
+        {
+          "name": "requests",
+          "file": "src/ai/providers/anthropicProvider.ts",
+          "startLine": 121,
+          "endLine": 126,
+          "complexity": "low",
+          "dependencies": [
+            "anthropic-api"
+          ],
+          "mocking_needed": true,
+          "reason": "Anthropic API request construction. Must validate proper request format, headers, and payload structure for successful API calls."
         },
         {
           "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 310,
-          "endLine": 319,
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 89,
+          "endLine": 94,
           "complexity": "medium",
           "dependencies": [
-            "documentation"
+            "openai-api"
           ],
-          "mocking_needed": false,
-          "reason": "10-line conditional likely handling documentation structure or completeness validation as per requirements."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 330,
-          "endLine": 339,
-          "complexity": "medium",
-          "dependencies": [
-            "output formatting"
-          ],
-          "mocking_needed": false,
-          "reason": "10-line conditional near end of file, likely final output formatting or insight compilation, ensuring complete user value delivery."
+          "mocking_needed": true,
+          "reason": "OpenAI response validation and error handling. Critical for catching API errors and handling unexpected response formats from OpenAI."
         }
       ]
     },
     {
-      "group_id": "file-system-watch",
-      "name": "File System Operations & Change Detection",
-      "priority": 5,
+      "group_id": "result-persistence-navigation",
+      "name": "Result Storage, Navigation & View Synchronization",
+      "priority": 4,
       "functions": [
         {
-          "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 78,
-          "endLine": 82,
-          "complexity": "medium",
-          "dependencies": [
-            "file system",
-            "workspace monitoring"
-          ],
-          "mocking_needed": true,
-          "reason": "Longest conditional block (5 lines) likely handling critical file change detection logic or debouncing. Given the test area's focus on change detection accuracy and debouncing, this is likely core functionality for preventing redundant analysis triggers."
-        },
-        {
-          "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 54,
-          "endLine": 57,
-          "complexity": "medium",
-          "dependencies": [
-            "file operations"
-          ],
-          "mocking_needed": true,
-          "reason": "4-line conditional block likely handling file deletion or rename operations, which are explicitly mentioned as edge cases requiring testing. File lifecycle events are critical for maintaining analysis synchronization."
-        },
-        {
-          "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 59,
-          "endLine": 62,
-          "complexity": "medium",
-          "dependencies": [
-            "file operations"
-          ],
-          "mocking_needed": true,
-          "reason": "4-line conditional block adjacent to deletion/rename logic, possibly handling complementary file operations or validation. Sequential conditionals often represent decision trees for different file event types."
-        },
-        {
-          "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 31,
-          "endLine": 33,
-          "complexity": "low",
-          "dependencies": [
-            "initialization"
-          ],
-          "mocking_needed": false,
-          "reason": "Early conditional (line 31) likely performing initialization checks or guard clauses at the entry point of file watching setup. Entry point validation is critical for preventing cascading failures."
-        },
-        {
-          "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 36,
-          "endLine": 38,
-          "complexity": "low",
-          "dependencies": [
-            "configuration"
-          ],
-          "mocking_needed": false,
-          "reason": "Conditional near initialization logic, possibly validating workspace configuration or file watching permissions, which are mentioned edge cases in the test area description."
-        },
-        {
-          "name": "if",
-          "file": "src/fileWatcher.ts",
+          "name": "constructor",
+          "file": "src/storage/incrementalStorage.ts",
           "startLine": 50,
-          "endLine": 52,
-          "complexity": "low",
+          "endLine": 58,
+          "complexity": "medium",
           "dependencies": [
-            "file filtering"
+            "vscode",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "Mid-range conditional likely filtering files for incremental re-analysis or determining which changes trigger analysis. Critical for performance with high-frequency changes."
+          "reason": "Constructor is critical as it initializes the storage system and sets up file watching mechanisms. This is the entry point for the entire incremental storage functionality, and proper initialization is essential for result storage and synchronization."
         },
         {
           "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 103,
-          "endLine": 105,
-          "complexity": "low",
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 89,
+          "endLine": 93,
+          "complexity": "medium",
           "dependencies": [
-            "result persistence"
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "Later conditional (line 103) likely involved in result saving/loading reliability checks or validation before persisting data, preventing data loss which is a critical concern."
+          "reason": "This conditional block (5 lines) likely handles an important branching logic in storage operations. Given its size and position early in the file, it may handle critical validation or state checks for result storage."
         },
         {
           "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 113,
-          "endLine": 115,
-          "complexity": "low",
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 134,
+          "endLine": 138,
+          "complexity": "medium",
           "dependencies": [
-            "result persistence"
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "Conditional in result persistence section, possibly handling error cases or concurrent modification scenarios during save/load operations."
+          "reason": "Another significant conditional block (5 lines) that likely handles edge cases or validation logic. This could be related to file existence checks or navigation edge cases mentioned in the test area description."
         },
         {
           "name": "if",
-          "file": "src/fileWatcher.ts",
-          "startLine": 120,
-          "endLine": 122,
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 249,
+          "endLine": 252,
           "complexity": "low",
           "dependencies": [
-            "cleanup"
+            "vscode"
           ],
+          "mocking_needed": true,
+          "reason": "This 4-line conditional appears near the end of the file and may handle export functionality or final synchronization checks, which are explicitly mentioned as error-prone in the test area description."
+        },
+        {
+          "name": "if",
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 169,
+          "endLine": 171,
+          "complexity": "low",
+          "dependencies": [],
           "mocking_needed": false,
-          "reason": "Late-stage conditional likely handling cleanup, disposal, or final validation. Important for ensuring proper resource management and preventing memory leaks in long-running file watchers."
+          "reason": "While smaller (3 lines), this conditional may handle critical validation for timestamp storage or workspace state synchronization mentioned in the test requirements."
+        },
+        {
+          "name": "if",
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 233,
+          "endLine": 235,
+          "complexity": "low",
+          "dependencies": [],
+          "mocking_needed": false,
+          "reason": "This conditional likely handles edge cases in incremental updates or view synchronization, which are specifically called out as error-prone in the test area description."
+        },
+        {
+          "name": "if",
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 245,
+          "endLine": 247,
+          "complexity": "low",
+          "dependencies": [],
+          "mocking_needed": false,
+          "reason": "This conditional may handle navigation edge cases or missing file scenarios, which are explicitly mentioned as important test cases in the area description."
         }
       ]
     }
