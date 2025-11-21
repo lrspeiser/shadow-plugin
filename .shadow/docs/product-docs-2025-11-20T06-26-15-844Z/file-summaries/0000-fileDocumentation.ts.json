@@ -1,0 +1,31 @@
+{
+  "file": "src/fileDocumentation.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript interfaces and data structures for organizing code documentation at file, module, and product levels.",
+  "userVisibleActions": [
+    "View organized documentation showing what each file does from a user perspective",
+    "See categorized actions for GUI, CLI, API, and CI/CD interfaces",
+    "Access structured summaries of features and capabilities",
+    "Review workflow integration examples and problems solved by the product"
+  ],
+  "developerVisibleActions": [
+    "Define documentation structure using FileSummary, ModuleSummary, and EnhancedProductDocumentation interfaces",
+    "Organize code files by role (CLI entrypoint, API route, Worker, GUI view, Core logic, Utility, Contract/interface)",
+    "Document file purposes, user-visible actions, and developer-visible actions",
+    "Structure module capabilities with endpoints, commands, and worker job flows",
+    "Create product-level documentation with overview, architecture, and component diagrams"
+  ],
+  "keyFunctions": [],
+  "dependencies": [
+    "fs",
+    "path",
+    "./analyzer (CodeAnalysis, FileInfo types)"
+  ],
+  "intent": "This file exists to provide a standardized schema for documenting codebases at multiple levels of abstraction (file → module → product), enabling automated documentation generation that separates user-facing behavior from implementation details and organizes information by role and capability.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript interfaces and data structures for organizing code documentation at file, module, and product levels.\",\n  \"userVisibleActions\": [\n    \"View organized documentation showing what each file does from a user perspective\",\n    \"See categorized actions for GUI, CLI, API, and CI/CD interfaces\",\n    \"Access structured summaries of features and capabilities\",\n    \"Review workflow integration examples and problems solved by the product\"\n  ],\n  \"developerVisibleActions\": [\n    \"Define documentation structure using FileSummary, ModuleSummary, and EnhancedProductDocumentation interfaces\",\n    \"Organize code files by role (CLI entrypoint, API route, Worker, GUI view, Core logic, Utility, Contract/interface)\",\n    \"Document file purposes, user-visible actions, and developer-visible actions\",\n    \"Structure module capabilities with endpoints, commands, and worker job flows\",\n    \"Create product-level documentation with overview, architecture, and component diagrams\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer (CodeAnalysis, FileInfo types)\"\n  ],\n  \"intent\": \"This file exists to provide a standardized schema for documenting codebases at multiple levels of abstraction (file → module → product), enabling automated documentation generation that separates user-facing behavior from implementation details and organizes information by role and capability.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:34:21.378Z"
+  }
+}

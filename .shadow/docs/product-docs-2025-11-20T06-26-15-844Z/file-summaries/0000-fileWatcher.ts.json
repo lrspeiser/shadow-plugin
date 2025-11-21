@@ -1,0 +1,69 @@
+{
+  "file": "src/fileWatcher.ts",
+  "role": "Core Logic",
+  "purpose": "Monitors file changes and triggers code analysis when files are saved in the workspace.",
+  "userVisibleActions": [
+    "Automatically analyzes code when a file is saved (if 'analyzeOnSave' setting is enabled)",
+    "Displays code insights and diagnostics after file save",
+    "Updates insights tree view with latest analysis results",
+    "Shows analysis status in output channel"
+  ],
+  "developerVisibleActions": [
+    "Watches document save events in VS Code workspace",
+    "Triggers code analysis with configurable debounce delay to avoid excessive analysis",
+    "Coordinates between CodeAnalyzer, InsightGenerator, DiagnosticsProvider, and InsightsTreeProvider",
+    "Can be started and stopped programmatically to control when analysis occurs",
+    "Prevents duplicate analysis when multiple files are saved rapidly",
+    "Handles errors during analysis and logs them via ErrorHandler"
+  ],
+  "keyFunctions": [
+    {
+      "name": "start",
+      "desc": "Begins watching for file save events and enables automatic analysis",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "stop",
+      "desc": "Stops watching file save events and cancels any pending analysis",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "onFileSaved",
+      "desc": "Handles file save event and schedules analysis with debounce",
+      "inputs": "document (TextDocument)",
+      "outputs": "void"
+    },
+    {
+      "name": "analyzeFile",
+      "desc": "Performs code analysis on a file and updates all providers with results",
+      "inputs": "document (TextDocument)",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up resources and stops the file watcher",
+      "inputs": "none",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "CodeAnalyzer",
+    "InsightGenerator",
+    "DiagnosticsProvider",
+    "InsightsTreeProvider",
+    "configurationManager",
+    "ErrorHandler",
+    "FileWatcherService"
+  ],
+  "intent": "This file exists to provide automatic, real-time code analysis by monitoring when users save files. It solves the problem of keeping code insights synchronized with the latest file changes without requiring manual analysis triggers. It acts as the orchestration layer that connects file system events to the analysis pipeline, ensuring users always see up-to-date insights while preventing performance issues through debouncing and duplicate analysis prevention.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Monitors file changes and triggers code analysis when files are saved in the workspace.\",\n  \"userVisibleActions\": [\n    \"Automatically analyzes code when a file is saved (if 'analyzeOnSave' setting is enabled)\",\n    \"Displays code insights and diagnostics after file save\",\n    \"Updates insights tree view with latest analysis results\",\n    \"Shows analysis status in output channel\"\n  ],\n  \"developerVisibleActions\": [\n    \"Watches document save events in VS Code workspace\",\n    \"Triggers code analysis with configurable debounce delay to avoid excessive analysis\",\n    \"Coordinates between CodeAnalyzer, InsightGenerator, DiagnosticsProvider, and InsightsTreeProvider\",\n    \"Can be started and stopped programmatically to control when analysis occurs\",\n    \"Prevents duplicate analysis when multiple files are saved rapidly\",\n    \"Handles errors during analysis and logs them via ErrorHandler\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"start\",\n      \"desc\": \"Begins watching for file save events and enables automatic analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"stop\",\n      \"desc\": \"Stops watching file save events and cancels any pending analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"onFileSaved\",\n      \"desc\": \"Handles file save event and schedules analysis with debounce\",\n      \"inputs\": \"document (TextDocument)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeFile\",\n      \"desc\": \"Performs code analysis on a file and updates all providers with results\",\n      \"inputs\": \"document (TextDocument)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up resources and stops the file watcher\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"DiagnosticsProvider\",\n    \"InsightsTreeProvider\",\n    \"configurationManager\",\n    \"ErrorHandler\",\n    \"FileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide automatic, real-time code analysis by monitoring when users save files. It solves the problem of keeping code insights synchronized with the latest file changes without requiring manual analysis triggers. It acts as the orchestration layer that connects file system events to the analysis pipeline, ensuring users always see up-to-date insights while preventing performance issues through debouncing and duplicate analysis prevention.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:34:34.278Z"
+  }
+}

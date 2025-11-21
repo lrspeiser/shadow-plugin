@@ -165,10 +165,113 @@ Based on your understanding from Steps 1-4, identify issues:
 - Missing abstraction layers
 - Direct dependencies on concrete implementations
 
-**Duplicate Functionality**: Multiple ways to accomplish the same task
-- Multiple implementations of the same feature
-- Redundant code paths for the same operation
-- Overlapping responsibilities between modules
+**Duplicate Functionality & Incompatible Systems**: Multiple ways to accomplish the same task
+
+⚠️ CRITICAL: Look for systems that SHOULD work together but DON'T due to incompatible formats:
+
+1. **Semantic Duplicates** (not just literal copy-paste code)
+   - Multiple entry points for the same feature with different implementations
+   - Functions with similar names doing similar things differently
+   - Example: Old generateUnitTests() vs New generateUnitTests() with different outputs
+   - Look for function names that suggest duplication: create/generate/build/make with same suffix
+
+2. **Data Format Conflicts** (CRITICAL for finding runtime bugs)
+   - Same logical data stored in multiple incompatible formats
+   - Functions that write format A but readers expect format B  
+   - JSON schemas that don't match between producer and consumer
+   - Example: Writer creates format with function_groups array but reader expects format with aggregated_plan.test_suites array
+   - Search for: fs.writeFileSync() and fs.readFileSync() on similar file paths
+
+3. **Producer/Consumer Mismatches** (Files written but never read, or expected but never written)
+   - Files that are written but never read anywhere (orphaned data)
+   - Files that are read but never written anywhere (missing data source)
+   - Configuration files expected but not created
+   - Example: Code writes .shadow/test-plan.json but runTests() looks for .shadow/unit_test_plan.json
+   - Impact: Runtime "file not found" errors that are architectural, not operational
+
+4. **Incomplete Migrations** (Old + new system coexisting)
+   - Old implementation + new implementation both present
+   - Some code uses old format, some uses new format  
+   - Same feature accessible through multiple incompatible code paths
+   - Dead code that should have been removed during refactoring
+   - Example: OLD test system writes unit_test_plan.json, NEW system writes test-plan.json, runtime expects OLD format
+
+For EACH duplicate/incompatible system found, provide:
+1. **Title**: "Duplicate System: [Feature Name]" or "Incompatible Data Formats: [Feature]"
+2. **Description**: Must include ALL of the following:
+   - **System A**: Entry point functions, file paths, data format/schema it produces
+   - **System B**: Entry point functions, file paths, data format/schema it produces
+   - **Conflict**: Exactly how they're incompatible (format mismatch? orphaned data? both active?)
+   - **Evidence**: Which functions write what, which functions read what, which format is expected at runtime
+   - **Impact**: What breaks/fails when systems don't align (be specific: which function fails, what error occurs)
+   - **Proposed Fix**: 
+     * Which system to keep (and why - quality, completeness, maintainability)
+     * Which system to remove (list specific functions/files to delete)
+     * How to migrate consumers to unified format (specific code changes needed)
+     * Which files need updating and what changes are required
+3. **Relevant Files**: ALL files involved in both systems
+4. **Relevant Functions**: ALL entry points, producers, consumers, and data handlers
+
+Example format:
+
+Title: "Duplicate System: Unit Test Generation"
+
+Description: "Two incompatible test generation systems coexist, causing runtime failure.
+
+**System A (OLD):**
+- Entry Points: generateUnitTests() @ llmIntegration.ts:1435, buildUnitTestPlanPrompt() @ llmService.ts:1855
+- Produces: .shadow/UnitTests/unit_test_plan.json
+- Format: { aggregated_plan: { test_suites: [...] } }
+- Consumers: runUnitTests() @ llmIntegration.ts:2455 expects this format
+
+**System B (NEW):**  
+- Entry Points: generateUnitTests() via 4-phase LLM services @ llmIntegration.ts:1495
+- Produces: .shadow/test-plan.json
+- Format: { function_groups: [...] }
+- Consumers: NONE (orphaned data file!)
+
+**Conflict:** Same function name (generateUnitTests) but different implementations with incompatible output formats. Runtime expects OLD format but NEW system produces different format.
+
+**Evidence:**
+- NEW system writes .shadow/test-plan.json (lines 1495-1664)
+- OLD system code still exists but partially replaced
+- runUnitTests() reads from .shadow/UnitTests/unit_test_plan.json (lines 2455-2466)
+- File path mismatch: NEW writes test-plan.json, OLD expects unit_test_plan.json
+- Schema mismatch: NEW uses function_groups, OLD expects aggregated_plan.test_suites
+
+**Impact:** When user runs tests, runUnitTests() fails with 'Unit test plan not found' because:
+1. NEW system generates tests and creates test-plan.json
+2. runUnitTests() looks for unit_test_plan.json (doesn't exist)
+3. Tests exist but can't be executed due to file path mismatch
+4. User sees error even though test files were generated successfully
+
+**Proposed Fix:**
+1. KEEP System B (NEW) - 4-phase LLM approach produces higher quality tests, better organized
+2. REMOVE System A (OLD) completely:
+   - Delete buildUnitTestPlanPrompt() @ llmService.ts:1855-2037 (2000+ lines of dead code)
+   - Delete old generateUnitTests() implementation @ llmIntegration.ts:1435-1494
+   - Delete writeTestFilesFromPlan() @ llmIntegration.ts:1254-1340 (no longer needed)
+3. UPDATE runUnitTests() @ llmIntegration.ts:2455:
+   - Change file path from '.shadow/UnitTests/unit_test_plan.json' to '.shadow/test-plan.json'
+   - Update schema parsing from aggregated_plan.test_suites to function_groups structure
+   - Scan UnitTests/ directory for actual .test.ts files instead of relying on plan suites array
+4. Add backward compatibility:
+   - Check for both file formats during transition period
+   - Log which format was found for debugging
+   - Eventually remove old format support after migration"
+
+Relevant Files: ["llmIntegration.ts", "llmService.ts", "domain/services/testing/llmTestPlanningService.ts", "domain/services/testing/llmTestGenerationService.ts"]
+
+Relevant Functions: ["generateUnitTests (OLD @ 1435)", "generateUnitTests (NEW @ 1495)", "runUnitTests", "buildUnitTestPlanPrompt", "LLMTestPlanningService.saveTestPlan", "writeTestFilesFromPlan"]
+
+**DETECTION STRATEGY:**
+To find these issues systematically:
+1. Search for functions with similar names (grep for generate*/create*/build*/make*)
+2. For each file write operation (fs.writeFileSync), find corresponding reads (fs.readFileSync)
+3. Compare file paths: do readers expect same path writers produce?
+4. Compare schemas: use type definitions, JSON.parse patterns, or object property access to infer schemas
+5. Flag any mismatch as potential duplicate/incompatible system
+6. For functions with same name, check if they produce different outputs or formats
 
 **Architectural Inconsistencies**: Patterns that violate the established architecture
 - Inconsistent use of patterns

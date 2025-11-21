@@ -1,0 +1,94 @@
+{
+  "file": "src/infrastructure/persistence/analysisResultRepository.ts",
+  "role": "Core Logic",
+  "purpose": "Manages storage and retrieval of AI-generated analysis results including product documentation, architecture insights, and summaries to the workspace's .shadow directory structure.",
+  "userVisibleActions": [
+    "Product documentation files are saved to .shadow/docs/product-docs-[timestamp]/ directory",
+    "Architecture insights are saved to .shadow/insights/architecture-[timestamp]/ directory",
+    "Analysis summaries are stored in timestamped run directories",
+    "Each analysis run creates a new timestamped directory to preserve history",
+    "Documentation is formatted and saved as markdown files organized by file path"
+  ],
+  "developerVisibleActions": [
+    "Initialize product documentation runs to create storage directories",
+    "Initialize architecture insights runs to create storage directories",
+    "Save enhanced product documentation with markdown formatting",
+    "Save architecture insights with metadata and analysis details",
+    "Save analysis summaries with statistics and file counts",
+    "Retrieve current run directories for ongoing analysis operations",
+    "Reset run contexts when analysis completes or needs to restart",
+    "Access formatted documentation through the documentation formatter"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeProductDocsRun",
+      "desc": "Creates a new timestamped directory for storing product documentation results",
+      "inputs": "workspaceRoot: string",
+      "outputs": "string (path to run directory)"
+    },
+    {
+      "name": "initializeArchitectureInsightsRun",
+      "desc": "Creates a new timestamped directory for storing architecture insights results",
+      "inputs": "workspaceRoot: string",
+      "outputs": "string (path to run directory)"
+    },
+    {
+      "name": "saveProductDocs",
+      "desc": "Persists enhanced product documentation to markdown files organized by file path",
+      "inputs": "workspaceRoot: string, filePath: string, documentation: EnhancedProductDocumentation",
+      "outputs": "void"
+    },
+    {
+      "name": "saveArchitectureInsights",
+      "desc": "Persists architecture insights and analysis to JSON file with metadata",
+      "inputs": "workspaceRoot: string, insights: LLMInsights",
+      "outputs": "void"
+    },
+    {
+      "name": "saveAnalysisSummary",
+      "desc": "Saves analysis summary with file counts and statistics to timestamped storage",
+      "inputs": "workspaceRoot: string, summary: object",
+      "outputs": "void"
+    },
+    {
+      "name": "getCurrentProductDocsRunDir",
+      "desc": "Retrieves the current product documentation run directory path",
+      "inputs": "none",
+      "outputs": "string | null"
+    },
+    {
+      "name": "getCurrentArchitectureInsightsRunDir",
+      "desc": "Retrieves the current architecture insights run directory path",
+      "inputs": "none",
+      "outputs": "string | null"
+    },
+    {
+      "name": "resetProductDocsRun",
+      "desc": "Clears the current product documentation run context to allow new runs",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "resetArchitectureInsightsRun",
+      "desc": "Clears the current architecture insights run context to allow new runs",
+      "inputs": "none",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "fileDocumentation (EnhancedProductDocumentation)",
+    "llmService (LLMInsights)",
+    "domain/formatters/documentationFormatter",
+    "storage/incrementalStorage"
+  ],
+  "intent": "Separates persistence concerns from AI analysis logic by providing a dedicated repository for storing analysis results in an organized, timestamped directory structure, enabling historical tracking of documentation and insights while keeping the file system operations isolated from the core analysis code.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages storage and retrieval of AI-generated analysis results including product documentation, architecture insights, and summaries to the workspace's .shadow directory structure.\",\n  \"userVisibleActions\": [\n    \"Product documentation files are saved to .shadow/docs/product-docs-[timestamp]/ directory\",\n    \"Architecture insights are saved to .shadow/insights/architecture-[timestamp]/ directory\",\n    \"Analysis summaries are stored in timestamped run directories\",\n    \"Each analysis run creates a new timestamped directory to preserve history\",\n    \"Documentation is formatted and saved as markdown files organized by file path\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize product documentation runs to create storage directories\",\n    \"Initialize architecture insights runs to create storage directories\",\n    \"Save enhanced product documentation with markdown formatting\",\n    \"Save architecture insights with metadata and analysis details\",\n    \"Save analysis summaries with statistics and file counts\",\n    \"Retrieve current run directories for ongoing analysis operations\",\n    \"Reset run contexts when analysis completes or needs to restart\",\n    \"Access formatted documentation through the documentation formatter\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeProductDocsRun\",\n      \"desc\": \"Creates a new timestamped directory for storing product documentation results\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"string (path to run directory)\"\n    },\n    {\n      \"name\": \"initializeArchitectureInsightsRun\",\n      \"desc\": \"Creates a new timestamped directory for storing architecture insights results\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"string (path to run directory)\"\n    },\n    {\n      \"name\": \"saveProductDocs\",\n      \"desc\": \"Persists enhanced product documentation to markdown files organized by file path\",\n      \"inputs\": \"workspaceRoot: string, filePath: string, documentation: EnhancedProductDocumentation\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"saveArchitectureInsights\",\n      \"desc\": \"Persists architecture insights and analysis to JSON file with metadata\",\n      \"inputs\": \"workspaceRoot: string, insights: LLMInsights\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"saveAnalysisSummary\",\n      \"desc\": \"Saves analysis summary with file counts and statistics to timestamped storage\",\n      \"inputs\": \"workspaceRoot: string, summary: object\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getCurrentProductDocsRunDir\",\n      \"desc\": \"Retrieves the current product documentation run directory path\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string | null\"\n    },\n    {\n      \"name\": \"getCurrentArchitectureInsightsRunDir\",\n      \"desc\": \"Retrieves the current architecture insights run directory path\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string | null\"\n    },\n    {\n      \"name\": \"resetProductDocsRun\",\n      \"desc\": \"Clears the current product documentation run context to allow new runs\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"resetArchitectureInsightsRun\",\n      \"desc\": \"Clears the current architecture insights run context to allow new runs\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"fileDocumentation (EnhancedProductDocumentation)\",\n    \"llmService (LLMInsights)\",\n    \"domain/formatters/documentationFormatter\",\n    \"storage/incrementalStorage\"\n  ],\n  \"intent\": \"Separates persistence concerns from AI analysis logic by providing a dedicated repository for storing analysis results in an organized, timestamped directory structure, enabling historical tracking of documentation and insights while keeping the file system operations isolated from the core analysis code.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:35:14.070Z"
+  }
+}

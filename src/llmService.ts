@@ -832,7 +832,6 @@ export class LLMService {
                         hasFolderReorganization: !!insights.folderReorganization,
                         recommendationsCount: insights.recommendations?.length || 0,
                         prioritiesCount: insights.priorities?.length || 0,
-                        hasSuccessErrors: !!insights.successErrors,
                         actualKeys: Object.keys(insights)
                     });
                     
@@ -847,7 +846,6 @@ export class LLMService {
                     if (!insights.folderReorganization) missingFields.push('folderReorganization');
                     if (!insights.recommendations || insights.recommendations.length === 0) missingFields.push('recommendations');
                     if (!insights.priorities || insights.priorities.length === 0) missingFields.push('priorities');
-                    if (!insights.successErrors) missingFields.push('successErrors');
                     
                     if (missingFields.length > 0) {
                         console.error('❌ Claude structured output is MISSING required fields:', missingFields);
@@ -2335,6 +2333,19 @@ Generate a comprehensive refactoring report in **Markdown format** (NOT HTML) th
    - Identify duplicate code patterns
    - Suggest consolidation strategies
    - Recommend shared utilities or abstractions
+   
+   **CRITICAL: Identify duplicate SYSTEMS (not just duplicate code):**
+   - Multiple implementations of the same feature (e.g., old vs new test generation)
+   - Incompatible data formats for same logical data (producer writes format A, consumer expects format B)
+   - Files written but never read (orphaned data indicating abandoned system)
+   - Files expected but never written (missing data source indicating incomplete implementation)
+   - Old + new systems coexisting with incompatible formats (incomplete migrations)
+   - Functions with same name but different implementations/outputs
+   
+   For each duplicate system found:
+   - Document both System A and System B with entry points and data formats
+   - Explain the conflict and runtime impact
+   - Recommend which to keep and which to remove with specific file/function names
 
 3. **Efficiency Improvements**
    - Identify performance bottlenecks

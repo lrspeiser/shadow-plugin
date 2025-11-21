@@ -1,0 +1,59 @@
+{
+  "module": "src/infrastructure",
+  "moduleType": "other",
+  "capabilities": [
+    "Display progress notifications to users during long-running operations with customizable titles and messages",
+    "Provide cancellation support for operations that can be interrupted by user request",
+    "Show progress indicators in different UI locations such as notification areas and windows",
+    "Track and report incremental progress updates as operations advance",
+    "Manage multiple concurrent progress notifications for parallel operations"
+  ],
+  "summary": "The infrastructure module provides a centralized progress notification service that keeps users informed during long-running operations. Users can see real-time progress updates with descriptive titles and messages, allowing them to understand what the application is doing and how much work remains.\n\nThis module enables users to monitor operations that take significant time to complete, such as file processing, data analysis, or network requests. Progress notifications can appear in various locations throughout the interface, providing visibility without blocking other work. For operations that support cancellation, users can interrupt the process if they change their mind or need to prioritize other tasks.\n\nThe service handles the complexity of managing multiple simultaneous operations, ensuring that users can track several processes at once without confusion. Progress updates increment as work completes, giving users clear feedback about operation status and estimated completion.",
+  "files": [
+    {
+      "file": "src/infrastructure/progressService.ts",
+      "role": "Core Logic",
+      "purpose": "Provides a centralized service for displaying progress notifications to users during long-running operations",
+      "userVisibleActions": [
+        "See progress notifications with titles and messages during operations",
+        "Cancel ongoing operations if they are marked as cancellable",
+        "View progress indicators in different locations (notification area, window, etc.)",
+        "Track operation progress with incremental updates"
+      ],
+      "developerVisibleActions": [
+        "Wrap any async operation with standardized progress reporting using withProgress method",
+        "Pass either a simple string title or detailed options object for progress configuration",
+        "Receive a ProgressReporter object to report incremental progress updates",
+        "Control whether operations are cancellable and where progress is displayed",
+        "Access cancellation token to check if user cancelled the operation"
+      ],
+      "keyFunctions": [
+        {
+          "name": "withProgress",
+          "desc": "Executes an async task while displaying a progress notification to the user",
+          "inputs": "options (title, cancellable flag, location) and async task function that receives a ProgressReporter",
+          "outputs": "Promise that resolves to the task result"
+        },
+        {
+          "name": "report (ProgressReporter)",
+          "desc": "Updates the progress notification with a new message and optional increment value",
+          "inputs": "message string and optional increment number",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode"
+      ],
+      "intent": "This service exists to standardize and simplify progress reporting across the extension, reducing boilerplate code by wrapping VSCode's progress API with consistent defaults and a cleaner interface for developers to show operation progress to users",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a centralized service for displaying progress notifications to users during long-running operations\",\n  \"userVisibleActions\": [\n    \"See progress notifications with titles and messages during operations\",\n    \"Cancel ongoing operations if they are marked as cancellable\",\n    \"View progress indicators in different locations (notification area, window, etc.)\",\n    \"Track operation progress with incremental updates\"\n  ],\n  \"developerVisibleActions\": [\n    \"Wrap any async operation with standardized progress reporting using withProgress method\",\n    \"Pass either a simple string title or detailed options object for progress configuration\",\n    \"Receive a ProgressReporter object to report incremental progress updates\",\n    \"Control whether operations are cancellable and where progress is displayed\",\n    \"Access cancellation token to check if user cancelled the operation\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"withProgress\",\n      \"desc\": \"Executes an async task while displaying a progress notification to the user\",\n      \"inputs\": \"options (title, cancellable flag, location) and async task function that receives a ProgressReporter\",\n      \"outputs\": \"Promise that resolves to the task result\"\n    },\n    {\n      \"name\": \"report (ProgressReporter)\",\n      \"desc\": \"Updates the progress notification with a new message and optional increment value\",\n      \"inputs\": \"message string and optional increment number\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"This service exists to standardize and simplify progress reporting across the extension, reducing boilerplate code by wrapping VSCode's progress API with consistent defaults and a cleaner interface for developers to show operation progress to users\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:40:33.602Z"
+  }
+}

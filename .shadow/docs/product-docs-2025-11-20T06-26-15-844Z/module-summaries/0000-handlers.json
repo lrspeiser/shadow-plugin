@@ -1,0 +1,99 @@
+{
+  "module": "src/domain/handlers",
+  "moduleType": "other",
+  "capabilities": [
+    "Navigate directly to any file in the workspace from analysis results",
+    "Jump to specific functions within files with automatic highlighting",
+    "Navigate to API endpoint definitions in the codebase",
+    "View detailed information about analysis items in rich webview panels",
+    "See formatted code snippets with syntax highlighting for better readability",
+    "View comprehensive function metadata including signatures, parameters, and return types",
+    "Access precise file locations with paths and line numbers",
+    "View formatted entry point details with contextual information",
+    "Receive clear error notifications when navigation operations fail"
+  ],
+  "summary": "The Navigation Handler module provides comprehensive navigation and information display capabilities within the VS Code editor. It acts as the bridge between analysis results and the actual codebase, enabling users to seamlessly move from abstract analysis data to concrete code locations.\n\nUsers can navigate directly to files, functions, and API endpoints discovered during code analysis. When navigating to functions, the handler automatically positions the cursor and highlights the relevant code section. The module also provides rich information displays through webview panels, showing formatted code snippets with syntax highlighting, function signatures with parameter details, and file location information.\n\nThe primary workflow involves users interacting with analysis results (such as API endpoints, functions, or entry points) and clicking to navigate to their definitions in the code. The handler manages the entire process of opening files, positioning the editor view, highlighting relevant code sections, and displaying detailed contextual information. Error handling ensures users receive clear feedback when navigation attempts fail due to missing files or invalid locations.",
+  "files": [
+    {
+      "file": "src/domain/handlers/navigationHandler.ts",
+      "role": "Core Logic",
+      "purpose": "Handles navigation between code files, functions, and displays detailed information about analysis items in the VS Code editor.",
+      "userVisibleActions": [
+        "Navigate to a specific file in the workspace",
+        "Navigate to a specific function within a file and highlight it",
+        "Navigate to API endpoints and see their location in code",
+        "View detailed information about analysis items in a webview panel",
+        "See formatted code snippets with syntax highlighting",
+        "View function signatures, parameters, and return types",
+        "See file paths and line numbers for code locations",
+        "View entry point details with formatted information",
+        "See error messages when navigation fails"
+      ],
+      "developerVisibleActions": [
+        "Trigger navigation to product items (files, functions, endpoints) from tree views",
+        "Display analysis item details in a dedicated webview panel",
+        "Open files and position cursor at specific line numbers",
+        "Handle navigation for different item types (file, function, navigate)",
+        "Generate HTML views with syntax-highlighted code snippets",
+        "Format and display complex data structures in readable format",
+        "Handle absolute and relative file paths within workspace",
+        "Show error messages when file operations fail"
+      ],
+      "keyFunctions": [
+        {
+          "name": "navigateToProductItem",
+          "desc": "Opens a file or navigates to a function location based on the product navigation item type",
+          "inputs": "ProductNavItem (containing file path, function name, and line information)",
+          "outputs": "Promise<void> (opens document in editor)"
+        },
+        {
+          "name": "navigateToAnalysisItem",
+          "desc": "Opens a file and positions cursor at a specific line number for analysis items",
+          "inputs": "AnalysisItem (containing file path and line number)",
+          "outputs": "Promise<void> (opens document and reveals line)"
+        },
+        {
+          "name": "showItemDetails",
+          "desc": "Displays detailed information about an analysis item in a webview panel with formatted HTML",
+          "inputs": "AnalysisItem (analysis data to display)",
+          "outputs": "void (creates or updates webview panel)"
+        },
+        {
+          "name": "generateDetailsHtml",
+          "desc": "Creates formatted HTML content for displaying item details with syntax highlighting and structured layout",
+          "inputs": "AnalysisItem (item to format)",
+          "outputs": "string (HTML content)"
+        },
+        {
+          "name": "escapeHtml",
+          "desc": "Sanitizes text content for safe HTML rendering",
+          "inputs": "string (text to escape)",
+          "outputs": "string (escaped HTML)"
+        },
+        {
+          "name": "formatValue",
+          "desc": "Converts various data types into readable HTML-formatted strings",
+          "inputs": "any (value to format)",
+          "outputs": "string (formatted HTML)"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "path",
+        "ProductNavItem (from productNavigator)",
+        "AnalysisItem (from analysisViewer)",
+        "EntryPoint (from analyzer)"
+      ],
+      "intent": "This file exists to separate navigation concerns from the main extension logic, providing a centralized way to handle all user navigation actions (opening files, jumping to functions, viewing details) and displaying analysis results in a user-friendly format with proper syntax highlighting and structured information presentation.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Handles navigation between code files, functions, and displays detailed information about analysis items in the VS Code editor.\",\n  \"userVisibleActions\": [\n    \"Navigate to a specific file in the workspace\",\n    \"Navigate to a specific function within a file and highlight it\",\n    \"Navigate to API endpoints and see their location in code\",\n    \"View detailed information about analysis items in a webview panel\",\n    \"See formatted code snippets with syntax highlighting\",\n    \"View function signatures, parameters, and return types\",\n    \"See file paths and line numbers for code locations\",\n    \"View entry point details with formatted information\",\n    \"See error messages when navigation fails\"\n  ],\n  \"developerVisibleActions\": [\n    \"Trigger navigation to product items (files, functions, endpoints) from tree views\",\n    \"Display analysis item details in a dedicated webview panel\",\n    \"Open files and position cursor at specific line numbers\",\n    \"Handle navigation for different item types (file, function, navigate)\",\n    \"Generate HTML views with syntax-highlighted code snippets\",\n    \"Format and display complex data structures in readable format\",\n    \"Handle absolute and relative file paths within workspace\",\n    \"Show error messages when file operations fail\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"navigateToProductItem\",\n      \"desc\": \"Opens a file or navigates to a function location based on the product navigation item type\",\n      \"inputs\": \"ProductNavItem (containing file path, function name, and line information)\",\n      \"outputs\": \"Promise<void> (opens document in editor)\"\n    },\n    {\n      \"name\": \"navigateToAnalysisItem\",\n      \"desc\": \"Opens a file and positions cursor at a specific line number for analysis items\",\n      \"inputs\": \"AnalysisItem (containing file path and line number)\",\n      \"outputs\": \"Promise<void> (opens document and reveals line)\"\n    },\n    {\n      \"name\": \"showItemDetails\",\n      \"desc\": \"Displays detailed information about an analysis item in a webview panel with formatted HTML\",\n      \"inputs\": \"AnalysisItem (analysis data to display)\",\n      \"outputs\": \"void (creates or updates webview panel)\"\n    },\n    {\n      \"name\": \"generateDetailsHtml\",\n      \"desc\": \"Creates formatted HTML content for displaying item details with syntax highlighting and structured layout\",\n      \"inputs\": \"AnalysisItem (item to format)\",\n      \"outputs\": \"string (HTML content)\"\n    },\n    {\n      \"name\": \"escapeHtml\",\n      \"desc\": \"Sanitizes text content for safe HTML rendering\",\n      \"inputs\": \"string (text to escape)\",\n      \"outputs\": \"string (escaped HTML)\"\n    },\n    {\n      \"name\": \"formatValue\",\n      \"desc\": \"Converts various data types into readable HTML-formatted strings\",\n      \"inputs\": \"any (value to format)\",\n      \"outputs\": \"string (formatted HTML)\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"ProductNavItem (from productNavigator)\",\n    \"AnalysisItem (from analysisViewer)\",\n    \"EntryPoint (from analyzer)\"\n  ],\n  \"intent\": \"This file exists to separate navigation concerns from the main extension logic, providing a centralized way to handle all user navigation actions (opening files, jumping to functions, viewing details) and displaying analysis results in a user-friendly format with proper syntax highlighting and structured information presentation.\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:39:25.401Z"
+  }
+}

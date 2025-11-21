@@ -1,0 +1,296 @@
+{
+  "module": "src/domain/bootstrap",
+  "moduleType": "other",
+  "capabilities": [
+    "Extension initialization and activation with all core components",
+    "Command registration for code analysis, insights management, and LLM provider switching",
+    "Automated workspace and file analysis for code intelligence",
+    "Interactive navigation through code structure and analysis results",
+    "Report generation and viewing for analysis insights and unit tests",
+    "Real-time file monitoring and automatic re-analysis on code changes",
+    "Multi-provider LLM integration with configurable AI backends",
+    "Clipboard operations for sharing insights and analysis results",
+    "Settings and data management for extension configuration"
+  ],
+  "summary": "The bootstrap module serves as the foundation layer that activates and initializes the VS Code extension, orchestrating all components necessary for code intelligence and analysis capabilities. When the extension starts, it automatically sets up analyzers, tree view providers, diagnostics panels, file watchers, and the status bar interface, making the full suite of features immediately available to users.\n\nThis module provides comprehensive command registration for all user interactions, including workspace-wide and file-specific analysis, insight management (viewing, copying, clearing), LLM provider configuration, and navigation through code structure and analysis reports. Users can trigger analysis through command palette actions or contextual menus, switch between different AI providers (OpenAI, Anthropic, etc.), and manage their analysis data through various clearing and export operations.\n\nThe bootstrapping process establishes automatic workflows such as real-time file watching that triggers re-analysis when code changes, populating tree views with structured insights and test results, and displaying diagnostics for code issues. This creates a seamless experience where the extension continuously monitors the workspace and provides up-to-date code intelligence without manual intervention, while still offering granular control through registered commands for specific analysis tasks and configuration changes.",
+  "files": [
+    {
+      "file": "src/domain/bootstrap/commandRegistry.ts",
+      "role": "Core Logic",
+      "purpose": "Registers all VS Code commands for the extension, mapping command IDs to their handler functions",
+      "userVisibleActions": [
+        "Analyze entire workspace to generate insights",
+        "Analyze current file for code insights",
+        "Copy all generated insights to clipboard",
+        "Copy insights for a specific file to clipboard",
+        "Copy individual insight to clipboard",
+        "Clear cached analysis results",
+        "Clear all extension data",
+        "Open extension settings",
+        "Open latest analysis report",
+        "Open latest unit test report",
+        "Switch between different LLM providers (OpenAI, Anthropic, etc.)",
+        "Copy menu structure to clipboard",
+        "View current LLM provider status",
+        "Navigate to product items in the code",
+        "Navigate to analysis items in reports",
+        "View detailed information about product items",
+        "View detailed information about insights",
+        "View detailed information about unit test results"
+      ],
+      "developerVisibleActions": [
+        "Commands are registered when extension activates",
+        "Command handlers interact with CodeAnalyzer for analysis",
+        "Command handlers use InsightGenerator to create insights",
+        "Command handlers interact with LLM services for AI-powered features",
+        "Commands manage cache through AnalysisCache",
+        "Commands update tree views (InsightsTreeProvider, AnalysisViewerProvider)",
+        "Commands trigger diagnostics updates through DiagnosticsProvider",
+        "Commands read/write configuration through ConfigurationManager",
+        "All commands are bound to the extension context for lifecycle management"
+      ],
+      "keyFunctions": [
+        {
+          "name": "register",
+          "desc": "Registers all VS Code commands with their handler functions",
+          "inputs": "context (ExtensionContext), components (ExtensionComponents)",
+          "outputs": "void"
+        },
+        {
+          "name": "analyzeWorkspace",
+          "desc": "Triggers analysis of entire workspace",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "analyzeCurrentFile",
+          "desc": "Triggers analysis of the currently open file",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "copyAllInsights",
+          "desc": "Copies all generated insights to clipboard",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "copyInsight",
+          "desc": "Copies a specific insight item to clipboard",
+          "inputs": "item (insight object)",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "clearCache",
+          "desc": "Clears cached analysis data",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "switchProvider",
+          "desc": "Switches between different LLM providers",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "navigateToProductItem",
+          "desc": "Navigates to a product item in the code",
+          "inputs": "item (ProductNavItem)",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "showProviderStatus",
+          "desc": "Displays current LLM provider status",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "llmIntegration",
+        "CodeAnalyzer",
+        "InsightGenerator",
+        "LLMFormatter",
+        "InsightsTreeProvider",
+        "DiagnosticsProvider",
+        "AnalysisCache",
+        "AnalysisViewerProvider",
+        "ProductNavItem",
+        "configurationManager",
+        "ExtensionComponents"
+      ],
+      "intent": "This file centralizes command registration logic to organize and manage all user-facing commands in the extension, separating command registration concerns from the main extension activation logic and providing a single source of truth for all available commands",
+      "rawContent": "```json\n{\n  \"purpose\": \"Registers all VS Code commands for the extension, mapping command IDs to their handler functions\",\n  \"userVisibleActions\": [\n    \"Analyze entire workspace to generate insights\",\n    \"Analyze current file for code insights\",\n    \"Copy all generated insights to clipboard\",\n    \"Copy insights for a specific file to clipboard\",\n    \"Copy individual insight to clipboard\",\n    \"Clear cached analysis results\",\n    \"Clear all extension data\",\n    \"Open extension settings\",\n    \"Open latest analysis report\",\n    \"Open latest unit test report\",\n    \"Switch between different LLM providers (OpenAI, Anthropic, etc.)\",\n    \"Copy menu structure to clipboard\",\n    \"View current LLM provider status\",\n    \"Navigate to product items in the code\",\n    \"Navigate to analysis items in reports\",\n    \"View detailed information about product items\",\n    \"View detailed information about insights\",\n    \"View detailed information about unit test results\"\n  ],\n  \"developerVisibleActions\": [\n    \"Commands are registered when extension activates\",\n    \"Command handlers interact with CodeAnalyzer for analysis\",\n    \"Command handlers use InsightGenerator to create insights\",\n    \"Command handlers interact with LLM services for AI-powered features\",\n    \"Commands manage cache through AnalysisCache\",\n    \"Commands update tree views (InsightsTreeProvider, AnalysisViewerProvider)\",\n    \"Commands trigger diagnostics updates through DiagnosticsProvider\",\n    \"Commands read/write configuration through ConfigurationManager\",\n    \"All commands are bound to the extension context for lifecycle management\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"register\",\n      \"desc\": \"Registers all VS Code commands with their handler functions\",\n      \"inputs\": \"context (ExtensionContext), components (ExtensionComponents)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeWorkspace\",\n      \"desc\": \"Triggers analysis of entire workspace\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"analyzeCurrentFile\",\n      \"desc\": \"Triggers analysis of the currently open file\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"copyAllInsights\",\n      \"desc\": \"Copies all generated insights to clipboard\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"copyInsight\",\n      \"desc\": \"Copies a specific insight item to clipboard\",\n      \"inputs\": \"item (insight object)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"clearCache\",\n      \"desc\": \"Clears cached analysis data\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"switchProvider\",\n      \"desc\": \"Switches between different LLM providers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"navigateToProductItem\",\n      \"desc\": \"Navigates to a product item in the code\",\n      \"inputs\": \"item (ProductNavItem)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"showProviderStatus\",\n      \"desc\": \"Displays current LLM provider status\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"llmIntegration\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"LLMFormatter\",\n    \"InsightsTreeProvider\",\n    \"DiagnosticsProvider\",\n    \"AnalysisCache\",\n    \"AnalysisViewerProvider\",\n    \"ProductNavItem\",\n    \"configurationManager\",\n    \"ExtensionComponents\"\n  ],\n  \"intent\": \"This file centralizes command registration logic to organize and manage all user-facing commands in the extension, separating command registration concerns from the main extension activation logic and providing a single source of truth for all available commands\"\n}\n```"
+    },
+    {
+      "file": "src/domain/bootstrap/extensionBootstrapper.ts",
+      "role": "Core Logic",
+      "purpose": "Initializes and bootstraps all extension components when the VS Code extension activates, setting up analyzers, viewers, providers, and services needed for code intelligence features.",
+      "userVisibleActions": [
+        "Extension activates and displays status bar item showing analysis status",
+        "Tree views populate with insights, analysis results, unit tests, and reports",
+        "Diagnostics panel shows code issues and warnings from static analysis",
+        "Product navigator becomes available for browsing code structure",
+        "Reports viewer displays generated analysis reports",
+        "File watching begins for automatic re-analysis on code changes"
+      ],
+      "developerVisibleActions": [
+        "Extension creates and registers all core components (analyzer, insight generator, formatters)",
+        "Sets up tree data providers for multiple custom views (insights, analysis, static analysis, unit tests, reports)",
+        "Initializes caching system for analysis results",
+        "Configures file watcher service to monitor workspace changes",
+        "Establishes diagnostics provider for displaying code issues",
+        "Registers LLM integration for AI-powered code analysis",
+        "Creates status bar item for displaying extension state",
+        "Instantiates configuration and state managers for persistent settings"
+      ],
+      "keyFunctions": [
+        {
+          "name": "bootstrap",
+          "desc": "Main entry point that initializes all extension components in proper order",
+          "inputs": "vscode.ExtensionContext",
+          "outputs": "ExtensionComponents object containing all initialized services"
+        },
+        {
+          "name": "createAnalyzer",
+          "desc": "Instantiates the code analyzer component",
+          "inputs": "none",
+          "outputs": "CodeAnalyzer instance"
+        },
+        {
+          "name": "createInsightGenerator",
+          "desc": "Creates the insight generation service",
+          "inputs": "none",
+          "outputs": "InsightGenerator instance"
+        },
+        {
+          "name": "createTreeProviders",
+          "desc": "Sets up all tree view data providers for displaying structured data",
+          "inputs": "none",
+          "outputs": "Multiple tree provider instances"
+        },
+        {
+          "name": "registerViews",
+          "desc": "Registers custom VS Code views for insights, analysis, and reports",
+          "inputs": "vscode.ExtensionContext, tree providers",
+          "outputs": "Registered tree views"
+        },
+        {
+          "name": "initializeServices",
+          "desc": "Starts background services like file watching and diagnostics",
+          "inputs": "ExtensionComponents",
+          "outputs": "void"
+        },
+        {
+          "name": "setupStatusBar",
+          "desc": "Creates and configures the status bar item for displaying extension state",
+          "inputs": "vscode.ExtensionContext",
+          "outputs": "vscode.StatusBarItem"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "../../analyzer",
+        "../../insightGenerator",
+        "../../llmFormatter",
+        "../../fileWatcher",
+        "../../insightsTreeView",
+        "../../diagnosticsProvider",
+        "../../cache",
+        "../../llmIntegration",
+        "../../productNavigator",
+        "../../analysisViewer",
+        "../../insightsViewer",
+        "../../staticAnalysisViewer",
+        "../../unitTestsNavigator",
+        "../../config/configurationManager",
+        "../../utils/errorHandler",
+        "../../domain/services/fileWatcherService",
+        "../../ui/reportsViewer",
+        "../../reportsTreeProvider",
+        "../../state/llmStateManager"
+      ],
+      "intent": "This file exists to centralize and orchestrate the complex initialization sequence of the extension, separating activation logic from the main extension entry point. It ensures all components are created in the correct order, properly wired together, and registered with VS Code's extension host. This separation makes the codebase more maintainable and testable by isolating bootstrapping concerns.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Initializes and bootstraps all extension components when the VS Code extension activates, setting up analyzers, viewers, providers, and services needed for code intelligence features.\",\n  \"userVisibleActions\": [\n    \"Extension activates and displays status bar item showing analysis status\",\n    \"Tree views populate with insights, analysis results, unit tests, and reports\",\n    \"Diagnostics panel shows code issues and warnings from static analysis\",\n    \"Product navigator becomes available for browsing code structure\",\n    \"Reports viewer displays generated analysis reports\",\n    \"File watching begins for automatic re-analysis on code changes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Extension creates and registers all core components (analyzer, insight generator, formatters)\",\n    \"Sets up tree data providers for multiple custom views (insights, analysis, static analysis, unit tests, reports)\",\n    \"Initializes caching system for analysis results\",\n    \"Configures file watcher service to monitor workspace changes\",\n    \"Establishes diagnostics provider for displaying code issues\",\n    \"Registers LLM integration for AI-powered code analysis\",\n    \"Creates status bar item for displaying extension state\",\n    \"Instantiates configuration and state managers for persistent settings\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"bootstrap\",\n      \"desc\": \"Main entry point that initializes all extension components in proper order\",\n      \"inputs\": \"vscode.ExtensionContext\",\n      \"outputs\": \"ExtensionComponents object containing all initialized services\"\n    },\n    {\n      \"name\": \"createAnalyzer\",\n      \"desc\": \"Instantiates the code analyzer component\",\n      \"inputs\": \"none\",\n      \"outputs\": \"CodeAnalyzer instance\"\n    },\n    {\n      \"name\": \"createInsightGenerator\",\n      \"desc\": \"Creates the insight generation service\",\n      \"inputs\": \"none\",\n      \"outputs\": \"InsightGenerator instance\"\n    },\n    {\n      \"name\": \"createTreeProviders\",\n      \"desc\": \"Sets up all tree view data providers for displaying structured data\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Multiple tree provider instances\"\n    },\n    {\n      \"name\": \"registerViews\",\n      \"desc\": \"Registers custom VS Code views for insights, analysis, and reports\",\n      \"inputs\": \"vscode.ExtensionContext, tree providers\",\n      \"outputs\": \"Registered tree views\"\n    },\n    {\n      \"name\": \"initializeServices\",\n      \"desc\": \"Starts background services like file watching and diagnostics\",\n      \"inputs\": \"ExtensionComponents\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setupStatusBar\",\n      \"desc\": \"Creates and configures the status bar item for displaying extension state\",\n      \"inputs\": \"vscode.ExtensionContext\",\n      \"outputs\": \"vscode.StatusBarItem\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"../../analyzer\",\n    \"../../insightGenerator\",\n    \"../../llmFormatter\",\n    \"../../fileWatcher\",\n    \"../../insightsTreeView\",\n    \"../../diagnosticsProvider\",\n    \"../../cache\",\n    \"../../llmIntegration\",\n    \"../../productNavigator\",\n    \"../../analysisViewer\",\n    \"../../insightsViewer\",\n    \"../../staticAnalysisViewer\",\n    \"../../unitTestsNavigator\",\n    \"../../config/configurationManager\",\n    \"../../utils/errorHandler\",\n    \"../../domain/services/fileWatcherService\",\n    \"../../ui/reportsViewer\",\n    \"../../reportsTreeProvider\",\n    \"../../state/llmStateManager\"\n  ],\n  \"intent\": \"This file exists to centralize and orchestrate the complex initialization sequence of the extension, separating activation logic from the main extension entry point. It ensures all components are created in the correct order, properly wired together, and registered with VS Code's extension host. This separation makes the codebase more maintainable and testable by isolating bootstrapping concerns.\"\n}\n```"
+    }
+  ],
+  "commands": [
+    {
+      "command": "analyze-workspace",
+      "description": "Analyzes the entire workspace to generate comprehensive code insights and intelligence"
+    },
+    {
+      "command": "analyze-file",
+      "description": "Analyzes the currently open file for code insights and recommendations"
+    },
+    {
+      "command": "copy-all-insights",
+      "description": "Copies all generated insights across the workspace to the clipboard"
+    },
+    {
+      "command": "copy-file-insights",
+      "description": "Copies insights for a specific file to the clipboard"
+    },
+    {
+      "command": "copy-single-insight",
+      "description": "Copies an individual insight item to the clipboard"
+    },
+    {
+      "command": "clear-cache",
+      "description": "Clears all cached analysis results to force fresh analysis"
+    },
+    {
+      "command": "clear-data",
+      "description": "Clears all extension data including settings and cached results"
+    },
+    {
+      "command": "open-settings",
+      "description": "Opens the extension's configuration settings panel"
+    },
+    {
+      "command": "open-analysis-report",
+      "description": "Opens the latest analysis report with detailed insights"
+    },
+    {
+      "command": "open-unit-test-report",
+      "description": "Opens the latest unit test analysis report"
+    },
+    {
+      "command": "switch-llm-provider",
+      "description": "Switches between different LLM providers (OpenAI, Anthropic, etc.)"
+    },
+    {
+      "command": "copy-menu-structure",
+      "description": "Copies the current menu structure to the clipboard for reference"
+    },
+    {
+      "command": "view-provider-status",
+      "description": "Displays the current LLM provider configuration and status"
+    },
+    {
+      "command": "navigate-to-product-item",
+      "description": "Navigates to a specific product/code item in the editor"
+    },
+    {
+      "command": "navigate-to-analysis-item",
+      "description": "Navigates to a specific analysis result item in reports"
+    },
+    {
+      "command": "view-product-details",
+      "description": "Shows detailed information about a product/code structure item"
+    },
+    {
+      "command": "view-insight-details",
+      "description": "Shows detailed information about a specific insight"
+    },
+    {
+      "command": "view-unit-test-details",
+      "description": "Shows detailed information about unit test analysis results"
+    }
+  ],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:39:06.591Z"
+  }
+}

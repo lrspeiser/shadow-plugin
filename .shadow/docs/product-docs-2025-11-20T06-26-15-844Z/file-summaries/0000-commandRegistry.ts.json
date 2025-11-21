@@ -1,0 +1,113 @@
+{
+  "file": "src/domain/bootstrap/commandRegistry.ts",
+  "role": "Core Logic",
+  "purpose": "Registers all VS Code commands for the extension, mapping command IDs to their handler functions",
+  "userVisibleActions": [
+    "Analyze entire workspace to generate insights",
+    "Analyze current file for code insights",
+    "Copy all generated insights to clipboard",
+    "Copy insights for a specific file to clipboard",
+    "Copy individual insight to clipboard",
+    "Clear cached analysis results",
+    "Clear all extension data",
+    "Open extension settings",
+    "Open latest analysis report",
+    "Open latest unit test report",
+    "Switch between different LLM providers (OpenAI, Anthropic, etc.)",
+    "Copy menu structure to clipboard",
+    "View current LLM provider status",
+    "Navigate to product items in the code",
+    "Navigate to analysis items in reports",
+    "View detailed information about product items",
+    "View detailed information about insights",
+    "View detailed information about unit test results"
+  ],
+  "developerVisibleActions": [
+    "Commands are registered when extension activates",
+    "Command handlers interact with CodeAnalyzer for analysis",
+    "Command handlers use InsightGenerator to create insights",
+    "Command handlers interact with LLM services for AI-powered features",
+    "Commands manage cache through AnalysisCache",
+    "Commands update tree views (InsightsTreeProvider, AnalysisViewerProvider)",
+    "Commands trigger diagnostics updates through DiagnosticsProvider",
+    "Commands read/write configuration through ConfigurationManager",
+    "All commands are bound to the extension context for lifecycle management"
+  ],
+  "keyFunctions": [
+    {
+      "name": "register",
+      "desc": "Registers all VS Code commands with their handler functions",
+      "inputs": "context (ExtensionContext), components (ExtensionComponents)",
+      "outputs": "void"
+    },
+    {
+      "name": "analyzeWorkspace",
+      "desc": "Triggers analysis of entire workspace",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "analyzeCurrentFile",
+      "desc": "Triggers analysis of the currently open file",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "copyAllInsights",
+      "desc": "Copies all generated insights to clipboard",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "copyInsight",
+      "desc": "Copies a specific insight item to clipboard",
+      "inputs": "item (insight object)",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "clearCache",
+      "desc": "Clears cached analysis data",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "switchProvider",
+      "desc": "Switches between different LLM providers",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "navigateToProductItem",
+      "desc": "Navigates to a product item in the code",
+      "inputs": "item (ProductNavItem)",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "showProviderStatus",
+      "desc": "Displays current LLM provider status",
+      "inputs": "none",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "llmIntegration",
+    "CodeAnalyzer",
+    "InsightGenerator",
+    "LLMFormatter",
+    "InsightsTreeProvider",
+    "DiagnosticsProvider",
+    "AnalysisCache",
+    "AnalysisViewerProvider",
+    "ProductNavItem",
+    "configurationManager",
+    "ExtensionComponents"
+  ],
+  "intent": "This file centralizes command registration logic to organize and manage all user-facing commands in the extension, separating command registration concerns from the main extension activation logic and providing a single source of truth for all available commands",
+  "rawContent": "```json\n{\n  \"purpose\": \"Registers all VS Code commands for the extension, mapping command IDs to their handler functions\",\n  \"userVisibleActions\": [\n    \"Analyze entire workspace to generate insights\",\n    \"Analyze current file for code insights\",\n    \"Copy all generated insights to clipboard\",\n    \"Copy insights for a specific file to clipboard\",\n    \"Copy individual insight to clipboard\",\n    \"Clear cached analysis results\",\n    \"Clear all extension data\",\n    \"Open extension settings\",\n    \"Open latest analysis report\",\n    \"Open latest unit test report\",\n    \"Switch between different LLM providers (OpenAI, Anthropic, etc.)\",\n    \"Copy menu structure to clipboard\",\n    \"View current LLM provider status\",\n    \"Navigate to product items in the code\",\n    \"Navigate to analysis items in reports\",\n    \"View detailed information about product items\",\n    \"View detailed information about insights\",\n    \"View detailed information about unit test results\"\n  ],\n  \"developerVisibleActions\": [\n    \"Commands are registered when extension activates\",\n    \"Command handlers interact with CodeAnalyzer for analysis\",\n    \"Command handlers use InsightGenerator to create insights\",\n    \"Command handlers interact with LLM services for AI-powered features\",\n    \"Commands manage cache through AnalysisCache\",\n    \"Commands update tree views (InsightsTreeProvider, AnalysisViewerProvider)\",\n    \"Commands trigger diagnostics updates through DiagnosticsProvider\",\n    \"Commands read/write configuration through ConfigurationManager\",\n    \"All commands are bound to the extension context for lifecycle management\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"register\",\n      \"desc\": \"Registers all VS Code commands with their handler functions\",\n      \"inputs\": \"context (ExtensionContext), components (ExtensionComponents)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeWorkspace\",\n      \"desc\": \"Triggers analysis of entire workspace\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"analyzeCurrentFile\",\n      \"desc\": \"Triggers analysis of the currently open file\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"copyAllInsights\",\n      \"desc\": \"Copies all generated insights to clipboard\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"copyInsight\",\n      \"desc\": \"Copies a specific insight item to clipboard\",\n      \"inputs\": \"item (insight object)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"clearCache\",\n      \"desc\": \"Clears cached analysis data\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"switchProvider\",\n      \"desc\": \"Switches between different LLM providers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"navigateToProductItem\",\n      \"desc\": \"Navigates to a product item in the code\",\n      \"inputs\": \"item (ProductNavItem)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"showProviderStatus\",\n      \"desc\": \"Displays current LLM provider status\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"llmIntegration\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"LLMFormatter\",\n    \"InsightsTreeProvider\",\n    \"DiagnosticsProvider\",\n    \"AnalysisCache\",\n    \"AnalysisViewerProvider\",\n    \"ProductNavItem\",\n    \"configurationManager\",\n    \"ExtensionComponents\"\n  ],\n  \"intent\": \"This file centralizes command registration logic to organize and manage all user-facing commands in the extension, separating command registration concerns from the main extension activation logic and providing a single source of truth for all available commands\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:29:58.389Z"
+  }
+}

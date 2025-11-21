@@ -111,7 +111,6 @@ export class ExtensionBootstrapper {
                 showCollapseAll: true
             });
 
-
             // Register reports tree view
             const reportsViewerView = vscode.window.createTreeView('shadowWatch.reportsViewer', {
                 treeDataProvider: reportsTreeProvider,

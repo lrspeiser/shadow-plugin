@@ -14,6 +14,7 @@ import { WebviewTemplateEngine } from './ui/webview/webviewTemplateEngine';
 import { ExtensionBootstrapper, ExtensionComponents } from './domain/bootstrap/extensionBootstrapper';
 import { CommandRegistry, CommandHandlers } from './domain/bootstrap/commandRegistry';
 import { NavigationHandler } from './domain/handlers/navigationHandler';
+import { ProductNavItem } from './productNavigator';
 
 // Component references (kept for backward compatibility with existing command handlers)
 let components: ExtensionComponents;
@@ -107,8 +108,10 @@ function createCommandHandlers(components: ExtensionComponents): CommandHandlers
         switchProvider: () => switchProvider(),
         copyMenuStructure: () => copyMenuStructure(),
         showProviderStatus: () => showProviderStatus(),
+        navigateToProductItem: (item: any) => navigationHandler.navigateToProductItem(item),
+        navigateToAnalysisItem: (item: any) => navigationHandler.navigateToAnalysisItem(item),
         copyInsightItem: (item: any) => navigationHandler.copyInsightItem(item),
-        showProductItemDetails: (item: ProductNavItem) => navigationHandler.showProductItemDetails(item),
+        showProductItemDetails: (item: any) => navigationHandler.showProductItemDetails(item),
         showInsightItemDetails: (item: any) => navigationHandler.showInsightItemDetails(item),
         showUnitTestItemDetails: (item: any) => navigationHandler.showUnitTestItemDetails(item)
     };

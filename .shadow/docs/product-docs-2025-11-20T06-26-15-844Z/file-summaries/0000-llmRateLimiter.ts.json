@@ -1,0 +1,51 @@
+{
+  "file": "src/ai/llmRateLimiter.ts",
+  "role": "Core Logic",
+  "purpose": "Manages rate limiting for LLM API requests to prevent exceeding provider API quotas",
+  "userVisibleActions": [
+    "API requests to OpenAI and Claude are automatically throttled to stay within rate limits",
+    "Requests that would exceed rate limits are prevented from being sent",
+    "Different rate limits are enforced for different LLM providers (OpenAI: 60/min, Claude: 50/min)"
+  ],
+  "developerVisibleActions": [
+    "Check if an API request is allowed before making it using canMakeRequest()",
+    "Record successful API requests with recordRequest() to track usage",
+    "Configure custom rate limits for providers using configure()",
+    "Track request history per provider automatically",
+    "Get automatic cleanup of old request timestamps outside the time window"
+  ],
+  "keyFunctions": [
+    {
+      "name": "constructor",
+      "desc": "Initializes rate limiter with default limits for OpenAI (60/min) and Claude (50/min)",
+      "inputs": "none",
+      "outputs": "RateLimiter instance"
+    },
+    {
+      "name": "configure",
+      "desc": "Sets custom rate limit configuration for a specific LLM provider",
+      "inputs": "provider (LLMProvider), config (RateLimitConfig with maxRequests and windowMs)",
+      "outputs": "void"
+    },
+    {
+      "name": "canMakeRequest",
+      "desc": "Checks if a new request is allowed based on current rate limit status",
+      "inputs": "provider (LLMProvider)",
+      "outputs": "boolean - true if request can be made, false if rate limit would be exceeded"
+    },
+    {
+      "name": "recordRequest",
+      "desc": "Records a request timestamp for rate limiting tracking",
+      "inputs": "provider (LLMProvider)",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [],
+  "intent": "This file exists to protect against exceeding API rate limits from LLM providers (OpenAI and Claude) by tracking request frequency and enforcing configurable throttling windows, preventing API errors and potential service disruptions",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages rate limiting for LLM API requests to prevent exceeding provider API quotas\",\n  \"userVisibleActions\": [\n    \"API requests to OpenAI and Claude are automatically throttled to stay within rate limits\",\n    \"Requests that would exceed rate limits are prevented from being sent\",\n    \"Different rate limits are enforced for different LLM providers (OpenAI: 60/min, Claude: 50/min)\"\n  ],\n  \"developerVisibleActions\": [\n    \"Check if an API request is allowed before making it using canMakeRequest()\",\n    \"Record successful API requests with recordRequest() to track usage\",\n    \"Configure custom rate limits for providers using configure()\",\n    \"Track request history per provider automatically\",\n    \"Get automatic cleanup of old request timestamps outside the time window\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes rate limiter with default limits for OpenAI (60/min) and Claude (50/min)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"RateLimiter instance\"\n    },\n    {\n      \"name\": \"configure\",\n      \"desc\": \"Sets custom rate limit configuration for a specific LLM provider\",\n      \"inputs\": \"provider (LLMProvider), config (RateLimitConfig with maxRequests and windowMs)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"canMakeRequest\",\n      \"desc\": \"Checks if a new request is allowed based on current rate limit status\",\n      \"inputs\": \"provider (LLMProvider)\",\n      \"outputs\": \"boolean - true if request can be made, false if rate limit would be exceeded\"\n    },\n    {\n      \"name\": \"recordRequest\",\n      \"desc\": \"Records a request timestamp for rate limiting tracking\",\n      \"inputs\": \"provider (LLMProvider)\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to protect against exceeding API rate limits from LLM providers (OpenAI and Claude) by tracking request frequency and enforcing configurable throttling windows, preventing API errors and potential service disruptions\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:26:26.423Z"
+  }
+}

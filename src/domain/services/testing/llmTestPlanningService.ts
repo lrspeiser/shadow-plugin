@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TestPlan, TestableFunction } from './types/testPlanTypes';
 import { buildPlanningPrompt } from '../../prompts/testPrompts';
-import { AnalysisContext } from '../../../analyzer';
+import { CodeAnalysis } from '../../../analyzer';
 import { SWLogger } from '../../../logger';
 
 export class LLMTestPlanningService {
@@ -35,7 +35,7 @@ export class LLMTestPlanningService {
      * Create test plan using LLM
      */
     static async createTestPlan(
-        context: AnalysisContext,
+        context: CodeAnalysis,
         functions: any[],
         llmService: any,
         productDocs?: any,

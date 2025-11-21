@@ -1,0 +1,89 @@
+{
+  "file": "src/llmFormatter.ts",
+  "role": "Core Logic",
+  "purpose": "Formats code architecture insights into different output formats optimized for various AI assistants and human readers.",
+  "userVisibleActions": [
+    "View architecture issues grouped by severity (Critical/Warnings/Informational)",
+    "See issues formatted specifically for Cursor AI with actionable prompts",
+    "See issues formatted for ChatGPT with structured analysis sections",
+    "View compact summaries of issues by category",
+    "Read generic formatted reports with detailed issue breakdowns",
+    "See formatted suggestions asking for prioritization and refactoring help",
+    "View architecture violations with file locations and suggested fixes"
+  ],
+  "developerVisibleActions": [
+    "Choose between 4 output formats: cursor, chatgpt, compact, or generic",
+    "Call formatInsights() with insights array and format preference",
+    "Receive markdown-formatted output ready for AI assistant consumption",
+    "Get insights automatically grouped by severity levels",
+    "Obtain structured reports with severity indicators (🔴, ⚠️, ℹ️)",
+    "Generate format-specific prompts that guide AI assistant responses",
+    "Produce outputs optimized for different AI assistant conversation styles"
+  ],
+  "keyFunctions": [
+    {
+      "name": "formatInsights",
+      "desc": "Main entry point that routes insights to the appropriate formatter based on specified format",
+      "inputs": "insights: Insight[], format: string (default 'cursor')",
+      "outputs": "string - formatted markdown text"
+    },
+    {
+      "name": "formatForCursor",
+      "desc": "Formats insights optimized for Cursor AI with severity grouping and actionable prompts",
+      "inputs": "insights: Insight[]",
+      "outputs": "string - Cursor-optimized markdown"
+    },
+    {
+      "name": "formatForChatGPT",
+      "desc": "Formats insights for ChatGPT with structured sections and conversation-style prompts",
+      "inputs": "insights: Insight[]",
+      "outputs": "string - ChatGPT-optimized markdown"
+    },
+    {
+      "name": "formatCompact",
+      "desc": "Creates a condensed summary of issues grouped by category without detailed formatting",
+      "inputs": "insights: Insight[]",
+      "outputs": "string - compact markdown summary"
+    },
+    {
+      "name": "formatGeneric",
+      "desc": "Produces a standard detailed report suitable for any AI assistant or human reader",
+      "inputs": "insights: Insight[]",
+      "outputs": "string - generic formatted markdown"
+    },
+    {
+      "name": "formatInsightForCursor",
+      "desc": "Formats individual insight with file location, description, and suggested action",
+      "inputs": "insight: Insight",
+      "outputs": "string - formatted insight block"
+    },
+    {
+      "name": "formatInsightForChatGPT",
+      "desc": "Formats individual insight with numbered structure and conversational tone",
+      "inputs": "insight: Insight",
+      "outputs": "string - formatted insight block"
+    },
+    {
+      "name": "formatInsightCompact",
+      "desc": "Formats individual insight as a single line with essential information",
+      "inputs": "insight: Insight",
+      "outputs": "string - one-line insight summary"
+    },
+    {
+      "name": "formatInsightGeneric",
+      "desc": "Formats individual insight with all details in a standard structure",
+      "inputs": "insight: Insight",
+      "outputs": "string - formatted insight block"
+    }
+  ],
+  "dependencies": [
+    "./insightGenerator (Insight type)"
+  ],
+  "intent": "Transforms raw code analysis insights into AI assistant-specific formats that maximize the effectiveness of automated code improvement suggestions by tailoring the presentation style to each AI's conversation patterns and capabilities.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Formats code architecture insights into different output formats optimized for various AI assistants and human readers.\",\n  \"userVisibleActions\": [\n    \"View architecture issues grouped by severity (Critical/Warnings/Informational)\",\n    \"See issues formatted specifically for Cursor AI with actionable prompts\",\n    \"See issues formatted for ChatGPT with structured analysis sections\",\n    \"View compact summaries of issues by category\",\n    \"Read generic formatted reports with detailed issue breakdowns\",\n    \"See formatted suggestions asking for prioritization and refactoring help\",\n    \"View architecture violations with file locations and suggested fixes\"\n  ],\n  \"developerVisibleActions\": [\n    \"Choose between 4 output formats: cursor, chatgpt, compact, or generic\",\n    \"Call formatInsights() with insights array and format preference\",\n    \"Receive markdown-formatted output ready for AI assistant consumption\",\n    \"Get insights automatically grouped by severity levels\",\n    \"Obtain structured reports with severity indicators (🔴, ⚠️, ℹ️)\",\n    \"Generate format-specific prompts that guide AI assistant responses\",\n    \"Produce outputs optimized for different AI assistant conversation styles\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatInsights\",\n      \"desc\": \"Main entry point that routes insights to the appropriate formatter based on specified format\",\n      \"inputs\": \"insights: Insight[], format: string (default 'cursor')\",\n      \"outputs\": \"string - formatted markdown text\"\n    },\n    {\n      \"name\": \"formatForCursor\",\n      \"desc\": \"Formats insights optimized for Cursor AI with severity grouping and actionable prompts\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"string - Cursor-optimized markdown\"\n    },\n    {\n      \"name\": \"formatForChatGPT\",\n      \"desc\": \"Formats insights for ChatGPT with structured sections and conversation-style prompts\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"string - ChatGPT-optimized markdown\"\n    },\n    {\n      \"name\": \"formatCompact\",\n      \"desc\": \"Creates a condensed summary of issues grouped by category without detailed formatting\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"string - compact markdown summary\"\n    },\n    {\n      \"name\": \"formatGeneric\",\n      \"desc\": \"Produces a standard detailed report suitable for any AI assistant or human reader\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"string - generic formatted markdown\"\n    },\n    {\n      \"name\": \"formatInsightForCursor\",\n      \"desc\": \"Formats individual insight with file location, description, and suggested action\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"string - formatted insight block\"\n    },\n    {\n      \"name\": \"formatInsightForChatGPT\",\n      \"desc\": \"Formats individual insight with numbered structure and conversational tone\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"string - formatted insight block\"\n    },\n    {\n      \"name\": \"formatInsightCompact\",\n      \"desc\": \"Formats individual insight as a single line with essential information\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"string - one-line insight summary\"\n    },\n    {\n      \"name\": \"formatInsightGeneric\",\n      \"desc\": \"Formats individual insight with all details in a standard structure\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"string - formatted insight block\"\n    }\n  ],\n  \"dependencies\": [\n    \"./insightGenerator (Insight type)\"\n  ],\n  \"intent\": \"Transforms raw code analysis insights into AI assistant-specific formats that maximize the effectiveness of automated code improvement suggestions by tailoring the presentation style to each AI's conversation patterns and capabilities.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:36:35.928Z"
+  }
+}

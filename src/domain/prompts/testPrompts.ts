@@ -2,7 +2,7 @@
  * Prompt builders for LLM-based test generation
  */
 
-import { AnalysisContext } from '../../analyzer';
+import { CodeAnalysis } from '../../analyzer';
 import { TestableFunction } from '../services/testing/types/testPlanTypes';
 
 export function buildSetupPrompt(workspaceRoot: string, fileList: string[], packageJsonContent?: string): string {
@@ -44,7 +44,7 @@ Return your response in this JSON format:
 }
 
 export function buildPlanningPrompt(
-    context: AnalysisContext,
+    context: CodeAnalysis,
     functions: any[],
     productDocs?: any,
     architectureInsights?: any
@@ -59,7 +59,7 @@ export function buildPlanningPrompt(
 - Entry Points: ${context.entryPoints.length}
 
 ## Entry Points (Critical for Testing)
-${context.entryPoints.slice(0, 10).map(ep => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
+${context.entryPoints.slice(0, 10).map((ep: any) => `- ${ep.path} (${ep.type}): ${ep.reason}`).join('\n')}
 `;
 
     if (productDocs) {

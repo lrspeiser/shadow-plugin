@@ -1,0 +1,29 @@
+{
+  "file": "src/llmSchemas.ts",
+  "role": "Core Logic",
+  "purpose": "Defines JSON schemas that structure and validate AI-generated responses for code analysis tasks, ensuring consistent, parseable outputs without manual parsing.",
+  "userVisibleActions": [
+    "Receives structured product purpose analysis with clear sections for goals, architecture reasoning, and design decisions",
+    "Gets organized issue reports with clear titles, descriptions, relevant files, and severity levels",
+    "Views categorized code analysis results separated into user-facing vs developer-facing behavior",
+    "Sees detailed function documentation with inputs, outputs, and behavioral descriptions",
+    "Receives file classifications (Core Logic, Configuration, Testing, etc.) with clear purpose statements"
+  ],
+  "developerVisibleActions": [
+    "Uses predefined schemas to request structured AI analysis of codebases",
+    "Receives guaranteed valid JSON responses from Claude API without parsing errors",
+    "Gets code behavior extracted as user-facing actions and developer-facing actions separately",
+    "Obtains dependency lists and relationship mappings between files",
+    "Receives categorized issues (Architecture, Documentation, Code Quality, etc.) with severity ratings",
+    "Gets function signatures extracted with behavioral descriptions instead of implementation details"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "This file exists to enforce consistent structure in AI-generated code analysis responses. It solves the problem of unreliable, unparseable AI outputs by defining strict JSON schemas that guarantee valid, structured data for product purpose analysis, issue detection, code behavior extraction, and documentation generation. It ensures the AI focuses on WHAT code does (user/developer perspective) rather than HOW it's implemented.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines JSON schemas that structure and validate AI-generated responses for code analysis tasks, ensuring consistent, parseable outputs without manual parsing.\",\n  \"userVisibleActions\": [\n    \"Receives structured product purpose analysis with clear sections for goals, architecture reasoning, and design decisions\",\n    \"Gets organized issue reports with clear titles, descriptions, relevant files, and severity levels\",\n    \"Views categorized code analysis results separated into user-facing vs developer-facing behavior\",\n    \"Sees detailed function documentation with inputs, outputs, and behavioral descriptions\",\n    \"Receives file classifications (Core Logic, Configuration, Testing, etc.) with clear purpose statements\"\n  ],\n  \"developerVisibleActions\": [\n    \"Uses predefined schemas to request structured AI analysis of codebases\",\n    \"Receives guaranteed valid JSON responses from Claude API without parsing errors\",\n    \"Gets code behavior extracted as user-facing actions and developer-facing actions separately\",\n    \"Obtains dependency lists and relationship mappings between files\",\n    \"Receives categorized issues (Architecture, Documentation, Code Quality, etc.) with severity ratings\",\n    \"Gets function signatures extracted with behavioral descriptions instead of implementation details\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to enforce consistent structure in AI-generated code analysis responses. It solves the problem of unreliable, unparseable AI outputs by defining strict JSON schemas that guarantee valid, structured data for product purpose analysis, issue detection, code behavior extraction, and documentation generation. It ensures the AI focuses on WHAT code does (user/developer perspective) rather than HOW it's implemented.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:37:02.700Z"
+  }
+}

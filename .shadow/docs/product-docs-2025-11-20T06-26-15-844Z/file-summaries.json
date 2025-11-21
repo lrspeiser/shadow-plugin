@@ -1,0 +1,64 @@
+{
+  "summaries": [
+    {
+      "file": "jest.config.js",
+      "role": "Core Logic",
+      "purpose": "Configures Jest test framework for running TypeScript unit tests in the project",
+      "userVisibleActions": [
+        "No direct user-facing actions - this is a development configuration file"
+      ],
+      "developerVisibleActions": [
+        "Run tests using Jest with 'npm test' or 'jest' command",
+        "View test results from files matching '**/*.test.ts' or '**/*.spec.ts' patterns",
+        "Generate code coverage reports in text, lcov, and HTML formats",
+        "Tests run with a 10-second timeout per test",
+        "TypeScript files are automatically compiled and tested without manual build step",
+        "Code coverage collected from all source files except type definitions, test files, and mocks",
+        "VSCode module is automatically mocked for testing extension code"
+      ],
+      "keyFunctions": [
+        {
+          "name": "preset",
+          "desc": "Uses ts-jest preset to enable TypeScript testing",
+          "inputs": "Configuration string",
+          "outputs": "Jest configuration with TypeScript support"
+        },
+        {
+          "name": "testMatch",
+          "desc": "Defines which files are recognized as test files",
+          "inputs": "Array of glob patterns",
+          "outputs": "Matches *.test.ts and *.spec.ts files"
+        },
+        {
+          "name": "transform",
+          "desc": "Configures TypeScript compilation for test files",
+          "inputs": "TypeScript files with ES2020 target",
+          "outputs": "Compiled JavaScript executable by Jest"
+        },
+        {
+          "name": "collectCoverageFrom",
+          "desc": "Specifies which files to include in coverage reports",
+          "inputs": "Array of glob patterns",
+          "outputs": "Coverage data excluding mocks, tests, and type definitions"
+        },
+        {
+          "name": "moduleNameMapper",
+          "desc": "Maps vscode module imports to mock implementation",
+          "inputs": "Module path mappings",
+          "outputs": "Mocked vscode module for testing"
+        }
+      ],
+      "dependencies": [
+        "ts-jest",
+        "jest"
+      ],
+      "intent": "Provides a complete Jest testing configuration for a TypeScript-based VSCode extension, enabling developers to write and run unit tests with proper TypeScript compilation, code coverage reporting, and VSCode API mocking",
+      "rawContent": "```json\n{\n  \"purpose\": \"Configures Jest test framework for running TypeScript unit tests in the project\",\n  \"userVisibleActions\": [\n    \"No direct user-facing actions - this is a development configuration file\"\n  ],\n  \"developerVisibleActions\": [\n    \"Run tests using Jest with 'npm test' or 'jest' command\",\n    \"View test results from files matching '**/*.test.ts' or '**/*.spec.ts' patterns\",\n    \"Generate code coverage reports in text, lcov, and HTML formats\",\n    \"Tests run with a 10-second timeout per test\",\n    \"TypeScript files are automatically compiled and tested without manual build step\",\n    \"Code coverage collected from all source files except type definitions, test files, and mocks\",\n    \"VSCode module is automatically mocked for testing extension code\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"preset\",\n      \"desc\": \"Uses ts-jest preset to enable TypeScript testing\",\n      \"inputs\": \"Configuration string\",\n      \"outputs\": \"Jest configuration with TypeScript support\"\n    },\n    {\n      \"name\": \"testMatch\",\n      \"desc\": \"Defines which files are recognized as test files\",\n      \"inputs\": \"Array of glob patterns\",\n      \"outputs\": \"Matches *.test.ts and *.spec.ts files\"\n    },\n    {\n      \"name\": \"transform\",\n      \"desc\": \"Configures TypeScript compilation for test files\",\n      \"inputs\": \"TypeScript files with ES2020 target\",\n      \"outputs\": \"Compiled JavaScript executable by Jest\"\n    },\n    {\n      \"name\": \"collectCoverageFrom\",\n      \"desc\": \"Specifies which files to include in coverage reports\",\n      \"inputs\": \"Array of glob patterns\",\n      \"outputs\": \"Coverage data excluding mocks, tests, and type definitions\"\n    },\n    {\n      \"name\": \"moduleNameMapper\",\n      \"desc\": \"Maps vscode module imports to mock implementation\",\n      \"inputs\": \"Module path mappings\",\n      \"outputs\": \"Mocked vscode module for testing\"\n    }\n  ],\n  \"dependencies\": [\n    \"ts-jest\",\n    \"jest\"\n  ],\n  \"intent\": \"Provides a complete Jest testing configuration for a TypeScript-based VSCode extension, enabling developers to write and run unit tests with proper TypeScript compilation, code coverage reporting, and VSCode API mocking\"\n}\n```"
+    }
+  ],
+  "_metadata": {
+    "totalFiles": 0,
+    "completedFiles": 1,
+    "lastUpdated": "2025-11-20T06:26:15.844Z"
+  }
+}

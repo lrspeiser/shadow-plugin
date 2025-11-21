@@ -187,10 +187,6 @@ export class CommandRegistry {
         disposables.push(
             components.statusBarItem,
             components.treeView,
-            components.productNavigatorView,
-            components.analysisViewerView,
-            components.insightsViewerView,
-            components.unitTestsNavigatorView,
             components.reportsViewerView
         );
 

@@ -1,0 +1,32 @@
+{
+  "file": "src/domain/services/testing/types/testResultTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type definitions for test generation, validation, execution, and reporting results.",
+  "userVisibleActions": [
+    "View test execution status (pass/fail/error) for each test file",
+    "See how many tests passed, failed, or encountered errors",
+    "Review test execution duration and timing information",
+    "Read error messages and stack traces for failed tests",
+    "View test report summary with pass rates and file statistics",
+    "Access recommendations for improving test quality",
+    "See which test files were generated and which are passing"
+  ],
+  "developerVisibleActions": [
+    "Define structured test generation results with imports, mocks, and test code",
+    "Represent mock statements with explanations for clarity",
+    "Handle test validation results with fixed code and remaining issues",
+    "Track detailed test execution metrics including passed/failed/error counts",
+    "Capture error details with test names, messages, and stack traces",
+    "Generate comprehensive test reports with summaries and recommendations",
+    "Structure test report summaries with pass rates and file counts"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides a standardized type system for representing test-related data throughout the testing workflow, ensuring consistent structure for test generation output, validation feedback, execution results, and comprehensive reporting with metrics and recommendations.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type definitions for test generation, validation, execution, and reporting results.\",\n  \"userVisibleActions\": [\n    \"View test execution status (pass/fail/error) for each test file\",\n    \"See how many tests passed, failed, or encountered errors\",\n    \"Review test execution duration and timing information\",\n    \"Read error messages and stack traces for failed tests\",\n    \"View test report summary with pass rates and file statistics\",\n    \"Access recommendations for improving test quality\",\n    \"See which test files were generated and which are passing\"\n  ],\n  \"developerVisibleActions\": [\n    \"Define structured test generation results with imports, mocks, and test code\",\n    \"Represent mock statements with explanations for clarity\",\n    \"Handle test validation results with fixed code and remaining issues\",\n    \"Track detailed test execution metrics including passed/failed/error counts\",\n    \"Capture error details with test names, messages, and stack traces\",\n    \"Generate comprehensive test reports with summaries and recommendations\",\n    \"Structure test report summaries with pass rates and file counts\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides a standardized type system for representing test-related data throughout the testing workflow, ensuring consistent structure for test generation output, validation feedback, execution results, and comprehensive reporting with metrics and recommendations.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:33:33.366Z"
+  }
+}

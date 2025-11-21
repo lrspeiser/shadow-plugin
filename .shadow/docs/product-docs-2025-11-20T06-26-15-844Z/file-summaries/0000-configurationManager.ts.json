@@ -1,0 +1,72 @@
+{
+  "file": "src/config/configurationManager.ts",
+  "role": "Core Logic",
+  "purpose": "Manages all Shadow Watch extension settings and notifies components when configuration changes",
+  "userVisibleActions": [
+    "User can enable/disable the Shadow Watch extension through settings",
+    "User can toggle automatic analysis when saving files",
+    "User can show/hide inline hints for diagnostics in the editor",
+    "User can configure severity thresholds for diagnostics",
+    "User can select LLM provider (OpenAI or Claude) for analysis",
+    "User can choose output format for LLM reports (Cursor, ChatGPT, Generic, Compact)",
+    "User can set file size limits for analysis",
+    "User can configure ignored file patterns",
+    "User can adjust analysis debounce delays"
+  ],
+  "developerVisibleActions": [
+    "Provides type-safe access to all extension configuration properties",
+    "Triggers callbacks when any Shadow Watch configuration changes",
+    "Centralizes configuration validation logic",
+    "Exposes typed configuration values (LLMProvider, LLMFormat, SeverityThreshold)",
+    "Manages workspace-level configuration updates",
+    "Allows registering and removing configuration change listeners"
+  ],
+  "keyFunctions": [
+    {
+      "name": "constructor",
+      "desc": "Initializes the configuration manager and sets up the configuration change watcher",
+      "inputs": "none",
+      "outputs": "ConfigurationManager instance"
+    },
+    {
+      "name": "onConfigurationChange",
+      "desc": "Registers a callback to be notified when Shadow Watch settings change",
+      "inputs": "callback function",
+      "outputs": "void"
+    },
+    {
+      "name": "removeConfigurationChangeListener",
+      "desc": "Unregisters a configuration change callback",
+      "inputs": "callback function",
+      "outputs": "void"
+    },
+    {
+      "name": "enabled",
+      "desc": "Gets whether the Shadow Watch extension is enabled",
+      "inputs": "none (getter)",
+      "outputs": "boolean"
+    },
+    {
+      "name": "analyzeOnSave",
+      "desc": "Gets whether analysis should run automatically when files are saved",
+      "inputs": "none (getter)",
+      "outputs": "boolean"
+    },
+    {
+      "name": "showInlineHints",
+      "desc": "Gets whether inline diagnostic hints should be displayed in the editor",
+      "inputs": "none (getter)",
+      "outputs": "boolean"
+    }
+  ],
+  "dependencies": [
+    "vscode"
+  ],
+  "intent": "This file exists to provide a single, type-safe point of access for all Shadow Watch configuration settings, eliminating scattered config.get() calls throughout the codebase and ensuring consistent configuration handling with change notifications for reactive updates.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages all Shadow Watch extension settings and notifies components when configuration changes\",\n  \"userVisibleActions\": [\n    \"User can enable/disable the Shadow Watch extension through settings\",\n    \"User can toggle automatic analysis when saving files\",\n    \"User can show/hide inline hints for diagnostics in the editor\",\n    \"User can configure severity thresholds for diagnostics\",\n    \"User can select LLM provider (OpenAI or Claude) for analysis\",\n    \"User can choose output format for LLM reports (Cursor, ChatGPT, Generic, Compact)\",\n    \"User can set file size limits for analysis\",\n    \"User can configure ignored file patterns\",\n    \"User can adjust analysis debounce delays\"\n  ],\n  \"developerVisibleActions\": [\n    \"Provides type-safe access to all extension configuration properties\",\n    \"Triggers callbacks when any Shadow Watch configuration changes\",\n    \"Centralizes configuration validation logic\",\n    \"Exposes typed configuration values (LLMProvider, LLMFormat, SeverityThreshold)\",\n    \"Manages workspace-level configuration updates\",\n    \"Allows registering and removing configuration change listeners\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes the configuration manager and sets up the configuration change watcher\",\n      \"inputs\": \"none\",\n      \"outputs\": \"ConfigurationManager instance\"\n    },\n    {\n      \"name\": \"onConfigurationChange\",\n      \"desc\": \"Registers a callback to be notified when Shadow Watch settings change\",\n      \"inputs\": \"callback function\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"removeConfigurationChangeListener\",\n      \"desc\": \"Unregisters a configuration change callback\",\n      \"inputs\": \"callback function\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"enabled\",\n      \"desc\": \"Gets whether the Shadow Watch extension is enabled\",\n      \"inputs\": \"none (getter)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"analyzeOnSave\",\n      \"desc\": \"Gets whether analysis should run automatically when files are saved\",\n      \"inputs\": \"none (getter)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"showInlineHints\",\n      \"desc\": \"Gets whether inline diagnostic hints should be displayed in the editor\",\n      \"inputs\": \"none (getter)\",\n      \"outputs\": \"boolean\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide a single, type-safe point of access for all Shadow Watch configuration settings, eliminating scattered config.get() calls throughout the codebase and ensuring consistent configuration handling with change notifications for reactive updates.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:29:17.076Z"
+  }
+}

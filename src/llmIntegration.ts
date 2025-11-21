@@ -1553,8 +1553,12 @@ export async function generateUnitTests(): Promise<void> {
                 throw new Error('No functions found to test. Please run workspace analysis first.');
             }
             
+            if (!lastCodeAnalysis) {
+                throw new Error('Code analysis is missing. Please run workspace analysis first.');
+            }
+            
             const testPlan = await LLMTestPlanningService.createTestPlan(
-                lastAnalysisContext,
+                lastCodeAnalysis,
                 functions,
                 llmService,
                 lastEnhancedProductDocs,
@@ -2447,18 +2451,29 @@ export async function runUnitTests(): Promise<void> {
 
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
     
-    // Check both new location (.shadow/UnitTests) and old location (UnitTests) for backward compatibility
-    let unitTestPlanPath = path.join(workspaceRoot, '.shadow', 'UnitTests', 'unit_test_plan.json');
-    if (!fs.existsSync(unitTestPlanPath)) {
-        // Try old location
-        const oldPath = path.join(workspaceRoot, 'UnitTests', 'unit_test_plan.json');
-        if (fs.existsSync(oldPath)) {
-            unitTestPlanPath = oldPath;
-            SWLogger.log(`Found unit test plan in old location: ${oldPath}`);
+    // Check for new test plan format first (.shadow/test-plan.json)
+    let unitTestPlanPath = path.join(workspaceRoot, '.shadow', 'test-plan.json');
+    let isNewFormat = fs.existsSync(unitTestPlanPath);
+    
+    if (!isNewFormat) {
+        // Try old format locations for backward compatibility
+        const oldPath1 = path.join(workspaceRoot, '.shadow', 'UnitTests', 'unit_test_plan.json');
+        const oldPath2 = path.join(workspaceRoot, 'UnitTests', 'unit_test_plan.json');
+        
+        if (fs.existsSync(oldPath1)) {
+            unitTestPlanPath = oldPath1;
+            isNewFormat = false;
+            SWLogger.log(`Found unit test plan in old location: ${oldPath1}`);
+        } else if (fs.existsSync(oldPath2)) {
+            unitTestPlanPath = oldPath2;
+            isNewFormat = false;
+            SWLogger.log(`Found unit test plan in old location: ${oldPath2}`);
         } else {
             vscode.window.showErrorMessage('Unit test plan not found. Please generate unit tests first.');
             return;
         }
+    } else {
+        SWLogger.log(`Using new test plan format: ${unitTestPlanPath}`);
     }
 
     // Load unit test plan
@@ -2471,12 +2486,44 @@ export async function runUnitTests(): Promise<void> {
         return;
     }
 
-    const testingFramework = unitTestPlan.aggregated_plan?.unit_test_plan?.testing_framework || 'jest';
-    const testSuites = unitTestPlan.aggregated_plan?.test_suites || [];
-
-    if (testSuites.length === 0) {
-        vscode.window.showErrorMessage('No test suites found in unit test plan');
-        return;
+    // Handle both old and new test plan formats
+    let testingFramework: string;
+    let testFiles: string[];
+    
+    if (isNewFormat) {
+        // New format: test-plan.json with function_groups
+        testingFramework = 'jest'; // Default for new format
+        
+        // Find all actual test files in UnitTests directory
+        const unitTestsDir = path.join(workspaceRoot, 'UnitTests');
+        if (!fs.existsSync(unitTestsDir)) {
+            vscode.window.showErrorMessage('UnitTests directory not found. Test files may not have been generated.');
+            return;
+        }
+        
+        testFiles = fs.readdirSync(unitTestsDir)
+            .filter(file => file.endsWith('.test.ts') || file.endsWith('.test.js'))
+            .map(file => path.join(unitTestsDir, file));
+        
+        if (testFiles.length === 0) {
+            vscode.window.showErrorMessage('No test files found in UnitTests directory.');
+            return;
+        }
+        
+        SWLogger.log(`Found ${testFiles.length} test files in UnitTests/`);
+    } else {
+        // Old format: unit_test_plan.json with aggregated_plan structure
+        testingFramework = unitTestPlan.aggregated_plan?.unit_test_plan?.testing_framework || 'jest';
+        const testSuites = unitTestPlan.aggregated_plan?.test_suites || [];
+        
+        if (testSuites.length === 0) {
+            vscode.window.showErrorMessage('No test suites found in unit test plan');
+            return;
+        }
+        
+        testFiles = testSuites
+            .map((suite: any) => suite.test_file_path)
+            .filter((p: string) => p);
     }
 
     SWLogger.section('Run Unit Tests');
@@ -2488,54 +2535,18 @@ export async function runUnitTests(): Promise<void> {
         try {
             const testResults: any[] = [];
             
-            // Run each test suite
-            for (let i = 0; i < testSuites.length; i++) {
-                const suite = testSuites[i];
-                reporter.report(`Running test suite ${i + 1}/${testSuites.length}: ${suite.name || suite.id}`);
-                
-                // Get test file path
-                const testFilePath = suite.test_file_path;
-                if (!testFilePath) {
-                    SWLogger.log(`Skipping suite ${suite.id}: no test_file_path`);
-                    continue;
-                }
-                
-                // Resolve test file path - check both new and old locations
-                let fullTestPath: string;
-                if (path.isAbsolute(testFilePath)) {
-                    fullTestPath = testFilePath;
-                } else if (testFilePath.startsWith('.shadow/UnitTests/')) {
-                    fullTestPath = path.join(workspaceRoot, testFilePath);
-                } else if (testFilePath.startsWith('UnitTests/')) {
-                    // Check old location first, then new location
-                    const oldPath = path.join(workspaceRoot, testFilePath);
-                    const newPath = path.join(workspaceRoot, '.shadow', 'UnitTests', path.basename(testFilePath));
-                    if (fs.existsSync(oldPath)) {
-                        fullTestPath = oldPath;
-                    } else if (fs.existsSync(newPath)) {
-                        fullTestPath = newPath;
-                    } else {
-                        fullTestPath = newPath; // Will be checked below
-                    }
-                } else {
-                    // Try new location first, then old location
-                    const newPath = path.join(workspaceRoot, '.shadow', 'UnitTests', path.basename(testFilePath));
-                    const oldPath = path.join(workspaceRoot, 'UnitTests', path.basename(testFilePath));
-                    if (fs.existsSync(newPath)) {
-                        fullTestPath = newPath;
-                    } else if (fs.existsSync(oldPath)) {
-                        fullTestPath = oldPath;
-                    } else {
-                        fullTestPath = newPath; // Will be checked below
-                    }
-                }
+            // Run each test file
+            for (let i = 0; i < testFiles.length; i++) {
+                const fullTestPath = testFiles[i];
+                const testFileName = path.basename(fullTestPath);
+                reporter.report(`Running test ${i + 1}/${testFiles.length}: ${testFileName}`);
                 
                 if (!fs.existsSync(fullTestPath)) {
                     SWLogger.log(`Test file not found: ${fullTestPath}`);
                     testResults.push({
-                        suite: suite.name || suite.id,
-                        suiteId: suite.id,
-                        testFilePath: testFilePath,
+                        suite: testFileName,
+                        suiteId: testFileName,
+                        testFilePath: fullTestPath,
                         status: 'skipped',
                         reason: `Test file not found: ${fullTestPath}`,
                         testCount: 0,
@@ -2558,8 +2569,7 @@ export async function runUnitTests(): Promise<void> {
                 } else if (testingFramework === 'vitest') {
                     testCommand = `npx vitest run "${fullTestPath}" --reporter=json`;
                 } else {
-                    // Try to use run_suite_instructions from the plan
-                    testCommand = suite.run_suite_instructions || `npm test -- "${fullTestPath}"`;
+                    testCommand = `npm test -- "${fullTestPath}"`;
                 }
                 
                 try {
@@ -2588,9 +2598,9 @@ export async function runUnitTests(): Promise<void> {
                     const testCases = parsedResults.testResults || parsedResults.results || [];
                     
                     testResults.push({
-                        suite: suite.name || suite.id,
-                        suiteId: suite.id,
-                        testFilePath: testFilePath,
+                        suite: testFileName,
+                        suiteId: testFileName,
+                        testFilePath: fullTestPath,
                         status: parsedResults.success !== false && failedCount === 0 ? 'passed' : 'failed',
                         testCount: testCount,
                         passedCount: passedCount,
@@ -2612,11 +2622,11 @@ export async function runUnitTests(): Promise<void> {
                     });
                     
                 } catch (error: any) {
-                    SWLogger.log(`Test execution failed for ${suite.name}: ${error.message}`);
+                    SWLogger.log(`Test execution failed for ${testFileName}: ${error.message}`);
                     testResults.push({
-                        suite: suite.name || suite.id,
-                        suiteId: suite.id,
-                        testFilePath: testFilePath,
+                        suite: testFileName,
+                        suiteId: testFileName,
+                        testFilePath: fullTestPath,
                         status: 'error',
                         error: error.message,
                         errorCode: error.code,

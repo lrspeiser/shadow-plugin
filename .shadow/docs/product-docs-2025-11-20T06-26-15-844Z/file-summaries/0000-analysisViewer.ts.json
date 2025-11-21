@@ -1,0 +1,95 @@
+{
+  "file": "src/analysisViewer.ts",
+  "role": "GUI View",
+  "purpose": "Provides a tree view UI in VSCode that displays structured code analysis results including statistics, files, functions, and entry points",
+  "userVisibleActions": [
+    "View a hierarchical tree of code analysis results in the sidebar",
+    "See 'No analysis available' message when no analysis has been run",
+    "Browse analysis statistics (total files, functions, entry points, lines of code)",
+    "Explore files organized by directory structure",
+    "View details about each analyzed file (path, language, line count, function count)",
+    "Browse all functions found in the codebase with their locations",
+    "See entry points detected in the code",
+    "Click on files, functions, or entry points to navigate to their location in the editor",
+    "View tooltips with additional context when hovering over tree items",
+    "Refresh the analysis view when new analysis results are available"
+  ],
+  "developerVisibleActions": [
+    "TreeDataProvider that integrates with VSCode's tree view API",
+    "Receives CodeAnalysis data from the analyzer module",
+    "Updates the tree view when setAnalysis() is called with new analysis results",
+    "Organizes analysis data into expandable/collapsible tree nodes",
+    "Generates AnalysisItem objects representing different types of nodes (statistics, files, functions, directories)",
+    "Provides navigation to source code locations when items are clicked",
+    "Handles hierarchical data display for nested directory structures",
+    "Emits tree data change events to trigger UI updates"
+  ],
+  "keyFunctions": [
+    {
+      "name": "setAnalysis",
+      "desc": "Updates the viewer with new code analysis results and refreshes the display",
+      "inputs": "analysis: CodeAnalysis | null",
+      "outputs": "void"
+    },
+    {
+      "name": "refresh",
+      "desc": "Triggers the tree view to update and redraw",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getTreeItem",
+      "desc": "Returns the VSCode TreeItem representation for a given analysis item",
+      "inputs": "element: AnalysisItem",
+      "outputs": "vscode.TreeItem"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Returns child items for a given tree node or root items if no element provided",
+      "inputs": "element?: AnalysisItem",
+      "outputs": "Thenable<AnalysisItem[]>"
+    },
+    {
+      "name": "getRootItems",
+      "desc": "Generates top-level tree items (statistics, files, functions, entry points)",
+      "inputs": "none",
+      "outputs": "AnalysisItem[]"
+    },
+    {
+      "name": "getStatisticsItems",
+      "desc": "Creates tree items showing analysis statistics (counts and metrics)",
+      "inputs": "none",
+      "outputs": "AnalysisItem[]"
+    },
+    {
+      "name": "getFilesItems",
+      "desc": "Generates tree items for files organized by directory structure",
+      "inputs": "none",
+      "outputs": "AnalysisItem[]"
+    },
+    {
+      "name": "getFileDetails",
+      "desc": "Returns detailed information about a specific file including functions",
+      "inputs": "element: AnalysisItem",
+      "outputs": "AnalysisItem[]"
+    },
+    {
+      "name": "getDirectoryFiles",
+      "desc": "Returns files and subdirectories within a directory node",
+      "inputs": "element: AnalysisItem",
+      "outputs": "AnalysisItem[]"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "analyzer (CodeAnalysis, FileInfo, FunctionInfo, EntryPoint types)",
+    "path"
+  ],
+  "intent": "This file exists to provide a visual, interactive tree-based browser for code analysis results in VSCode, allowing users to explore analyzed code structure (files, functions, entry points) and navigate to specific code locations, solving the problem of presenting complex hierarchical analysis data in an accessible, browsable format",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view UI in VSCode that displays structured code analysis results including statistics, files, functions, and entry points\",\n  \"userVisibleActions\": [\n    \"View a hierarchical tree of code analysis results in the sidebar\",\n    \"See 'No analysis available' message when no analysis has been run\",\n    \"Browse analysis statistics (total files, functions, entry points, lines of code)\",\n    \"Explore files organized by directory structure\",\n    \"View details about each analyzed file (path, language, line count, function count)\",\n    \"Browse all functions found in the codebase with their locations\",\n    \"See entry points detected in the code\",\n    \"Click on files, functions, or entry points to navigate to their location in the editor\",\n    \"View tooltips with additional context when hovering over tree items\",\n    \"Refresh the analysis view when new analysis results are available\"\n  ],\n  \"developerVisibleActions\": [\n    \"TreeDataProvider that integrates with VSCode's tree view API\",\n    \"Receives CodeAnalysis data from the analyzer module\",\n    \"Updates the tree view when setAnalysis() is called with new analysis results\",\n    \"Organizes analysis data into expandable/collapsible tree nodes\",\n    \"Generates AnalysisItem objects representing different types of nodes (statistics, files, functions, directories)\",\n    \"Provides navigation to source code locations when items are clicked\",\n    \"Handles hierarchical data display for nested directory structures\",\n    \"Emits tree data change events to trigger UI updates\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"setAnalysis\",\n      \"desc\": \"Updates the viewer with new code analysis results and refreshes the display\",\n      \"inputs\": \"analysis: CodeAnalysis | null\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Triggers the tree view to update and redraw\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Returns the VSCode TreeItem representation for a given analysis item\",\n      \"inputs\": \"element: AnalysisItem\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for a given tree node or root items if no element provided\",\n      \"inputs\": \"element?: AnalysisItem\",\n      \"outputs\": \"Thenable<AnalysisItem[]>\"\n    },\n    {\n      \"name\": \"getRootItems\",\n      \"desc\": \"Generates top-level tree items (statistics, files, functions, entry points)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"AnalysisItem[]\"\n    },\n    {\n      \"name\": \"getStatisticsItems\",\n      \"desc\": \"Creates tree items showing analysis statistics (counts and metrics)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"AnalysisItem[]\"\n    },\n    {\n      \"name\": \"getFilesItems\",\n      \"desc\": \"Generates tree items for files organized by directory structure\",\n      \"inputs\": \"none\",\n      \"outputs\": \"AnalysisItem[]\"\n    },\n    {\n      \"name\": \"getFileDetails\",\n      \"desc\": \"Returns detailed information about a specific file including functions\",\n      \"inputs\": \"element: AnalysisItem\",\n      \"outputs\": \"AnalysisItem[]\"\n    },\n    {\n      \"name\": \"getDirectoryFiles\",\n      \"desc\": \"Returns files and subdirectories within a directory node\",\n      \"inputs\": \"element: AnalysisItem\",\n      \"outputs\": \"AnalysisItem[]\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"analyzer (CodeAnalysis, FileInfo, FunctionInfo, EntryPoint types)\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to provide a visual, interactive tree-based browser for code analysis results in VSCode, allowing users to explore analyzed code structure (files, functions, entry points) and navigate to specific code locations, solving the problem of presenting complex hierarchical analysis data in an accessible, browsable format\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:28:34.457Z"
+  }
+}

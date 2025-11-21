@@ -1,0 +1,55 @@
+{
+  "file": "src/domain/services/testing/llmTestPlanningService.ts",
+  "role": "Core Logic",
+  "purpose": "Creates AI-powered prioritized test plans by analyzing code functions and determining which ones need testing and in what order.",
+  "userVisibleActions": [
+    "System analyzes code functions and determines which ones can be tested",
+    "System generates a prioritized test plan showing which functions to test first",
+    "System explains why certain functions are testable or not testable",
+    "Test plan is saved to disk for review and implementation"
+  ],
+  "developerVisibleActions": [
+    "Developer triggers test plan creation for analyzed code",
+    "System analyzes function complexity, parameters, and return types",
+    "LLM evaluates functions against product documentation and architecture insights",
+    "System categorizes functions into priority groups (high, medium, low priority)",
+    "Test plan with function groups and testing recommendations is generated",
+    "Plan is saved as JSON file in output directory for developer review"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeFunctions",
+      "desc": "Extracts function metadata from code analysis including name, location, complexity, and signature",
+      "inputs": "codeAnalysis object containing function data",
+      "outputs": "Array of function metadata objects"
+    },
+    {
+      "name": "createTestPlan",
+      "desc": "Uses LLM to generate prioritized test strategy based on functions, documentation, and architecture",
+      "inputs": "context, functions array, llmService, optional productDocs and architectureInsights",
+      "outputs": "TestPlan object with function groups and testing recommendations"
+    },
+    {
+      "name": "saveTestPlan",
+      "desc": "Persists the generated test plan to disk as a JSON file",
+      "inputs": "testPlan object, output directory path",
+      "outputs": "File path where plan was saved"
+    }
+  ],
+  "dependencies": [
+    "fs (file system operations)",
+    "path (file path handling)",
+    "TestPlan and TestableFunction types",
+    "buildPlanningPrompt from testPrompts",
+    "AnalysisContext from analyzer",
+    "SWLogger for logging",
+    "LLM service for AI-powered analysis"
+  ],
+  "intent": "This file solves the problem of determining which code functions should be tested and in what order. Instead of manually reviewing code to decide testing priorities, it uses AI to analyze function complexity, dependencies, and business importance to create an intelligent, prioritized test plan that guides developers on where to focus testing efforts first.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Creates AI-powered prioritized test plans by analyzing code functions and determining which ones need testing and in what order.\",\n  \"userVisibleActions\": [\n    \"System analyzes code functions and determines which ones can be tested\",\n    \"System generates a prioritized test plan showing which functions to test first\",\n    \"System explains why certain functions are testable or not testable\",\n    \"Test plan is saved to disk for review and implementation\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer triggers test plan creation for analyzed code\",\n    \"System analyzes function complexity, parameters, and return types\",\n    \"LLM evaluates functions against product documentation and architecture insights\",\n    \"System categorizes functions into priority groups (high, medium, low priority)\",\n    \"Test plan with function groups and testing recommendations is generated\",\n    \"Plan is saved as JSON file in output directory for developer review\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Extracts function metadata from code analysis including name, location, complexity, and signature\",\n      \"inputs\": \"codeAnalysis object containing function data\",\n      \"outputs\": \"Array of function metadata objects\"\n    },\n    {\n      \"name\": \"createTestPlan\",\n      \"desc\": \"Uses LLM to generate prioritized test strategy based on functions, documentation, and architecture\",\n      \"inputs\": \"context, functions array, llmService, optional productDocs and architectureInsights\",\n      \"outputs\": \"TestPlan object with function groups and testing recommendations\"\n    },\n    {\n      \"name\": \"saveTestPlan\",\n      \"desc\": \"Persists the generated test plan to disk as a JSON file\",\n      \"inputs\": \"testPlan object, output directory path\",\n      \"outputs\": \"File path where plan was saved\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs (file system operations)\",\n    \"path (file path handling)\",\n    \"TestPlan and TestableFunction types\",\n    \"buildPlanningPrompt from testPrompts\",\n    \"AnalysisContext from analyzer\",\n    \"SWLogger for logging\",\n    \"LLM service for AI-powered analysis\"\n  ],\n  \"intent\": \"This file solves the problem of determining which code functions should be tested and in what order. Instead of manually reviewing code to decide testing priorities, it uses AI to analyze function complexity, dependencies, and business importance to create an intelligent, prioritized test plan that guides developers on where to focus testing efforts first.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:32:38.557Z"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "file": "src/domain/services/testing/testExecutionService.ts",
+  "role": "Core Logic",
+  "purpose": "Executes test suites (Jest, Mocha, Pytest) and captures their results for analysis and reporting",
+  "userVisibleActions": [
+    "Runs tests for a specific file or all tests in the workspace",
+    "Shows test execution progress with status updates",
+    "Displays test results including passed, failed, and error counts",
+    "Shows test execution duration for each test suite",
+    "Reports detailed error messages and stack traces for failed tests",
+    "Indicates when tests timeout or fail to execute"
+  ],
+  "developerVisibleActions": [
+    "Calls runJest() to execute Jest tests with optional file parameter",
+    "Calls runMocha() to execute Mocha tests with optional file parameter",
+    "Calls runPytest() to execute Python tests with optional file parameter",
+    "Receives TestExecutionResult[] containing pass/fail status, counts, duration, and error details",
+    "Handles test execution errors and timeouts gracefully",
+    "Works with workspace root path to locate test files",
+    "Parses test framework output (JSON format) into structured results",
+    "Provides detailed error information including test name, message, and stack trace"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runJest",
+      "desc": "Executes Jest test suite for a specific file or all tests",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runMocha",
+      "desc": "Executes Mocha test suite for a specific file or all tests",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "runPytest",
+      "desc": "Executes Pytest test suite for a specific file or all tests",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]>"
+    },
+    {
+      "name": "parseJestOutput",
+      "desc": "Parses Jest JSON output into structured test results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parseMochaOutput",
+      "desc": "Parses Mocha JSON output into structured test results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    },
+    {
+      "name": "parsePytestOutput",
+      "desc": "Parses Pytest JSON output into structured test results",
+      "inputs": "stdout: string, stderr: string",
+      "outputs": "TestExecutionResult[]"
+    }
+  ],
+  "dependencies": [
+    "child_process",
+    "path",
+    "./types/testResultTypes"
+  ],
+  "intent": "This service solves the problem of running different test frameworks (Jest, Mocha, Pytest) in a unified way and translating their diverse output formats into a consistent structured format that can be analyzed, reported, and acted upon. It abstracts away the complexity of executing shell commands, parsing framework-specific output, and handling errors.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Executes test suites (Jest, Mocha, Pytest) and captures their results for analysis and reporting\",\n  \"userVisibleActions\": [\n    \"Runs tests for a specific file or all tests in the workspace\",\n    \"Shows test execution progress with status updates\",\n    \"Displays test results including passed, failed, and error counts\",\n    \"Shows test execution duration for each test suite\",\n    \"Reports detailed error messages and stack traces for failed tests\",\n    \"Indicates when tests timeout or fail to execute\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls runJest() to execute Jest tests with optional file parameter\",\n    \"Calls runMocha() to execute Mocha tests with optional file parameter\",\n    \"Calls runPytest() to execute Python tests with optional file parameter\",\n    \"Receives TestExecutionResult[] containing pass/fail status, counts, duration, and error details\",\n    \"Handles test execution errors and timeouts gracefully\",\n    \"Works with workspace root path to locate test files\",\n    \"Parses test framework output (JSON format) into structured results\",\n    \"Provides detailed error information including test name, message, and stack trace\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runJest\",\n      \"desc\": \"Executes Jest test suite for a specific file or all tests\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runMocha\",\n      \"desc\": \"Executes Mocha test suite for a specific file or all tests\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"runPytest\",\n      \"desc\": \"Executes Pytest test suite for a specific file or all tests\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]>\"\n    },\n    {\n      \"name\": \"parseJestOutput\",\n      \"desc\": \"Parses Jest JSON output into structured test results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parseMochaOutput\",\n      \"desc\": \"Parses Mocha JSON output into structured test results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    },\n    {\n      \"name\": \"parsePytestOutput\",\n      \"desc\": \"Parses Pytest JSON output into structured test results\",\n      \"inputs\": \"stdout: string, stderr: string\",\n      \"outputs\": \"TestExecutionResult[]\"\n    }\n  ],\n  \"dependencies\": [\n    \"child_process\",\n    \"path\",\n    \"./types/testResultTypes\"\n  ],\n  \"intent\": \"This service solves the problem of running different test frameworks (Jest, Mocha, Pytest) in a unified way and translating their diverse output formats into a consistent structured format that can be analyzed, reported, and acted upon. It abstracts away the complexity of executing shell commands, parsing framework-specific output, and handling errors.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:33:15.554Z"
+  }
+}

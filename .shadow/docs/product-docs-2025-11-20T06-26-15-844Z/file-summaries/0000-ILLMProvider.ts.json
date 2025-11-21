@@ -1,0 +1,52 @@
+{
+  "file": "src/ai/providers/ILLMProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Defines a standard interface for interacting with different AI language model providers (OpenAI, Claude, custom providers) in a unified way",
+  "userVisibleActions": [
+    "User receives AI-generated text responses to their queries",
+    "User receives structured JSON data from AI for parsed information",
+    "User may experience different response formats (text or JSON) depending on request type"
+  ],
+  "developerVisibleActions": [
+    "Developer can check if an AI provider is configured and ready to use",
+    "Developer can send text-based requests to AI and receive string responses",
+    "Developer can send requests for structured JSON output with type safety",
+    "Developer can specify model, temperature, max tokens, and system prompts for AI requests",
+    "Developer can retrieve the provider name to identify which AI service is being used",
+    "Developer can pass conversation history with messages in system/user/assistant roles"
+  ],
+  "keyFunctions": [
+    {
+      "name": "isConfigured",
+      "desc": "Checks if the AI provider has valid credentials and is ready to accept requests",
+      "inputs": "none",
+      "outputs": "boolean indicating configuration status"
+    },
+    {
+      "name": "sendRequest",
+      "desc": "Sends a prompt to the AI and receives a text response",
+      "inputs": "LLMRequestOptions (model, system prompt, messages, max tokens, temperature, response format)",
+      "outputs": "LLMResponse containing content string, finish reason, model name, and raw response"
+    },
+    {
+      "name": "sendStructuredRequest",
+      "desc": "Sends a prompt to the AI and receives parsed JSON data with optional follow-up requests",
+      "inputs": "LLMRequestOptions and optional JSON schema",
+      "outputs": "StructuredOutputResponse with typed data and optional file/grep requests"
+    },
+    {
+      "name": "getName",
+      "desc": "Returns the identifier of the AI provider",
+      "inputs": "none",
+      "outputs": "string with provider name"
+    }
+  ],
+  "dependencies": [],
+  "intent": "This file exists to abstract away differences between various AI language model providers (OpenAI, Claude, custom services), allowing the rest of the application to interact with any AI provider through a consistent interface without worrying about provider-specific implementation details or API differences",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines a standard interface for interacting with different AI language model providers (OpenAI, Claude, custom providers) in a unified way\",\n  \"userVisibleActions\": [\n    \"User receives AI-generated text responses to their queries\",\n    \"User receives structured JSON data from AI for parsed information\",\n    \"User may experience different response formats (text or JSON) depending on request type\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer can check if an AI provider is configured and ready to use\",\n    \"Developer can send text-based requests to AI and receive string responses\",\n    \"Developer can send requests for structured JSON output with type safety\",\n    \"Developer can specify model, temperature, max tokens, and system prompts for AI requests\",\n    \"Developer can retrieve the provider name to identify which AI service is being used\",\n    \"Developer can pass conversation history with messages in system/user/assistant roles\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if the AI provider has valid credentials and is ready to accept requests\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean indicating configuration status\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a prompt to the AI and receives a text response\",\n      \"inputs\": \"LLMRequestOptions (model, system prompt, messages, max tokens, temperature, response format)\",\n      \"outputs\": \"LLMResponse containing content string, finish reason, model name, and raw response\"\n    },\n    {\n      \"name\": \"sendStructuredRequest\",\n      \"desc\": \"Sends a prompt to the AI and receives parsed JSON data with optional follow-up requests\",\n      \"inputs\": \"LLMRequestOptions and optional JSON schema\",\n      \"outputs\": \"StructuredOutputResponse with typed data and optional file/grep requests\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the identifier of the AI provider\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string with provider name\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to abstract away differences between various AI language model providers (OpenAI, Claude, custom services), allowing the rest of the application to interact with any AI provider through a consistent interface without worrying about provider-specific implementation details or API differences\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-20T06:27:08.918Z"
+  }
+}
