@@ -86,13 +86,30 @@ ${architectureInsights.priorities?.slice(0, 10).map((p: any) =>
 `;
     }
 
+    // Include the ACTUAL function list so LLM doesn't hallucinate
+    prompt += `\n## Available Functions (${functions.length} total)
+`;
+    
+    // Show up to 100 functions with key details
+    const functionsToShow = functions.slice(0, 100);
+    for (const func of functionsToShow) {
+        prompt += `- ${func.name} (${func.file}:${func.startLine}-${func.endLine}, ${func.lines || 0} lines)\n`;
+    }
+    
+    if (functions.length > 100) {
+        prompt += `... and ${functions.length - 100} more functions\n`;
+    }
+
     prompt += `\n## Your Task
-Analyze the functions and create a test strategy that:
-1. Prioritizes critical functions (entry points, complex logic, error-prone areas)
-2. Groups related functions into logical test suites
-3. Identifies dependencies that need mocking
-4. Estimates testability and complexity
-5. Creates a realistic test plan (start with top 30 most important functions)
+Create a test strategy using the ACTUAL functions listed above:
+1. Prioritize critical functions (entry points, complex logic, error-prone areas)
+2. Group related functions into logical test suites
+3. Identify dependencies that need mocking
+4. Estimate testability and complexity
+5. Create a realistic test plan (start with top 30 most important functions FROM THE LIST ABOVE)
+
+IMPORTANT: You MUST use function names, files, and line numbers from the "Available Functions" list above.
+Do NOT invent or hallucinate functions that are not in the list.
 
 Return your response in this JSON format:
 {
