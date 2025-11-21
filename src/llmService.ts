@@ -3216,11 +3216,32 @@ Return ONLY the Markdown report, no additional text or explanations.`;
 
         const isClaude = provider.getName() === 'claude';
         const isOpenAI = provider.getName() === 'openai';
-        SWLogger.log('[LLM] Fixing failing test...');
+        SWLogger.log(`[LLM] Fixing failing test with ${isClaude ? 'Claude' : 'OpenAI'}...`);
 
         try {
             await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
 
+            // Use structured outputs for Claude, JSON mode for OpenAI
+            if (isClaude) {
+                const { testFixSchema } = await import('./llmSchemas');
+                const response = await this.retryHandler.executeWithRetry(
+                    async () => {
+                        const structuredResponse = await provider.sendStructuredRequest({
+                            model: this.getModelForProvider(provider.getName()),
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }]
+                        }, testFixSchema);
+                        
+                        this.rateLimiter.recordRequest(provider.getName() as any);
+                        return structuredResponse.data;
+                    }
+                );
+                return response;
+            }
+            
+            // OpenAI with JSON mode
             const response = await this.retryHandler.executeWithRetry(
                 async () => {
                     const llmResponse = await provider.sendRequest({
@@ -3230,7 +3251,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                             content: prompt
                         }],
                         // Force JSON mode for OpenAI to prevent markdown responses
-                        ...(isOpenAI && { responseFormat: { type: 'json_object' } })
+                        responseFormat: { type: 'json_object' }
                     });
                     
                     this.rateLimiter.recordRequest(provider.getName() as any);

@@ -487,4 +487,29 @@ export const unitTestPlanSchema = {
     additionalProperties: false
 };
 
+export const testFixSchema = {
+    type: "object",
+    properties: {
+        status: {
+            type: "string",
+            enum: ["pass", "fail", "error"],
+            description: "Whether the fix was successful"
+        },
+        fixed_code: {
+            type: "string",
+            description: "Complete fixed test code"
+        },
+        explanation: {
+            type: "string",
+            description: "Brief explanation of what was wrong and how it was fixed"
+        },
+        remaining_issues: {
+            type: "array",
+            items: { type: "string" },
+            description: "Any issues that could not be fixed automatically"
+        }
+    },
+    required: ["status", "fixed_code", "explanation", "remaining_issues"],
+    additionalProperties: false
+};
 
