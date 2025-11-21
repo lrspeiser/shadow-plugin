@@ -1,0 +1,26 @@
+{
+  "file": "src/domain/services/testing/types/testPlanTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type definitions for test planning and generation workflow, including test plans, function grouping, and generation state tracking.",
+  "userVisibleActions": [
+    "View test generation progress through phases (setup, planning, generation, validation, complete)",
+    "See how many functions are being tested and their validation status",
+    "Track test failures with error messages and retry attempts"
+  ],
+  "developerVisibleActions": [
+    "Structure test plans with function groups organized by priority",
+    "Track testable functions with metadata (complexity, dependencies, mocking requirements)",
+    "Monitor test generation state across different phases",
+    "Access function details including file location, line numbers, parameters, and return types",
+    "Handle test failures with function name, error details, and attempt count"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "Provides a strongly-typed contract for the test planning and generation service, ensuring consistent data structures when creating test plans, tracking generation progress, identifying testable functions, and managing test failures across the automated testing workflow.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type definitions for test planning and generation workflow, including test plans, function grouping, and generation state tracking.\",\n  \"userVisibleActions\": [\n    \"View test generation progress through phases (setup, planning, generation, validation, complete)\",\n    \"See how many functions are being tested and their validation status\",\n    \"Track test failures with error messages and retry attempts\"\n  ],\n  \"developerVisibleActions\": [\n    \"Structure test plans with function groups organized by priority\",\n    \"Track testable functions with metadata (complexity, dependencies, mocking requirements)\",\n    \"Monitor test generation state across different phases\",\n    \"Access function details including file location, line numbers, parameters, and return types\",\n    \"Handle test failures with function name, error details, and attempt count\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"Provides a strongly-typed contract for the test planning and generation service, ensuring consistent data structures when creating test plans, tracking generation progress, identifying testable functions, and managing test failures across the automated testing workflow.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:39:46.944Z"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "file": "src/infrastructure/persistence/analysisResultRepository.ts",
+  "role": "Core Logic",
+  "purpose": "Manages persistence and storage of AI-generated analysis results including product documentation, architecture insights, and summaries to the workspace's .shadow directory",
+  "userVisibleActions": [
+    "Product documentation is saved to timestamped directories in .shadow/docs",
+    "Architecture insights are saved to timestamped directories in .shadow/insights",
+    "Summary files are created combining all analysis results",
+    "Incremental documentation updates are stored with timestamps",
+    "Consolidated documentation files are generated from multiple analyses"
+  ],
+  "developerVisibleActions": [
+    "Initialize product documentation run to create storage directories",
+    "Initialize architecture insights run to create storage directories",
+    "Save enhanced product documentation with formatted output",
+    "Save architecture insights with formatted output",
+    "Save summary files combining product docs and insights",
+    "Store documentation updates incrementally with timestamps",
+    "Retrieve latest documentation from storage",
+    "Get consolidated documentation from all runs",
+    "Finalize runs by creating summary files"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeProductDocsRun",
+      "desc": "Creates a new timestamped directory for storing product documentation results",
+      "inputs": "workspaceRoot: string",
+      "outputs": "string (path to run directory)"
+    },
+    {
+      "name": "initializeArchitectureInsightsRun",
+      "desc": "Creates a new timestamped directory for storing architecture insights results",
+      "inputs": "workspaceRoot: string",
+      "outputs": "string (path to run directory)"
+    },
+    {
+      "name": "saveProductDocs",
+      "desc": "Saves enhanced product documentation to the current run directory",
+      "inputs": "workspaceRoot: string, docs: EnhancedProductDocumentation",
+      "outputs": "void"
+    },
+    {
+      "name": "saveArchitectureInsights",
+      "desc": "Saves architecture insights to the current run directory",
+      "inputs": "workspaceRoot: string, insights: LLMInsights",
+      "outputs": "void"
+    },
+    {
+      "name": "saveSummary",
+      "desc": "Creates a summary file combining product docs and architecture insights",
+      "inputs": "workspaceRoot: string, productDocs: EnhancedProductDocumentation, insights: LLMInsights",
+      "outputs": "void"
+    },
+    {
+      "name": "finalizeProductDocsRun",
+      "desc": "Completes the product docs run by creating final summary files",
+      "inputs": "workspaceRoot: string",
+      "outputs": "void"
+    },
+    {
+      "name": "finalizeArchitectureInsightsRun",
+      "desc": "Completes the architecture insights run by creating final summary files",
+      "inputs": "workspaceRoot: string",
+      "outputs": "void"
+    },
+    {
+      "name": "storeDocumentationUpdate",
+      "desc": "Saves incremental documentation updates with timestamps",
+      "inputs": "workspaceRoot: string, filePath: string, documentation: any",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "getLatestDocumentation",
+      "desc": "Retrieves the most recent documentation for a file",
+      "inputs": "workspaceRoot: string, filePath: string",
+      "outputs": "Promise<any | null>"
+    },
+    {
+      "name": "getConsolidatedDocumentation",
+      "desc": "Gets all documentation from all timestamped runs",
+      "inputs": "workspaceRoot: string",
+      "outputs": "Promise<Record<string, any>>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "fileDocumentation (EnhancedProductDocumentation)",
+    "llmService (LLMInsights)",
+    "domain/formatters/documentationFormatter",
+    "storage/incrementalStorage"
+  ],
+  "intent": "Separates persistence concerns from LLM integration by providing a dedicated repository for storing and retrieving all AI-generated analysis results, enabling organized storage with timestamps, incremental updates, and consolidated views of documentation across multiple analysis runs",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages persistence and storage of AI-generated analysis results including product documentation, architecture insights, and summaries to the workspace's .shadow directory\",\n  \"userVisibleActions\": [\n    \"Product documentation is saved to timestamped directories in .shadow/docs\",\n    \"Architecture insights are saved to timestamped directories in .shadow/insights\",\n    \"Summary files are created combining all analysis results\",\n    \"Incremental documentation updates are stored with timestamps\",\n    \"Consolidated documentation files are generated from multiple analyses\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize product documentation run to create storage directories\",\n    \"Initialize architecture insights run to create storage directories\",\n    \"Save enhanced product documentation with formatted output\",\n    \"Save architecture insights with formatted output\",\n    \"Save summary files combining product docs and insights\",\n    \"Store documentation updates incrementally with timestamps\",\n    \"Retrieve latest documentation from storage\",\n    \"Get consolidated documentation from all runs\",\n    \"Finalize runs by creating summary files\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeProductDocsRun\",\n      \"desc\": \"Creates a new timestamped directory for storing product documentation results\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"string (path to run directory)\"\n    },\n    {\n      \"name\": \"initializeArchitectureInsightsRun\",\n      \"desc\": \"Creates a new timestamped directory for storing architecture insights results\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"string (path to run directory)\"\n    },\n    {\n      \"name\": \"saveProductDocs\",\n      \"desc\": \"Saves enhanced product documentation to the current run directory\",\n      \"inputs\": \"workspaceRoot: string, docs: EnhancedProductDocumentation\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"saveArchitectureInsights\",\n      \"desc\": \"Saves architecture insights to the current run directory\",\n      \"inputs\": \"workspaceRoot: string, insights: LLMInsights\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"saveSummary\",\n      \"desc\": \"Creates a summary file combining product docs and architecture insights\",\n      \"inputs\": \"workspaceRoot: string, productDocs: EnhancedProductDocumentation, insights: LLMInsights\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"finalizeProductDocsRun\",\n      \"desc\": \"Completes the product docs run by creating final summary files\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"finalizeArchitectureInsightsRun\",\n      \"desc\": \"Completes the architecture insights run by creating final summary files\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"storeDocumentationUpdate\",\n      \"desc\": \"Saves incremental documentation updates with timestamps\",\n      \"inputs\": \"workspaceRoot: string, filePath: string, documentation: any\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"getLatestDocumentation\",\n      \"desc\": \"Retrieves the most recent documentation for a file\",\n      \"inputs\": \"workspaceRoot: string, filePath: string\",\n      \"outputs\": \"Promise<any | null>\"\n    },\n    {\n      \"name\": \"getConsolidatedDocumentation\",\n      \"desc\": \"Gets all documentation from all timestamped runs\",\n      \"inputs\": \"workspaceRoot: string\",\n      \"outputs\": \"Promise<Record<string, any>>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"fileDocumentation (EnhancedProductDocumentation)\",\n    \"llmService (LLMInsights)\",\n    \"domain/formatters/documentationFormatter\",\n    \"storage/incrementalStorage\"\n  ],\n  \"intent\": \"Separates persistence concerns from LLM integration by providing a dedicated repository for storing and retrieving all AI-generated analysis results, enabling organized storage with timestamps, incremental updates, and consolidated views of documentation across multiple analysis runs\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:41:30.284Z"
+  }
+}

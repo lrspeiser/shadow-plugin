@@ -86,52 +86,77 @@ ${architectureInsights.priorities?.slice(0, 10).map((p: any) =>
 `;
     }
 
-    // Include the ACTUAL function list so LLM doesn't hallucinate
-    prompt += `\n## Available Functions (${functions.length} total)
-`;
-    
-    // Show up to 100 functions with key details
-    const functionsToShow = functions.slice(0, 100);
-    for (const func of functionsToShow) {
-        prompt += `- ${func.name} (${func.file}:${func.startLine}-${func.endLine}, ${func.lines || 0} lines)\n`;
-    }
-    
-    if (functions.length > 100) {
-        prompt += `... and ${functions.length - 100} more functions\n`;
-    }
-
     prompt += `\n## Your Task
-Create a test strategy using the ACTUAL functions listed above:
-1. Prioritize critical functions (entry points, complex logic, error-prone areas)
-2. Group related functions into logical test suites
-3. Identify dependencies that need mocking
-4. Estimate testability and complexity
-5. Create a realistic test plan (start with top 30 most important functions FROM THE LIST ABOVE)
-
-IMPORTANT: You MUST use function names, files, and line numbers from the "Available Functions" list above.
-Do NOT invent or hallucinate functions that are not in the list.
+Create a HIGH-LEVEL test strategy (not a detailed function list yet):
+1. Identify 3-5 critical areas to focus testing on
+2. Prioritize areas based on:
+   - Entry points and main functionality
+   - Complex business logic
+   - Error-prone areas mentioned in architecture insights
+   - Integration points that need careful testing
+3. For each area, describe WHAT to test, not specific functions yet
 
 Return your response in this JSON format:
 {
-  "strategy": "Brief description of overall testing approach",
-  "total_functions": ${functions.length},
-  "testable_functions": number,
-  "function_groups": [
+  "strategy": "Brief overall testing approach",
+  "total_functions_available": ${functions.length},
+  "recommended_test_areas": [
     {
-      "group_id": "core-analysis",
-      "name": "Core Analysis Functions",
+      "area_id": "core-analysis",
+      "name": "Core Analysis Engine",
       "priority": 1,
-      "functions": [
-        {
-          "name": "functionName",
-          "file": "src/file.ts",
-          "startLine": 10,
-          "endLine": 50,
-          "complexity": "high|medium|low",
-          "dependencies": ["dependency1", "dependency2"],
-          "mocking_needed": true
-        }
-      ]
+      "description": "Why this area is critical",
+      "file_patterns": ["src/analyzer.ts", "src/analysis/*.ts"],
+      "estimated_functions": 10
+    }
+  ]
+}`;
+
+    return prompt;
+}
+
+export function buildFunctionSelectionPrompt(
+    area: any,
+    matchingFunctions: any[],
+    maxFunctions: number = 15
+): string {
+    let prompt = `You are a test strategy expert. Select the most important functions to test in this area.
+
+## Test Area
+**Name:** ${area.name}
+**Description:** ${area.description}
+**Priority:** ${area.priority}
+
+## Available Functions in This Area (${matchingFunctions.length} total)
+`;
+
+    for (const func of matchingFunctions) {
+        prompt += `- ${func.name} (${func.file}:${func.startLine}-${func.endLine}, ${func.lines || 0} lines)\n`;
+    }
+
+    prompt += `\n## Your Task
+Select up to ${maxFunctions} most important functions from the list above to test.
+Prioritize:
+1. Public/exported functions over private helpers
+2. Complex functions (longer, more lines)
+3. Functions with external dependencies
+4. Entry points and main logic
+
+IMPORTANT: Only select functions that appear in the "Available Functions" list above.
+Do NOT invent or add functions that are not listed.
+
+Return your response in this JSON format:
+{
+  "selected_functions": [
+    {
+      "name": "functionName",
+      "file": "src/file.ts",
+      "startLine": 10,
+      "endLine": 50,
+      "complexity": "high|medium|low",
+      "dependencies": ["vscode", "fs"],
+      "mocking_needed": true,
+      "reason": "Why this function is important to test"
     }
   ]
 }`;

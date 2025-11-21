@@ -1,0 +1,54 @@
+{
+  "file": "src/domain/services/testing/llmTestPlanningService.ts",
+  "role": "Core Logic",
+  "purpose": "Creates AI-powered test plans by analyzing code functions and prioritizing them for testing based on complexity and importance",
+  "userVisibleActions": [
+    "Receives a prioritized test plan showing which functions need testing",
+    "Sees analysis of how many functions are testable vs total functions",
+    "Gets test strategy recommendations based on code complexity and architecture",
+    "Views saved test plans in the .skyway/testing directory"
+  ],
+  "developerVisibleActions": [
+    "Calls analyzeFunctions() to extract function metadata from code analysis",
+    "Invokes createTestPlan() to generate an AI-powered test strategy",
+    "Saves test plans to disk using saveTestPlan() for future reference",
+    "Receives structured TestPlan objects containing function groups and priorities",
+    "Gets logging output showing progress of test plan creation",
+    "Can provide product documentation and architecture insights to improve test planning"
+  ],
+  "keyFunctions": [
+    {
+      "name": "analyzeFunctions",
+      "desc": "Extracts and structures function metadata from code analysis results",
+      "inputs": "codeAnalysis object containing function information",
+      "outputs": "Array of function objects with name, file, lines, complexity, parameters, and return type"
+    },
+    {
+      "name": "createTestPlan",
+      "desc": "Generates a prioritized test plan using AI by analyzing functions and context",
+      "inputs": "CodeAnalysis context, functions array, LLM service, optional product docs and architecture insights",
+      "outputs": "TestPlan object containing function groups, testable function count, and testing strategy"
+    },
+    {
+      "name": "saveTestPlan",
+      "desc": "Persists the generated test plan to disk in JSON format",
+      "inputs": "TestPlan object and output directory path",
+      "outputs": "File path where test plan was saved"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "TestPlan and TestableFunction types",
+    "testPrompts (buildPlanningPrompt)",
+    "CodeAnalysis from analyzer",
+    "SWLogger"
+  ],
+  "intent": "This file exists to automate test planning by leveraging AI to analyze code complexity, function relationships, and architecture to determine which functions should be tested and in what priority order, eliminating manual test planning effort and ensuring critical code paths are tested first",
+  "rawContent": "```json\n{\n  \"purpose\": \"Creates AI-powered test plans by analyzing code functions and prioritizing them for testing based on complexity and importance\",\n  \"userVisibleActions\": [\n    \"Receives a prioritized test plan showing which functions need testing\",\n    \"Sees analysis of how many functions are testable vs total functions\",\n    \"Gets test strategy recommendations based on code complexity and architecture\",\n    \"Views saved test plans in the .skyway/testing directory\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls analyzeFunctions() to extract function metadata from code analysis\",\n    \"Invokes createTestPlan() to generate an AI-powered test strategy\",\n    \"Saves test plans to disk using saveTestPlan() for future reference\",\n    \"Receives structured TestPlan objects containing function groups and priorities\",\n    \"Gets logging output showing progress of test plan creation\",\n    \"Can provide product documentation and architecture insights to improve test planning\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeFunctions\",\n      \"desc\": \"Extracts and structures function metadata from code analysis results\",\n      \"inputs\": \"codeAnalysis object containing function information\",\n      \"outputs\": \"Array of function objects with name, file, lines, complexity, parameters, and return type\"\n    },\n    {\n      \"name\": \"createTestPlan\",\n      \"desc\": \"Generates a prioritized test plan using AI by analyzing functions and context\",\n      \"inputs\": \"CodeAnalysis context, functions array, LLM service, optional product docs and architecture insights\",\n      \"outputs\": \"TestPlan object containing function groups, testable function count, and testing strategy\"\n    },\n    {\n      \"name\": \"saveTestPlan\",\n      \"desc\": \"Persists the generated test plan to disk in JSON format\",\n      \"inputs\": \"TestPlan object and output directory path\",\n      \"outputs\": \"File path where test plan was saved\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestPlan and TestableFunction types\",\n    \"testPrompts (buildPlanningPrompt)\",\n    \"CodeAnalysis from analyzer\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file exists to automate test planning by leveraging AI to analyze code complexity, function relationships, and architecture to determine which functions should be tested and in what priority order, eliminating manual test planning effort and ensuring critical code paths are tested first\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:39:00.909Z"
+  }
+}

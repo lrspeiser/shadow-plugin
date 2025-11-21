@@ -1,0 +1,28 @@
+{
+  "file": "src/domain/services/testing/types/testResultTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type interfaces for test generation, validation, execution results, and reporting structures in the testing service.",
+  "userVisibleActions": [
+    "View test execution results showing passed/failed/error counts",
+    "See test reports with summary statistics and pass rates",
+    "Read recommendations for improving test quality",
+    "Review error details including test names, error messages, and stack traces"
+  ],
+  "developerVisibleActions": [
+    "Use TestGenerationResult to structure generated test files with imports, mocks, and test code",
+    "Access TestValidationResult to check if tests pass, fail, or have errors with explanations",
+    "Retrieve TestExecutionResult to get test run statistics including duration and error details",
+    "Generate TestReport with overall summary, individual results, and recommendations",
+    "Work with MockStatement to understand what code is being mocked and why",
+    "Access setup and teardown code for test configuration"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "This file exists to provide a standardized type system for the entire testing workflow - from generating tests with mocks and setup code, through validating and executing them, to producing comprehensive reports. It ensures type safety and consistent data structures across test generation, validation, execution, and reporting phases.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type interfaces for test generation, validation, execution results, and reporting structures in the testing service.\",\n  \"userVisibleActions\": [\n    \"View test execution results showing passed/failed/error counts\",\n    \"See test reports with summary statistics and pass rates\",\n    \"Read recommendations for improving test quality\",\n    \"Review error details including test names, error messages, and stack traces\"\n  ],\n  \"developerVisibleActions\": [\n    \"Use TestGenerationResult to structure generated test files with imports, mocks, and test code\",\n    \"Access TestValidationResult to check if tests pass, fail, or have errors with explanations\",\n    \"Retrieve TestExecutionResult to get test run statistics including duration and error details\",\n    \"Generate TestReport with overall summary, individual results, and recommendations\",\n    \"Work with MockStatement to understand what code is being mocked and why\",\n    \"Access setup and teardown code for test configuration\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to provide a standardized type system for the entire testing workflow - from generating tests with mocks and setup code, through validating and executing them, to producing comprehensive reports. It ensures type safety and consistent data structures across test generation, validation, execution, and reporting phases.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:39:55.535Z"
+  }
+}

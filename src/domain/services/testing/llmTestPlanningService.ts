@@ -32,7 +32,9 @@ export class LLMTestPlanningService {
     }
 
     /**
-     * Create test plan using LLM
+     * Create test plan using LLM (two-phase approach)
+     * Phase 1: Get high-level strategy and test areas
+     * Phase 2: Select specific functions for each area
      */
     static async createTestPlan(
         context: CodeAnalysis,
@@ -41,17 +43,91 @@ export class LLMTestPlanningService {
         productDocs?: any,
         architectureInsights?: any
     ): Promise<TestPlan> {
-        SWLogger.log('[TestPlanning] Creating test plan with LLM...');
-        SWLogger.log(`[TestPlanning] Analyzing ${functions.length} functions`);
+        SWLogger.log('[TestPlanning] Creating test plan with LLM (two-phase)...');
+        SWLogger.log(`[TestPlanning] ${functions.length} functions available`);
 
-        // Build prompt
-        const prompt = buildPlanningPrompt(context, functions, productDocs, architectureInsights);
+        // Check if architecture insights already have test recommendations
+        if (architectureInsights?.recommended_test_targets && 
+            architectureInsights.recommended_test_targets.length > 0) {
+            SWLogger.log('[TestPlanning] Using test recommendations from architecture analysis');
+            SWLogger.log(`[TestPlanning] Found ${architectureInsights.recommended_test_targets.length} pre-analyzed test targets`);
+            
+            // Convert recommendations directly to test plan
+            const functionGroups = this.convertRecommendationsToGroups(architectureInsights.recommended_test_targets);
+            const totalSelected = functionGroups.reduce((sum, group) => sum + group.functions.length, 0);
+            
+            const testPlan: TestPlan = {
+                strategy: 'Using recommendations from architecture analysis',
+                total_functions: functions.length,
+                testable_functions: totalSelected,
+                function_groups: functionGroups
+            };
+            
+            SWLogger.log(`[TestPlanning] Created plan with ${functionGroups.length} groups and ${totalSelected} total functions from architecture insights`);
+            return testPlan;
+        }
 
-        // Call LLM to generate test strategy
-        const testPlan = await llmService.generateTestStrategy(prompt);
+        // PHASE 1: Get high-level strategy (fallback if no architecture recommendations)
+        SWLogger.log('[TestPlanning] Phase 1: Getting high-level test strategy...');
+        const { buildPlanningPrompt, buildFunctionSelectionPrompt } = require('../../prompts/testPrompts');
+        const strategyPrompt = buildPlanningPrompt(context, functions, productDocs, architectureInsights);
+        const strategy = await llmService.generateTestStrategy(strategyPrompt);
+        
+        SWLogger.log(`[TestPlanning] Strategy: ${strategy.strategy}`);
+        SWLogger.log(`[TestPlanning] Identified ${strategy.recommended_test_areas?.length || 0} test areas`);
 
-        SWLogger.log(`[TestPlanning] Created plan with ${testPlan.function_groups.length} function groups`);
-        SWLogger.log(`[TestPlanning] ${testPlan.testable_functions} of ${testPlan.total_functions} functions are testable`);
+        if (!strategy.recommended_test_areas || strategy.recommended_test_areas.length === 0) {
+            throw new Error('LLM did not identify any test areas');
+        }
+
+        // PHASE 2: Select specific functions for each area
+        SWLogger.log('[TestPlanning] Phase 2: Selecting functions for each area...');
+        const functionGroups: any[] = [];
+        let totalSelected = 0;
+
+        for (const area of strategy.recommended_test_areas) {
+            SWLogger.log(`[TestPlanning] Processing area: ${area.name}`);
+            
+            // Find functions that match this area's file patterns
+            const matchingFunctions = functions.filter(func => {
+                return area.file_patterns?.some((pattern: string) => {
+                    // Simple pattern matching (support wildcards)
+                    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+                    return regex.test(func.file);
+                }) || false;
+            });
+
+            if (matchingFunctions.length === 0) {
+                SWLogger.log(`[TestPlanning] No functions found for area ${area.name}, skipping`);
+                continue;
+            }
+
+            SWLogger.log(`[TestPlanning] Found ${matchingFunctions.length} matching functions`);
+
+            // Ask LLM to select up to 15 most important functions from this area
+            const selectionPrompt = buildFunctionSelectionPrompt(area, matchingFunctions, 15);
+            const selection = await llmService.generateTestStrategy(selectionPrompt);
+
+            if (selection.selected_functions && selection.selected_functions.length > 0) {
+                functionGroups.push({
+                    group_id: area.area_id,
+                    name: area.name,
+                    priority: area.priority,
+                    functions: selection.selected_functions
+                });
+                totalSelected += selection.selected_functions.length;
+                SWLogger.log(`[TestPlanning] Selected ${selection.selected_functions.length} functions for ${area.name}`);
+            }
+        }
+
+        const testPlan: TestPlan = {
+            strategy: strategy.strategy,
+            total_functions: functions.length,
+            testable_functions: totalSelected,
+            function_groups: functionGroups
+        };
+
+        SWLogger.log(`[TestPlanning] Created plan with ${functionGroups.length} groups and ${totalSelected} total functions`);
 
         return testPlan;
     }
@@ -92,6 +168,71 @@ export class LLMTestPlanningService {
             SWLogger.log(`[TestPlanning] Error loading test plan: ${error}`);
             return null;
         }
+    }
+
+    /**
+     * Convert architecture test recommendations to function groups
+     */
+    private static convertRecommendationsToGroups(recommendations: any[]): any[] {
+        // Group by priority
+        const critical = recommendations.filter(r => r.priority === 'critical');
+        const high = recommendations.filter(r => r.priority === 'high');
+        const medium = recommendations.filter(r => r.priority === 'medium');
+        
+        const groups: any[] = [];
+        
+        if (critical.length > 0) {
+            groups.push({
+                group_id: 'critical-functions',
+                name: 'Critical Path Functions',
+                priority: 1,
+                functions: critical.map(r => ({
+                    name: r.function_name,
+                    file: r.file_path,
+                    startLine: 0, // Will be filled in during generation
+                    endLine: 0,
+                    complexity: r.complexity,
+                    dependencies: r.dependencies || [],
+                    mocking_needed: r.dependencies && r.dependencies.length > 0
+                }))
+            });
+        }
+        
+        if (high.length > 0) {
+            groups.push({
+                group_id: 'high-priority-functions',
+                name: 'High Priority Functions',
+                priority: 2,
+                functions: high.map(r => ({
+                    name: r.function_name,
+                    file: r.file_path,
+                    startLine: 0,
+                    endLine: 0,
+                    complexity: r.complexity,
+                    dependencies: r.dependencies || [],
+                    mocking_needed: r.dependencies && r.dependencies.length > 0
+                }))
+            });
+        }
+        
+        if (medium.length > 0) {
+            groups.push({
+                group_id: 'medium-priority-functions',
+                name: 'Medium Priority Functions',
+                priority: 3,
+                functions: medium.map(r => ({
+                    name: r.function_name,
+                    file: r.file_path,
+                    startLine: 0,
+                    endLine: 0,
+                    complexity: r.complexity,
+                    dependencies: r.dependencies || [],
+                    mocking_needed: r.dependencies && r.dependencies.length > 0
+                }))
+            });
+        }
+        
+        return groups;
     }
 
     /**

@@ -1,0 +1,58 @@
+{
+  "file": "src/domain/services/testing/testExecutionService.ts",
+  "role": "Core Logic",
+  "purpose": "Executes test suites (Jest, Pytest) and captures their results for display to users and developers",
+  "userVisibleActions": [
+    "Tests run when user triggers test execution",
+    "Test results appear showing passed, failed, and error counts",
+    "Test execution status displays (running, success, error)",
+    "Individual test failures show with error messages and stack traces",
+    "Test execution progress shows duration/timing information"
+  ],
+  "developerVisibleActions": [
+    "Triggers Jest tests for specific files or entire test suite",
+    "Triggers Pytest tests for specific files or entire test suite",
+    "Parses test framework output to extract structured results",
+    "Handles test execution errors and timeouts",
+    "Returns standardized test results regardless of testing framework",
+    "Provides detailed error information including stack traces"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runJest",
+      "desc": "Executes Jest tests and returns structured results",
+      "inputs": "workspaceRoot (string), optional testFile (string)",
+      "outputs": "Promise<TestExecutionResult[]> containing test outcomes"
+    },
+    {
+      "name": "runPytest",
+      "desc": "Executes Pytest tests and returns structured results",
+      "inputs": "workspaceRoot (string), optional testFile (string)",
+      "outputs": "Promise<TestExecutionResult[]> containing test outcomes"
+    },
+    {
+      "name": "parseJestOutput",
+      "desc": "Converts Jest JSON output into standardized test result format",
+      "inputs": "stdout (string), stderr (string)",
+      "outputs": "TestExecutionResult[] with parsed test data"
+    },
+    {
+      "name": "parsePytestOutput",
+      "desc": "Converts Pytest JSON output into standardized test result format",
+      "inputs": "stdout (string), stderr (string)",
+      "outputs": "TestExecutionResult[] with parsed test data"
+    }
+  ],
+  "dependencies": [
+    "child_process",
+    "path",
+    "./types/testResultTypes"
+  ],
+  "intent": "Provides a unified interface for executing different testing frameworks (Jest for JavaScript/TypeScript, Pytest for Python) and normalizing their outputs into a consistent format that can be displayed to users and processed by other services, handling execution failures gracefully and providing detailed error information.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Executes test suites (Jest, Pytest) and captures their results for display to users and developers\",\n  \"userVisibleActions\": [\n    \"Tests run when user triggers test execution\",\n    \"Test results appear showing passed, failed, and error counts\",\n    \"Test execution status displays (running, success, error)\",\n    \"Individual test failures show with error messages and stack traces\",\n    \"Test execution progress shows duration/timing information\"\n  ],\n  \"developerVisibleActions\": [\n    \"Triggers Jest tests for specific files or entire test suite\",\n    \"Triggers Pytest tests for specific files or entire test suite\",\n    \"Parses test framework output to extract structured results\",\n    \"Handles test execution errors and timeouts\",\n    \"Returns standardized test results regardless of testing framework\",\n    \"Provides detailed error information including stack traces\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runJest\",\n      \"desc\": \"Executes Jest tests and returns structured results\",\n      \"inputs\": \"workspaceRoot (string), optional testFile (string)\",\n      \"outputs\": \"Promise<TestExecutionResult[]> containing test outcomes\"\n    },\n    {\n      \"name\": \"runPytest\",\n      \"desc\": \"Executes Pytest tests and returns structured results\",\n      \"inputs\": \"workspaceRoot (string), optional testFile (string)\",\n      \"outputs\": \"Promise<TestExecutionResult[]> containing test outcomes\"\n    },\n    {\n      \"name\": \"parseJestOutput\",\n      \"desc\": \"Converts Jest JSON output into standardized test result format\",\n      \"inputs\": \"stdout (string), stderr (string)\",\n      \"outputs\": \"TestExecutionResult[] with parsed test data\"\n    },\n    {\n      \"name\": \"parsePytestOutput\",\n      \"desc\": \"Converts Pytest JSON output into standardized test result format\",\n      \"inputs\": \"stdout (string), stderr (string)\",\n      \"outputs\": \"TestExecutionResult[] with parsed test data\"\n    }\n  ],\n  \"dependencies\": [\n    \"child_process\",\n    \"path\",\n    \"./types/testResultTypes\"\n  ],\n  \"intent\": \"Provides a unified interface for executing different testing frameworks (Jest for JavaScript/TypeScript, Pytest for Python) and normalizing their outputs into a consistent format that can be displayed to users and processed by other services, handling execution failures gracefully and providing detailed error information.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:39:39.994Z"
+  }
+}

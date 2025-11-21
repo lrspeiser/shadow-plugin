@@ -3054,13 +3054,72 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                 }
             );
 
-            // Parse JSON from response
+            // Parse JSON from response with robust extraction
             const content = response.content || '';
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+            
+            if (!content) {
+                throw new Error('LLM returned empty response');
             }
-            throw new Error('No JSON found in response');
+            
+            // Try multiple extraction strategies
+            let jsonText: string | null = null;
+            
+            // Strategy 1: Look for <json>...</json> tags
+            const tagMatch = content.match(/<json>([\s\S]*?)<\/json>/i);
+            if (tagMatch) {
+                jsonText = tagMatch[1].trim();
+            }
+            
+            // Strategy 2: Look for ```json ... ``` code blocks
+            if (!jsonText) {
+                const fenceMatch = content.match(/```json\s*([\s\S]*?)```/i);
+                if (fenceMatch) {
+                    jsonText = fenceMatch[1].trim();
+                }
+            }
+            
+            // Strategy 3: Look for first { to last }
+            if (!jsonText) {
+                const firstBrace = content.indexOf('{');
+                const lastBrace = content.lastIndexOf('}');
+                if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                    jsonText = content.substring(firstBrace, lastBrace + 1);
+                }
+            }
+            
+            if (!jsonText) {
+                SWLogger.log(`[LLM] No JSON found in response. Content preview: ${content.substring(0, 500)}...`);
+                throw new Error('No JSON found in response');
+            }
+            
+            // Try to parse with detailed error logging
+            try {
+                const parsed = JSON.parse(jsonText);
+                return parsed;
+            } catch (parseError: any) {
+                // Log the error location
+                SWLogger.log(`[LLM] JSON parse error: ${parseError.message}`);
+                
+                // Try to find and log the problematic area
+                const match = parseError.message.match(/position (\d+)/);
+                if (match) {
+                    const pos = parseInt(match[1]);
+                    const start = Math.max(0, pos - 200);
+                    const end = Math.min(jsonText.length, pos + 200);
+                    SWLogger.log(`[LLM] Problem area: ...${jsonText.substring(start, end)}...`);
+                }
+                
+                // Save the full response to a debug file for inspection
+                const debugPath = path.join(require('os').tmpdir(), `llm-response-debug-${Date.now()}.json`);
+                try {
+                    require('fs').writeFileSync(debugPath, jsonText, 'utf-8');
+                    SWLogger.log(`[LLM] Full response saved to: ${debugPath}`);
+                } catch (writeError) {
+                    // Ignore write errors
+                }
+                
+                throw new Error(`Invalid JSON in response: ${parseError.message}`);
+            }
         } catch (error: any) {
             SWLogger.log(`[LLM] Error generating test strategy: ${error.message}`);
             throw error;

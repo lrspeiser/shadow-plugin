@@ -1,0 +1,1213 @@
+{
+  "module": "src",
+  "moduleType": "other",
+  "capabilities": [
+    "AI-powered code analysis and insights generation using LLM services (OpenAI/Claude)",
+    "Automated code quality detection including large files, orphaned code, circular dependencies, and god objects",
+    "Interactive tree-based visualization of code structure, analysis results, and insights",
+    "Real-time inline diagnostics showing code issues directly in the editor",
+    "Automated product documentation generation explaining codebase purpose and architecture",
+    "File and module-level documentation with behavioral summaries",
+    "Entry point detection for main functions, test files, and CLI tools",
+    "Code search and file access capabilities for iterative LLM analysis",
+    "Automatic file watching with on-save analysis triggering",
+    "Persistent caching of analysis results for improved performance",
+    "Export functionality for analysis results and documentation",
+    "Unit test planning and coverage analysis",
+    "Multiple LLM output formats optimized for different AI assistants"
+  ],
+  "summary": "The src module is a VS Code extension that provides comprehensive AI-powered code analysis and insights. It analyzes codebases to generate intelligent documentation, detect code quality issues, and provide actionable recommendations for improvement. The extension integrates LLM services (OpenAI and Claude) to understand code purpose, architecture patterns, and potential problems, presenting this information through interactive tree views and inline diagnostics.\n\nUsers interact with the extension primarily through VS Code's sidebar tree views and inline editor diagnostics. The extension automatically watches for file changes and can trigger analysis on save, providing real-time feedback. It generates multiple types of reports including product documentation, architecture insights, unit test plans, and static analysis results. All insights are presented with specific file locations, line numbers, and actionable suggestions for remediation.\n\nThe module supports iterative workflows where users can generate initial insights, navigate to problematic code sections, make changes, and automatically see updated analysis. Results are cached for 24 hours to improve performance on subsequent loads. The extension formats insights for different consumption methods - whether viewing in VS Code's tree views, exporting to HTML reports, or formatting for specific AI assistants like Cursor or ChatGPT.",
+  "files": [
+    {
+      "file": "src/analysisViewer.ts",
+      "role": "GUI View",
+      "purpose": "Provides a tree view in VS Code that displays code analysis results including file statistics, functions, imports, and entry points.",
+      "userVisibleActions": [
+        "View a tree structure showing code analysis results organized by categories",
+        "Browse file statistics (total files, lines of code, functions)",
+        "Explore files grouped by directory in a hierarchical view",
+        "See detailed information for each file including language, lines of code, and function count",
+        "View list of all functions with their parameter counts and line numbers",
+        "Browse import statements and dependencies for each file",
+        "View entry points (main functions, test files, CLI tools) detected in the codebase",
+        "Click on any item to navigate to the corresponding location in the source file",
+        "See descriptive tooltips when hovering over items in the tree",
+        "View 'No analysis available' message when analysis hasn't been run yet"
+      ],
+      "developerVisibleActions": [
+        "Implements TreeDataProvider interface to render analysis results in VS Code sidebar",
+        "Receives CodeAnalysis data structure and converts it into a navigable tree view",
+        "Handles user clicks on tree items to open files at specific locations",
+        "Provides refresh capability when new analysis results are available",
+        "Groups files by directory structure for better organization",
+        "Displays different icons and labels based on item type (file, function, import, etc.)",
+        "Formats statistics and metrics for display (file counts, LOC, complexity)",
+        "Creates clickable tree items with commands to navigate to source code locations"
+      ],
+      "keyFunctions": [
+        {
+          "name": "setAnalysis",
+          "desc": "Updates the viewer with new analysis results and refreshes the tree view",
+          "inputs": "CodeAnalysis object or null",
+          "outputs": "void"
+        },
+        {
+          "name": "refresh",
+          "desc": "Triggers a refresh of the tree view to display updated data",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "getTreeItem",
+          "desc": "Returns the tree item representation for VS Code to render",
+          "inputs": "AnalysisItem element",
+          "outputs": "vscode.TreeItem"
+        },
+        {
+          "name": "getChildren",
+          "desc": "Returns child items for a given tree node to build the hierarchy",
+          "inputs": "Optional AnalysisItem element (undefined for root)",
+          "outputs": "Promise of AnalysisItem array"
+        },
+        {
+          "name": "getRootItems",
+          "desc": "Creates top-level tree items showing statistics, files, functions, and entry points categories",
+          "inputs": "none",
+          "outputs": "Array of AnalysisItem"
+        },
+        {
+          "name": "getStatisticsItems",
+          "desc": "Generates tree items displaying code metrics like total files, LOC, and function counts",
+          "inputs": "none",
+          "outputs": "Array of AnalysisItem"
+        },
+        {
+          "name": "getFilesItems",
+          "desc": "Organizes files into directory groups for hierarchical browsing",
+          "inputs": "none",
+          "outputs": "Array of AnalysisItem representing directories and standalone files"
+        },
+        {
+          "name": "getFileDetails",
+          "desc": "Returns detailed information about a specific file including functions, imports, and exports",
+          "inputs": "AnalysisItem representing a file",
+          "outputs": "Promise of AnalysisItem array"
+        },
+        {
+          "name": "getFunctionItems",
+          "desc": "Creates tree items for all functions across the codebase with navigation links",
+          "inputs": "none",
+          "outputs": "Array of AnalysisItem"
+        },
+        {
+          "name": "getEntryPointItems",
+          "desc": "Lists detected entry points categorized by type (main, tests, CLI, etc.)",
+          "inputs": "none",
+          "outputs": "Array of AnalysisItem"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "path",
+        "./analyzer (CodeAnalysis, FileInfo, FunctionInfo, EntryPoint types)"
+      ],
+      "intent": "This file exists to provide developers with a visual, interactive way to explore code analysis results within VS Code. It solves the problem of understanding large codebases by organizing analysis data into a browsable tree structure where users can quickly navigate to specific files, functions, or entry points, and understand code statistics and relationships at a glance.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view in VS Code that displays code analysis results including file statistics, functions, imports, and entry points.\",\n  \"userVisibleActions\": [\n    \"View a tree structure showing code analysis results organized by categories\",\n    \"Browse file statistics (total files, lines of code, functions)\",\n    \"Explore files grouped by directory in a hierarchical view\",\n    \"See detailed information for each file including language, lines of code, and function count\",\n    \"View list of all functions with their parameter counts and line numbers\",\n    \"Browse import statements and dependencies for each file\",\n    \"View entry points (main functions, test files, CLI tools) detected in the codebase\",\n    \"Click on any item to navigate to the corresponding location in the source file\",\n    \"See descriptive tooltips when hovering over items in the tree\",\n    \"View 'No analysis available' message when analysis hasn't been run yet\"\n  ],\n  \"developerVisibleActions\": [\n    \"Implements TreeDataProvider interface to render analysis results in VS Code sidebar\",\n    \"Receives CodeAnalysis data structure and converts it into a navigable tree view\",\n    \"Handles user clicks on tree items to open files at specific locations\",\n    \"Provides refresh capability when new analysis results are available\",\n    \"Groups files by directory structure for better organization\",\n    \"Displays different icons and labels based on item type (file, function, import, etc.)\",\n    \"Formats statistics and metrics for display (file counts, LOC, complexity)\",\n    \"Creates clickable tree items with commands to navigate to source code locations\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"setAnalysis\",\n      \"desc\": \"Updates the viewer with new analysis results and refreshes the tree view\",\n      \"inputs\": \"CodeAnalysis object or null\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Triggers a refresh of the tree view to display updated data\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Returns the tree item representation for VS Code to render\",\n      \"inputs\": \"AnalysisItem element\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for a given tree node to build the hierarchy\",\n      \"inputs\": \"Optional AnalysisItem element (undefined for root)\",\n      \"outputs\": \"Promise of AnalysisItem array\"\n    },\n    {\n      \"name\": \"getRootItems\",\n      \"desc\": \"Creates top-level tree items showing statistics, files, functions, and entry points categories\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem\"\n    },\n    {\n      \"name\": \"getStatisticsItems\",\n      \"desc\": \"Generates tree items displaying code metrics like total files, LOC, and function counts\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem\"\n    },\n    {\n      \"name\": \"getFilesItems\",\n      \"desc\": \"Organizes files into directory groups for hierarchical browsing\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem representing directories and standalone files\"\n    },\n    {\n      \"name\": \"getFileDetails\",\n      \"desc\": \"Returns detailed information about a specific file including functions, imports, and exports\",\n      \"inputs\": \"AnalysisItem representing a file\",\n      \"outputs\": \"Promise of AnalysisItem array\"\n    },\n    {\n      \"name\": \"getFunctionItems\",\n      \"desc\": \"Creates tree items for all functions across the codebase with navigation links\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem\"\n    },\n    {\n      \"name\": \"getEntryPointItems\",\n      \"desc\": \"Lists detected entry points categorized by type (main, tests, CLI, etc.)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"./analyzer (CodeAnalysis, FileInfo, FunctionInfo, EntryPoint types)\"\n  ],\n  \"intent\": \"This file exists to provide developers with a visual, interactive way to explore code analysis results within VS Code. It solves the problem of understanding large codebases by organizing analysis data into a browsable tree structure where users can quickly navigate to specific files, functions, or entry points, and understand code statistics and relationships at a glance.\"\n}\n```"
+    },
+    {
+      "file": "src/analyzer.ts",
+      "role": "Core Logic",
+      "purpose": "Defines interfaces and structures for code analysis results, including file metadata, function information, dependencies, test mappings, and code quality metrics.",
+      "userVisibleActions": [
+        "View total counts of files, lines, and functions in their codebase",
+        "See which files are large and may need refactoring",
+        "Identify orphaned files that aren't imported anywhere",
+        "Discover entry points in the application",
+        "Find duplicate code blocks across the codebase",
+        "Understand function risk levels (high, medium, low)",
+        "See which functions lack test coverage"
+      ],
+      "developerVisibleActions": [
+        "Access structured analysis data through TypeScript interfaces",
+        "Query file information including path, lines, size, and role",
+        "Inspect function metadata including parameters, return types, and visibility",
+        "Examine control flow branches (if, loops, try-catch) in functions",
+        "Track dependencies (database, HTTP, filesystem, etc.) used by functions",
+        "Analyze state mutations (assignments, modifications) in code",
+        "Map test files to source files and functions",
+        "Identify uncovered functions and lines in test coverage",
+        "Find import relationships between files",
+        "Use caching mechanism for performance optimization"
+      ],
+      "keyFunctions": [
+        {
+          "name": "CodeAnalysis",
+          "desc": "Main analysis result container with file counts, function metadata, dependencies, and test coverage",
+          "inputs": "N/A (interface)",
+          "outputs": "Structured data including totalFiles, totalLines, functions, imports, orphanedFiles, duplicates, testMapping"
+        },
+        {
+          "name": "FunctionMetadata",
+          "desc": "Detailed information about a function including parameters, branches, dependencies, and risk level",
+          "inputs": "N/A (interface)",
+          "outputs": "Function name, parameters with types, return type, visibility, branches, dependencies, state mutations, risk assessment"
+        },
+        {
+          "name": "TestMapping",
+          "desc": "Maps source files and functions to their test coverage",
+          "inputs": "N/A (interface)",
+          "outputs": "Source-to-test file mappings, function-to-test mappings, list of uncovered functions"
+        },
+        {
+          "name": "DependencyInfo",
+          "desc": "Identifies external dependencies like databases, HTTP calls, filesystem operations",
+          "inputs": "N/A (interface)",
+          "outputs": "Dependency name, type (db/http/filesystem/etc), whether internal or external, line number"
+        },
+        {
+          "name": "EntryPoint",
+          "desc": "Identifies application entry points and their types",
+          "inputs": "N/A (interface)",
+          "outputs": "File path, entry point type (main/cli/api/config/test), function name, description"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "./cache"
+      ],
+      "intent": "This file provides the type system and data structures for representing comprehensive code analysis results. It enables developers to work with structured information about code quality, test coverage, dependencies, and architectural patterns. The interfaces support both basic metrics (file counts, function counts) and advanced analysis (control flow branches, state mutations, risk assessment, duplicate detection) to help developers understand and improve their codebase.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Defines interfaces and structures for code analysis results, including file metadata, function information, dependencies, test mappings, and code quality metrics.\",\n  \"userVisibleActions\": [\n    \"View total counts of files, lines, and functions in their codebase\",\n    \"See which files are large and may need refactoring\",\n    \"Identify orphaned files that aren't imported anywhere\",\n    \"Discover entry points in the application\",\n    \"Find duplicate code blocks across the codebase\",\n    \"Understand function risk levels (high, medium, low)\",\n    \"See which functions lack test coverage\"\n  ],\n  \"developerVisibleActions\": [\n    \"Access structured analysis data through TypeScript interfaces\",\n    \"Query file information including path, lines, size, and role\",\n    \"Inspect function metadata including parameters, return types, and visibility\",\n    \"Examine control flow branches (if, loops, try-catch) in functions\",\n    \"Track dependencies (database, HTTP, filesystem, etc.) used by functions\",\n    \"Analyze state mutations (assignments, modifications) in code\",\n    \"Map test files to source files and functions\",\n    \"Identify uncovered functions and lines in test coverage\",\n    \"Find import relationships between files\",\n    \"Use caching mechanism for performance optimization\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"CodeAnalysis\",\n      \"desc\": \"Main analysis result container with file counts, function metadata, dependencies, and test coverage\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"Structured data including totalFiles, totalLines, functions, imports, orphanedFiles, duplicates, testMapping\"\n    },\n    {\n      \"name\": \"FunctionMetadata\",\n      \"desc\": \"Detailed information about a function including parameters, branches, dependencies, and risk level\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"Function name, parameters with types, return type, visibility, branches, dependencies, state mutations, risk assessment\"\n    },\n    {\n      \"name\": \"TestMapping\",\n      \"desc\": \"Maps source files and functions to their test coverage\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"Source-to-test file mappings, function-to-test mappings, list of uncovered functions\"\n    },\n    {\n      \"name\": \"DependencyInfo\",\n      \"desc\": \"Identifies external dependencies like databases, HTTP calls, filesystem operations\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"Dependency name, type (db/http/filesystem/etc), whether internal or external, line number\"\n    },\n    {\n      \"name\": \"EntryPoint\",\n      \"desc\": \"Identifies application entry points and their types\",\n      \"inputs\": \"N/A (interface)\",\n      \"outputs\": \"File path, entry point type (main/cli/api/config/test), function name, description\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./cache\"\n  ],\n  \"intent\": \"This file provides the type system and data structures for representing comprehensive code analysis results. It enables developers to work with structured information about code quality, test coverage, dependencies, and architectural patterns. The interfaces support both basic metrics (file counts, function counts) and advanced analysis (control flow branches, state mutations, risk assessment, duplicate detection) to help developers understand and improve their codebase.\"\n}\n```"
+    },
+    {
+      "file": "src/cache.ts",
+      "role": "Core Logic",
+      "purpose": "Manages persistent caching of code analysis results to improve performance and avoid redundant analysis",
+      "userVisibleActions": [
+        "Faster project loading when reopening a workspace (analysis loads from cache instead of re-analyzing)",
+        "Automatic cache expiration after 24 hours ensures fresh analysis",
+        "Cache clearing capability to force fresh analysis when needed"
+      ],
+      "developerVisibleActions": [
+        "Code analysis results are automatically saved to disk after initial analysis",
+        "Cached analysis is retrieved on subsequent workspace opens if still valid",
+        "Cache files are stored in a hidden .shadowwatch-cache directory",
+        "Cache automatically invalidates after 24 hours to prevent stale data",
+        "Cache can be manually cleared to force fresh analysis",
+        "Cache keys are derived from workspace paths to isolate different projects"
+      ],
+      "keyFunctions": [
+        {
+          "name": "constructor",
+          "desc": "Initializes cache system with storage location and creates cache directory",
+          "inputs": "storagePath: string - where to store cache files",
+          "outputs": "AnalysisCache instance"
+        },
+        {
+          "name": "get",
+          "desc": "Retrieves cached analysis for a workspace if available and not expired",
+          "inputs": "workspaceRoot: string - path to workspace",
+          "outputs": "Promise<CodeAnalysis | null> - cached analysis or null if not found/expired"
+        },
+        {
+          "name": "set",
+          "desc": "Saves analysis results to cache with current timestamp",
+          "inputs": "workspaceRoot: string, data: CodeAnalysis - workspace path and analysis to cache",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "clear",
+          "desc": "Removes all cached analysis files from the cache directory",
+          "inputs": "none",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "getCacheKey",
+          "desc": "Generates a safe filesystem-compatible cache key from workspace path",
+          "inputs": "workspaceRoot: string - workspace path",
+          "outputs": "string - base64 encoded safe filename"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "./analyzer"
+      ],
+      "intent": "Eliminates the need to re-analyze large codebases every time VSCode starts by persistently storing analysis results on disk with automatic expiration to balance performance and freshness",
+      "rawContent": "```json\n{\n  \"purpose\": \"Manages persistent caching of code analysis results to improve performance and avoid redundant analysis\",\n  \"userVisibleActions\": [\n    \"Faster project loading when reopening a workspace (analysis loads from cache instead of re-analyzing)\",\n    \"Automatic cache expiration after 24 hours ensures fresh analysis\",\n    \"Cache clearing capability to force fresh analysis when needed\"\n  ],\n  \"developerVisibleActions\": [\n    \"Code analysis results are automatically saved to disk after initial analysis\",\n    \"Cached analysis is retrieved on subsequent workspace opens if still valid\",\n    \"Cache files are stored in a hidden .shadowwatch-cache directory\",\n    \"Cache automatically invalidates after 24 hours to prevent stale data\",\n    \"Cache can be manually cleared to force fresh analysis\",\n    \"Cache keys are derived from workspace paths to isolate different projects\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes cache system with storage location and creates cache directory\",\n      \"inputs\": \"storagePath: string - where to store cache files\",\n      \"outputs\": \"AnalysisCache instance\"\n    },\n    {\n      \"name\": \"get\",\n      \"desc\": \"Retrieves cached analysis for a workspace if available and not expired\",\n      \"inputs\": \"workspaceRoot: string - path to workspace\",\n      \"outputs\": \"Promise<CodeAnalysis | null> - cached analysis or null if not found/expired\"\n    },\n    {\n      \"name\": \"set\",\n      \"desc\": \"Saves analysis results to cache with current timestamp\",\n      \"inputs\": \"workspaceRoot: string, data: CodeAnalysis - workspace path and analysis to cache\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all cached analysis files from the cache directory\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"getCacheKey\",\n      \"desc\": \"Generates a safe filesystem-compatible cache key from workspace path\",\n      \"inputs\": \"workspaceRoot: string - workspace path\",\n      \"outputs\": \"string - base64 encoded safe filename\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer\"\n  ],\n  \"intent\": \"Eliminates the need to re-analyze large codebases every time VSCode starts by persistently storing analysis results on disk with automatic expiration to balance performance and freshness\"\n}\n```"
+    },
+    {
+      "file": "src/diagnosticsProvider.ts",
+      "role": "Core Logic",
+      "purpose": "Manages and displays code insights as inline diagnostics (warnings, errors, info) in the VS Code editor",
+      "userVisibleActions": [
+        "Sees inline diagnostics (squiggly underlines) in code files where insights are detected",
+        "Hovers over diagnostics to see insight descriptions and severity levels",
+        "Views diagnostics in the Problems panel organized by file",
+        "Sees diagnostics labeled as 'Shadow Watch' with unique insight IDs",
+        "Diagnostics automatically clear and refresh when insights update"
+      ],
+      "developerVisibleActions": [
+        "Creates a diagnostic collection named 'shadowWatch' for the extension",
+        "Converts insight objects into VS Code diagnostic objects that appear in the editor",
+        "Groups insights by file path and applies them to the correct documents",
+        "Maps insight severity levels to VS Code diagnostic severities (Error, Warning, Information, Hint)",
+        "Clears all diagnostics when requested or when disposing the provider",
+        "Updates diagnostics for all files or specific files based on insight data"
+      ],
+      "keyFunctions": [
+        {
+          "name": "updateDiagnostics",
+          "desc": "Takes a list of insights and displays them as diagnostics across all affected files",
+          "inputs": "Array of Insight objects",
+          "outputs": "void (updates VS Code UI)"
+        },
+        {
+          "name": "updateDiagnosticsForFile",
+          "desc": "Updates diagnostics for a specific file URI",
+          "inputs": "VS Code URI and array of Insight objects",
+          "outputs": "void (updates VS Code UI)"
+        },
+        {
+          "name": "clear",
+          "desc": "Removes all diagnostics from all files",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "createDiagnostic",
+          "desc": "Converts a single insight into a VS Code diagnostic object",
+          "inputs": "Insight object",
+          "outputs": "VS Code Diagnostic object"
+        },
+        {
+          "name": "getSeverity",
+          "desc": "Maps insight severity to VS Code diagnostic severity level",
+          "inputs": "Severity string from insight",
+          "outputs": "VS Code DiagnosticSeverity enum"
+        },
+        {
+          "name": "dispose",
+          "desc": "Cleans up the diagnostic collection when extension deactivates",
+          "inputs": "none",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "./insightGenerator"
+      ],
+      "intent": "Provides a bridge between the extension's insight generation system and VS Code's native diagnostics UI, allowing code analysis results to be displayed as familiar inline problems that users see in their editor and Problems panel",
+      "rawContent": "```json\n{\n  \"purpose\": \"Manages and displays code insights as inline diagnostics (warnings, errors, info) in the VS Code editor\",\n  \"userVisibleActions\": [\n    \"Sees inline diagnostics (squiggly underlines) in code files where insights are detected\",\n    \"Hovers over diagnostics to see insight descriptions and severity levels\",\n    \"Views diagnostics in the Problems panel organized by file\",\n    \"Sees diagnostics labeled as 'Shadow Watch' with unique insight IDs\",\n    \"Diagnostics automatically clear and refresh when insights update\"\n  ],\n  \"developerVisibleActions\": [\n    \"Creates a diagnostic collection named 'shadowWatch' for the extension\",\n    \"Converts insight objects into VS Code diagnostic objects that appear in the editor\",\n    \"Groups insights by file path and applies them to the correct documents\",\n    \"Maps insight severity levels to VS Code diagnostic severities (Error, Warning, Information, Hint)\",\n    \"Clears all diagnostics when requested or when disposing the provider\",\n    \"Updates diagnostics for all files or specific files based on insight data\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"updateDiagnostics\",\n      \"desc\": \"Takes a list of insights and displays them as diagnostics across all affected files\",\n      \"inputs\": \"Array of Insight objects\",\n      \"outputs\": \"void (updates VS Code UI)\"\n    },\n    {\n      \"name\": \"updateDiagnosticsForFile\",\n      \"desc\": \"Updates diagnostics for a specific file URI\",\n      \"inputs\": \"VS Code URI and array of Insight objects\",\n      \"outputs\": \"void (updates VS Code UI)\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all diagnostics from all files\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"createDiagnostic\",\n      \"desc\": \"Converts a single insight into a VS Code diagnostic object\",\n      \"inputs\": \"Insight object\",\n      \"outputs\": \"VS Code Diagnostic object\"\n    },\n    {\n      \"name\": \"getSeverity\",\n      \"desc\": \"Maps insight severity to VS Code diagnostic severity level\",\n      \"inputs\": \"Severity string from insight\",\n      \"outputs\": \"VS Code DiagnosticSeverity enum\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up the diagnostic collection when extension deactivates\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"Provides a bridge between the extension's insight generation system and VS Code's native diagnostics UI, allowing code analysis results to be displayed as familiar inline problems that users see in their editor and Problems panel\"\n}\n```"
+    },
+    {
+      "file": "src/extension.ts",
+      "role": "Core Logic",
+      "purpose": "Main extension entry point that initializes and coordinates all VS Code extension components, registers commands, and manages the extension lifecycle.",
+      "userVisibleActions": [
+        "Analyze code files to generate insights and behavior descriptions",
+        "View code insights in a tree view sidebar",
+        "Navigate through code structure and entry points",
+        "Generate LLM-friendly summaries of code files",
+        "See real-time diagnostics and warnings in the editor",
+        "Export analysis results to files",
+        "View context-aware code analysis in webview panels",
+        "Get automatic cache updates when files change",
+        "See status bar indicators for analysis progress",
+        "Navigate to specific code elements from insights",
+        "Analyze entire workspaces or individual files",
+        "View product navigation structure"
+      ],
+      "developerVisibleActions": [
+        "Extension activates when VS Code starts",
+        "All components are initialized and wired together via bootstrapper",
+        "Commands are registered for analyzing code, exporting results, and navigating insights",
+        "File watcher monitors workspace changes and triggers re-analysis",
+        "Cache stores analysis results for performance optimization",
+        "Diagnostics are updated in real-time as code changes",
+        "Tree view and webview panels are created and managed",
+        "Status bar shows current analysis state",
+        "Configuration changes trigger component updates",
+        "Error handling captures and logs failures",
+        "Extension deactivates and cleans up resources on shutdown"
+      ],
+      "keyFunctions": [
+        {
+          "name": "activate",
+          "desc": "Initializes the extension, sets up all components, registers commands, and starts file watching",
+          "inputs": "vscode.ExtensionContext",
+          "outputs": "void"
+        },
+        {
+          "name": "deactivate",
+          "desc": "Cleans up resources and stops all extension services when the extension is deactivated",
+          "inputs": "none",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "path",
+        "./analyzer",
+        "./insightGenerator",
+        "./llmFormatter",
+        "./fileWatcher",
+        "./insightsTreeView",
+        "./diagnosticsProvider",
+        "./cache",
+        "./llmIntegration",
+        "./config/configurationManager",
+        "./utils/errorHandler",
+        "./ui/webview/webviewTemplateEngine",
+        "./domain/bootstrap/extensionBootstrapper",
+        "./domain/bootstrap/commandRegistry",
+        "./domain/handlers/navigationHandler",
+        "./productNavigator"
+      ],
+      "intent": "This file serves as the central orchestration point for the VS Code extension, responsible for initializing all subsystems, wiring dependencies, registering user commands, and managing the complete extension lifecycle. It solves the problem of coordinating multiple independent components (analysis, insights, diagnostics, caching, UI) into a cohesive extension that provides code analysis and understanding capabilities to users.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Main extension entry point that initializes and coordinates all VS Code extension components, registers commands, and manages the extension lifecycle.\",\n  \"userVisibleActions\": [\n    \"Analyze code files to generate insights and behavior descriptions\",\n    \"View code insights in a tree view sidebar\",\n    \"Navigate through code structure and entry points\",\n    \"Generate LLM-friendly summaries of code files\",\n    \"See real-time diagnostics and warnings in the editor\",\n    \"Export analysis results to files\",\n    \"View context-aware code analysis in webview panels\",\n    \"Get automatic cache updates when files change\",\n    \"See status bar indicators for analysis progress\",\n    \"Navigate to specific code elements from insights\",\n    \"Analyze entire workspaces or individual files\",\n    \"View product navigation structure\"\n  ],\n  \"developerVisibleActions\": [\n    \"Extension activates when VS Code starts\",\n    \"All components are initialized and wired together via bootstrapper\",\n    \"Commands are registered for analyzing code, exporting results, and navigating insights\",\n    \"File watcher monitors workspace changes and triggers re-analysis\",\n    \"Cache stores analysis results for performance optimization\",\n    \"Diagnostics are updated in real-time as code changes\",\n    \"Tree view and webview panels are created and managed\",\n    \"Status bar shows current analysis state\",\n    \"Configuration changes trigger component updates\",\n    \"Error handling captures and logs failures\",\n    \"Extension deactivates and cleans up resources on shutdown\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"activate\",\n      \"desc\": \"Initializes the extension, sets up all components, registers commands, and starts file watching\",\n      \"inputs\": \"vscode.ExtensionContext\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"deactivate\",\n      \"desc\": \"Cleans up resources and stops all extension services when the extension is deactivated\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"./analyzer\",\n    \"./insightGenerator\",\n    \"./llmFormatter\",\n    \"./fileWatcher\",\n    \"./insightsTreeView\",\n    \"./diagnosticsProvider\",\n    \"./cache\",\n    \"./llmIntegration\",\n    \"./config/configurationManager\",\n    \"./utils/errorHandler\",\n    \"./ui/webview/webviewTemplateEngine\",\n    \"./domain/bootstrap/extensionBootstrapper\",\n    \"./domain/bootstrap/commandRegistry\",\n    \"./domain/handlers/navigationHandler\",\n    \"./productNavigator\"\n  ],\n  \"intent\": \"This file serves as the central orchestration point for the VS Code extension, responsible for initializing all subsystems, wiring dependencies, registering user commands, and managing the complete extension lifecycle. It solves the problem of coordinating multiple independent components (analysis, insights, diagnostics, caching, UI) into a cohesive extension that provides code analysis and understanding capabilities to users.\"\n}\n```"
+    },
+    {
+      "file": "src/fileAccessHelper.ts",
+      "role": "Core Logic",
+      "purpose": "Provides file reading and grep search functionality to enable iterative code analysis by LLMs within a workspace",
+      "userVisibleActions": [
+        "Users can request to read specific files by providing a file path",
+        "Users can search for text patterns across multiple files using grep-like functionality",
+        "Users receive file contents with line counts and existence status",
+        "Users get search results showing matching lines with file locations and line numbers",
+        "Users can see context lines before and after grep matches",
+        "Users can limit search scope using file patterns (e.g., '*.ts', 'src/**/*.ts')",
+        "Users can control maximum number of search results returned",
+        "Users receive organized file listings grouped by folder"
+      ],
+      "developerVisibleActions": [
+        "Developer creates FileRequest objects with file path and optional reason",
+        "Developer creates GrepRequest objects with search pattern, optional file pattern, max results, and reason",
+        "Developer receives FileResponse with file content, line count, and existence flag",
+        "Developer receives GrepResponse with matches, total match count, and limited flag",
+        "Developer gets structured grep matches with file path, line number, content, and optional context",
+        "Developer can process file listings organized by directory structure",
+        "Developer handles both successful file reads and missing file scenarios",
+        "Developer works with workspace-relative paths through the FileAccessHelper instance"
+      ],
+      "keyFunctions": [
+        {
+          "name": "getFileListing",
+          "desc": "Organizes and formats a list of files grouped by their containing folders",
+          "inputs": "Array of file objects with path, optional lines, and optional language",
+          "outputs": "String representation of files organized by folder structure"
+        },
+        {
+          "name": "processRequest",
+          "desc": "Processes either a file read request or grep search request and returns appropriate response",
+          "inputs": "LLMRequest (FileRequest or GrepRequest)",
+          "outputs": "FileResponse or GrepResponse depending on request type"
+        },
+        {
+          "name": "readFile",
+          "desc": "Reads a specific file from the workspace and returns its content with metadata",
+          "inputs": "File path string",
+          "outputs": "FileResponse with content, line count, and exists flag"
+        },
+        {
+          "name": "grepSearch",
+          "desc": "Searches for a text pattern across files with optional filtering and result limiting",
+          "inputs": "GrepRequest with pattern, optional file pattern, max results, and reason",
+          "outputs": "GrepResponse with matching lines, context, total count, and limited flag"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path"
+      ],
+      "intent": "This file exists to enable LLMs to iteratively explore and analyze codebases by providing controlled file access and search capabilities, allowing LLMs to request specific files or search for patterns as needed during analysis rather than loading entire codebases upfront",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides file reading and grep search functionality to enable iterative code analysis by LLMs within a workspace\",\n  \"userVisibleActions\": [\n    \"Users can request to read specific files by providing a file path\",\n    \"Users can search for text patterns across multiple files using grep-like functionality\",\n    \"Users receive file contents with line counts and existence status\",\n    \"Users get search results showing matching lines with file locations and line numbers\",\n    \"Users can see context lines before and after grep matches\",\n    \"Users can limit search scope using file patterns (e.g., '*.ts', 'src/**/*.ts')\",\n    \"Users can control maximum number of search results returned\",\n    \"Users receive organized file listings grouped by folder\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer creates FileRequest objects with file path and optional reason\",\n    \"Developer creates GrepRequest objects with search pattern, optional file pattern, max results, and reason\",\n    \"Developer receives FileResponse with file content, line count, and existence flag\",\n    \"Developer receives GrepResponse with matches, total match count, and limited flag\",\n    \"Developer gets structured grep matches with file path, line number, content, and optional context\",\n    \"Developer can process file listings organized by directory structure\",\n    \"Developer handles both successful file reads and missing file scenarios\",\n    \"Developer works with workspace-relative paths through the FileAccessHelper instance\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getFileListing\",\n      \"desc\": \"Organizes and formats a list of files grouped by their containing folders\",\n      \"inputs\": \"Array of file objects with path, optional lines, and optional language\",\n      \"outputs\": \"String representation of files organized by folder structure\"\n    },\n    {\n      \"name\": \"processRequest\",\n      \"desc\": \"Processes either a file read request or grep search request and returns appropriate response\",\n      \"inputs\": \"LLMRequest (FileRequest or GrepRequest)\",\n      \"outputs\": \"FileResponse or GrepResponse depending on request type\"\n    },\n    {\n      \"name\": \"readFile\",\n      \"desc\": \"Reads a specific file from the workspace and returns its content with metadata\",\n      \"inputs\": \"File path string\",\n      \"outputs\": \"FileResponse with content, line count, and exists flag\"\n    },\n    {\n      \"name\": \"grepSearch\",\n      \"desc\": \"Searches for a text pattern across files with optional filtering and result limiting\",\n      \"inputs\": \"GrepRequest with pattern, optional file pattern, max results, and reason\",\n      \"outputs\": \"GrepResponse with matching lines, context, total count, and limited flag\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to enable LLMs to iteratively explore and analyze codebases by providing controlled file access and search capabilities, allowing LLMs to request specific files or search for patterns as needed during analysis rather than loading entire codebases upfront\"\n}\n```"
+    },
+    {
+      "file": "src/fileDocumentation.ts",
+      "role": "Core Logic",
+      "purpose": "Defines TypeScript interfaces and types for multi-level code documentation system (file → module → product → full aggregation)",
+      "userVisibleActions": [
+        "Users can view structured documentation showing what the product does from their perspective (GUI, CLI, API, CI/CD workflows)",
+        "Users can see product capabilities organized by how they interact with the system",
+        "Users can understand what problems the product solves and how it integrates into workflows"
+      ],
+      "developerVisibleActions": [
+        "Developer defines file-level documentation structure including role, purpose, and user/developer visible actions",
+        "Developer organizes files into module summaries with endpoints, commands, or workers",
+        "Developer creates product-level documentation with overview, architecture diagrams, and workflow integration",
+        "Developer structures documentation with titles, descriptions, and behavioral sections",
+        "Developer aggregates all documentation levels into a complete reference document"
+      ],
+      "keyFunctions": [],
+      "dependencies": [
+        "fs",
+        "path",
+        "./analyzer"
+      ],
+      "intent": "Provides the type definitions and data structures for a hierarchical documentation system that captures what code does from user and developer perspectives across four levels: individual files, modules, product features, and complete product documentation. Enables documentation generation that focuses on behavior and outcomes rather than implementation details.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript interfaces and types for multi-level code documentation system (file → module → product → full aggregation)\",\n  \"userVisibleActions\": [\n    \"Users can view structured documentation showing what the product does from their perspective (GUI, CLI, API, CI/CD workflows)\",\n    \"Users can see product capabilities organized by how they interact with the system\",\n    \"Users can understand what problems the product solves and how it integrates into workflows\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer defines file-level documentation structure including role, purpose, and user/developer visible actions\",\n    \"Developer organizes files into module summaries with endpoints, commands, or workers\",\n    \"Developer creates product-level documentation with overview, architecture diagrams, and workflow integration\",\n    \"Developer structures documentation with titles, descriptions, and behavioral sections\",\n    \"Developer aggregates all documentation levels into a complete reference document\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./analyzer\"\n  ],\n  \"intent\": \"Provides the type definitions and data structures for a hierarchical documentation system that captures what code does from user and developer perspectives across four levels: individual files, modules, product features, and complete product documentation. Enables documentation generation that focuses on behavior and outcomes rather than implementation details.\"\n}\n```"
+    },
+    {
+      "file": "src/fileWatcher.ts",
+      "role": "Core Logic",
+      "purpose": "Monitors file saves in the workspace and automatically triggers code analysis when files are saved",
+      "userVisibleActions": [
+        "Automatically analyzes code when files are saved (if 'analyze on save' is enabled)",
+        "Provides real-time feedback on code quality after saving",
+        "Shows insights and diagnostics in the editor after file changes",
+        "Batches multiple rapid saves together to avoid overwhelming the system",
+        "Respects user's 'analyze on save' configuration setting"
+      ],
+      "developerVisibleActions": [
+        "Starts and stops file watching based on configuration",
+        "Debounces file save events to prevent excessive analysis",
+        "Coordinates analysis workflow across analyzer, insight generator, diagnostics, and tree view",
+        "Handles errors during file analysis gracefully",
+        "Provides hooks for workspace-level analysis when files change",
+        "Exposes status of whether watcher is active (isStarted)",
+        "Allows testing by accepting FileWatcherService dependency injection"
+      ],
+      "keyFunctions": [
+        {
+          "name": "start",
+          "desc": "Begins watching for file saves and enables automatic analysis",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "stop",
+          "desc": "Stops watching for file saves and disables automatic analysis",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "onFileSaved",
+          "desc": "Handles file save events by scheduling debounced analysis",
+          "inputs": "document (TextDocument)",
+          "outputs": "void"
+        },
+        {
+          "name": "triggerAnalysis",
+          "desc": "Executes the full analysis pipeline on a saved file",
+          "inputs": "document (TextDocument)",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "shouldAnalyzeDocument",
+          "desc": "Determines if a document should be analyzed based on file type and configuration",
+          "inputs": "document (TextDocument)",
+          "outputs": "boolean"
+        },
+        {
+          "name": "dispose",
+          "desc": "Cleans up resources when the file watcher is no longer needed",
+          "inputs": "none",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "path",
+        "CodeAnalyzer",
+        "InsightGenerator",
+        "DiagnosticsProvider",
+        "InsightsTreeProvider",
+        "ConfigurationManager",
+        "ErrorHandler",
+        "FileWatcherService"
+      ],
+      "intent": "This file exists to provide automatic, on-save code analysis functionality. It solves the problem of keeping code insights up-to-date without requiring manual user intervention. By watching file saves and intelligently debouncing analysis requests, it provides a responsive development experience that gives immediate feedback on code quality while avoiding performance issues from excessive analysis.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Monitors file saves in the workspace and automatically triggers code analysis when files are saved\",\n  \"userVisibleActions\": [\n    \"Automatically analyzes code when files are saved (if 'analyze on save' is enabled)\",\n    \"Provides real-time feedback on code quality after saving\",\n    \"Shows insights and diagnostics in the editor after file changes\",\n    \"Batches multiple rapid saves together to avoid overwhelming the system\",\n    \"Respects user's 'analyze on save' configuration setting\"\n  ],\n  \"developerVisibleActions\": [\n    \"Starts and stops file watching based on configuration\",\n    \"Debounces file save events to prevent excessive analysis\",\n    \"Coordinates analysis workflow across analyzer, insight generator, diagnostics, and tree view\",\n    \"Handles errors during file analysis gracefully\",\n    \"Provides hooks for workspace-level analysis when files change\",\n    \"Exposes status of whether watcher is active (isStarted)\",\n    \"Allows testing by accepting FileWatcherService dependency injection\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"start\",\n      \"desc\": \"Begins watching for file saves and enables automatic analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"stop\",\n      \"desc\": \"Stops watching for file saves and disables automatic analysis\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"onFileSaved\",\n      \"desc\": \"Handles file save events by scheduling debounced analysis\",\n      \"inputs\": \"document (TextDocument)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"triggerAnalysis\",\n      \"desc\": \"Executes the full analysis pipeline on a saved file\",\n      \"inputs\": \"document (TextDocument)\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"shouldAnalyzeDocument\",\n      \"desc\": \"Determines if a document should be analyzed based on file type and configuration\",\n      \"inputs\": \"document (TextDocument)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up resources when the file watcher is no longer needed\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"CodeAnalyzer\",\n    \"InsightGenerator\",\n    \"DiagnosticsProvider\",\n    \"InsightsTreeProvider\",\n    \"ConfigurationManager\",\n    \"ErrorHandler\",\n    \"FileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide automatic, on-save code analysis functionality. It solves the problem of keeping code insights up-to-date without requiring manual user intervention. By watching file saves and intelligently debouncing analysis requests, it provides a responsive development experience that gives immediate feedback on code quality while avoiding performance issues from excessive analysis.\"\n}\n```"
+    },
+    {
+      "file": "src/insightGenerator.ts",
+      "role": "Core Logic",
+      "purpose": "Analyzes code to generate actionable insights about code quality, organization, and potential issues",
+      "userVisibleActions": [
+        "Receives warnings about large files exceeding 500 lines of code",
+        "Gets notified about orphaned files with no imports or dependencies",
+        "Sees alerts for missing entry points in the codebase",
+        "Receives warnings about potential circular dependencies between files",
+        "Gets notified about 'god objects' (overly complex files or classes)",
+        "Sees suggestions for potential dead code that may not be used",
+        "Receives recommendations about file organization and structure",
+        "Gets warnings about overly complex functions",
+        "Views insights categorized by severity (error, warning, info)",
+        "Sees specific file locations and line numbers where issues occur",
+        "Receives actionable suggestions for improving code quality",
+        "Views code snippets highlighting problematic areas"
+      ],
+      "developerVisibleActions": [
+        "Passes CodeAnalysis data to generate comprehensive insights for entire codebase",
+        "Requests file-specific insights by providing a file path",
+        "Receives structured Insight objects with id, title, description, severity, category, file location, line number, suggestion, and optional code snippet",
+        "Gets insights filtered by severity levels (error, warning, info)",
+        "Accesses categorized insights (Code Organization, Complexity, Dependencies, etc.)",
+        "Integrates insight generation into code analysis workflows",
+        "Uses insights to identify refactoring opportunities automatically",
+        "Triggers different check methods for specific code quality concerns"
+      ],
+      "keyFunctions": [
+        {
+          "name": "generateInsights",
+          "desc": "Generates all insights for an entire codebase analysis",
+          "inputs": "analysis: CodeAnalysis object containing file and function information",
+          "outputs": "Array of Insight objects describing code quality issues and recommendations"
+        },
+        {
+          "name": "generateInsightsForFile",
+          "desc": "Generates insights specific to a single file",
+          "inputs": "analysis: CodeAnalysis object, filePath: string path to target file",
+          "outputs": "Array of Insight objects relevant to the specified file"
+        },
+        {
+          "name": "checkLargeFiles",
+          "desc": "Identifies files exceeding recommended line count thresholds",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for oversized files"
+        },
+        {
+          "name": "checkOrphanedFiles",
+          "desc": "Detects files with no imports or dependencies",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for isolated files"
+        },
+        {
+          "name": "checkEntryPoints",
+          "desc": "Verifies presence of necessary entry point files",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for missing entry points"
+        },
+        {
+          "name": "checkCircularDependencies",
+          "desc": "Identifies potential circular dependency patterns",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for circular dependency risks"
+        },
+        {
+          "name": "checkGodObjects",
+          "desc": "Detects files or classes with excessive complexity or responsibility",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for overly complex components"
+        },
+        {
+          "name": "checkDeadCode",
+          "desc": "Identifies potential unused or unreachable code",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for potentially dead code"
+        },
+        {
+          "name": "checkFileOrganization",
+          "desc": "Evaluates file structure and organization patterns",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for organization improvements"
+        },
+        {
+          "name": "checkFunctionComplexity",
+          "desc": "Analyzes function complexity metrics",
+          "inputs": "analysis: CodeAnalysis object",
+          "outputs": "Array of Insight objects for complex functions"
+        }
+      ],
+      "dependencies": [
+        "./analyzer"
+      ],
+      "intent": "This file exists to transform raw code analysis data into actionable, prioritized insights that help developers identify code quality issues, architectural problems, and refactoring opportunities across their codebase",
+      "rawContent": "```json\n{\n  \"purpose\": \"Analyzes code to generate actionable insights about code quality, organization, and potential issues\",\n  \"userVisibleActions\": [\n    \"Receives warnings about large files exceeding 500 lines of code\",\n    \"Gets notified about orphaned files with no imports or dependencies\",\n    \"Sees alerts for missing entry points in the codebase\",\n    \"Receives warnings about potential circular dependencies between files\",\n    \"Gets notified about 'god objects' (overly complex files or classes)\",\n    \"Sees suggestions for potential dead code that may not be used\",\n    \"Receives recommendations about file organization and structure\",\n    \"Gets warnings about overly complex functions\",\n    \"Views insights categorized by severity (error, warning, info)\",\n    \"Sees specific file locations and line numbers where issues occur\",\n    \"Receives actionable suggestions for improving code quality\",\n    \"Views code snippets highlighting problematic areas\"\n  ],\n  \"developerVisibleActions\": [\n    \"Passes CodeAnalysis data to generate comprehensive insights for entire codebase\",\n    \"Requests file-specific insights by providing a file path\",\n    \"Receives structured Insight objects with id, title, description, severity, category, file location, line number, suggestion, and optional code snippet\",\n    \"Gets insights filtered by severity levels (error, warning, info)\",\n    \"Accesses categorized insights (Code Organization, Complexity, Dependencies, etc.)\",\n    \"Integrates insight generation into code analysis workflows\",\n    \"Uses insights to identify refactoring opportunities automatically\",\n    \"Triggers different check methods for specific code quality concerns\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"generateInsights\",\n      \"desc\": \"Generates all insights for an entire codebase analysis\",\n      \"inputs\": \"analysis: CodeAnalysis object containing file and function information\",\n      \"outputs\": \"Array of Insight objects describing code quality issues and recommendations\"\n    },\n    {\n      \"name\": \"generateInsightsForFile\",\n      \"desc\": \"Generates insights specific to a single file\",\n      \"inputs\": \"analysis: CodeAnalysis object, filePath: string path to target file\",\n      \"outputs\": \"Array of Insight objects relevant to the specified file\"\n    },\n    {\n      \"name\": \"checkLargeFiles\",\n      \"desc\": \"Identifies files exceeding recommended line count thresholds\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for oversized files\"\n    },\n    {\n      \"name\": \"checkOrphanedFiles\",\n      \"desc\": \"Detects files with no imports or dependencies\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for isolated files\"\n    },\n    {\n      \"name\": \"checkEntryPoints\",\n      \"desc\": \"Verifies presence of necessary entry point files\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for missing entry points\"\n    },\n    {\n      \"name\": \"checkCircularDependencies\",\n      \"desc\": \"Identifies potential circular dependency patterns\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for circular dependency risks\"\n    },\n    {\n      \"name\": \"checkGodObjects\",\n      \"desc\": \"Detects files or classes with excessive complexity or responsibility\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for overly complex components\"\n    },\n    {\n      \"name\": \"checkDeadCode\",\n      \"desc\": \"Identifies potential unused or unreachable code\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for potentially dead code\"\n    },\n    {\n      \"name\": \"checkFileOrganization\",\n      \"desc\": \"Evaluates file structure and organization patterns\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for organization improvements\"\n    },\n    {\n      \"name\": \"checkFunctionComplexity\",\n      \"desc\": \"Analyzes function complexity metrics\",\n      \"inputs\": \"analysis: CodeAnalysis object\",\n      \"outputs\": \"Array of Insight objects for complex functions\"\n    }\n  ],\n  \"dependencies\": [\n    \"./analyzer\"\n  ],\n  \"intent\": \"This file exists to transform raw code analysis data into actionable, prioritized insights that help developers identify code quality issues, architectural problems, and refactoring opportunities across their codebase\"\n}\n```"
+    },
+    {
+      "file": "src/insightsTreeView.ts",
+      "role": "GUI View",
+      "purpose": "Provides a tree view interface for displaying and managing AI-generated code insights, documentation, test reports, and analysis results in the VS Code sidebar.",
+      "userVisibleActions": [
+        "View code insights organized in a tree structure with categories like Product Docs, Unit Tests, and Analysis",
+        "Click 'Generate Product Docs' to create AI-generated documentation for the codebase",
+        "Click 'Generate Insights' to get AI-powered code analysis and suggestions",
+        "Click 'Generate Unit Tests' to create automated test cases",
+        "View timestamps showing when each report was last generated",
+        "Open generated reports (HTML files) in the browser or editor",
+        "Copy report file paths to clipboard",
+        "Reveal report files in the file explorer",
+        "See loading indicators while reports are being generated",
+        "View different report types: workspace overview, product docs, architecture, unit tests, and static analysis",
+        "Refresh the insights tree to see updated information",
+        "Expand and collapse insight categories to organize information"
+      ],
+      "developerVisibleActions": [
+        "Tree provider updates automatically when insights are generated or status changes",
+        "Insights are persisted across VS Code sessions using context state",
+        "Report file paths and timestamps are tracked and restored on extension reload",
+        "Status indicators show whether generation is idle, in progress, or complete",
+        "Integration with LLM services to generate content asynchronously",
+        "Tree items are created dynamically based on available insights and reports",
+        "File system checks verify report existence before displaying items",
+        "Context menu actions are available based on item type (copy path, reveal in explorer, open in browser)",
+        "Icons and decorations indicate status (loading spinner, checkmarks, etc.)"
+      ],
+      "keyFunctions": [
+        {
+          "name": "getTreeItem",
+          "desc": "Converts internal data into tree items for VS Code's tree view display",
+          "inputs": "TreeItem element",
+          "outputs": "vscode.TreeItem with label, icon, and command"
+        },
+        {
+          "name": "getChildren",
+          "desc": "Returns child items for tree hierarchy, showing insights categories and individual reports",
+          "inputs": "Optional parent TreeItem",
+          "outputs": "Array of TreeItem children or null"
+        },
+        {
+          "name": "updateInsights",
+          "desc": "Updates the displayed insights and refreshes the tree view",
+          "inputs": "Array of Insight objects",
+          "outputs": "void"
+        },
+        {
+          "name": "setProductDocsStatus",
+          "desc": "Updates the generation status for product documentation and refreshes display",
+          "inputs": "Status string (idle/generating/complete) and optional timestamp",
+          "outputs": "void"
+        },
+        {
+          "name": "setInsightsStatus",
+          "desc": "Updates the generation status for insights and refreshes display",
+          "inputs": "Status string (idle/generating/complete) and optional timestamp",
+          "outputs": "void"
+        },
+        {
+          "name": "setUnitTestStatus",
+          "desc": "Updates the generation status for unit tests and refreshes display",
+          "inputs": "Status string (idle/generating/complete) and optional timestamp",
+          "outputs": "void"
+        },
+        {
+          "name": "setReportPath",
+          "desc": "Stores the file path for a generated report and updates display",
+          "inputs": "File path string and report type, optional timestamp",
+          "outputs": "void"
+        },
+        {
+          "name": "refresh",
+          "desc": "Triggers a complete refresh of the tree view display",
+          "inputs": "None",
+          "outputs": "void"
+        },
+        {
+          "name": "loadPersistedState",
+          "desc": "Restores saved timestamps and report paths from previous sessions",
+          "inputs": "None",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "setLLMService",
+          "desc": "Configures the LLM service used for generating insights",
+          "inputs": "LLMService instance",
+          "outputs": "void"
+        },
+        {
+          "name": "setLLMInsights",
+          "desc": "Updates the LLM-generated insights data and refreshes display",
+          "inputs": "LLMInsights object",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "./insightGenerator",
+        "./llmFormatter",
+        "./llmService"
+      ],
+      "intent": "This file exists to provide a visual interface in VS Code's sidebar where users can view, manage, and interact with AI-generated code documentation, insights, and analysis reports. It solves the problem of presenting complex analysis results in an organized, accessible tree structure with actions to generate, view, and manage different types of code intelligence reports.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view interface for displaying and managing AI-generated code insights, documentation, test reports, and analysis results in the VS Code sidebar.\",\n  \"userVisibleActions\": [\n    \"View code insights organized in a tree structure with categories like Product Docs, Unit Tests, and Analysis\",\n    \"Click 'Generate Product Docs' to create AI-generated documentation for the codebase\",\n    \"Click 'Generate Insights' to get AI-powered code analysis and suggestions\",\n    \"Click 'Generate Unit Tests' to create automated test cases\",\n    \"View timestamps showing when each report was last generated\",\n    \"Open generated reports (HTML files) in the browser or editor\",\n    \"Copy report file paths to clipboard\",\n    \"Reveal report files in the file explorer\",\n    \"See loading indicators while reports are being generated\",\n    \"View different report types: workspace overview, product docs, architecture, unit tests, and static analysis\",\n    \"Refresh the insights tree to see updated information\",\n    \"Expand and collapse insight categories to organize information\"\n  ],\n  \"developerVisibleActions\": [\n    \"Tree provider updates automatically when insights are generated or status changes\",\n    \"Insights are persisted across VS Code sessions using context state\",\n    \"Report file paths and timestamps are tracked and restored on extension reload\",\n    \"Status indicators show whether generation is idle, in progress, or complete\",\n    \"Integration with LLM services to generate content asynchronously\",\n    \"Tree items are created dynamically based on available insights and reports\",\n    \"File system checks verify report existence before displaying items\",\n    \"Context menu actions are available based on item type (copy path, reveal in explorer, open in browser)\",\n    \"Icons and decorations indicate status (loading spinner, checkmarks, etc.)\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Converts internal data into tree items for VS Code's tree view display\",\n      \"inputs\": \"TreeItem element\",\n      \"outputs\": \"vscode.TreeItem with label, icon, and command\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for tree hierarchy, showing insights categories and individual reports\",\n      \"inputs\": \"Optional parent TreeItem\",\n      \"outputs\": \"Array of TreeItem children or null\"\n    },\n    {\n      \"name\": \"updateInsights\",\n      \"desc\": \"Updates the displayed insights and refreshes the tree view\",\n      \"inputs\": \"Array of Insight objects\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setProductDocsStatus\",\n      \"desc\": \"Updates the generation status for product documentation and refreshes display\",\n      \"inputs\": \"Status string (idle/generating/complete) and optional timestamp\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setInsightsStatus\",\n      \"desc\": \"Updates the generation status for insights and refreshes display\",\n      \"inputs\": \"Status string (idle/generating/complete) and optional timestamp\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setUnitTestStatus\",\n      \"desc\": \"Updates the generation status for unit tests and refreshes display\",\n      \"inputs\": \"Status string (idle/generating/complete) and optional timestamp\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setReportPath\",\n      \"desc\": \"Stores the file path for a generated report and updates display\",\n      \"inputs\": \"File path string and report type, optional timestamp\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Triggers a complete refresh of the tree view display\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"loadPersistedState\",\n      \"desc\": \"Restores saved timestamps and report paths from previous sessions\",\n      \"inputs\": \"None\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"setLLMService\",\n      \"desc\": \"Configures the LLM service used for generating insights\",\n      \"inputs\": \"LLMService instance\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setLLMInsights\",\n      \"desc\": \"Updates the LLM-generated insights data and refreshes display\",\n      \"inputs\": \"LLMInsights object\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\",\n    \"./llmFormatter\",\n    \"./llmService\"\n  ],\n  \"intent\": \"This file exists to provide a visual interface in VS Code's sidebar where users can view, manage, and interact with AI-generated code documentation, insights, and analysis reports. It solves the problem of presenting complex analysis results in an organized, accessible tree structure with actions to generate, view, and manage different types of code intelligence reports.\"\n}\n```"
+    },
+    {
+      "file": "src/insightsViewer.ts",
+      "role": "GUI View",
+      "purpose": "Provides a tree view in VSCode for browsing and navigating AI-generated architecture insights about the codebase",
+      "userVisibleActions": [
+        "View hierarchical insights tree showing architecture, decisions, principles, patterns, and risks",
+        "Navigate to specific code files by clicking on file references in insights",
+        "See file paths and line numbers associated with insights",
+        "Refresh insights view to see updated analysis results",
+        "Expand/collapse insight categories and subcategories",
+        "View purpose documentation and architectural decisions in tree structure"
+      ],
+      "developerVisibleActions": [
+        "Tree view automatically refreshes when .shadow/docs/insights.json file changes",
+        "Tree view automatically updates when purpose.md file is modified",
+        "Can manually refresh the insights view via command",
+        "Set custom insights data programmatically via setInsights method",
+        "File watchers monitor .shadow directory for changes",
+        "Click on items to navigate to referenced source files"
+      ],
+      "keyFunctions": [
+        {
+          "name": "refresh",
+          "desc": "Reloads insights from the .shadow/docs/insights.json file and updates the tree view",
+          "inputs": "None",
+          "outputs": "void"
+        },
+        {
+          "name": "getTreeItem",
+          "desc": "Converts insight data into displayable tree items with icons and navigation",
+          "inputs": "InsightItem",
+          "outputs": "vscode.TreeItem"
+        },
+        {
+          "name": "getChildren",
+          "desc": "Returns child items for a given parent in the tree hierarchy",
+          "inputs": "InsightItem or undefined",
+          "outputs": "Promise<InsightItem[]>"
+        },
+        {
+          "name": "setInsights",
+          "desc": "Updates the insights data and refreshes the tree view",
+          "inputs": "LLMInsights object",
+          "outputs": "void"
+        },
+        {
+          "name": "setupFileWatcher",
+          "desc": "Creates file system watchers to auto-refresh when insights or purpose files change",
+          "inputs": "None",
+          "outputs": "void"
+        },
+        {
+          "name": "handleItemClick",
+          "desc": "Opens source code file at specific line when user clicks an insight item with file reference",
+          "inputs": "InsightItem",
+          "outputs": "Promise<void>"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "path",
+        "fs",
+        "LLMInsights from ./llmService",
+        "FileWatcherService from ./domain/services/fileWatcherService"
+      ],
+      "intent": "This file exists to provide developers with an organized, browsable view of AI-generated architecture insights within VSCode. It solves the problem of making complex architecture analysis accessible and navigable, allowing developers to understand project structure, design decisions, and potential risks through a familiar tree-view interface with direct navigation to relevant code locations.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view in VSCode for browsing and navigating AI-generated architecture insights about the codebase\",\n  \"userVisibleActions\": [\n    \"View hierarchical insights tree showing architecture, decisions, principles, patterns, and risks\",\n    \"Navigate to specific code files by clicking on file references in insights\",\n    \"See file paths and line numbers associated with insights\",\n    \"Refresh insights view to see updated analysis results\",\n    \"Expand/collapse insight categories and subcategories\",\n    \"View purpose documentation and architectural decisions in tree structure\"\n  ],\n  \"developerVisibleActions\": [\n    \"Tree view automatically refreshes when .shadow/docs/insights.json file changes\",\n    \"Tree view automatically updates when purpose.md file is modified\",\n    \"Can manually refresh the insights view via command\",\n    \"Set custom insights data programmatically via setInsights method\",\n    \"File watchers monitor .shadow directory for changes\",\n    \"Click on items to navigate to referenced source files\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Reloads insights from the .shadow/docs/insights.json file and updates the tree view\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Converts insight data into displayable tree items with icons and navigation\",\n      \"inputs\": \"InsightItem\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for a given parent in the tree hierarchy\",\n      \"inputs\": \"InsightItem or undefined\",\n      \"outputs\": \"Promise<InsightItem[]>\"\n    },\n    {\n      \"name\": \"setInsights\",\n      \"desc\": \"Updates the insights data and refreshes the tree view\",\n      \"inputs\": \"LLMInsights object\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setupFileWatcher\",\n      \"desc\": \"Creates file system watchers to auto-refresh when insights or purpose files change\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"handleItemClick\",\n      \"desc\": \"Opens source code file at specific line when user clicks an insight item with file reference\",\n      \"inputs\": \"InsightItem\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"fs\",\n    \"LLMInsights from ./llmService\",\n    \"FileWatcherService from ./domain/services/fileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide developers with an organized, browsable view of AI-generated architecture insights within VSCode. It solves the problem of making complex architecture analysis accessible and navigable, allowing developers to understand project structure, design decisions, and potential risks through a familiar tree-view interface with direct navigation to relevant code locations.\"\n}\n```"
+    },
+    {
+      "file": "src/llmFormatter.ts",
+      "role": "Core Logic",
+      "purpose": "Formats code architecture insights into different presentation styles optimized for various AI assistants and human readers",
+      "userVisibleActions": [
+        "View architecture issues organized by severity (errors, warnings, info)",
+        "See insights formatted for specific AI tools (Cursor, ChatGPT)",
+        "Read compact summaries of code issues",
+        "Review generic formatted reports of code problems",
+        "Get actionable recommendations for fixing architecture issues",
+        "See file locations and line numbers for each issue",
+        "Understand impact and resolution suggestions for problems"
+      ],
+      "developerVisibleActions": [
+        "Call formatInsights() to convert insight objects into formatted text reports",
+        "Choose output format: 'cursor', 'chatgpt', 'compact', or 'generic'",
+        "Receive markdown-formatted strings ready for display or AI consumption",
+        "Get insights grouped by severity level automatically",
+        "Obtain format-specific prompts and instructions for AI assistants",
+        "Access structured reports with file paths, descriptions, and recommendations"
+      ],
+      "keyFunctions": [
+        {
+          "name": "formatInsights",
+          "desc": "Converts insight objects into formatted text based on specified output format",
+          "inputs": "insights: Insight[], format: string (default 'cursor')",
+          "outputs": "Formatted string (markdown) tailored for the specified format"
+        },
+        {
+          "name": "formatForCursor",
+          "desc": "Creates Cursor AI-optimized report with severity grouping and action prompts",
+          "inputs": "insights: Insight[]",
+          "outputs": "Markdown string with sections for errors, warnings, info, and assistance requests"
+        },
+        {
+          "name": "formatForChatGPT",
+          "desc": "Generates ChatGPT-friendly report with conversational tone and context",
+          "inputs": "insights: Insight[]",
+          "outputs": "Markdown string formatted for ChatGPT's interaction style"
+        },
+        {
+          "name": "formatCompact",
+          "desc": "Produces condensed summary showing only essential information",
+          "inputs": "insights: Insight[]",
+          "outputs": "Brief markdown string with counts and key issues"
+        },
+        {
+          "name": "formatGeneric",
+          "desc": "Creates standard format suitable for any AI assistant or human reader",
+          "inputs": "insights: Insight[]",
+          "outputs": "Generic markdown string with all insights listed sequentially"
+        },
+        {
+          "name": "formatInsightForCursor",
+          "desc": "Formats a single insight with full details for Cursor AI",
+          "inputs": "insight: Insight",
+          "outputs": "Formatted markdown string for one insight"
+        },
+        {
+          "name": "formatInsightForChatGPT",
+          "desc": "Formats a single insight optimized for ChatGPT interaction",
+          "inputs": "insight: Insight",
+          "outputs": "Formatted markdown string for one insight"
+        },
+        {
+          "name": "formatInsightCompact",
+          "desc": "Formats a single insight in condensed one-line format",
+          "inputs": "insight: Insight",
+          "outputs": "Brief string with essential insight information"
+        },
+        {
+          "name": "formatInsightGeneric",
+          "desc": "Formats a single insight in standard detailed format",
+          "inputs": "insight: Insight",
+          "outputs": "Generic formatted string for one insight"
+        }
+      ],
+      "dependencies": [
+        "./insightGenerator"
+      ],
+      "intent": "This file exists to bridge the gap between raw code analysis data and AI-consumable formats, transforming technical insights into structured reports that different AI assistants (Cursor, ChatGPT) can understand and act upon, while also providing human-readable formats for developers to review code architecture issues",
+      "rawContent": "```json\n{\n  \"purpose\": \"Formats code architecture insights into different presentation styles optimized for various AI assistants and human readers\",\n  \"userVisibleActions\": [\n    \"View architecture issues organized by severity (errors, warnings, info)\",\n    \"See insights formatted for specific AI tools (Cursor, ChatGPT)\",\n    \"Read compact summaries of code issues\",\n    \"Review generic formatted reports of code problems\",\n    \"Get actionable recommendations for fixing architecture issues\",\n    \"See file locations and line numbers for each issue\",\n    \"Understand impact and resolution suggestions for problems\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call formatInsights() to convert insight objects into formatted text reports\",\n    \"Choose output format: 'cursor', 'chatgpt', 'compact', or 'generic'\",\n    \"Receive markdown-formatted strings ready for display or AI consumption\",\n    \"Get insights grouped by severity level automatically\",\n    \"Obtain format-specific prompts and instructions for AI assistants\",\n    \"Access structured reports with file paths, descriptions, and recommendations\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatInsights\",\n      \"desc\": \"Converts insight objects into formatted text based on specified output format\",\n      \"inputs\": \"insights: Insight[], format: string (default 'cursor')\",\n      \"outputs\": \"Formatted string (markdown) tailored for the specified format\"\n    },\n    {\n      \"name\": \"formatForCursor\",\n      \"desc\": \"Creates Cursor AI-optimized report with severity grouping and action prompts\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Markdown string with sections for errors, warnings, info, and assistance requests\"\n    },\n    {\n      \"name\": \"formatForChatGPT\",\n      \"desc\": \"Generates ChatGPT-friendly report with conversational tone and context\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Markdown string formatted for ChatGPT's interaction style\"\n    },\n    {\n      \"name\": \"formatCompact\",\n      \"desc\": \"Produces condensed summary showing only essential information\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Brief markdown string with counts and key issues\"\n    },\n    {\n      \"name\": \"formatGeneric\",\n      \"desc\": \"Creates standard format suitable for any AI assistant or human reader\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Generic markdown string with all insights listed sequentially\"\n    },\n    {\n      \"name\": \"formatInsightForCursor\",\n      \"desc\": \"Formats a single insight with full details for Cursor AI\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Formatted markdown string for one insight\"\n    },\n    {\n      \"name\": \"formatInsightForChatGPT\",\n      \"desc\": \"Formats a single insight optimized for ChatGPT interaction\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Formatted markdown string for one insight\"\n    },\n    {\n      \"name\": \"formatInsightCompact\",\n      \"desc\": \"Formats a single insight in condensed one-line format\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Brief string with essential insight information\"\n    },\n    {\n      \"name\": \"formatInsightGeneric\",\n      \"desc\": \"Formats a single insight in standard detailed format\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Generic formatted string for one insight\"\n    }\n  ],\n  \"dependencies\": [\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between raw code analysis data and AI-consumable formats, transforming technical insights into structured reports that different AI assistants (Cursor, ChatGPT) can understand and act upon, while also providing human-readable formats for developers to review code architecture issues\"\n}\n```"
+    },
+    {
+      "file": "src/llmIntegration.ts",
+      "role": "Core Logic",
+      "purpose": "Integrates LLM-powered analysis features with VS Code UI components and manages the lifecycle of code analysis, documentation generation, and insights display.",
+      "userVisibleActions": [
+        "View AI-generated code insights in a tree view sidebar",
+        "Access product documentation with AI-enhanced descriptions",
+        "Navigate codebase structure through AI-analyzed entry points",
+        "View unit test analysis and coverage information",
+        "See analysis results in dedicated viewer panels",
+        "Refresh insights manually via command palette or UI buttons",
+        "Configure LLM API keys through VS Code settings",
+        "Export analysis results and documentation to files",
+        "View loading indicators while AI analysis is in progress",
+        "Receive notifications when analysis completes or encounters errors"
+      ],
+      "developerVisibleActions": [
+        "Initialize LLM service that connects to AI providers (OpenAI, Anthropic, etc.)",
+        "Trigger code analysis on workspace files to extract structure and behavior",
+        "Generate product documentation from analyzed code automatically",
+        "Load previously saved analysis results and insights from disk",
+        "Register VS Code commands for analysis, documentation, and insights management",
+        "Set up tree view providers for displaying insights, tests, and navigation",
+        "Configure webview panels for rich HTML analysis visualization",
+        "Handle configuration changes and API key updates reactively",
+        "Manage state persistence across VS Code sessions",
+        "Export analysis data in JSON format for external tools"
+      ],
+      "keyFunctions": [
+        {
+          "name": "initializeLLMService",
+          "desc": "Sets up the LLM service and connects it to UI components with configuration change handlers",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "analyzeWorkspace",
+          "desc": "Analyzes all code files in the workspace to extract structure, entry points, and behavior patterns",
+          "inputs": "workspace folder path",
+          "outputs": "CodeAnalysis object with insights"
+        },
+        {
+          "name": "generateProductDocumentation",
+          "desc": "Creates AI-enhanced documentation from code analysis results",
+          "inputs": "CodeAnalysis object",
+          "outputs": "EnhancedProductDocumentation object"
+        },
+        {
+          "name": "loadSavedCodeAnalysis",
+          "desc": "Retrieves previously saved analysis results from persistent storage",
+          "inputs": "workspace identifier",
+          "outputs": "CodeAnalysis object or null"
+        },
+        {
+          "name": "saveCodeAnalysis",
+          "desc": "Persists analysis results to disk for later retrieval",
+          "inputs": "CodeAnalysis object, workspace path",
+          "outputs": "boolean success status"
+        },
+        {
+          "name": "refreshInsights",
+          "desc": "Re-runs AI analysis and updates all tree views and panels with latest insights",
+          "inputs": "optional force refresh flag",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "exportAnalysisResults",
+          "desc": "Saves analysis data and documentation to user-specified file location",
+          "inputs": "export format, file path",
+          "outputs": "Promise<void>"
+        },
+        {
+          "name": "registerCommands",
+          "desc": "Registers all VS Code commands for triggering analysis, documentation, and insights features",
+          "inputs": "VS Code extension context",
+          "outputs": "Disposable array"
+        },
+        {
+          "name": "convertCodeAnalysisToContext",
+          "desc": "Transforms code analysis results into LLM-compatible context format",
+          "inputs": "CodeAnalysis object",
+          "outputs": "AnalysisContext object"
+        },
+        {
+          "name": "updateTreeProviders",
+          "desc": "Refreshes all tree view providers with updated analysis data",
+          "inputs": "analysis results",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "fs",
+        "path",
+        "child_process",
+        "util",
+        "./llmService",
+        "./insightsTreeView",
+        "./fileDocumentation",
+        "./analyzer",
+        "./productNavigator",
+        "./analysisViewer",
+        "./insightsViewer",
+        "./unitTestsNavigator",
+        "./logger",
+        "./state/llmStateManager",
+        "./context/analysisContextBuilder",
+        "./domain/formatters/documentationFormatter",
+        "./infrastructure/persistence/analysisResultRepository"
+      ],
+      "intent": "This file exists to bridge the gap between raw code analysis and user-facing AI insights by orchestrating LLM services, managing analysis lifecycle, coordinating multiple UI components (tree views, webviews, navigators), and providing a centralized integration layer that makes AI-powered code understanding accessible through VS Code's interface. It solves the problem of making complex AI analysis results consumable and actionable for developers working in their IDE.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Integrates LLM-powered analysis features with VS Code UI components and manages the lifecycle of code analysis, documentation generation, and insights display.\",\n  \"userVisibleActions\": [\n    \"View AI-generated code insights in a tree view sidebar\",\n    \"Access product documentation with AI-enhanced descriptions\",\n    \"Navigate codebase structure through AI-analyzed entry points\",\n    \"View unit test analysis and coverage information\",\n    \"See analysis results in dedicated viewer panels\",\n    \"Refresh insights manually via command palette or UI buttons\",\n    \"Configure LLM API keys through VS Code settings\",\n    \"Export analysis results and documentation to files\",\n    \"View loading indicators while AI analysis is in progress\",\n    \"Receive notifications when analysis completes or encounters errors\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize LLM service that connects to AI providers (OpenAI, Anthropic, etc.)\",\n    \"Trigger code analysis on workspace files to extract structure and behavior\",\n    \"Generate product documentation from analyzed code automatically\",\n    \"Load previously saved analysis results and insights from disk\",\n    \"Register VS Code commands for analysis, documentation, and insights management\",\n    \"Set up tree view providers for displaying insights, tests, and navigation\",\n    \"Configure webview panels for rich HTML analysis visualization\",\n    \"Handle configuration changes and API key updates reactively\",\n    \"Manage state persistence across VS Code sessions\",\n    \"Export analysis data in JSON format for external tools\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeLLMService\",\n      \"desc\": \"Sets up the LLM service and connects it to UI components with configuration change handlers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeWorkspace\",\n      \"desc\": \"Analyzes all code files in the workspace to extract structure, entry points, and behavior patterns\",\n      \"inputs\": \"workspace folder path\",\n      \"outputs\": \"CodeAnalysis object with insights\"\n    },\n    {\n      \"name\": \"generateProductDocumentation\",\n      \"desc\": \"Creates AI-enhanced documentation from code analysis results\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"EnhancedProductDocumentation object\"\n    },\n    {\n      \"name\": \"loadSavedCodeAnalysis\",\n      \"desc\": \"Retrieves previously saved analysis results from persistent storage\",\n      \"inputs\": \"workspace identifier\",\n      \"outputs\": \"CodeAnalysis object or null\"\n    },\n    {\n      \"name\": \"saveCodeAnalysis\",\n      \"desc\": \"Persists analysis results to disk for later retrieval\",\n      \"inputs\": \"CodeAnalysis object, workspace path\",\n      \"outputs\": \"boolean success status\"\n    },\n    {\n      \"name\": \"refreshInsights\",\n      \"desc\": \"Re-runs AI analysis and updates all tree views and panels with latest insights\",\n      \"inputs\": \"optional force refresh flag\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"exportAnalysisResults\",\n      \"desc\": \"Saves analysis data and documentation to user-specified file location\",\n      \"inputs\": \"export format, file path\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"registerCommands\",\n      \"desc\": \"Registers all VS Code commands for triggering analysis, documentation, and insights features\",\n      \"inputs\": \"VS Code extension context\",\n      \"outputs\": \"Disposable array\"\n    },\n    {\n      \"name\": \"convertCodeAnalysisToContext\",\n      \"desc\": \"Transforms code analysis results into LLM-compatible context format\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"AnalysisContext object\"\n    },\n    {\n      \"name\": \"updateTreeProviders\",\n      \"desc\": \"Refreshes all tree view providers with updated analysis data\",\n      \"inputs\": \"analysis results\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"util\",\n    \"./llmService\",\n    \"./insightsTreeView\",\n    \"./fileDocumentation\",\n    \"./analyzer\",\n    \"./productNavigator\",\n    \"./analysisViewer\",\n    \"./insightsViewer\",\n    \"./unitTestsNavigator\",\n    \"./logger\",\n    \"./state/llmStateManager\",\n    \"./context/analysisContextBuilder\",\n    \"./domain/formatters/documentationFormatter\",\n    \"./infrastructure/persistence/analysisResultRepository\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between raw code analysis and user-facing AI insights by orchestrating LLM services, managing analysis lifecycle, coordinating multiple UI components (tree views, webviews, navigators), and providing a centralized integration layer that makes AI-powered code understanding accessible through VS Code's interface. It solves the problem of making complex AI analysis results consumable and actionable for developers working in their IDE.\"\n}\n```"
+    },
+    {
+      "file": "src/llmSchemas.ts",
+      "role": "Core Logic",
+      "purpose": "Defines JSON schemas that structure and validate LLM responses for product analysis, code quality issues, behavior extraction, and documentation generation.",
+      "userVisibleActions": [
+        "Receives structured product purpose analysis explaining what the codebase does and why it's designed that way",
+        "Gets organized lists of code quality issues with clear titles, descriptions, and severity levels",
+        "Views extracted behavior information from code files in a consistent format",
+        "Sees categorized file summaries organized by role (Core Logic, Configuration, etc.)",
+        "Receives documentation generation plans with proposed file structures and content outlines"
+      ],
+      "developerVisibleActions": [
+        "Uses schemas to guarantee valid, parseable LLM responses without manual parsing",
+        "Ensures LLM outputs include required fields like productPurpose, architectureRationale, and userGoals",
+        "Validates that code quality issues contain title, description, severity, and relevant files",
+        "Enforces consistent structure for behavior extraction including purpose, actions, and intent",
+        "Defines strict response formats for documentation planning with file paths and content sections"
+      ],
+      "keyFunctions": [
+        {
+          "name": "productPurposeAnalysisSchema",
+          "desc": "Schema for analyzing product purpose and architecture decisions",
+          "inputs": "None (schema definition)",
+          "outputs": "Object with productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors"
+        },
+        {
+          "name": "codeQualityIssuesSchema",
+          "desc": "Schema for identifying and documenting code quality issues",
+          "inputs": "None (schema definition)",
+          "outputs": "Object with issues array containing title, description, severity, relevantFiles, tags"
+        },
+        {
+          "name": "behaviorExtractionSchema",
+          "desc": "Schema for extracting user-facing and developer-facing behavior from code",
+          "inputs": "None (schema definition)",
+          "outputs": "Object with purpose, userVisibleActions, developerVisibleActions, keyFunctions, dependencies, intent"
+        },
+        {
+          "name": "fileCategorizationSchema",
+          "desc": "Schema for categorizing files by role with summaries",
+          "inputs": "None (schema definition)",
+          "outputs": "Object with categorized file summaries by role (Core Logic, UI Components, Configuration, etc.)"
+        },
+        {
+          "name": "documentationPlanSchema",
+          "desc": "Schema for generating documentation plans with file structure and content",
+          "inputs": "None (schema definition)",
+          "outputs": "Object with overview, proposedFiles array, and nextSteps"
+        }
+      ],
+      "dependencies": [],
+      "intent": "Provides type-safe schema definitions that ensure Claude AI returns consistent, structured data for product analysis, code quality assessment, behavior extraction, and documentation generation, eliminating the need for fragile response parsing.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Defines JSON schemas that structure and validate LLM responses for product analysis, code quality issues, behavior extraction, and documentation generation.\",\n  \"userVisibleActions\": [\n    \"Receives structured product purpose analysis explaining what the codebase does and why it's designed that way\",\n    \"Gets organized lists of code quality issues with clear titles, descriptions, and severity levels\",\n    \"Views extracted behavior information from code files in a consistent format\",\n    \"Sees categorized file summaries organized by role (Core Logic, Configuration, etc.)\",\n    \"Receives documentation generation plans with proposed file structures and content outlines\"\n  ],\n  \"developerVisibleActions\": [\n    \"Uses schemas to guarantee valid, parseable LLM responses without manual parsing\",\n    \"Ensures LLM outputs include required fields like productPurpose, architectureRationale, and userGoals\",\n    \"Validates that code quality issues contain title, description, severity, and relevant files\",\n    \"Enforces consistent structure for behavior extraction including purpose, actions, and intent\",\n    \"Defines strict response formats for documentation planning with file paths and content sections\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"productPurposeAnalysisSchema\",\n      \"desc\": \"Schema for analyzing product purpose and architecture decisions\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors\"\n    },\n    {\n      \"name\": \"codeQualityIssuesSchema\",\n      \"desc\": \"Schema for identifying and documenting code quality issues\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with issues array containing title, description, severity, relevantFiles, tags\"\n    },\n    {\n      \"name\": \"behaviorExtractionSchema\",\n      \"desc\": \"Schema for extracting user-facing and developer-facing behavior from code\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with purpose, userVisibleActions, developerVisibleActions, keyFunctions, dependencies, intent\"\n    },\n    {\n      \"name\": \"fileCategorizationSchema\",\n      \"desc\": \"Schema for categorizing files by role with summaries\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with categorized file summaries by role (Core Logic, UI Components, Configuration, etc.)\"\n    },\n    {\n      \"name\": \"documentationPlanSchema\",\n      \"desc\": \"Schema for generating documentation plans with file structure and content\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with overview, proposedFiles array, and nextSteps\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"Provides type-safe schema definitions that ensure Claude AI returns consistent, structured data for product analysis, code quality assessment, behavior extraction, and documentation generation, eliminating the need for fragile response parsing.\"\n}\n```"
+    },
+    {
+      "file": "src/llmService.ts",
+      "role": "Core Logic",
+      "purpose": "Orchestrates AI-powered code analysis by calling OpenAI/Claude APIs to generate intelligent insights about codebases, including product purpose, architecture analysis, and refactoring suggestions.",
+      "userVisibleActions": [
+        "Generates comprehensive product documentation explaining what the codebase does and why",
+        "Provides intelligent insights about code architecture and design patterns",
+        "Analyzes product purpose and core value propositions from code structure",
+        "Generates refactoring suggestions for improving code quality",
+        "Creates unit test plans for functions and modules",
+        "Detects entry points and orphaned files in the codebase",
+        "Groups files by modules and analyzes module relationships"
+      ],
+      "developerVisibleActions": [
+        "Calls LLM APIs (OpenAI/Claude) with structured prompts to analyze code",
+        "Processes file summaries and module information into AI prompts",
+        "Handles rate limiting and retries for API calls automatically",
+        "Parses and validates LLM responses against defined schemas",
+        "Provides incremental analysis for large codebases to avoid token limits",
+        "Manages different LLM providers based on configuration settings",
+        "Tracks analysis progress and budget constraints during execution",
+        "Exposes methods for product purpose analysis, refactoring analysis, and documentation generation"
+      ],
+      "keyFunctions": [
+        {
+          "name": "analyzeProductPurpose",
+          "desc": "Analyzes the entire codebase to determine what the product does and its architecture rationale",
+          "inputs": "CodeAnalysis object containing file and function metadata",
+          "outputs": "ProductPurposeAnalysis with product purpose, architecture rationale, and key insights"
+        },
+        {
+          "name": "generateEnhancedProductDocumentation",
+          "desc": "Creates comprehensive product documentation by analyzing file roles, modules, and relationships",
+          "inputs": "Array of file paths and workspace root",
+          "outputs": "EnhancedProductDocumentation with purpose, architecture, modules, and design patterns"
+        },
+        {
+          "name": "generateLLMInsights",
+          "desc": "Generates intelligent insights about code quality, patterns, and potential improvements",
+          "inputs": "CodeAnalysis object and analysis context",
+          "outputs": "Structured insights including quality metrics, patterns, and recommendations"
+        },
+        {
+          "name": "generateRefactoringSuggestions",
+          "desc": "Analyzes a function and provides AI-powered refactoring suggestions",
+          "inputs": "Function metadata, file content, and surrounding context",
+          "outputs": "Refactoring suggestions with rationale and proposed improvements"
+        },
+        {
+          "name": "generateUnitTestPlan",
+          "desc": "Creates a comprehensive unit test plan for a given function",
+          "inputs": "Function analysis including code, dependencies, and context",
+          "outputs": "Test plan with test cases, edge cases, and mocking strategies"
+        },
+        {
+          "name": "callLLMWithRetry",
+          "desc": "Makes API calls to LLM providers with automatic retry logic and rate limiting",
+          "inputs": "Prompt text, schema for validation, and optional model preferences",
+          "outputs": "Parsed and validated LLM response conforming to the specified schema"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "./fileDocumentation",
+        "./analyzer",
+        "./analysis/enhancedAnalyzer",
+        "./llmSchemas",
+        "./fileAccessHelper",
+        "./logger",
+        "./config/configurationManager",
+        "./ai/providers/providerFactory",
+        "./ai/llmResponseParser",
+        "./ai/llmRateLimiter",
+        "./ai/llmRetryHandler",
+        "./domain/prompts/promptBuilder",
+        "./domain/services/incrementalAnalysisService",
+        "./domain/prompts/refactoringPromptBuilder",
+        "./analysis/functionAnalyzer"
+      ],
+      "intent": "This file exists to bridge the gap between raw code analysis and human-understandable insights by leveraging LLM capabilities. It solves the problem of understanding large codebases by automatically generating documentation, detecting architectural patterns, and providing intelligent suggestions for improvements. It abstracts away the complexity of working with different AI providers and handles the challenges of token limits, rate limiting, and response parsing.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Orchestrates AI-powered code analysis by calling OpenAI/Claude APIs to generate intelligent insights about codebases, including product purpose, architecture analysis, and refactoring suggestions.\",\n  \"userVisibleActions\": [\n    \"Generates comprehensive product documentation explaining what the codebase does and why\",\n    \"Provides intelligent insights about code architecture and design patterns\",\n    \"Analyzes product purpose and core value propositions from code structure\",\n    \"Generates refactoring suggestions for improving code quality\",\n    \"Creates unit test plans for functions and modules\",\n    \"Detects entry points and orphaned files in the codebase\",\n    \"Groups files by modules and analyzes module relationships\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls LLM APIs (OpenAI/Claude) with structured prompts to analyze code\",\n    \"Processes file summaries and module information into AI prompts\",\n    \"Handles rate limiting and retries for API calls automatically\",\n    \"Parses and validates LLM responses against defined schemas\",\n    \"Provides incremental analysis for large codebases to avoid token limits\",\n    \"Manages different LLM providers based on configuration settings\",\n    \"Tracks analysis progress and budget constraints during execution\",\n    \"Exposes methods for product purpose analysis, refactoring analysis, and documentation generation\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"analyzeProductPurpose\",\n      \"desc\": \"Analyzes the entire codebase to determine what the product does and its architecture rationale\",\n      \"inputs\": \"CodeAnalysis object containing file and function metadata\",\n      \"outputs\": \"ProductPurposeAnalysis with product purpose, architecture rationale, and key insights\"\n    },\n    {\n      \"name\": \"generateEnhancedProductDocumentation\",\n      \"desc\": \"Creates comprehensive product documentation by analyzing file roles, modules, and relationships\",\n      \"inputs\": \"Array of file paths and workspace root\",\n      \"outputs\": \"EnhancedProductDocumentation with purpose, architecture, modules, and design patterns\"\n    },\n    {\n      \"name\": \"generateLLMInsights\",\n      \"desc\": \"Generates intelligent insights about code quality, patterns, and potential improvements\",\n      \"inputs\": \"CodeAnalysis object and analysis context\",\n      \"outputs\": \"Structured insights including quality metrics, patterns, and recommendations\"\n    },\n    {\n      \"name\": \"generateRefactoringSuggestions\",\n      \"desc\": \"Analyzes a function and provides AI-powered refactoring suggestions\",\n      \"inputs\": \"Function metadata, file content, and surrounding context\",\n      \"outputs\": \"Refactoring suggestions with rationale and proposed improvements\"\n    },\n    {\n      \"name\": \"generateUnitTestPlan\",\n      \"desc\": \"Creates a comprehensive unit test plan for a given function\",\n      \"inputs\": \"Function analysis including code, dependencies, and context\",\n      \"outputs\": \"Test plan with test cases, edge cases, and mocking strategies\"\n    },\n    {\n      \"name\": \"callLLMWithRetry\",\n      \"desc\": \"Makes API calls to LLM providers with automatic retry logic and rate limiting\",\n      \"inputs\": \"Prompt text, schema for validation, and optional model preferences\",\n      \"outputs\": \"Parsed and validated LLM response conforming to the specified schema\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./fileDocumentation\",\n    \"./analyzer\",\n    \"./analysis/enhancedAnalyzer\",\n    \"./llmSchemas\",\n    \"./fileAccessHelper\",\n    \"./logger\",\n    \"./config/configurationManager\",\n    \"./ai/providers/providerFactory\",\n    \"./ai/llmResponseParser\",\n    \"./ai/llmRateLimiter\",\n    \"./ai/llmRetryHandler\",\n    \"./domain/prompts/promptBuilder\",\n    \"./domain/services/incrementalAnalysisService\",\n    \"./domain/prompts/refactoringPromptBuilder\",\n    \"./analysis/functionAnalyzer\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between raw code analysis and human-understandable insights by leveraging LLM capabilities. It solves the problem of understanding large codebases by automatically generating documentation, detecting architectural patterns, and providing intelligent suggestions for improvements. It abstracts away the complexity of working with different AI providers and handles the challenges of token limits, rate limiting, and response parsing.\"\n}\n```"
+    },
+    {
+      "file": "src/logger.ts",
+      "role": "Core Logic",
+      "purpose": "Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory",
+      "userVisibleActions": [
+        "Log files are automatically created in the .shadow/logs/ directory of the workspace",
+        "All logged events are timestamped with ISO format timestamps",
+        "Log messages are appended to shadow-watch.log file with date and time information"
+      ],
+      "developerVisibleActions": [
+        "Developer calls SWLogger.log() to write timestamped messages to the log file",
+        "Developer calls SWLogger.section() to create visual section separators in the log",
+        "Logging automatically creates the .shadow/logs directory structure if it doesn't exist",
+        "Logging fails silently if workspace is not available or file operations fail"
+      ],
+      "keyFunctions": [
+        {
+          "name": "log",
+          "desc": "Writes a timestamped message to the shadow-watch.log file",
+          "inputs": "message: string - the text to log",
+          "outputs": "void - writes to file system, no return value"
+        },
+        {
+          "name": "section",
+          "desc": "Creates a visual section separator in the log with a title",
+          "inputs": "title: string - the section heading",
+          "outputs": "void - writes formatted section header to log"
+        },
+        {
+          "name": "getLogPath",
+          "desc": "Determines the full file path where logs should be written",
+          "inputs": "none",
+          "outputs": "string | null - path to log file or null if no workspace is open"
+        },
+        {
+          "name": "ensureDir",
+          "desc": "Creates a directory and parent directories if they don't exist",
+          "inputs": "dir: string - directory path to create",
+          "outputs": "void - creates directory structure"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "vscode"
+      ],
+      "intent": "Provides a centralized logging mechanism for the extension to track events and debugging information in a persistent file within the workspace, making it easier to diagnose issues and understand extension behavior over time",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides logging functionality that writes timestamped messages to a log file in the workspace's .shadow/logs directory\",\n  \"userVisibleActions\": [\n    \"Log files are automatically created in the .shadow/logs/ directory of the workspace\",\n    \"All logged events are timestamped with ISO format timestamps\",\n    \"Log messages are appended to shadow-watch.log file with date and time information\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer calls SWLogger.log() to write timestamped messages to the log file\",\n    \"Developer calls SWLogger.section() to create visual section separators in the log\",\n    \"Logging automatically creates the .shadow/logs directory structure if it doesn't exist\",\n    \"Logging fails silently if workspace is not available or file operations fail\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"log\",\n      \"desc\": \"Writes a timestamped message to the shadow-watch.log file\",\n      \"inputs\": \"message: string - the text to log\",\n      \"outputs\": \"void - writes to file system, no return value\"\n    },\n    {\n      \"name\": \"section\",\n      \"desc\": \"Creates a visual section separator in the log with a title\",\n      \"inputs\": \"title: string - the section heading\",\n      \"outputs\": \"void - writes formatted section header to log\"\n    },\n    {\n      \"name\": \"getLogPath\",\n      \"desc\": \"Determines the full file path where logs should be written\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string | null - path to log file or null if no workspace is open\"\n    },\n    {\n      \"name\": \"ensureDir\",\n      \"desc\": \"Creates a directory and parent directories if they don't exist\",\n      \"inputs\": \"dir: string - directory path to create\",\n      \"outputs\": \"void - creates directory structure\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"vscode\"\n  ],\n  \"intent\": \"Provides a centralized logging mechanism for the extension to track events and debugging information in a persistent file within the workspace, making it easier to diagnose issues and understand extension behavior over time\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [
+    {
+      "command": "shadow-watch.analyzeCode",
+      "description": "Triggers comprehensive code analysis of the workspace, generating insights and documentation"
+    },
+    {
+      "command": "shadow-watch.generateInsights",
+      "description": "Generates AI-powered code insights including quality issues, architecture analysis, and refactoring suggestions"
+    },
+    {
+      "command": "shadow-watch.generateProductDocs",
+      "description": "Creates AI-generated product documentation explaining what the codebase does and its purpose"
+    },
+    {
+      "command": "shadow-watch.generateUnitTests",
+      "description": "Generates unit test plans and test coverage analysis for functions and modules"
+    },
+    {
+      "command": "shadow-watch.exportAnalysis",
+      "description": "Exports analysis results and documentation to files in various formats"
+    },
+    {
+      "command": "shadow-watch.refreshInsights",
+      "description": "Refreshes the insights tree view to show updated analysis information"
+    },
+    {
+      "command": "shadow-watch.clearCache",
+      "description": "Clears the analysis cache to force fresh analysis on next run"
+    }
+  ],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:44:52.251Z"
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "module": "src/ai",
+  "moduleType": "other",
+  "capabilities": [
+    "Automatically manages API rate limits across different LLM providers (OpenAI, Claude) to prevent service disruptions",
+    "Parses unstructured AI responses into organized, structured data for file summaries, module summaries, and product documentation",
+    "Provides resilient AI operations with automatic retry logic and exponential backoff for handling temporary failures",
+    "Intelligently throttles requests to stay within provider-specific rate limits",
+    "Handles transient errors (rate limits, timeouts, network issues) transparently without user intervention"
+  ],
+  "summary": "The AI module provides robust infrastructure for interacting with Large Language Model (LLM) APIs in a reliable and efficient manner. It ensures that AI-powered code analysis and documentation generation operations run smoothly by managing the complexities of external API communication. When you request AI analysis of your code, this module works behind the scenes to coordinate API calls, handle errors gracefully, and deliver structured results.\n\nThe module implements three critical safeguards for AI operations: rate limiting prevents your requests from being rejected by exceeding API quotas, intelligent parsing transforms raw AI text responses into organized data structures that the application can use, and automatic retry logic ensures temporary failures don't interrupt your workflow. These components work together to provide a seamless experience where AI operations 'just work' even when dealing with rate limits, network hiccups, or service timeouts.\n\nFor users, this means more reliable AI-powered documentation and analysis. Instead of encountering errors when the AI service is busy or rate limits are reached, requests are automatically queued, throttled, or retried as needed. The structured parsing ensures that AI-generated insights about your code are consistently formatted and easy to consume, whether you're viewing file summaries, module overviews, or product-level documentation.",
+  "files": [
+    {
+      "file": "src/ai/llmRateLimiter.ts",
+      "role": "Core Logic",
+      "purpose": "Prevents LLM API requests from exceeding rate limits by tracking and throttling requests per provider",
+      "userVisibleActions": [
+        "API requests are automatically throttled to prevent hitting rate limits",
+        "Requests may be delayed or rejected when rate limits are approached",
+        "Different LLM providers (OpenAI, Claude) have different rate limits applied"
+      ],
+      "developerVisibleActions": [
+        "Configure custom rate limits for OpenAI and Claude providers",
+        "Check if a request can be made before calling the API",
+        "Record successful API requests to track usage against limits",
+        "Get information about remaining requests available",
+        "Wait for rate limit windows to reset when limits are reached"
+      ],
+      "keyFunctions": [
+        {
+          "name": "constructor",
+          "desc": "Initializes rate limiter with default limits (OpenAI: 60 req/min, Claude: 50 req/min)",
+          "inputs": "none",
+          "outputs": "RateLimiter instance"
+        },
+        {
+          "name": "configure",
+          "desc": "Sets custom rate limit configuration for a specific LLM provider",
+          "inputs": "provider (openai or claude), config (maxRequests, windowMs)",
+          "outputs": "void"
+        },
+        {
+          "name": "canMakeRequest",
+          "desc": "Checks if a new request can be made without exceeding rate limits",
+          "inputs": "provider (openai or claude)",
+          "outputs": "boolean - true if request is allowed"
+        },
+        {
+          "name": "recordRequest",
+          "desc": "Records a request timestamp to track usage against rate limits",
+          "inputs": "provider (openai or claude)",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [],
+      "intent": "Prevents API rate limit errors by tracking and enforcing request quotas per LLM provider, ensuring the application stays within API usage limits and avoids service disruptions or additional costs from exceeding quotas",
+      "rawContent": "```json\n{\n  \"purpose\": \"Prevents LLM API requests from exceeding rate limits by tracking and throttling requests per provider\",\n  \"userVisibleActions\": [\n    \"API requests are automatically throttled to prevent hitting rate limits\",\n    \"Requests may be delayed or rejected when rate limits are approached\",\n    \"Different LLM providers (OpenAI, Claude) have different rate limits applied\"\n  ],\n  \"developerVisibleActions\": [\n    \"Configure custom rate limits for OpenAI and Claude providers\",\n    \"Check if a request can be made before calling the API\",\n    \"Record successful API requests to track usage against limits\",\n    \"Get information about remaining requests available\",\n    \"Wait for rate limit windows to reset when limits are reached\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"constructor\",\n      \"desc\": \"Initializes rate limiter with default limits (OpenAI: 60 req/min, Claude: 50 req/min)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"RateLimiter instance\"\n    },\n    {\n      \"name\": \"configure\",\n      \"desc\": \"Sets custom rate limit configuration for a specific LLM provider\",\n      \"inputs\": \"provider (openai or claude), config (maxRequests, windowMs)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"canMakeRequest\",\n      \"desc\": \"Checks if a new request can be made without exceeding rate limits\",\n      \"inputs\": \"provider (openai or claude)\",\n      \"outputs\": \"boolean - true if request is allowed\"\n    },\n    {\n      \"name\": \"recordRequest\",\n      \"desc\": \"Records a request timestamp to track usage against rate limits\",\n      \"inputs\": \"provider (openai or claude)\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"Prevents API rate limit errors by tracking and enforcing request quotas per LLM provider, ensuring the application stays within API usage limits and avoids service disruptions or additional costs from exceeding quotas\"\n}\n```"
+    },
+    {
+      "file": "src/ai/llmResponseParser.ts",
+      "role": "Core Logic",
+      "purpose": "Parses LLM text responses into structured data objects for file summaries, module summaries, and product documentation",
+      "userVisibleActions": [
+        "Receives structured analysis results from AI that describe code files in plain language",
+        "Gets organized information about what code files do from a user perspective",
+        "Views parsed product documentation with user-facing features and benefits"
+      ],
+      "developerVisibleActions": [
+        "Calls parser methods to convert raw LLM response text into typed TypeScript objects",
+        "Handles JSON-formatted LLM responses or falls back to text parsing if JSON fails",
+        "Extracts file summaries with purpose, actions, functions, and dependencies from LLM output",
+        "Parses module summaries that group related files together",
+        "Converts LLM insights into structured analysis data with themes and patterns",
+        "Processes product purpose analysis from LLM responses",
+        "Generates enhanced product documentation by parsing LLM-generated content",
+        "Deals with parsing errors gracefully by falling back to text extraction methods"
+      ],
+      "keyFunctions": [
+        {
+          "name": "parseFileSummary",
+          "desc": "Converts LLM response text into a FileSummary object with purpose, actions, and dependencies",
+          "inputs": "content (LLM response text), filePath, role",
+          "outputs": "FileSummary object"
+        },
+        {
+          "name": "parseModuleSummary",
+          "desc": "Extracts module-level summary information from LLM response",
+          "inputs": "content (LLM response text), moduleName",
+          "outputs": "ModuleSummary object"
+        },
+        {
+          "name": "parseLLMInsights",
+          "desc": "Parses LLM analysis into structured insights with themes and patterns",
+          "inputs": "content (LLM response text), context",
+          "outputs": "LLMInsights object"
+        },
+        {
+          "name": "parseProductPurpose",
+          "desc": "Extracts product purpose analysis from LLM response",
+          "inputs": "content (LLM response text)",
+          "outputs": "ProductPurposeAnalysis object"
+        },
+        {
+          "name": "parseEnhancedProductDoc",
+          "desc": "Generates enhanced product documentation from LLM response",
+          "inputs": "content (LLM response text), existingDocs",
+          "outputs": "EnhancedProductDocumentation object"
+        },
+        {
+          "name": "extractSection",
+          "desc": "Extracts a specific section of text from LLM response by section name",
+          "inputs": "content, sectionName",
+          "outputs": "Extracted text string"
+        },
+        {
+          "name": "extractListSection",
+          "desc": "Extracts a list/array of items from a section in LLM response",
+          "inputs": "content, sectionName",
+          "outputs": "Array of strings"
+        }
+      ],
+      "dependencies": [
+        "../fileDocumentation",
+        "../llmService"
+      ],
+      "intent": "This file exists to bridge the gap between unstructured LLM text responses and the structured TypeScript objects the application needs. It solves the problem of reliably extracting meaningful data from AI-generated content, handling both JSON and plain text formats, and providing fallback mechanisms when parsing fails.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Parses LLM text responses into structured data objects for file summaries, module summaries, and product documentation\",\n  \"userVisibleActions\": [\n    \"Receives structured analysis results from AI that describe code files in plain language\",\n    \"Gets organized information about what code files do from a user perspective\",\n    \"Views parsed product documentation with user-facing features and benefits\"\n  ],\n  \"developerVisibleActions\": [\n    \"Calls parser methods to convert raw LLM response text into typed TypeScript objects\",\n    \"Handles JSON-formatted LLM responses or falls back to text parsing if JSON fails\",\n    \"Extracts file summaries with purpose, actions, functions, and dependencies from LLM output\",\n    \"Parses module summaries that group related files together\",\n    \"Converts LLM insights into structured analysis data with themes and patterns\",\n    \"Processes product purpose analysis from LLM responses\",\n    \"Generates enhanced product documentation by parsing LLM-generated content\",\n    \"Deals with parsing errors gracefully by falling back to text extraction methods\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"parseFileSummary\",\n      \"desc\": \"Converts LLM response text into a FileSummary object with purpose, actions, and dependencies\",\n      \"inputs\": \"content (LLM response text), filePath, role\",\n      \"outputs\": \"FileSummary object\"\n    },\n    {\n      \"name\": \"parseModuleSummary\",\n      \"desc\": \"Extracts module-level summary information from LLM response\",\n      \"inputs\": \"content (LLM response text), moduleName\",\n      \"outputs\": \"ModuleSummary object\"\n    },\n    {\n      \"name\": \"parseLLMInsights\",\n      \"desc\": \"Parses LLM analysis into structured insights with themes and patterns\",\n      \"inputs\": \"content (LLM response text), context\",\n      \"outputs\": \"LLMInsights object\"\n    },\n    {\n      \"name\": \"parseProductPurpose\",\n      \"desc\": \"Extracts product purpose analysis from LLM response\",\n      \"inputs\": \"content (LLM response text)\",\n      \"outputs\": \"ProductPurposeAnalysis object\"\n    },\n    {\n      \"name\": \"parseEnhancedProductDoc\",\n      \"desc\": \"Generates enhanced product documentation from LLM response\",\n      \"inputs\": \"content (LLM response text), existingDocs\",\n      \"outputs\": \"EnhancedProductDocumentation object\"\n    },\n    {\n      \"name\": \"extractSection\",\n      \"desc\": \"Extracts a specific section of text from LLM response by section name\",\n      \"inputs\": \"content, sectionName\",\n      \"outputs\": \"Extracted text string\"\n    },\n    {\n      \"name\": \"extractListSection\",\n      \"desc\": \"Extracts a list/array of items from a section in LLM response\",\n      \"inputs\": \"content, sectionName\",\n      \"outputs\": \"Array of strings\"\n    }\n  ],\n  \"dependencies\": [\n    \"../fileDocumentation\",\n    \"../llmService\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between unstructured LLM text responses and the structured TypeScript objects the application needs. It solves the problem of reliably extracting meaningful data from AI-generated content, handling both JSON and plain text formats, and providing fallback mechanisms when parsing fails.\"\n}\n```"
+    },
+    {
+      "file": "src/ai/llmRetryHandler.ts",
+      "role": "Core Logic",
+      "purpose": "Handles retry logic with exponential backoff for LLM API requests that fail due to rate limits, timeouts, or temporary errors",
+      "userVisibleActions": [
+        "When an AI operation fails temporarily, the system automatically retries the request instead of showing an immediate error",
+        "Rate limit errors and network timeouts are handled gracefully with automatic retries",
+        "Long-running AI operations have built-in resilience against temporary service disruptions"
+      ],
+      "developerVisibleActions": [
+        "Wrap any LLM API call with retry logic to handle transient failures automatically",
+        "Configure retry behavior including max attempts, delay intervals, and which errors to retry",
+        "Receive callbacks when retries occur to track retry attempts and errors",
+        "Non-retryable errors (like invalid API keys) fail immediately without wasting retries",
+        "Get back results with metadata about how many attempts were needed"
+      ],
+      "keyFunctions": [
+        {
+          "name": "executeWithRetry",
+          "desc": "Executes an async operation with automatic retry on failure, using exponential backoff between attempts",
+          "inputs": "operation function to execute, optional retry configuration (maxRetries, delays, retryable error types, onRetry callback)",
+          "outputs": "The successful result of the operation, or throws the final error if all retries exhausted"
+        },
+        {
+          "name": "isRetryableError",
+          "desc": "Determines whether an error should trigger a retry based on error type and message content",
+          "inputs": "error object, list of retryable error patterns",
+          "outputs": "boolean indicating if the error is retryable"
+        }
+      ],
+      "dependencies": [],
+      "intent": "Provides resilience for LLM API calls by automatically retrying failed requests due to temporary issues like rate limits, network problems, or service unavailability, preventing users from experiencing failures that could be resolved by waiting and retrying",
+      "rawContent": "```json\n{\n  \"purpose\": \"Handles retry logic with exponential backoff for LLM API requests that fail due to rate limits, timeouts, or temporary errors\",\n  \"userVisibleActions\": [\n    \"When an AI operation fails temporarily, the system automatically retries the request instead of showing an immediate error\",\n    \"Rate limit errors and network timeouts are handled gracefully with automatic retries\",\n    \"Long-running AI operations have built-in resilience against temporary service disruptions\"\n  ],\n  \"developerVisibleActions\": [\n    \"Wrap any LLM API call with retry logic to handle transient failures automatically\",\n    \"Configure retry behavior including max attempts, delay intervals, and which errors to retry\",\n    \"Receive callbacks when retries occur to track retry attempts and errors\",\n    \"Non-retryable errors (like invalid API keys) fail immediately without wasting retries\",\n    \"Get back results with metadata about how many attempts were needed\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"executeWithRetry\",\n      \"desc\": \"Executes an async operation with automatic retry on failure, using exponential backoff between attempts\",\n      \"inputs\": \"operation function to execute, optional retry configuration (maxRetries, delays, retryable error types, onRetry callback)\",\n      \"outputs\": \"The successful result of the operation, or throws the final error if all retries exhausted\"\n    },\n    {\n      \"name\": \"isRetryableError\",\n      \"desc\": \"Determines whether an error should trigger a retry based on error type and message content\",\n      \"inputs\": \"error object, list of retryable error patterns\",\n      \"outputs\": \"boolean indicating if the error is retryable\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"Provides resilience for LLM API calls by automatically retrying failed requests due to temporary issues like rate limits, network problems, or service unavailability, preventing users from experiencing failures that could be resolved by waiting and retrying\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:44:15.813Z"
+  }
+}

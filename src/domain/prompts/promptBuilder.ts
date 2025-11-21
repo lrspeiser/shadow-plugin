@@ -453,6 +453,46 @@ Examples:
 
 [Continue with top 3-5 priorities, each with title, description, relevantFiles, and relevantFunctions]
 
+## Unit Test Recommendations
+**CRITICAL**: Based on your architecture analysis, recommend specific functions/modules for unit testing.
+
+Your testing strategy should leverage YOUR ARCHITECTURAL INSIGHTS:
+- Functions in critical paths (entry points, core business logic)
+- Functions with known issues or architectural problems you identified
+- Complex functions (high LOC, many dependencies)
+- Functions at integration points between layers
+- Functions involved in duplicate/incompatible systems you found
+- Recently changed code (from orphaned files analysis)
+- Functions with high coupling or circular dependencies
+
+For each recommended test target, provide:
+1. **Function Name**: Exact function name
+2. **File Path**: Full path to file
+3. **Priority**: critical|high|medium
+4. **Reason**: Why this function needs testing (reference your architecture analysis)
+5. **Dependencies**: What needs mocking (vscode, fs, http, etc.)
+6. **Complexity**: simple|moderate|complex
+7. **Test Areas**: Specific scenarios to test (happy path, error cases, edge cases)
+
+Format (provide in a separate JSON code block in your response):
+\`\`\`json
+{
+  "recommended_test_targets": [
+    {
+      "function_name": "analyzeWorkspace",
+      "file_path": "src/analyzer.ts",
+      "priority": "critical",
+      "reason": "Entry point for core analysis feature. Complex function with file I/O and multiple dependencies.",
+      "dependencies": ["fs", "path"],
+      "complexity": "complex",
+      "test_areas": ["valid workspace", "empty workspace", "large codebase", "file read errors"]
+    }
+  ]
+}
+\`\`\`
+
+Provide 15-30 test targets, prioritized by criticality.
+
 IMPORTANT: 
 - Use MARKDOWN format (NOT HTML) - the content will be rendered in VSCode
 - Use the EXACT section headers shown above (## Overall Architecture Assessment, ## Strengths, etc.)

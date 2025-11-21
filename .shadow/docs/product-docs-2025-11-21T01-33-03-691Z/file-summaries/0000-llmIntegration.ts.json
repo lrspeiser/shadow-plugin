@@ -1,0 +1,118 @@
+{
+  "file": "src/llmIntegration.ts",
+  "role": "Core Logic",
+  "purpose": "Integrates LLM-powered analysis features with VS Code UI components and manages the lifecycle of code analysis, documentation generation, and insights display.",
+  "userVisibleActions": [
+    "View AI-generated code insights in a tree view sidebar",
+    "Access product documentation with AI-enhanced descriptions",
+    "Navigate codebase structure through AI-analyzed entry points",
+    "View unit test analysis and coverage information",
+    "See analysis results in dedicated viewer panels",
+    "Refresh insights manually via command palette or UI buttons",
+    "Configure LLM API keys through VS Code settings",
+    "Export analysis results and documentation to files",
+    "View loading indicators while AI analysis is in progress",
+    "Receive notifications when analysis completes or encounters errors"
+  ],
+  "developerVisibleActions": [
+    "Initialize LLM service that connects to AI providers (OpenAI, Anthropic, etc.)",
+    "Trigger code analysis on workspace files to extract structure and behavior",
+    "Generate product documentation from analyzed code automatically",
+    "Load previously saved analysis results and insights from disk",
+    "Register VS Code commands for analysis, documentation, and insights management",
+    "Set up tree view providers for displaying insights, tests, and navigation",
+    "Configure webview panels for rich HTML analysis visualization",
+    "Handle configuration changes and API key updates reactively",
+    "Manage state persistence across VS Code sessions",
+    "Export analysis data in JSON format for external tools"
+  ],
+  "keyFunctions": [
+    {
+      "name": "initializeLLMService",
+      "desc": "Sets up the LLM service and connects it to UI components with configuration change handlers",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "analyzeWorkspace",
+      "desc": "Analyzes all code files in the workspace to extract structure, entry points, and behavior patterns",
+      "inputs": "workspace folder path",
+      "outputs": "CodeAnalysis object with insights"
+    },
+    {
+      "name": "generateProductDocumentation",
+      "desc": "Creates AI-enhanced documentation from code analysis results",
+      "inputs": "CodeAnalysis object",
+      "outputs": "EnhancedProductDocumentation object"
+    },
+    {
+      "name": "loadSavedCodeAnalysis",
+      "desc": "Retrieves previously saved analysis results from persistent storage",
+      "inputs": "workspace identifier",
+      "outputs": "CodeAnalysis object or null"
+    },
+    {
+      "name": "saveCodeAnalysis",
+      "desc": "Persists analysis results to disk for later retrieval",
+      "inputs": "CodeAnalysis object, workspace path",
+      "outputs": "boolean success status"
+    },
+    {
+      "name": "refreshInsights",
+      "desc": "Re-runs AI analysis and updates all tree views and panels with latest insights",
+      "inputs": "optional force refresh flag",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "exportAnalysisResults",
+      "desc": "Saves analysis data and documentation to user-specified file location",
+      "inputs": "export format, file path",
+      "outputs": "Promise<void>"
+    },
+    {
+      "name": "registerCommands",
+      "desc": "Registers all VS Code commands for triggering analysis, documentation, and insights features",
+      "inputs": "VS Code extension context",
+      "outputs": "Disposable array"
+    },
+    {
+      "name": "convertCodeAnalysisToContext",
+      "desc": "Transforms code analysis results into LLM-compatible context format",
+      "inputs": "CodeAnalysis object",
+      "outputs": "AnalysisContext object"
+    },
+    {
+      "name": "updateTreeProviders",
+      "desc": "Refreshes all tree view providers with updated analysis data",
+      "inputs": "analysis results",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "child_process",
+    "util",
+    "./llmService",
+    "./insightsTreeView",
+    "./fileDocumentation",
+    "./analyzer",
+    "./productNavigator",
+    "./analysisViewer",
+    "./insightsViewer",
+    "./unitTestsNavigator",
+    "./logger",
+    "./state/llmStateManager",
+    "./context/analysisContextBuilder",
+    "./domain/formatters/documentationFormatter",
+    "./infrastructure/persistence/analysisResultRepository"
+  ],
+  "intent": "This file exists to bridge the gap between raw code analysis and user-facing AI insights by orchestrating LLM services, managing analysis lifecycle, coordinating multiple UI components (tree views, webviews, navigators), and providing a centralized integration layer that makes AI-powered code understanding accessible through VS Code's interface. It solves the problem of making complex AI analysis results consumable and actionable for developers working in their IDE.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Integrates LLM-powered analysis features with VS Code UI components and manages the lifecycle of code analysis, documentation generation, and insights display.\",\n  \"userVisibleActions\": [\n    \"View AI-generated code insights in a tree view sidebar\",\n    \"Access product documentation with AI-enhanced descriptions\",\n    \"Navigate codebase structure through AI-analyzed entry points\",\n    \"View unit test analysis and coverage information\",\n    \"See analysis results in dedicated viewer panels\",\n    \"Refresh insights manually via command palette or UI buttons\",\n    \"Configure LLM API keys through VS Code settings\",\n    \"Export analysis results and documentation to files\",\n    \"View loading indicators while AI analysis is in progress\",\n    \"Receive notifications when analysis completes or encounters errors\"\n  ],\n  \"developerVisibleActions\": [\n    \"Initialize LLM service that connects to AI providers (OpenAI, Anthropic, etc.)\",\n    \"Trigger code analysis on workspace files to extract structure and behavior\",\n    \"Generate product documentation from analyzed code automatically\",\n    \"Load previously saved analysis results and insights from disk\",\n    \"Register VS Code commands for analysis, documentation, and insights management\",\n    \"Set up tree view providers for displaying insights, tests, and navigation\",\n    \"Configure webview panels for rich HTML analysis visualization\",\n    \"Handle configuration changes and API key updates reactively\",\n    \"Manage state persistence across VS Code sessions\",\n    \"Export analysis data in JSON format for external tools\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"initializeLLMService\",\n      \"desc\": \"Sets up the LLM service and connects it to UI components with configuration change handlers\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"analyzeWorkspace\",\n      \"desc\": \"Analyzes all code files in the workspace to extract structure, entry points, and behavior patterns\",\n      \"inputs\": \"workspace folder path\",\n      \"outputs\": \"CodeAnalysis object with insights\"\n    },\n    {\n      \"name\": \"generateProductDocumentation\",\n      \"desc\": \"Creates AI-enhanced documentation from code analysis results\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"EnhancedProductDocumentation object\"\n    },\n    {\n      \"name\": \"loadSavedCodeAnalysis\",\n      \"desc\": \"Retrieves previously saved analysis results from persistent storage\",\n      \"inputs\": \"workspace identifier\",\n      \"outputs\": \"CodeAnalysis object or null\"\n    },\n    {\n      \"name\": \"saveCodeAnalysis\",\n      \"desc\": \"Persists analysis results to disk for later retrieval\",\n      \"inputs\": \"CodeAnalysis object, workspace path\",\n      \"outputs\": \"boolean success status\"\n    },\n    {\n      \"name\": \"refreshInsights\",\n      \"desc\": \"Re-runs AI analysis and updates all tree views and panels with latest insights\",\n      \"inputs\": \"optional force refresh flag\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"exportAnalysisResults\",\n      \"desc\": \"Saves analysis data and documentation to user-specified file location\",\n      \"inputs\": \"export format, file path\",\n      \"outputs\": \"Promise<void>\"\n    },\n    {\n      \"name\": \"registerCommands\",\n      \"desc\": \"Registers all VS Code commands for triggering analysis, documentation, and insights features\",\n      \"inputs\": \"VS Code extension context\",\n      \"outputs\": \"Disposable array\"\n    },\n    {\n      \"name\": \"convertCodeAnalysisToContext\",\n      \"desc\": \"Transforms code analysis results into LLM-compatible context format\",\n      \"inputs\": \"CodeAnalysis object\",\n      \"outputs\": \"AnalysisContext object\"\n    },\n    {\n      \"name\": \"updateTreeProviders\",\n      \"desc\": \"Refreshes all tree view providers with updated analysis data\",\n      \"inputs\": \"analysis results\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"util\",\n    \"./llmService\",\n    \"./insightsTreeView\",\n    \"./fileDocumentation\",\n    \"./analyzer\",\n    \"./productNavigator\",\n    \"./analysisViewer\",\n    \"./insightsViewer\",\n    \"./unitTestsNavigator\",\n    \"./logger\",\n    \"./state/llmStateManager\",\n    \"./context/analysisContextBuilder\",\n    \"./domain/formatters/documentationFormatter\",\n    \"./infrastructure/persistence/analysisResultRepository\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between raw code analysis and user-facing AI insights by orchestrating LLM services, managing analysis lifecycle, coordinating multiple UI components (tree views, webviews, navigators), and providing a centralized integration layer that makes AI-powered code understanding accessible through VS Code's interface. It solves the problem of making complex AI analysis results consumable and actionable for developers working in their IDE.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:43:12.897Z"
+  }
+}

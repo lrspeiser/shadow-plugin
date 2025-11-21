@@ -1,0 +1,59 @@
+{
+  "file": "src/llmSchemas.ts",
+  "role": "Core Logic",
+  "purpose": "Defines JSON schemas that structure and validate LLM responses for product analysis, code quality issues, behavior extraction, and documentation generation.",
+  "userVisibleActions": [
+    "Receives structured product purpose analysis explaining what the codebase does and why it's designed that way",
+    "Gets organized lists of code quality issues with clear titles, descriptions, and severity levels",
+    "Views extracted behavior information from code files in a consistent format",
+    "Sees categorized file summaries organized by role (Core Logic, Configuration, etc.)",
+    "Receives documentation generation plans with proposed file structures and content outlines"
+  ],
+  "developerVisibleActions": [
+    "Uses schemas to guarantee valid, parseable LLM responses without manual parsing",
+    "Ensures LLM outputs include required fields like productPurpose, architectureRationale, and userGoals",
+    "Validates that code quality issues contain title, description, severity, and relevant files",
+    "Enforces consistent structure for behavior extraction including purpose, actions, and intent",
+    "Defines strict response formats for documentation planning with file paths and content sections"
+  ],
+  "keyFunctions": [
+    {
+      "name": "productPurposeAnalysisSchema",
+      "desc": "Schema for analyzing product purpose and architecture decisions",
+      "inputs": "None (schema definition)",
+      "outputs": "Object with productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors"
+    },
+    {
+      "name": "codeQualityIssuesSchema",
+      "desc": "Schema for identifying and documenting code quality issues",
+      "inputs": "None (schema definition)",
+      "outputs": "Object with issues array containing title, description, severity, relevantFiles, tags"
+    },
+    {
+      "name": "behaviorExtractionSchema",
+      "desc": "Schema for extracting user-facing and developer-facing behavior from code",
+      "inputs": "None (schema definition)",
+      "outputs": "Object with purpose, userVisibleActions, developerVisibleActions, keyFunctions, dependencies, intent"
+    },
+    {
+      "name": "fileCategorizationSchema",
+      "desc": "Schema for categorizing files by role with summaries",
+      "inputs": "None (schema definition)",
+      "outputs": "Object with categorized file summaries by role (Core Logic, UI Components, Configuration, etc.)"
+    },
+    {
+      "name": "documentationPlanSchema",
+      "desc": "Schema for generating documentation plans with file structure and content",
+      "inputs": "None (schema definition)",
+      "outputs": "Object with overview, proposedFiles array, and nextSteps"
+    }
+  ],
+  "dependencies": [],
+  "intent": "Provides type-safe schema definitions that ensure Claude AI returns consistent, structured data for product analysis, code quality assessment, behavior extraction, and documentation generation, eliminating the need for fragile response parsing.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines JSON schemas that structure and validate LLM responses for product analysis, code quality issues, behavior extraction, and documentation generation.\",\n  \"userVisibleActions\": [\n    \"Receives structured product purpose analysis explaining what the codebase does and why it's designed that way\",\n    \"Gets organized lists of code quality issues with clear titles, descriptions, and severity levels\",\n    \"Views extracted behavior information from code files in a consistent format\",\n    \"Sees categorized file summaries organized by role (Core Logic, Configuration, etc.)\",\n    \"Receives documentation generation plans with proposed file structures and content outlines\"\n  ],\n  \"developerVisibleActions\": [\n    \"Uses schemas to guarantee valid, parseable LLM responses without manual parsing\",\n    \"Ensures LLM outputs include required fields like productPurpose, architectureRationale, and userGoals\",\n    \"Validates that code quality issues contain title, description, severity, and relevant files\",\n    \"Enforces consistent structure for behavior extraction including purpose, actions, and intent\",\n    \"Defines strict response formats for documentation planning with file paths and content sections\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"productPurposeAnalysisSchema\",\n      \"desc\": \"Schema for analyzing product purpose and architecture decisions\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors\"\n    },\n    {\n      \"name\": \"codeQualityIssuesSchema\",\n      \"desc\": \"Schema for identifying and documenting code quality issues\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with issues array containing title, description, severity, relevantFiles, tags\"\n    },\n    {\n      \"name\": \"behaviorExtractionSchema\",\n      \"desc\": \"Schema for extracting user-facing and developer-facing behavior from code\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with purpose, userVisibleActions, developerVisibleActions, keyFunctions, dependencies, intent\"\n    },\n    {\n      \"name\": \"fileCategorizationSchema\",\n      \"desc\": \"Schema for categorizing files by role with summaries\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with categorized file summaries by role (Core Logic, UI Components, Configuration, etc.)\"\n    },\n    {\n      \"name\": \"documentationPlanSchema\",\n      \"desc\": \"Schema for generating documentation plans with file structure and content\",\n      \"inputs\": \"None (schema definition)\",\n      \"outputs\": \"Object with overview, proposedFiles array, and nextSteps\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"Provides type-safe schema definitions that ensure Claude AI returns consistent, structured data for product analysis, code quality assessment, behavior extraction, and documentation generation, eliminating the need for fragile response parsing.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:43:26.761Z"
+  }
+}

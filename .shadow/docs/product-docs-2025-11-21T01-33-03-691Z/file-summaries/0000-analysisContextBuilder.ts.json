@@ -1,0 +1,44 @@
+{
+  "file": "src/context/analysisContextBuilder.ts",
+  "role": "Core Logic",
+  "purpose": "Converts code analysis results into a structured format for LLM consumption and saves them to disk for documentation and future reference",
+  "userVisibleActions": [
+    "Code analysis results are automatically saved to the .shadow/docs directory in the workspace",
+    "Analysis results include file statistics, entry points, and import relationships",
+    "Analysis snapshots are timestamped for tracking when documentation was generated"
+  ],
+  "developerVisibleActions": [
+    "Call convertCodeAnalysisToContext() to transform CodeAnalysis into AnalysisContext format suitable for LLM processing",
+    "Call saveCodeAnalysis() to persist analysis results to .shadow/docs/code-analysis.json",
+    "Analysis data is structured with metadata including generation timestamps",
+    "Files are automatically organized into .shadow/docs directory structure"
+  ],
+  "keyFunctions": [
+    {
+      "name": "convertCodeAnalysisToContext",
+      "desc": "Transforms CodeAnalysis format into AnalysisContext format for LLM service consumption",
+      "inputs": "analysis: CodeAnalysis object containing files, imports, entry points, and statistics",
+      "outputs": "AnalysisContext object with formatted file data, imports, entry points, orphaned files, and code metrics"
+    },
+    {
+      "name": "saveCodeAnalysis",
+      "desc": "Persists code analysis results to disk in JSON format with metadata",
+      "inputs": "analysis: CodeAnalysis object to save",
+      "outputs": "void (creates .shadow/docs/code-analysis.json file)"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path",
+    "../analyzer",
+    "../llmService"
+  ],
+  "intent": "This file exists to bridge the gap between code analysis results and LLM documentation generation by converting analysis data into a consumable format and persisting it for documentation purposes. It solves the problem of making codebase analysis results accessible to both AI services and developers, while maintaining a historical record of project structure over time.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Converts code analysis results into a structured format for LLM consumption and saves them to disk for documentation and future reference\",\n  \"userVisibleActions\": [\n    \"Code analysis results are automatically saved to the .shadow/docs directory in the workspace\",\n    \"Analysis results include file statistics, entry points, and import relationships\",\n    \"Analysis snapshots are timestamped for tracking when documentation was generated\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call convertCodeAnalysisToContext() to transform CodeAnalysis into AnalysisContext format suitable for LLM processing\",\n    \"Call saveCodeAnalysis() to persist analysis results to .shadow/docs/code-analysis.json\",\n    \"Analysis data is structured with metadata including generation timestamps\",\n    \"Files are automatically organized into .shadow/docs directory structure\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"convertCodeAnalysisToContext\",\n      \"desc\": \"Transforms CodeAnalysis format into AnalysisContext format for LLM service consumption\",\n      \"inputs\": \"analysis: CodeAnalysis object containing files, imports, entry points, and statistics\",\n      \"outputs\": \"AnalysisContext object with formatted file data, imports, entry points, orphaned files, and code metrics\"\n    },\n    {\n      \"name\": \"saveCodeAnalysis\",\n      \"desc\": \"Persists code analysis results to disk in JSON format with metadata\",\n      \"inputs\": \"analysis: CodeAnalysis object to save\",\n      \"outputs\": \"void (creates .shadow/docs/code-analysis.json file)\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"../analyzer\",\n    \"../llmService\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between code analysis results and LLM documentation generation by converting analysis data into a consumable format and persisting it for documentation purposes. It solves the problem of making codebase analysis results accessible to both AI services and developers, while maintaining a historical record of project structure over time.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:36:07.825Z"
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "module": "src/domain/services",
+  "moduleType": "other",
+  "capabilities": [
+    "Automatic file system monitoring and change detection across the workspace",
+    "Real-time updates when project files are created, modified, or deleted",
+    "Iterative LLM analysis sessions that can request additional context across multiple rounds",
+    "Automatic test framework detection and configuration validation",
+    "Missing test dependency identification without manual configuration",
+    "Intelligent file and search result fetching during analysis iterations"
+  ],
+  "summary": "The services module provides core infrastructure services that enhance the extension's responsiveness and intelligence. It enables automatic monitoring of workspace changes, ensuring that features like product documentation and insights stay synchronized with the actual codebase without requiring manual refresh actions.\n\nThe module supports advanced iterative analysis workflows where AI-powered features can request additional files or search results across multiple conversation rounds, automatically fetching context up to a maximum number of iterations. This enables more thorough and context-aware analysis without overwhelming the system.\n\nFor testing capabilities, the module automatically detects test frameworks (Jest, Mocha, Vitest, Pytest) from project configuration files and identifies missing dependencies or setup issues. This eliminates the need for manual test configuration and helps users quickly understand what's required to get their test environment working properly.",
+  "files": [
+    {
+      "file": "src/domain/services/fileWatcherService.ts",
+      "role": "Core Logic",
+      "purpose": "Provides centralized file system watching functionality to monitor and react to file changes across the workspace",
+      "userVisibleActions": [
+        "Automatically detects when files are created, modified, or deleted in the workspace",
+        "Updates features in real-time when relevant files change (e.g., product files, insights)",
+        "Responds to file save events to trigger automatic refreshes or updates"
+      ],
+      "developerVisibleActions": [
+        "Register watchers for specific file patterns (e.g., *.json, *.md) with custom handlers",
+        "Handle file creation, modification, and deletion events separately",
+        "Filter watched files using ignore patterns to exclude unwanted files",
+        "Subscribe to document save events with custom handlers",
+        "Dispose watchers when no longer needed to free resources",
+        "Track multiple handlers for the same file pattern without creating duplicate watchers"
+      ],
+      "keyFunctions": [
+        {
+          "name": "watch",
+          "desc": "Registers a file system watcher for a specific pattern and calls the handler when matching files change",
+          "inputs": "id (string), pattern (file glob or relative pattern), handler (callback function), options (watch types and ignore patterns)",
+          "outputs": "Disposable object to unregister the watcher"
+        },
+        {
+          "name": "onDocumentSave",
+          "desc": "Registers a handler to be called whenever a text document is saved",
+          "inputs": "id (string), handler (callback function accepting TextDocument)",
+          "outputs": "Disposable object to unregister the handler"
+        },
+        {
+          "name": "unwatch",
+          "desc": "Removes a specific watcher by ID and cleans up resources if no other handlers exist",
+          "inputs": "id (string)",
+          "outputs": "void"
+        },
+        {
+          "name": "dispose",
+          "desc": "Cleans up all watchers and handlers, freeing system resources",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "shouldIgnore",
+          "desc": "Determines if a file path should be ignored based on configured patterns",
+          "inputs": "filePath (string), ignorePatterns (array of glob patterns)",
+          "outputs": "boolean indicating whether to ignore the file"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "path",
+        "fs"
+      ],
+      "intent": "This file exists to consolidate duplicate file watching logic that was scattered across multiple files (fileWatcher.ts, productNavigator.ts, insightsViewer.ts). It provides a single, reusable service for monitoring file system changes, eliminating code duplication and ensuring consistent file watching behavior throughout the extension. It solves the problem of managing multiple file watchers efficiently while allowing different parts of the extension to react to file changes independently.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides centralized file system watching functionality to monitor and react to file changes across the workspace\",\n  \"userVisibleActions\": [\n    \"Automatically detects when files are created, modified, or deleted in the workspace\",\n    \"Updates features in real-time when relevant files change (e.g., product files, insights)\",\n    \"Responds to file save events to trigger automatic refreshes or updates\"\n  ],\n  \"developerVisibleActions\": [\n    \"Register watchers for specific file patterns (e.g., *.json, *.md) with custom handlers\",\n    \"Handle file creation, modification, and deletion events separately\",\n    \"Filter watched files using ignore patterns to exclude unwanted files\",\n    \"Subscribe to document save events with custom handlers\",\n    \"Dispose watchers when no longer needed to free resources\",\n    \"Track multiple handlers for the same file pattern without creating duplicate watchers\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"watch\",\n      \"desc\": \"Registers a file system watcher for a specific pattern and calls the handler when matching files change\",\n      \"inputs\": \"id (string), pattern (file glob or relative pattern), handler (callback function), options (watch types and ignore patterns)\",\n      \"outputs\": \"Disposable object to unregister the watcher\"\n    },\n    {\n      \"name\": \"onDocumentSave\",\n      \"desc\": \"Registers a handler to be called whenever a text document is saved\",\n      \"inputs\": \"id (string), handler (callback function accepting TextDocument)\",\n      \"outputs\": \"Disposable object to unregister the handler\"\n    },\n    {\n      \"name\": \"unwatch\",\n      \"desc\": \"Removes a specific watcher by ID and cleans up resources if no other handlers exist\",\n      \"inputs\": \"id (string)\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up all watchers and handlers, freeing system resources\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"shouldIgnore\",\n      \"desc\": \"Determines if a file path should be ignored based on configured patterns\",\n      \"inputs\": \"filePath (string), ignorePatterns (array of glob patterns)\",\n      \"outputs\": \"boolean indicating whether to ignore the file\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"fs\"\n  ],\n  \"intent\": \"This file exists to consolidate duplicate file watching logic that was scattered across multiple files (fileWatcher.ts, productNavigator.ts, insightsViewer.ts). It provides a single, reusable service for monitoring file system changes, eliminating code duplication and ensuring consistent file watching behavior throughout the extension. It solves the problem of managing multiple file watchers efficiently while allowing different parts of the extension to react to file changes independently.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/incrementalAnalysisService.ts",
+      "role": "Core Logic",
+      "purpose": "Manages iterative analysis sessions where an LLM can request additional files or search results across multiple rounds of conversation.",
+      "userVisibleActions": [
+        "LLM analysis continues across multiple iterations when it needs more information",
+        "Analysis automatically fetches requested files and grep search results",
+        "Analysis stops after reaching maximum iterations or when LLM signals completion",
+        "Up to 5 file/grep requests are processed per iteration to prevent overload"
+      ],
+      "developerVisibleActions": [
+        "Developer initiates iterative analysis with custom callbacks for iteration start and completion",
+        "Service processes LLM requests for file reads and grep searches automatically",
+        "Developer receives structured iteration results including the final result, iteration count, and all requests made",
+        "Service maintains conversation history by appending assistant and user messages",
+        "Developer can configure maximum iterations to control analysis depth"
+      ],
+      "keyFunctions": [
+        {
+          "name": "processRequests",
+          "desc": "Processes up to 5 file read and grep search requests from the LLM, returning formatted results",
+          "inputs": "requests (array of LLMRequest), currentResult (any analysis result), messages (conversation history)",
+          "outputs": "ProcessRequestsResult with additionalInfo string and updated messages array"
+        },
+        {
+          "name": "async *iterateAnalysis",
+          "desc": "Iterates through analysis rounds, yielding results after each iteration until completion or max iterations reached",
+          "inputs": "currentResult (initial analysis), iteration (starting iteration number), maxIterations (limit), callbacks (optional iteration hooks)",
+          "outputs": "AsyncGenerator yielding IterationResult objects with result, iteration count, requests, and continuation flag"
+        }
+      ],
+      "dependencies": [
+        "FileAccessHelper",
+        "LLMRequest types from fileAccessHelper module"
+      ],
+      "intent": "Eliminates code duplication and improves testability by extracting iterative LLM analysis logic into a dedicated service that handles multi-round conversations where the LLM can request additional context through file reads and grep searches.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Manages iterative analysis sessions where an LLM can request additional files or search results across multiple rounds of conversation.\",\n  \"userVisibleActions\": [\n    \"LLM analysis continues across multiple iterations when it needs more information\",\n    \"Analysis automatically fetches requested files and grep search results\",\n    \"Analysis stops after reaching maximum iterations or when LLM signals completion\",\n    \"Up to 5 file/grep requests are processed per iteration to prevent overload\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer initiates iterative analysis with custom callbacks for iteration start and completion\",\n    \"Service processes LLM requests for file reads and grep searches automatically\",\n    \"Developer receives structured iteration results including the final result, iteration count, and all requests made\",\n    \"Service maintains conversation history by appending assistant and user messages\",\n    \"Developer can configure maximum iterations to control analysis depth\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"processRequests\",\n      \"desc\": \"Processes up to 5 file read and grep search requests from the LLM, returning formatted results\",\n      \"inputs\": \"requests (array of LLMRequest), currentResult (any analysis result), messages (conversation history)\",\n      \"outputs\": \"ProcessRequestsResult with additionalInfo string and updated messages array\"\n    },\n    {\n      \"name\": \"async *iterateAnalysis\",\n      \"desc\": \"Iterates through analysis rounds, yielding results after each iteration until completion or max iterations reached\",\n      \"inputs\": \"currentResult (initial analysis), iteration (starting iteration number), maxIterations (limit), callbacks (optional iteration hooks)\",\n      \"outputs\": \"AsyncGenerator yielding IterationResult objects with result, iteration count, requests, and continuation flag\"\n    }\n  ],\n  \"dependencies\": [\n    \"FileAccessHelper\",\n    \"LLMRequest types from fileAccessHelper module\"\n  ],\n  \"intent\": \"Eliminates code duplication and improves testability by extracting iterative LLM analysis logic into a dedicated service that handles multi-round conversations where the LLM can request additional context through file reads and grep searches.\"\n}\n```"
+    },
+    {
+      "file": "src/domain/services/testConfigurationService.ts",
+      "role": "Core Logic",
+      "purpose": "Automatically detects test framework configuration (Jest, Mocha, Vitest, Pytest) and identifies missing dependencies or setup requirements without manual user configuration",
+      "userVisibleActions": [
+        "Test framework is automatically detected from project files",
+        "Missing test dependencies are identified and reported",
+        "Configuration issues are detected and surfaced",
+        "Setup requirements are automatically checked",
+        "Test configuration status is displayed"
+      ],
+      "developerVisibleActions": [
+        "Service scans workspace for package.json and test configuration files",
+        "Detects which test framework is being used (Jest, Mocha, Vitest, Pytest)",
+        "Identifies missing dependencies required for testing",
+        "Returns configuration status with framework, dependencies, and setup requirements",
+        "Provides actionable setup steps when configuration is incomplete"
+      ],
+      "keyFunctions": [
+        {
+          "name": "detectTestConfiguration",
+          "desc": "Scans workspace to determine which test framework is configured and what dependencies are missing",
+          "inputs": "workspaceRoot: string (path to project root)",
+          "outputs": "TestConfigStatus object containing framework type, configuration state, missing dependencies, and required setup actions"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "SWLogger"
+      ],
+      "intent": "Eliminates manual test configuration setup by automatically detecting the test framework being used in a project, checking if all required dependencies are installed, and identifying what setup steps are needed to ensure generated tests will work immediately without user intervention",
+      "rawContent": "```json\n{\n  \"purpose\": \"Automatically detects test framework configuration (Jest, Mocha, Vitest, Pytest) and identifies missing dependencies or setup requirements without manual user configuration\",\n  \"userVisibleActions\": [\n    \"Test framework is automatically detected from project files\",\n    \"Missing test dependencies are identified and reported\",\n    \"Configuration issues are detected and surfaced\",\n    \"Setup requirements are automatically checked\",\n    \"Test configuration status is displayed\"\n  ],\n  \"developerVisibleActions\": [\n    \"Service scans workspace for package.json and test configuration files\",\n    \"Detects which test framework is being used (Jest, Mocha, Vitest, Pytest)\",\n    \"Identifies missing dependencies required for testing\",\n    \"Returns configuration status with framework, dependencies, and setup requirements\",\n    \"Provides actionable setup steps when configuration is incomplete\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestConfiguration\",\n      \"desc\": \"Scans workspace to determine which test framework is configured and what dependencies are missing\",\n      \"inputs\": \"workspaceRoot: string (path to project root)\",\n      \"outputs\": \"TestConfigStatus object containing framework type, configuration state, missing dependencies, and required setup actions\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"Eliminates manual test configuration setup by automatically detecting the test framework being used in a project, checking if all required dependencies are installed, and identifying what setup steps are needed to ensure generated tests will work immediately without user intervention\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:46:02.996Z"
+  }
+}

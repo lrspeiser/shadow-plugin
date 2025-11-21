@@ -1,0 +1,60 @@
+{
+  "file": "src/domain/services/testing/llmTestValidationService.ts",
+  "role": "Core Logic",
+  "purpose": "Validates and automatically fixes failing tests using LLM-powered analysis and code generation",
+  "userVisibleActions": [
+    "Tests are automatically run and results are displayed showing passed/failed counts",
+    "Failing tests are automatically analyzed and fixed without manual intervention",
+    "Test validation progress is logged showing attempt numbers and success/failure status",
+    "Final test report is generated showing overall test health and remaining failures"
+  ],
+  "developerVisibleActions": [
+    "Developer triggers test validation which runs Jest tests and captures results",
+    "Developer receives structured test execution results with pass/fail counts per test file",
+    "Developer can specify a single test file or run all tests in workspace",
+    "Developer gets iterative fix attempts (up to 3 by default) for each failing test",
+    "Developer receives a comprehensive test report with summary statistics",
+    "Developer sees logged progress for test execution and fix attempts"
+  ],
+  "keyFunctions": [
+    {
+      "name": "runTests",
+      "desc": "Executes all tests or a specific test file and returns aggregated results",
+      "inputs": "workspaceRoot: string, testFile?: string",
+      "outputs": "Promise<TestExecutionResult[]> - array of test results with pass/fail counts"
+    },
+    {
+      "name": "fixFailingTest",
+      "desc": "Attempts to automatically fix a failing test using LLM with multiple retry attempts",
+      "inputs": "testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts?: number",
+      "outputs": "Promise<{success: boolean, attempts: number, finalError?: string}> - fix outcome"
+    },
+    {
+      "name": "validateAndFix",
+      "desc": "Orchestrates the complete test validation and auto-fix workflow for all failing tests",
+      "inputs": "workspaceRoot: string, llmService: any, testFile?: string, maxAttempts?: number",
+      "outputs": "Promise<TestReport> - comprehensive report of test execution and fix attempts"
+    },
+    {
+      "name": "generateTestReport",
+      "desc": "Creates a structured summary report of all test results and fix outcomes",
+      "inputs": "results: TestExecutionResult[], fixes: Map<string, {success: boolean, attempts: number}>",
+      "outputs": "TestReport - formatted report with statistics and per-file details"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "TestExecutionService",
+    "TestExecutionResult, TestReport, TestReportSummary (types)",
+    "buildFixPrompt (prompts)",
+    "SWLogger"
+  ],
+  "intent": "This file exists to automate the test validation and fixing workflow by running tests, detecting failures, and using LLM to intelligently repair broken tests. It solves the problem of manual test maintenance by providing automated analysis and fixes for failing tests, reducing developer time spent debugging test failures.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Validates and automatically fixes failing tests using LLM-powered analysis and code generation\",\n  \"userVisibleActions\": [\n    \"Tests are automatically run and results are displayed showing passed/failed counts\",\n    \"Failing tests are automatically analyzed and fixed without manual intervention\",\n    \"Test validation progress is logged showing attempt numbers and success/failure status\",\n    \"Final test report is generated showing overall test health and remaining failures\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer triggers test validation which runs Jest tests and captures results\",\n    \"Developer receives structured test execution results with pass/fail counts per test file\",\n    \"Developer can specify a single test file or run all tests in workspace\",\n    \"Developer gets iterative fix attempts (up to 3 by default) for each failing test\",\n    \"Developer receives a comprehensive test report with summary statistics\",\n    \"Developer sees logged progress for test execution and fix attempts\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"runTests\",\n      \"desc\": \"Executes all tests or a specific test file and returns aggregated results\",\n      \"inputs\": \"workspaceRoot: string, testFile?: string\",\n      \"outputs\": \"Promise<TestExecutionResult[]> - array of test results with pass/fail counts\"\n    },\n    {\n      \"name\": \"fixFailingTest\",\n      \"desc\": \"Attempts to automatically fix a failing test using LLM with multiple retry attempts\",\n      \"inputs\": \"testFilePath: string, executionResult: TestExecutionResult, workspaceRoot: string, llmService: any, maxAttempts?: number\",\n      \"outputs\": \"Promise<{success: boolean, attempts: number, finalError?: string}> - fix outcome\"\n    },\n    {\n      \"name\": \"validateAndFix\",\n      \"desc\": \"Orchestrates the complete test validation and auto-fix workflow for all failing tests\",\n      \"inputs\": \"workspaceRoot: string, llmService: any, testFile?: string, maxAttempts?: number\",\n      \"outputs\": \"Promise<TestReport> - comprehensive report of test execution and fix attempts\"\n    },\n    {\n      \"name\": \"generateTestReport\",\n      \"desc\": \"Creates a structured summary report of all test results and fix outcomes\",\n      \"inputs\": \"results: TestExecutionResult[], fixes: Map<string, {success: boolean, attempts: number}>\",\n      \"outputs\": \"TestReport - formatted report with statistics and per-file details\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"TestExecutionService\",\n    \"TestExecutionResult, TestReport, TestReportSummary (types)\",\n    \"buildFixPrompt (prompts)\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This file exists to automate the test validation and fixing workflow by running tests, detecting failures, and using LLM to intelligently repair broken tests. It solves the problem of manual test maintenance by providing automated analysis and fixes for failing tests, reducing developer time spent debugging test failures.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:39:28.219Z"
+  }
+}

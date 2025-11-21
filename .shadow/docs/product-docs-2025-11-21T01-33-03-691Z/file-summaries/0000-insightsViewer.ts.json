@@ -1,0 +1,73 @@
+{
+  "file": "src/insightsViewer.ts",
+  "role": "GUI View",
+  "purpose": "Provides a tree view in VSCode for browsing and navigating AI-generated architecture insights about the codebase",
+  "userVisibleActions": [
+    "View hierarchical insights tree showing architecture, decisions, principles, patterns, and risks",
+    "Navigate to specific code files by clicking on file references in insights",
+    "See file paths and line numbers associated with insights",
+    "Refresh insights view to see updated analysis results",
+    "Expand/collapse insight categories and subcategories",
+    "View purpose documentation and architectural decisions in tree structure"
+  ],
+  "developerVisibleActions": [
+    "Tree view automatically refreshes when .shadow/docs/insights.json file changes",
+    "Tree view automatically updates when purpose.md file is modified",
+    "Can manually refresh the insights view via command",
+    "Set custom insights data programmatically via setInsights method",
+    "File watchers monitor .shadow directory for changes",
+    "Click on items to navigate to referenced source files"
+  ],
+  "keyFunctions": [
+    {
+      "name": "refresh",
+      "desc": "Reloads insights from the .shadow/docs/insights.json file and updates the tree view",
+      "inputs": "None",
+      "outputs": "void"
+    },
+    {
+      "name": "getTreeItem",
+      "desc": "Converts insight data into displayable tree items with icons and navigation",
+      "inputs": "InsightItem",
+      "outputs": "vscode.TreeItem"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Returns child items for a given parent in the tree hierarchy",
+      "inputs": "InsightItem or undefined",
+      "outputs": "Promise<InsightItem[]>"
+    },
+    {
+      "name": "setInsights",
+      "desc": "Updates the insights data and refreshes the tree view",
+      "inputs": "LLMInsights object",
+      "outputs": "void"
+    },
+    {
+      "name": "setupFileWatcher",
+      "desc": "Creates file system watchers to auto-refresh when insights or purpose files change",
+      "inputs": "None",
+      "outputs": "void"
+    },
+    {
+      "name": "handleItemClick",
+      "desc": "Opens source code file at specific line when user clicks an insight item with file reference",
+      "inputs": "InsightItem",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "path",
+    "fs",
+    "LLMInsights from ./llmService",
+    "FileWatcherService from ./domain/services/fileWatcherService"
+  ],
+  "intent": "This file exists to provide developers with an organized, browsable view of AI-generated architecture insights within VSCode. It solves the problem of making complex architecture analysis accessible and navigable, allowing developers to understand project structure, design decisions, and potential risks through a familiar tree-view interface with direct navigation to relevant code locations.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view in VSCode for browsing and navigating AI-generated architecture insights about the codebase\",\n  \"userVisibleActions\": [\n    \"View hierarchical insights tree showing architecture, decisions, principles, patterns, and risks\",\n    \"Navigate to specific code files by clicking on file references in insights\",\n    \"See file paths and line numbers associated with insights\",\n    \"Refresh insights view to see updated analysis results\",\n    \"Expand/collapse insight categories and subcategories\",\n    \"View purpose documentation and architectural decisions in tree structure\"\n  ],\n  \"developerVisibleActions\": [\n    \"Tree view automatically refreshes when .shadow/docs/insights.json file changes\",\n    \"Tree view automatically updates when purpose.md file is modified\",\n    \"Can manually refresh the insights view via command\",\n    \"Set custom insights data programmatically via setInsights method\",\n    \"File watchers monitor .shadow directory for changes\",\n    \"Click on items to navigate to referenced source files\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Reloads insights from the .shadow/docs/insights.json file and updates the tree view\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Converts insight data into displayable tree items with icons and navigation\",\n      \"inputs\": \"InsightItem\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for a given parent in the tree hierarchy\",\n      \"inputs\": \"InsightItem or undefined\",\n      \"outputs\": \"Promise<InsightItem[]>\"\n    },\n    {\n      \"name\": \"setInsights\",\n      \"desc\": \"Updates the insights data and refreshes the tree view\",\n      \"inputs\": \"LLMInsights object\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"setupFileWatcher\",\n      \"desc\": \"Creates file system watchers to auto-refresh when insights or purpose files change\",\n      \"inputs\": \"None\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"handleItemClick\",\n      \"desc\": \"Opens source code file at specific line when user clicks an insight item with file reference\",\n      \"inputs\": \"InsightItem\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"path\",\n    \"fs\",\n    \"LLMInsights from ./llmService\",\n    \"FileWatcherService from ./domain/services/fileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide developers with an organized, browsable view of AI-generated architecture insights within VSCode. It solves the problem of making complex architecture analysis accessible and navigable, allowing developers to understand project structure, design decisions, and potential risks through a familiar tree-view interface with direct navigation to relevant code locations.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:42:32.773Z"
+  }
+}

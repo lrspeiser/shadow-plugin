@@ -1,0 +1,123 @@
+{
+  "module": "src/infrastructure/fileSystem",
+  "moduleType": "other",
+  "capabilities": [
+    "Automatically caches file contents to speed up repeated file access across the extension",
+    "Intelligently detects when files change on disk and refreshes cached content automatically",
+    "Filters out unwanted directories and files (node_modules, .git, dist, build, etc.) from file operations",
+    "Processes multiple files in parallel for faster bulk operations",
+    "Handles file processing errors gracefully without disrupting the extension"
+  ],
+  "summary": "This module provides a high-performance file system layer that optimizes how the extension reads and processes files. It caches file contents in memory so that when the same file is accessed multiple times, subsequent reads are nearly instantaneous. The cache automatically invalidates when files are modified on disk, ensuring users always see up-to-date content without manual intervention.\n\nThe module includes intelligent filtering that automatically excludes common non-source directories like node_modules, .git, dist, build, coverage, and IDE configuration folders. This prevents the extension from wasting time processing files that users typically don't want to analyze. When working with multiple files, the module processes them in parallel to maximize performance and reduce wait times.\n\nUsers experience faster extension responses when navigating code, analyzing projects, or performing bulk operations. The combination of caching and parallel processing means that repetitive tasks complete quickly, while the automatic cache invalidation ensures data accuracy. Error handling is built-in, so individual file failures don't crash the entire operation.",
+  "files": [
+    {
+      "file": "src/infrastructure/fileSystem/fileCache.ts",
+      "role": "Core Logic",
+      "purpose": "Optimizes file system operations by caching file contents to reduce redundant reads across multiple components",
+      "userVisibleActions": [
+        "Files load faster when accessed multiple times within a short period",
+        "Extension responds more quickly when working with the same files repeatedly",
+        "Automatic detection when files change on disk to ensure fresh content is always available"
+      ],
+      "developerVisibleActions": [
+        "Cache automatically retrieves and stores file contents on first access",
+        "Cache invalidates entries when files are modified, deleted, or become stale",
+        "LRU eviction policy automatically removes old entries when cache reaches size limit",
+        "File system watcher monitors for external file changes and updates cache accordingly",
+        "Cache statistics track hits, misses, and evictions for performance monitoring"
+      ],
+      "keyFunctions": [
+        {
+          "name": "getFile",
+          "desc": "Retrieves file content from cache if available and valid, otherwise reads from disk and caches it",
+          "inputs": "filePath: string",
+          "outputs": "Promise<string> - file content"
+        },
+        {
+          "name": "invalidate",
+          "desc": "Removes a specific file from the cache, forcing fresh read on next access",
+          "inputs": "filePath: string",
+          "outputs": "void"
+        },
+        {
+          "name": "clear",
+          "desc": "Removes all cached files and resets cache statistics",
+          "inputs": "none",
+          "outputs": "void"
+        },
+        {
+          "name": "getStats",
+          "desc": "Returns cache performance statistics including hits, misses, evictions, and size",
+          "inputs": "none",
+          "outputs": "CacheStats object"
+        },
+        {
+          "name": "dispose",
+          "desc": "Cleans up resources including file system watcher when cache is no longer needed",
+          "inputs": "none",
+          "outputs": "void"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "fs",
+        "path"
+      ],
+      "intent": "This file exists to improve extension performance by eliminating redundant file system reads. When multiple components need to access the same files repeatedly, the cache serves content from memory instead of disk, reducing I/O operations and improving responsiveness. It solves the problem of slow file access patterns common in analysis and refactoring operations where the same files are read multiple times in quick succession.",
+      "rawContent": "```json\n{\n  \"purpose\": \"Optimizes file system operations by caching file contents to reduce redundant reads across multiple components\",\n  \"userVisibleActions\": [\n    \"Files load faster when accessed multiple times within a short period\",\n    \"Extension responds more quickly when working with the same files repeatedly\",\n    \"Automatic detection when files change on disk to ensure fresh content is always available\"\n  ],\n  \"developerVisibleActions\": [\n    \"Cache automatically retrieves and stores file contents on first access\",\n    \"Cache invalidates entries when files are modified, deleted, or become stale\",\n    \"LRU eviction policy automatically removes old entries when cache reaches size limit\",\n    \"File system watcher monitors for external file changes and updates cache accordingly\",\n    \"Cache statistics track hits, misses, and evictions for performance monitoring\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getFile\",\n      \"desc\": \"Retrieves file content from cache if available and valid, otherwise reads from disk and caches it\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"Promise<string> - file content\"\n    },\n    {\n      \"name\": \"invalidate\",\n      \"desc\": \"Removes a specific file from the cache, forcing fresh read on next access\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all cached files and resets cache statistics\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getStats\",\n      \"desc\": \"Returns cache performance statistics including hits, misses, evictions, and size\",\n      \"inputs\": \"none\",\n      \"outputs\": \"CacheStats object\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up resources including file system watcher when cache is no longer needed\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to improve extension performance by eliminating redundant file system reads. When multiple components need to access the same files repeatedly, the cache serves content from memory instead of disk, reducing I/O operations and improving responsiveness. It solves the problem of slow file access patterns common in analysis and refactoring operations where the same files are read multiple times in quick succession.\"\n}\n```"
+    },
+    {
+      "file": "src/infrastructure/fileSystem/fileProcessor.ts",
+      "role": "Core Logic",
+      "purpose": "Provides a unified, reusable system for filtering, reading, and processing multiple files in parallel with error handling",
+      "userVisibleActions": [
+        "Files matching skip patterns (node_modules, .git, dist, build, .shadow, coverage, .vscode, .idea) are automatically excluded from processing",
+        "Multiple files are processed simultaneously for faster results",
+        "Errors during file processing are handled gracefully without crashing the application"
+      ],
+      "developerVisibleActions": [
+        "Developer calls processFiles() with an array of file paths and a custom processing function",
+        "Files are automatically filtered using configurable filter patterns before processing",
+        "Each file's content is read and passed to the developer's processing function",
+        "Results from all processed files are collected and returned as an array",
+        "Custom file filters and readers can be injected to override default behavior",
+        "Error context can be provided to track where processing failures occur"
+      ],
+      "keyFunctions": [
+        {
+          "name": "shouldProcess",
+          "desc": "Determines whether a file path should be processed based on filter patterns",
+          "inputs": "filePath: string",
+          "outputs": "boolean (true if file should be processed)"
+        },
+        {
+          "name": "readFile",
+          "desc": "Reads the content of a file as UTF-8 text",
+          "inputs": "filePath: string",
+          "outputs": "Promise<string> (file content)"
+        },
+        {
+          "name": "processFiles",
+          "desc": "Filters, reads, and processes multiple files in parallel using a custom processor function",
+          "inputs": "files: string[], processor: (content, filePath) => Promise<T>, context?: ErrorContext",
+          "outputs": "Promise<T[]> (array of processed results)"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path",
+        "../../utils/errorHandler"
+      ],
+      "intent": "This file exists to eliminate duplicate file processing patterns throughout the codebase by providing a centralized, configurable, and reusable file processing pipeline that handles filtering, reading, parallel processing, and error handling in one place",
+      "rawContent": "```json\n{\n  \"purpose\": \"Provides a unified, reusable system for filtering, reading, and processing multiple files in parallel with error handling\",\n  \"userVisibleActions\": [\n    \"Files matching skip patterns (node_modules, .git, dist, build, .shadow, coverage, .vscode, .idea) are automatically excluded from processing\",\n    \"Multiple files are processed simultaneously for faster results\",\n    \"Errors during file processing are handled gracefully without crashing the application\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer calls processFiles() with an array of file paths and a custom processing function\",\n    \"Files are automatically filtered using configurable filter patterns before processing\",\n    \"Each file's content is read and passed to the developer's processing function\",\n    \"Results from all processed files are collected and returned as an array\",\n    \"Custom file filters and readers can be injected to override default behavior\",\n    \"Error context can be provided to track where processing failures occur\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"shouldProcess\",\n      \"desc\": \"Determines whether a file path should be processed based on filter patterns\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"boolean (true if file should be processed)\"\n    },\n    {\n      \"name\": \"readFile\",\n      \"desc\": \"Reads the content of a file as UTF-8 text\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"Promise<string> (file content)\"\n    },\n    {\n      \"name\": \"processFiles\",\n      \"desc\": \"Filters, reads, and processes multiple files in parallel using a custom processor function\",\n      \"inputs\": \"files: string[], processor: (content, filePath) => Promise<T>, context?: ErrorContext\",\n      \"outputs\": \"Promise<T[]> (array of processed results)\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"../../utils/errorHandler\"\n  ],\n  \"intent\": \"This file exists to eliminate duplicate file processing patterns throughout the codebase by providing a centralized, configurable, and reusable file processing pipeline that handles filtering, reading, parallel processing, and error handling in one place\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T01:46:32.716Z"
+  }
+}
