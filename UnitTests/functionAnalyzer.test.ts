@@ -1,187 +1,269 @@
-import * as ts from 'typescript';
+import { FunctionAnalyzer } from '../src/analysis/functionAnalyzer';
+import { CodeAnalysis, FunctionInfo, FileInfo } from '../src/types';
 
-describe('visit function', () => {
-  let sourceFile: ts.SourceFile;
-  let found: ts.Node | undefined;
-  let startLine: number;
-  let functionName: string | undefined;
-
-  const createVisit = () => {
-    return (node: ts.Node) => {
-      if (found) return;
-
-      const nodeLine = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1;
-      
-      if (
-        (ts.isFunctionDeclaration(node) || 
-         ts.isMethodDeclaration(node) || 
-         ts.isFunctionExpression(node)) &&
-        nodeLine === startLine
-      ) {
-        const name = ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node)
-          ? node.name?.getText(sourceFile)
-          : undefined;
-        
-        if (name === functionName || (!name && ts.isFunctionExpression(node))) {
-          found = node as any;
-          return;
-        }
-      }
-
-      ts.forEachChild(node, createVisit());
-    };
-  };
+describe('FunctionAnalyzer - analyzeAllFunctions for loop', () => {
+  let functionAnalyzer: FunctionAnalyzer;
+  let mockCodeAnalysis: CodeAnalysis;
+  let consoleWarnSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    found = undefined;
-    startLine = 1;
-    functionName = undefined;
+    functionAnalyzer = new FunctionAnalyzer();
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    // Setup mock code analysis
+    mockCodeAnalysis = {
+      files: [],
+      functions: [
+        {
+          name: 'testFunction1',
+          file: '/path/to/file1.ts',
+          startLine: 10,
+          endLine: 20,
+          complexity: 5,
+          loc: 10
+        },
+        {
+          name: 'testFunction2',
+          file: '/path/to/file1.ts',
+          startLine: 25,
+          endLine: 35,
+          complexity: 3,
+          loc: 10
+        },
+        {
+          name: 'testFunction3',
+          file: '/path/to/file2.ts',
+          startLine: 5,
+          endLine: 15,
+          complexity: 8,
+          loc: 10
+        }
+      ],
+      totalFiles: 2,
+      totalFunctions: 3,
+      totalLOC: 30,
+      averageComplexity: 5.3
+    };
   });
 
-  describe('happy path - finding function declarations', () => {
-    test('should find a named function declaration at the correct line', () => {
-      const code = `function testFunction() {\n  return 42;\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'testFunction';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeDefined();
-      expect(ts.isFunctionDeclaration(found!)).toBe(true);
-      expect((found as ts.FunctionDeclaration).name?.getText(sourceFile)).toBe('testFunction');
-    });
-
-    test('should find a method declaration at the correct line', () => {
-      const code = `class MyClass {\n  myMethod() {\n    return 42;\n  }\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 2;
-      functionName = 'myMethod';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeDefined();
-      expect(ts.isMethodDeclaration(found!)).toBe(true);
-    });
-
-    test('should find a function expression without a name', () => {
-      const code = `const myFunc = function() {\n  return 42;\n};`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = undefined;
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeDefined();
-      expect(ts.isFunctionExpression(found!)).toBe(true);
-    });
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
   });
 
-  describe('edge cases', () => {
-    test('should not find function at wrong line number', () => {
-      const code = `function testFunction() {\n  return 42;\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 5;
-      functionName = 'testFunction';
+  test('should analyze all functions in large files successfully', async () => {
+    const largeFiles: FileInfo[] = [
+      { path: '/path/to/file1.ts', size: 1000, loc: 100 },
+      { path: '/path/to/file2.ts', size: 1500, loc: 150 }
+    ];
 
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeUndefined();
+    jest.spyOn(functionAnalyzer as any, 'analyzeFunction').mockResolvedValue({
+      functionName: 'testFunction',
+      file: '/path/to/file1.ts',
+      analysis: 'Mock analysis'
     });
 
-    test('should not find function with wrong name', () => {
-      const code = `function testFunction() {\n  return 42;\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'wrongName';
+    const analyses: any[] = [];
 
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
+    // Simulate the for loop logic
+    for (const file of largeFiles) {
+      const fileFunctions = mockCodeAnalysis.functions.filter(f => f.file === file.path);
+      
+      for (const func of fileFunctions) {
+        try {
+          const analysis = await (functionAnalyzer as any).analyzeFunction(
+            file.path,
+            func,
+            mockCodeAnalysis
+          );
+          if (analysis) {
+            analyses.push(analysis);
+          }
+        } catch (error) {
+          console.warn(`Failed to analyze function ${func.name} in ${file.path}:`, error);
+        }
+      }
+    }
 
-      expect(found).toBeUndefined();
-    });
-
-    test('should stop visiting after finding the target node', () => {
-      const code = `function testFunction() {\n  return 42;\n}\nfunction anotherFunction() {\n  return 24;\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'testFunction';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeDefined();
-      expect((found as ts.FunctionDeclaration).name?.getText(sourceFile)).toBe('testFunction');
-    });
-
-    test('should handle nested functions correctly', () => {
-      const code = `function outerFunction() {\n  function innerFunction() {\n    return 42;\n  }\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 2;
-      functionName = 'innerFunction';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeDefined();
-      expect((found as ts.FunctionDeclaration).name?.getText(sourceFile)).toBe('innerFunction');
-    });
-
-    test('should handle arrow functions by not finding them', () => {
-      const code = `const arrowFunc = () => {\n  return 42;\n};`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'arrowFunc';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeUndefined();
-    });
-
-    test('should handle empty source file', () => {
-      const code = ``;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'testFunction';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeUndefined();
-    });
-
-    test('should handle multiple functions on same line', () => {
-      const code = `function first() {} function second() {}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'second';
-
-      const visit = createVisit();
-      ts.forEachChild(sourceFile, visit);
-
-      expect(found).toBeDefined();
-      expect((found as ts.FunctionDeclaration).name?.getText(sourceFile)).toBe('second');
-    });
+    expect(analyses.length).toBe(3);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 
-  describe('early return behavior', () => {
-    test('should return early if found is already set', () => {
-      const code = `function testFunction() {\n  return 42;\n}`;
-      sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      startLine = 1;
-      functionName = 'testFunction';
-      found = {} as ts.Node;
+  test('should handle empty large files array', async () => {
+    const largeFiles: FileInfo[] = [];
+    const analyses: any[] = [];
 
-      const visit = createVisit();
-      const initialFound = found;
-      ts.forEachChild(sourceFile, visit);
+    for (const file of largeFiles) {
+      const fileFunctions = mockCodeAnalysis.functions.filter(f => f.file === file.path);
+      
+      for (const func of fileFunctions) {
+        try {
+          const analysis = await (functionAnalyzer as any).analyzeFunction(
+            file.path,
+            func,
+            mockCodeAnalysis
+          );
+          if (analysis) {
+            analyses.push(analysis);
+          }
+        } catch (error) {
+          console.warn(`Failed to analyze function ${func.name} in ${file.path}:`, error);
+        }
+      }
+    }
 
-      expect(found).toBe(initialFound);
+    expect(analyses.length).toBe(0);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('should handle files with no functions', async () => {
+    const largeFiles: FileInfo[] = [
+      { path: '/path/to/file3.ts', size: 1000, loc: 100 }
+    ];
+
+    const analyses: any[] = [];
+
+    for (const file of largeFiles) {
+      const fileFunctions = mockCodeAnalysis.functions.filter(f => f.file === file.path);
+      
+      for (const func of fileFunctions) {
+        try {
+          const analysis = await (functionAnalyzer as any).analyzeFunction(
+            file.path,
+            func,
+            mockCodeAnalysis
+          );
+          if (analysis) {
+            analyses.push(analysis);
+          }
+        } catch (error) {
+          console.warn(`Failed to analyze function ${func.name} in ${file.path}:`, error);
+        }
+      }
+    }
+
+    expect(analyses.length).toBe(0);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('should continue processing after analyzeFunction error', async () => {
+    const largeFiles: FileInfo[] = [
+      { path: '/path/to/file1.ts', size: 1000, loc: 100 }
+    ];
+
+    let callCount = 0;
+    jest.spyOn(functionAnalyzer as any, 'analyzeFunction').mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        throw new Error('Analysis failed');
+      }
+      return Promise.resolve({ functionName: 'testFunction2', analysis: 'Success' });
     });
+
+    const analyses: any[] = [];
+
+    for (const file of largeFiles) {
+      const fileFunctions = mockCodeAnalysis.functions.filter(f => f.file === file.path);
+      
+      for (const func of fileFunctions) {
+        try {
+          const analysis = await (functionAnalyzer as any).analyzeFunction(
+            file.path,
+            func,
+            mockCodeAnalysis
+          );
+          if (analysis) {
+            analyses.push(analysis);
+          }
+        } catch (error) {
+          console.warn(`Failed to analyze function ${func.name} in ${file.path}:`, error);
+        }
+      }
+    }
+
+    expect(analyses.length).toBe(1);
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to analyze function testFunction1'),
+      expect.any(Error)
+    );
+  });
+
+  test('should skip null/undefined analysis results', async () => {
+    const largeFiles: FileInfo[] = [
+      { path: '/path/to/file1.ts', size: 1000, loc: 100 }
+    ];
+
+    let callCount = 0;
+    jest.spyOn(functionAnalyzer as any, 'analyzeFunction').mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve({ functionName: 'testFunction2', analysis: 'Success' });
+    });
+
+    const analyses: any[] = [];
+
+    for (const file of largeFiles) {
+      const fileFunctions = mockCodeAnalysis.functions.filter(f => f.file === file.path);
+      
+      for (const func of fileFunctions) {
+        try {
+          const analysis = await (functionAnalyzer as any).analyzeFunction(
+            file.path,
+            func,
+            mockCodeAnalysis
+          );
+          if (analysis) {
+            analyses.push(analysis);
+          }
+        } catch (error) {
+          console.warn(`Failed to analyze function ${func.name} in ${file.path}:`, error);
+        }
+      }
+    }
+
+    expect(analyses.length).toBe(1);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('should process multiple files with mixed success and failures', async () => {
+    const largeFiles: FileInfo[] = [
+      { path: '/path/to/file1.ts', size: 1000, loc: 100 },
+      { path: '/path/to/file2.ts', size: 1500, loc: 150 }
+    ];
+
+    let callCount = 0;
+    jest.spyOn(functionAnalyzer as any, 'analyzeFunction').mockImplementation((file: string) => {
+      callCount++;
+      if (file === '/path/to/file1.ts' && callCount === 2) {
+        throw new Error('Second function failed');
+      }
+      return Promise.resolve({ functionName: `func${callCount}`, analysis: 'Success' });
+    });
+
+    const analyses: any[] = [];
+
+    for (const file of largeFiles) {
+      const fileFunctions = mockCodeAnalysis.functions.filter(f => f.file === file.path);
+      
+      for (const func of fileFunctions) {
+        try {
+          const analysis = await (functionAnalyzer as any).analyzeFunction(
+            file.path,
+            func,
+            mockCodeAnalysis
+          );
+          if (analysis) {
+            analyses.push(analysis);
+          }
+        } catch (error) {
+          console.warn(`Failed to analyze function ${func.name} in ${file.path}:`, error);
+        }
+      }
+    }
+
+    expect(analyses.length).toBe(2);
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
   });
 });

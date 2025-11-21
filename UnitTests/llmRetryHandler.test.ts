@@ -3,246 +3,235 @@ import * as vscode from 'vscode';
 // Mocks
 jest.mock('vscode');
 
-// Note: The function errorMessage is not exported, so we need to test the parent function that contains it
-// This test will test the isRetryableError function which contains the errorMessage logic
-
-// Import the module to access the retry handler
-const llmRetryHandlerModule = require('../src/ai/llmRetryHandler');
-
 describe('llmRetryHandler - errorMessage pattern matching', () => {
-  let isRetryableError: any;
-  
-  beforeEach(() => {
-    // Access the function that contains the errorMessage logic
-    isRetryableError = llmRetryHandlerModule.isRetryableError;
-  });
-
-  describe('error message pattern matching', () => {
-    test('should match retryable pattern in error message', () => {
-      const error = {
-        message: 'Rate limit exceeded',
-        code: '',
-        status: ''
-      };
-      const retryablePatterns = ['rate limit', 'timeout', 'throttle'];
-      
-      // Test pattern matching logic
-      const errorMessage = (error.message || '').toLowerCase();
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (errorMessage.includes(pattern.toLowerCase())) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
-    });
-
-    test('should match retryable pattern in error code', () => {
-      const error = {
-        message: '',
-        code: 'RATE_LIMIT',
-        status: ''
-      };
-      const retryablePatterns = ['rate_limit', 'timeout', 'throttle'];
-      
-      const errorCode = (error.code || '').toLowerCase();
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (errorCode.includes(pattern.toLowerCase())) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
-    });
-
-    test('should match retryable pattern in error status', () => {
-      const error = {
-        message: '',
-        code: '',
-        status: 429
-      };
-      const retryablePatterns = ['429', '503', '504'];
-      
-      const errorStatus = error.status || '';
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (String(errorStatus).includes(pattern)) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
-    });
-
-    test('should handle missing error properties', () => {
-      const error = {} as any;
-      const retryablePatterns = ['rate limit', 'timeout'];
-      
+  // Helper function to create the isRetryableError function context
+  const createRetryChecker = (retryablePatterns: string[]) => {
+    return (error: any): boolean => {
       const errorMessage = (error.message || '').toLowerCase();
       const errorCode = (error.code || '').toLowerCase();
       const errorStatus = error.status || error.statusCode || '';
-      
-      expect(errorMessage).toBe('');
-      expect(errorCode).toBe('');
-      expect(errorStatus).toBe('');
-      
-      let found = false;
+
+      // Check error message
       for (const pattern of retryablePatterns) {
         if (errorMessage.includes(pattern.toLowerCase()) || 
             errorCode.includes(pattern.toLowerCase()) ||
             String(errorStatus).includes(pattern)) {
-          found = true;
-          break;
+          return true;
         }
       }
-      expect(found).toBe(false);
+      return false;
+    };
+  };
+
+  describe('error message matching', () => {
+    test('should match pattern in error message', () => {
+      const patterns = ['timeout', 'rate limit'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: 'Request timeout occurred' };
+      expect(isRetryable(error)).toBe(true);
     });
 
-    test('should handle statusCode fallback', () => {
+    test('should match pattern case-insensitively in message', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: 'REQUEST TIMEOUT ERROR' };
+      expect(isRetryable(error)).toBe(true);
+    });
+
+    test('should not match when pattern not in message', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: 'Invalid request' };
+      expect(isRetryable(error)).toBe(false);
+    });
+
+    test('should handle empty message', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: '' };
+      expect(isRetryable(error)).toBe(false);
+    });
+
+    test('should handle missing message property', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = {};
+      expect(isRetryable(error)).toBe(false);
+    });
+  });
+
+  describe('error code matching', () => {
+    test('should match pattern in error code', () => {
+      const patterns = ['ECONNRESET', 'ETIMEDOUT'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { code: 'ECONNRESET' };
+      expect(isRetryable(error)).toBe(true);
+    });
+
+    test('should match pattern case-insensitively in code', () => {
+      const patterns = ['econnreset'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { code: 'ECONNRESET' };
+      expect(isRetryable(error)).toBe(true);
+    });
+
+    test('should handle empty code', () => {
+      const patterns = ['ECONNRESET'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { code: '' };
+      expect(isRetryable(error)).toBe(false);
+    });
+
+    test('should handle missing code property', () => {
+      const patterns = ['ECONNRESET'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: 'error' };
+      expect(isRetryable(error)).toBe(false);
+    });
+  });
+
+  describe('error status matching', () => {
+    test('should match pattern in status field', () => {
+      const patterns = ['429', '503'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { status: 429 };
+      expect(isRetryable(error)).toBe(true);
+    });
+
+    test('should match pattern in statusCode field', () => {
+      const patterns = ['503'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { statusCode: 503 };
+      expect(isRetryable(error)).toBe(true);
+    });
+
+    test('should handle string status codes', () => {
+      const patterns = ['429'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { status: '429' };
+      expect(isRetryable(error)).toBe(true);
+    });
+
+    test('should handle missing status fields', () => {
+      const patterns = ['429'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: 'error' };
+      expect(isRetryable(error)).toBe(false);
+    });
+
+    test('should prefer status over statusCode', () => {
+      const patterns = ['429'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { status: 429, statusCode: 500 };
+      expect(isRetryable(error)).toBe(true);
+    });
+  });
+
+  describe('multiple patterns', () => {
+    test('should match any pattern in list', () => {
+      const patterns = ['timeout', 'rate limit', 'ECONNRESET', '429'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      expect(isRetryable({ message: 'timeout error' })).toBe(true);
+      expect(isRetryable({ message: 'rate limit exceeded' })).toBe(true);
+      expect(isRetryable({ code: 'ECONNRESET' })).toBe(true);
+      expect(isRetryable({ status: 429 })).toBe(true);
+    });
+
+    test('should match first matching pattern', () => {
+      const patterns = ['timeout', 'error'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      const error = { message: 'timeout error occurred' };
+      expect(isRetryable(error)).toBe(true);
+    });
+  });
+
+  describe('combined error properties', () => {
+    test('should match pattern in any field', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
+      
+      expect(isRetryable({ message: 'timeout', code: '', status: 200 })).toBe(true);
+      expect(isRetryable({ message: '', code: 'timeout', status: 200 })).toBe(true);
+      expect(isRetryable({ message: '', code: '', status: 'timeout' })).toBe(true);
+    });
+
+    test('should handle complex error objects', () => {
+      const patterns = ['rate limit', '429'];
+      const isRetryable = createRetryChecker(patterns);
+      
       const error = {
-        message: '',
-        code: '',
-        statusCode: 503
+        message: 'API rate limit exceeded',
+        code: 'ERR_RATE_LIMIT',
+        status: 429,
+        details: 'Too many requests'
       };
-      const retryablePatterns = ['503'];
+      expect(isRetryable(error)).toBe(true);
+    });
+  });
+
+  describe('edge cases', () => {
+    test('should handle empty pattern list', () => {
+      const patterns: string[] = [];
+      const isRetryable = createRetryChecker(patterns);
       
-      const errorStatus = error.status || (error as any).statusCode || '';
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (String(errorStatus).includes(pattern)) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
+      const error = { message: 'timeout' };
+      expect(isRetryable(error)).toBe(false);
     });
 
-    test('should be case insensitive for message matching', () => {
-      const error = {
-        message: 'TIMEOUT ERROR',
-        code: '',
-        status: ''
-      };
-      const retryablePatterns = ['timeout'];
+    test('should handle null error properties', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
       
-      const errorMessage = (error.message || '').toLowerCase();
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (errorMessage.includes(pattern.toLowerCase())) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
+      const error = { message: null, code: null, status: null };
+      expect(isRetryable(error)).toBe(false);
     });
 
-    test('should be case insensitive for code matching', () => {
-      const error = {
-        message: '',
-        code: 'THROTTLE_ERROR',
-        status: ''
-      };
-      const retryablePatterns = ['throttle'];
+    test('should handle undefined error properties', () => {
+      const patterns = ['timeout'];
+      const isRetryable = createRetryChecker(patterns);
       
-      const errorCode = (error.code || '').toLowerCase();
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (errorCode.includes(pattern.toLowerCase())) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
+      const error = { message: undefined, code: undefined, status: undefined };
+      expect(isRetryable(error)).toBe(false);
     });
 
-    test('should not match non-retryable patterns', () => {
-      const error = {
-        message: 'Authentication failed',
-        code: 'AUTH_ERROR',
-        status: 401
-      };
-      const retryablePatterns = ['rate limit', 'timeout', '429'];
+    test('should handle special characters in patterns', () => {
+      const patterns = ['[timeout]', 'rate-limit'];
+      const isRetryable = createRetryChecker(patterns);
       
-      const errorMessage = (error.message || '').toLowerCase();
-      const errorCode = (error.code || '').toLowerCase();
-      const errorStatus = error.status || '';
-      
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (errorMessage.includes(pattern.toLowerCase()) || 
-            errorCode.includes(pattern.toLowerCase()) ||
-            String(errorStatus).includes(pattern)) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(false);
+      expect(isRetryable({ message: 'Error: [timeout] occurred' })).toBe(true);
+      expect(isRetryable({ message: 'rate-limit exceeded' })).toBe(true);
     });
 
-    test('should match partial patterns', () => {
-      const error = {
-        message: 'Request timed out after 30 seconds',
-        code: '',
-        status: ''
-      };
-      const retryablePatterns = ['timeout'];
+    test('should handle numeric status as zero', () => {
+      const patterns = ['0'];
+      const isRetryable = createRetryChecker(patterns);
       
-      const errorMessage = (error.message || '').toLowerCase();
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (errorMessage.includes(pattern.toLowerCase())) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
+      const error = { status: 0 };
+      expect(isRetryable(error)).toBe(true);
     });
 
-    test('should handle numeric status as string', () => {
-      const error = {
-        message: '',
-        code: '',
-        status: 429
-      };
-      const retryablePatterns = ['429'];
+    test('should handle partial pattern matches', () => {
+      const patterns = ['time'];
+      const isRetryable = createRetryChecker(patterns);
       
-      const errorStatus = error.status || '';
-      let found = false;
-      for (const pattern of retryablePatterns) {
-        if (String(errorStatus).includes(pattern)) {
-          found = true;
-          break;
-        }
-      }
-      expect(found).toBe(true);
-    });
-
-    test('should match any field with retryable pattern', () => {
-      const errors = [
-        { message: 'rate limit', code: '', status: '' },
-        { message: '', code: 'timeout', status: '' },
-        { message: '', code: '', status: 503 }
-      ];
-      const retryablePatterns = ['rate limit', 'timeout', '503'];
-      
-      errors.forEach((error, index) => {
-        const errorMessage = (error.message || '').toLowerCase();
-        const errorCode = (error.code || '').toLowerCase();
-        const errorStatus = error.status || '';
-        
-        let found = false;
-        for (const pattern of retryablePatterns) {
-          if (errorMessage.includes(pattern.toLowerCase()) || 
-              errorCode.includes(pattern.toLowerCase()) ||
-              String(errorStatus).includes(pattern)) {
-            found = true;
-            break;
-          }
-        }
-        expect(found).toBe(true);
-      });
+      expect(isRetryable({ message: 'timeout error' })).toBe(true);
+      expect(isRetryable({ message: 'longtime waiting' })).toBe(true);
     });
   });
 });

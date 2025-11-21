@@ -35,13 +35,16 @@ export class LLMTestGenerationService {
             try {
                 // Read source code for the function
                 const sourceCode = this.extractFunctionSource(func, workspaceRoot);
+
+                // Extract exports/import path context from the source file
+                const fileContext = this.extractFileContext(func.file, workspaceRoot);
                 
                 // Check if mock already exists
                 const mockPath = path.join(workspaceRoot, 'src', 'test', '__mocks__', 'vscode.ts');
                 const existingMocks = fs.existsSync(mockPath) ? fs.readFileSync(mockPath, 'utf-8') : undefined;
 
                 // Build prompt for this specific function
-                const prompt = buildGenerationPrompt(func, sourceCode, 'jest', existingMocks);
+                const prompt = buildGenerationPrompt(func, sourceCode, 'jest', existingMocks, fileContext);
 
                 // Call LLM to generate test
                 const testResult = await llmService.generateTestForFunction(prompt);
@@ -85,9 +88,21 @@ export class LLMTestGenerationService {
         // Build complete test file content
         let content = '';
 
-        // Add imports
+        // Add imports from LLM, but we will inject the primary import ourselves
         if (testResult.imports && testResult.imports.length > 0) {
-            content += testResult.imports.join('\n') + '\n\n';
+            // Filter out any incorrect imports trying to import the target module from guessed paths
+            const filtered = testResult.imports.filter(line => {
+                return !/from '\.\.\//.test(line) || !/src\//.test(line) || !/\} from/.test(line);
+            });
+            if (filtered.length > 0) {
+                content += filtered.join('\n') + '\n\n';
+            }
+        }
+        
+        // Inject the correct import for the target function/module
+        const primaryImport = this.computePrimaryImport(testResult, workspaceRoot);
+        if (primaryImport) {
+            content = `${primaryImport}\n` + content;
         }
 
         // Add mocks
@@ -247,6 +262,88 @@ export class LLMTestGenerationService {
     }
 
     // Helper methods
+
+    private static extractFileContext(file: string, workspaceRoot: string): { exports: string[]; defaultExport: boolean; importPathFromTests: string } {
+        try {
+            const filePath = path.join(workspaceRoot, file);
+            const importPathFromTests = `../${file.replace(/\\.ts$/, '')}`;
+            const exports: string[] = [];
+            let defaultExport = false;
+            if (fs.existsSync(filePath)) {
+                const src = fs.readFileSync(filePath, 'utf-8');
+                // Naive export detection (good enough for guidance)
+                const namedMatches = src.matchAll(/export\s+(?:async\s+)?(?:function|class|const|let|var)\s+(\w+)/g);
+                for (const m of namedMatches) {
+                    if (m[1]) exports.push(m[1]);
+                }
+                if (/export\s+default\s+/.test(src)) {
+                    defaultExport = true;
+                }
+                const reExports = src.matchAll(/export\s*\{([^}]+)\}/g);
+                for (const m of reExports) {
+                    const names = m[1].split(',').map(s => s.trim().split(/\s+as\s+/)[0]);
+                    for (const n of names) if (n) exports.push(n);
+                }
+            }
+            return { exports: Array.from(new Set(exports)), defaultExport, importPathFromTests };
+        } catch {
+            return { exports: [], defaultExport: false, importPathFromTests: `../${file.replace(/\\.ts$/, '')}` };
+        }
+    }
+
+    private static computePrimaryImport(testResult: TestGenerationResult, workspaceRoot: string): string | null {
+        try {
+            const testFileName = path.basename(testResult.test_file_path);
+            // Attempt to infer source file path from test file name when possible
+            // e.g., analyzer.traverse.test.ts -> src/analyzer.ts
+            const base = testFileName.replace(/\.test\.ts$/, '.ts');
+            // Fallback to using hints from test code if needed later
+            // Build import path
+            let importPath: string | null = null;
+            if (/^.+\.ts$/.test(base)) {
+                // Look for a matching src file with same basename anywhere under src
+                const srcCandidate = this.findSrcFileByBasename(base, workspaceRoot);
+                if (srcCandidate) {
+                    importPath = `../${srcCandidate.replace(/\.ts$/, '')}`;
+                }
+            }
+
+            // If we can’t infer, return null and let existing imports stand
+            if (!importPath) return null;
+
+            // Attempt to import the symbol used in describe('name') if present
+            let symbol = null;
+            if (testResult.test_code) {
+                const m = testResult.test_code.match(/describe\(['"](.*?)['"]/);
+                if (m && m[1]) {
+                    // Use a safe identifier (fallback to default import if not exported)
+                    symbol = m[1].replace(/[^A-Za-z0-9_]/g, '_');
+                }
+            }
+            // Build named import by default
+            if (symbol) {
+                return `import { ${symbol} } from '${importPath}';`;
+            }
+            return `import * as moduleUnderTest from '${importPath}';`;
+        } catch {
+            return null;
+        }
+    }
+
+    private static findSrcFileByBasename(basenameTs: string, workspaceRoot: string): string | null {
+        // Shallow search common dirs
+        const candidates = [
+            path.join('src', basenameTs),
+            path.join('src', 'analysis', basenameTs),
+            path.join('src', 'ai', basenameTs),
+            path.join('src', 'domain', basenameTs),
+        ];
+        for (const rel of candidates) {
+            const abs = path.join(workspaceRoot, rel);
+            if (fs.existsSync(abs)) return rel;
+        }
+        return null;
+    }
 
     private static extractFunctionSource(func: TestableFunction, workspaceRoot: string): string {
         try {

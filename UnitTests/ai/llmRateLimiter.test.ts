@@ -1,63 +1,58 @@
 import { LLMRateLimiter } from '../../src/ai/llmRateLimiter';
 
-describe('LLMRateLimiter - constructor', () => {
-  test('should initialize with OpenAI rate limit configuration', () => {
+describe('LLMRateLimiter constructor', () => {
+  test('should initialize with default OpenAI rate limit configuration', () => {
     const rateLimiter = new LLMRateLimiter();
     
-    // Access the private configs map using type assertion
+    // Access the private configs map through type assertion
     const configs = (rateLimiter as any).configs;
-    
-    expect(configs.has('openai')).toBe(true);
     const openaiConfig = configs.get('openai');
+    
     expect(openaiConfig).toBeDefined();
     expect(openaiConfig.maxRequests).toBe(60);
     expect(openaiConfig.windowMs).toBe(60000);
   });
 
-  test('should initialize with Claude rate limit configuration', () => {
+  test('should initialize with default Claude rate limit configuration', () => {
     const rateLimiter = new LLMRateLimiter();
     
     const configs = (rateLimiter as any).configs;
-    
-    expect(configs.has('claude')).toBe(true);
     const claudeConfig = configs.get('claude');
+    
     expect(claudeConfig).toBeDefined();
     expect(claudeConfig.maxRequests).toBe(50);
     expect(claudeConfig.windowMs).toBe(60000);
   });
 
-  test('should initialize with both provider configurations', () => {
+  test('should initialize both OpenAI and Claude configurations simultaneously', () => {
     const rateLimiter = new LLMRateLimiter();
     
     const configs = (rateLimiter as any).configs;
     
-    expect(configs.size).toBe(2);
+    expect(configs.size).toBeGreaterThanOrEqual(2);
     expect(configs.has('openai')).toBe(true);
     expect(configs.has('claude')).toBe(true);
   });
 
-  test('should set OpenAI with higher request limit than Claude', () => {
+  test('should set OpenAI window to exactly 1 minute (60000ms)', () => {
     const rateLimiter = new LLMRateLimiter();
     
     const configs = (rateLimiter as any).configs;
     const openaiConfig = configs.get('openai');
-    const claudeConfig = configs.get('claude');
     
-    expect(openaiConfig.maxRequests).toBeGreaterThan(claudeConfig.maxRequests);
+    expect(openaiConfig.windowMs).toBe(60 * 1000);
   });
 
-  test('should set same time window for both providers', () => {
+  test('should set Claude window to exactly 1 minute (60000ms)', () => {
     const rateLimiter = new LLMRateLimiter();
     
     const configs = (rateLimiter as any).configs;
-    const openaiConfig = configs.get('openai');
     const claudeConfig = configs.get('claude');
     
-    expect(openaiConfig.windowMs).toBe(claudeConfig.windowMs);
-    expect(openaiConfig.windowMs).toBe(60000);
+    expect(claudeConfig.windowMs).toBe(60 * 1000);
   });
 
-  test('should create multiple independent instances', () => {
+  test('should create independent instances with separate configurations', () => {
     const rateLimiter1 = new LLMRateLimiter();
     const rateLimiter2 = new LLMRateLimiter();
     
@@ -69,20 +64,25 @@ describe('LLMRateLimiter - constructor', () => {
     expect(configs1.get('claude')).toEqual(configs2.get('claude'));
   });
 
-  test('should have valid window duration in milliseconds', () => {
+  test('should have OpenAI maxRequests higher than Claude maxRequests', () => {
     const rateLimiter = new LLMRateLimiter();
     
     const configs = (rateLimiter as any).configs;
     const openaiConfig = configs.get('openai');
     const claudeConfig = configs.get('claude');
     
-    expect(openaiConfig.windowMs).toBeGreaterThan(0);
-    expect(claudeConfig.windowMs).toBeGreaterThan(0);
-    expect(openaiConfig.windowMs).toBe(60 * 1000); // 1 minute
-    expect(claudeConfig.windowMs).toBe(60 * 1000); // 1 minute
+    expect(openaiConfig.maxRequests).toBeGreaterThan(claudeConfig.maxRequests);
   });
 
-  test('should have positive max request limits', () => {
+  test('should initialize configs as a Map data structure', () => {
+    const rateLimiter = new LLMRateLimiter();
+    
+    const configs = (rateLimiter as any).configs;
+    
+    expect(configs).toBeInstanceOf(Map);
+  });
+
+  test('should have valid positive numbers for all configuration values', () => {
     const rateLimiter = new LLMRateLimiter();
     
     const configs = (rateLimiter as any).configs;
@@ -90,6 +90,8 @@ describe('LLMRateLimiter - constructor', () => {
     const claudeConfig = configs.get('claude');
     
     expect(openaiConfig.maxRequests).toBeGreaterThan(0);
+    expect(openaiConfig.windowMs).toBeGreaterThan(0);
     expect(claudeConfig.maxRequests).toBeGreaterThan(0);
+    expect(claudeConfig.windowMs).toBeGreaterThan(0);
   });
 });

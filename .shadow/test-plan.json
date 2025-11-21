@@ -1,11 +1,11 @@
 {
-  "strategy": "Focus testing on the critical path from entry point through core analysis, AI integration, and user-facing outputs. Prioritize areas where failures would break primary workflows (code analysis, AI-powered insights, test generation) and integration boundaries (VS Code API, AI providers, file system). Given 1217 functions, target ~100-150 high-impact functions covering main workflows and error handling paths.",
+  "strategy": "Focus testing on the core value delivery paths: workspace analysis pipeline (entry to insights), AI integration reliability (API calls, rate limiting, retries), and test generation workflows (detection to validation). Prioritize areas that directly impact user-facing features and data integrity, then cover error handling for external dependencies (AI providers, file system, test execution). Aim for 80% coverage of critical paths with ~50-75 well-designed tests.",
   "total_functions": 1217,
-  "testable_functions": 60,
+  "testable_functions": 45,
   "function_groups": [
     {
-      "group_id": "core-analysis-engine",
-      "name": "Core Analysis Engine",
+      "group_id": "analysis-pipeline",
+      "name": "Workspace & File Analysis Pipeline",
       "priority": 1,
       "functions": [
         {
@@ -15,11 +15,11 @@
           "endLine": 617,
           "complexity": "high",
           "dependencies": [
-            "AST traversal",
-            "node types"
+            "typescript",
+            "ast-parser"
           ],
           "mocking_needed": true,
-          "reason": "Largest function in the codebase (130 lines). Likely contains core analysis logic for parsing code patterns. Critical for quality issue detection and code analysis."
+          "reason": "Largest and most complex function (130 lines) in the analyzer - likely core analysis loop that processes code structures. Critical entry point that drives parsing logic."
         },
         {
           "name": "for",
@@ -28,11 +28,11 @@
           "endLine": 200,
           "complexity": "high",
           "dependencies": [
-            "AST traversal",
-            "file system"
+            "typescript",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "Major analysis loop (40 lines) in the main analyzer module. Entry point for processing code files. Critical for overall analysis pipeline."
+          "reason": "40-line core loop in main analyzer file - likely iterates through workspace files or AST nodes. Entry point for workspace-level analysis."
         },
         {
           "name": "for",
@@ -41,10 +41,10 @@
           "endLine": 404,
           "complexity": "high",
           "dependencies": [
-            "dependency tracking"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Complex nested logic (33 lines) for dependency analysis. Critical for detecting circular dependencies and orphaned code."
+          "reason": "Complex 33-line loop with nested conditionals (28 lines) - likely processes dependencies or relationships between code elements."
         },
         {
           "name": "traverse",
@@ -53,58 +53,11 @@
           "endLine": 771,
           "complexity": "high",
           "dependencies": [
-            "AST traversal"
+            "typescript",
+            "ast-parser"
           ],
           "mocking_needed": true,
-          "reason": "Main traversal function (28 lines) for code analysis. Core algorithm for walking the syntax tree and detecting patterns."
-        },
-        {
-          "name": "for",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 31,
-          "endLine": 58,
-          "complexity": "medium",
-          "dependencies": [
-            "AST parsing"
-          ],
-          "mocking_needed": true,
-          "reason": "Entry point loop (28 lines) in enhanced analyzer. Likely initializes analysis of multiple files or code units."
-        },
-        {
-          "name": "for",
-          "file": "src/analysis/enhancedAnalyzer.ts",
-          "startLine": 693,
-          "endLine": 719,
-          "complexity": "high",
-          "dependencies": [
-            "complexity calculation"
-          ],
-          "mocking_needed": true,
-          "reason": "Contains nested logic (27 lines) for complexity metrics calculation. Essential for accurate complexity reporting."
-        },
-        {
-          "name": "traverse",
-          "file": "src/analyzer.ts",
-          "startLine": 314,
-          "endLine": 337,
-          "complexity": "medium",
-          "dependencies": [
-            "AST traversal"
-          ],
-          "mocking_needed": true,
-          "reason": "Secondary traversal function (24 lines) in main analyzer. Likely handles specific code pattern detection or metric calculation."
-        },
-        {
-          "name": "visit",
-          "file": "src/analysis/functionAnalyzer.ts",
-          "startLine": 198,
-          "endLine": 220,
-          "complexity": "medium",
-          "dependencies": [
-            "AST visitor pattern"
-          ],
-          "mocking_needed": true,
-          "reason": "Visitor pattern implementation (23 lines) for function analysis. Critical for extracting function-level metrics and patterns."
+          "reason": "Core traversal function (28 lines) for AST navigation - essential for circular dependency detection and code structure analysis."
         },
         {
           "name": "for",
@@ -113,22 +66,47 @@
           "endLine": 229,
           "complexity": "medium",
           "dependencies": [
-            "code parsing"
+            "typescript",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "Analysis loop (27 lines) for processing code structures. Important for multi-file or multi-function analysis."
+          "reason": "27-line loop in main analyzer - likely processes file-level analysis results or aggregates metrics."
         },
         {
-          "name": "switch",
-          "file": "src/analyzer.ts",
-          "startLine": 527,
-          "endLine": 551,
-          "complexity": "high",
+          "name": "for",
+          "file": "src/analysis/enhancedAnalyzer.ts",
+          "startLine": 693,
+          "endLine": 719,
+          "complexity": "medium",
           "dependencies": [
-            "node type detection"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Large switch statement (25 lines) handling different code patterns. Critical for comprehensive pattern detection across code types."
+          "reason": "27-line loop with nested conditionals - likely handles complex relationship detection or pattern matching."
+        },
+        {
+          "name": "traverse",
+          "file": "src/analyzer.ts",
+          "startLine": 314,
+          "endLine": 337,
+          "complexity": "medium",
+          "dependencies": [
+            "typescript"
+          ],
+          "mocking_needed": true,
+          "reason": "24-line traversal function in main analyzer - core AST navigation logic for complexity and pattern detection."
+        },
+        {
+          "name": "visit",
+          "file": "src/analysis/functionAnalyzer.ts",
+          "startLine": 198,
+          "endLine": 220,
+          "complexity": "medium",
+          "dependencies": [
+            "typescript"
+          ],
+          "mocking_needed": true,
+          "reason": "23-line visitor pattern implementation - critical for function-level analysis and complexity calculation."
         },
         {
           "name": "for",
@@ -137,10 +115,10 @@
           "endLine": 441,
           "complexity": "medium",
           "dependencies": [
-            "dependency resolution"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Loop for dependency tracking (22 lines). Essential for identifying orphaned code and circular dependencies."
+          "reason": "22-line loop with conditional logic - likely processes orphaned code detection or dead code identification."
         },
         {
           "name": "for",
@@ -149,10 +127,10 @@
           "endLine": 415,
           "complexity": "medium",
           "dependencies": [
-            "function analysis"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Complex nested logic (20 lines) for function-level analysis. Critical for function complexity and quality metrics."
+          "reason": "20-line loop with nested conditionals - handles function-level relationship or dependency tracking."
         },
         {
           "name": "visit",
@@ -161,10 +139,10 @@
           "endLine": 122,
           "complexity": "medium",
           "dependencies": [
-            "AST visitor"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Visitor implementation (19 lines) in enhanced analyzer. Core pattern for detecting code quality issues."
+          "reason": "19-line visitor implementation in enhanced analyzer - core pattern for AST node processing."
         },
         {
           "name": "visit",
@@ -173,10 +151,10 @@
           "endLine": 357,
           "complexity": "medium",
           "dependencies": [
-            "AST visitor"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Additional visitor pattern (19 lines) for function analysis. Handles specific function patterns or metrics."
+          "reason": "19-line visitor for function analysis - critical for extracting function metadata and metrics."
         },
         {
           "name": "traverse",
@@ -185,16 +163,40 @@
           "endLine": 300,
           "complexity": "medium",
           "dependencies": [
-            "AST traversal"
+            "typescript"
           ],
           "mocking_needed": true,
-          "reason": "Tree traversal logic (18 lines) for code analysis. Important for comprehensive code coverage in analysis."
+          "reason": "18-line traversal in main analyzer - handles specific traversal logic for dependency or import analysis."
+        },
+        {
+          "name": "for",
+          "file": "src/analysis/functionAnalyzer.ts",
+          "startLine": 23,
+          "endLine": 40,
+          "complexity": "medium",
+          "dependencies": [
+            "typescript"
+          ],
+          "mocking_needed": true,
+          "reason": "18-line loop at start of function analyzer - likely entry point for batch function processing."
+        },
+        {
+          "name": "switch",
+          "file": "src/analyzer.ts",
+          "startLine": 527,
+          "endLine": 551,
+          "complexity": "medium",
+          "dependencies": [
+            "typescript"
+          ],
+          "mocking_needed": true,
+          "reason": "25-line switch statement - handles different node types or analysis modes, central control flow logic."
         }
       ]
     },
     {
       "group_id": "ai-integration",
-      "name": "AI Provider Integration & Response Handling",
+      "name": "AI Provider Integration & Resilience",
       "priority": 2,
       "functions": [
         {
@@ -204,11 +206,10 @@
           "endLine": 90,
           "complexity": "high",
           "dependencies": [
-            "external AI APIs",
-            "rate limiter"
+            "external AI providers"
           ],
           "mocking_needed": true,
-          "reason": "Core retry logic with exponential backoff. Handles API failures, rate limiting, and error recovery - critical for maintaining service availability when external AI providers fail."
+          "reason": "Core retry logic with exponential backoff - critical for handling API failures and rate limits. 31 lines with complex error handling."
         },
         {
           "name": "for",
@@ -217,11 +218,10 @@
           "endLine": 186,
           "complexity": "high",
           "dependencies": [
-            "external AI APIs",
-            "rate limiter"
+            "external AI providers"
           ],
           "mocking_needed": true,
-          "reason": "Secondary retry handler, likely for streaming or different API patterns. Critical for handling various failure scenarios across different AI operations."
+          "reason": "Secondary retry mechanism - 32 lines handling different retry scenarios and backoff strategies."
         },
         {
           "name": "for",
@@ -233,7 +233,7 @@
             "AI response data"
           ],
           "mocking_needed": true,
-          "reason": "Largest parser function (50 lines) with multiple conditional branches. Handles complex response parsing logic which is essential for extracting structured data from AI responses."
+          "reason": "Most complex response parsing logic - 50 lines with multiple nested conditionals. Critical for handling malformed AI responses."
         },
         {
           "name": "for",
@@ -245,7 +245,7 @@
             "AI response data"
           ],
           "mocking_needed": true,
-          "reason": "Complex parser with 36 lines and nested conditionals (22+ lines). Handles sophisticated response parsing with multiple error paths."
+          "reason": "Complex parsing logic - 36 lines with nested conditionals handling different response formats and edge cases."
         },
         {
           "name": "switch",
@@ -255,59 +255,10 @@
           "complexity": "medium",
           "dependencies": [
             "OpenAI",
-            "Anthropic",
-            "provider configs"
+            "Anthropic providers"
           ],
           "mocking_needed": true,
-          "reason": "Provider factory - entry point for switching between OpenAI/Claude. Critical for provider selection and initialization, affects entire AI integration."
-        },
-        {
-          "name": "if",
-          "file": "src/ai/providers/openAIProvider.ts",
-          "startLine": 20,
-          "endLine": 26,
-          "complexity": "medium",
-          "dependencies": [
-            "OpenAI SDK"
-          ],
-          "mocking_needed": true,
-          "reason": "OpenAI provider initialization with validation. Entry point for OpenAI integration, must handle configuration errors properly."
-        },
-        {
-          "name": "for",
-          "file": "src/ai/providers/openAIProvider.ts",
-          "startLine": 120,
-          "endLine": 133,
-          "complexity": "medium",
-          "dependencies": [
-            "OpenAI API"
-          ],
-          "mocking_needed": true,
-          "reason": "Likely handles streaming or batch response processing from OpenAI. Critical for incremental processing mentioned in requirements."
-        },
-        {
-          "name": "if",
-          "file": "src/ai/providers/anthropicProvider.ts",
-          "startLine": 20,
-          "endLine": 26,
-          "complexity": "medium",
-          "dependencies": [
-            "Anthropic SDK"
-          ],
-          "mocking_needed": true,
-          "reason": "Anthropic provider initialization with validation. Entry point for Claude integration, parallel to OpenAI provider."
-        },
-        {
-          "name": "errorMessage",
-          "file": "src/ai/llmRetryHandler.ts",
-          "startLine": 104,
-          "endLine": 115,
-          "complexity": "medium",
-          "dependencies": [
-            "error objects"
-          ],
-          "mocking_needed": true,
-          "reason": "Error message extraction logic (12 lines). Critical for proper error handling and debugging, affects user feedback."
+          "reason": "Entry point for provider selection - determines which AI service to use. Critical decision point for all AI operations."
         },
         {
           "name": "constructor",
@@ -316,22 +267,10 @@
           "endLine": 33,
           "complexity": "medium",
           "dependencies": [
-            "configuration"
+            "rate limit configuration"
           ],
           "mocking_needed": false,
-          "reason": "Rate limiter initialization. Sets up quota management which is essential for preventing API overuse and handling rate limits."
-        },
-        {
-          "name": "waitTime",
-          "file": "src/ai/llmRateLimiter.ts",
-          "startLine": 100,
-          "endLine": 105,
-          "complexity": "medium",
-          "dependencies": [
-            "time calculations"
-          ],
-          "mocking_needed": false,
-          "reason": "Calculates backoff/wait time for rate limiting. Core algorithm for managing API throttling and preventing quota exhaustion."
+          "reason": "Initializes rate limiting state - foundation for all rate limiting logic. 14 lines of setup logic."
         },
         {
           "name": "if",
@@ -343,7 +282,7 @@
             "AI response data"
           ],
           "mocking_needed": true,
-          "reason": "Initial response validation (14 lines). Entry point for response parsing, catches malformed responses early."
+          "reason": "Entry point for response parsing - 14 lines handling initial validation and error cases."
         },
         {
           "name": "if",
@@ -355,19 +294,79 @@
             "AI response data"
           ],
           "mocking_needed": true,
-          "reason": "Secondary validation logic (13 lines). Handles different response formats or validation scenarios."
+          "reason": "Handles response validation and error conditions - 13 lines critical for graceful degradation."
         },
         {
-          "name": "requests",
+          "name": "errorMessage",
+          "file": "src/ai/llmRetryHandler.ts",
+          "startLine": 104,
+          "endLine": 115,
+          "complexity": "medium",
+          "dependencies": [
+            "error objects"
+          ],
+          "mocking_needed": false,
+          "reason": "Error message extraction logic - 12 lines handling various error formats from different providers."
+        },
+        {
+          "name": "for",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 275,
+          "endLine": 285,
+          "complexity": "medium",
+          "dependencies": [
+            "AI response data"
+          ],
+          "mocking_needed": true,
+          "reason": "Incremental response processing - 11 lines handling streaming/partial responses."
+        },
+        {
+          "name": "for",
+          "file": "src/ai/llmResponseParser.ts",
+          "startLine": 123,
+          "endLine": 134,
+          "complexity": "medium",
+          "dependencies": [
+            "AI response data"
+          ],
+          "mocking_needed": true,
+          "reason": "Response transformation logic - 12 lines processing structured AI output."
+        },
+        {
+          "name": "if",
           "file": "src/ai/providers/anthropicProvider.ts",
-          "startLine": 121,
-          "endLine": 126,
+          "startLine": 20,
+          "endLine": 26,
           "complexity": "low",
           "dependencies": [
             "Anthropic API"
           ],
           "mocking_needed": true,
-          "reason": "Makes actual API requests to Anthropic. Direct integration point with external service, handles request construction."
+          "reason": "API key validation for Anthropic - critical entry point preventing invalid API calls."
+        },
+        {
+          "name": "if",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 20,
+          "endLine": 26,
+          "complexity": "low",
+          "dependencies": [
+            "OpenAI API"
+          ],
+          "mocking_needed": true,
+          "reason": "API key validation for OpenAI - critical entry point preventing invalid API calls."
+        },
+        {
+          "name": "for",
+          "file": "src/ai/providers/openAIProvider.ts",
+          "startLine": 120,
+          "endLine": 133,
+          "complexity": "medium",
+          "dependencies": [
+            "OpenAI API"
+          ],
+          "mocking_needed": true,
+          "reason": "OpenAI request processing - 14 lines handling API communication and response formatting."
         },
         {
           "name": "if",
@@ -379,14 +378,14 @@
             "OpenAI API"
           ],
           "mocking_needed": true,
-          "reason": "Handles OpenAI API responses or errors. Critical path for processing successful and failed API calls."
+          "reason": "Request validation and error handling - prevents malformed API calls."
         }
       ]
     },
     {
-      "group_id": "vscode-integration",
-      "name": "VS Code Extension Integration",
-      "priority": 4,
+      "group_id": "state-management-persistence",
+      "name": "State Management, File Watching & Data Persistence",
+      "priority": 5,
       "functions": [
         {
           "name": "activate",
@@ -396,12 +395,12 @@
           "complexity": "high",
           "dependencies": [
             "vscode",
-            "tree-view-providers",
-            "file-watcher",
-            "diagnostics"
+            "storage",
+            "fileWatcher",
+            "webviewProviders"
           ],
           "mocking_needed": true,
-          "reason": "Critical entry point for extension lifecycle. Initializes all providers, commands, and watchers. Failure prevents entire extension from working."
+          "reason": "Extension entry point that initializes all state management, file watchers, and storage. Critical for ensuring proper setup of the entire state management system."
         },
         {
           "name": "analyzeWorkspace",
@@ -411,66 +410,12 @@
           "complexity": "high",
           "dependencies": [
             "vscode",
-            "workspace",
-            "diagnostics",
-            "progress-api"
+            "storage",
+            "analyzer",
+            "webview"
           ],
           "mocking_needed": true,
-          "reason": "Core analysis command (69 lines). Orchestrates workspace scanning, progress reporting, and diagnostic publishing. Critical user-facing feature."
-        },
-        {
-          "name": "showSettings",
-          "file": "src/extension.ts",
-          "startLine": 424,
-          "endLine": 463,
-          "complexity": "medium",
-          "dependencies": [
-            "vscode",
-            "webview-panel"
-          ],
-          "mocking_needed": true,
-          "reason": "Complex settings UI command (40 lines) with switch statement logic. Essential for configuration management and user experience."
-        },
-        {
-          "name": "getSettingsHtml",
-          "file": "src/extension.ts",
-          "startLine": 465,
-          "endLine": 612,
-          "complexity": "high",
-          "dependencies": [
-            "configuration",
-            "webview-messaging"
-          ],
-          "mocking_needed": true,
-          "reason": "Largest function (148 lines) generating settings webview HTML. Contains embedded command handlers and complex UI logic."
-        },
-        {
-          "name": "showProviderStatus",
-          "file": "src/extension.ts",
-          "startLine": 312,
-          "endLine": 358,
-          "complexity": "medium",
-          "dependencies": [
-            "vscode",
-            "provider-status",
-            "configuration"
-          ],
-          "mocking_needed": true,
-          "reason": "47-line function displaying AI provider status. Critical for troubleshooting and provider management."
-        },
-        {
-          "name": "switchProvider",
-          "file": "src/extension.ts",
-          "startLine": 360,
-          "endLine": 394,
-          "complexity": "medium",
-          "dependencies": [
-            "vscode",
-            "configuration",
-            "quickpick"
-          ],
-          "mocking_needed": true,
-          "reason": "35-line function managing provider switching with nested conditionals. Key for multi-provider support."
+          "reason": "Core function that triggers analysis and persists results. Contains multiple conditionals for state validation and error handling. Critical for data persistence and UI synchronization."
         },
         {
           "name": "analyzeCurrentFile",
@@ -480,39 +425,11 @@
           "complexity": "medium",
           "dependencies": [
             "vscode",
-            "active-editor",
-            "diagnostics"
+            "storage",
+            "analyzer"
           ],
           "mocking_needed": true,
-          "reason": "32-line command for single-file analysis. Important user-facing feature with editor interaction."
-        },
-        {
-          "name": "openLatestReport",
-          "file": "src/extension.ts",
-          "startLine": 614,
-          "endLine": 643,
-          "complexity": "medium",
-          "dependencies": [
-            "vscode",
-            "workspace",
-            "file-system"
-          ],
-          "mocking_needed": true,
-          "reason": "30-line function for report navigation. Critical for viewing analysis results."
-        },
-        {
-          "name": "openLatestUnitTestReport",
-          "file": "src/extension.ts",
-          "startLine": 645,
-          "endLine": 674,
-          "complexity": "medium",
-          "dependencies": [
-            "vscode",
-            "workspace",
-            "file-system"
-          ],
-          "mocking_needed": true,
-          "reason": "30-line parallel function for unit test reports. Important for test coverage visibility."
+          "reason": "Handles incremental file analysis and updates state. Must test proper state updates and synchronization with UI views."
         },
         {
           "name": "clearAllData",
@@ -522,52 +439,91 @@
           "complexity": "medium",
           "dependencies": [
             "vscode",
-            "cache",
-            "state-management"
+            "storage",
+            "webview"
           ],
           "mocking_needed": true,
-          "reason": "24-line destructive operation with confirmation dialog. Must ensure proper cleanup and user safety."
+          "reason": "Manages state reset and data persistence cleanup. Critical for testing state management edge cases and ensuring proper cleanup with user confirmation."
         },
         {
-          "name": "createCommandHandlers",
+          "name": "clearCache",
           "file": "src/extension.ts",
-          "startLine": 96,
-          "endLine": 118,
-          "complexity": "medium",
+          "startLine": 280,
+          "endLine": 286,
+          "complexity": "low",
           "dependencies": [
-            "command-registry",
-            "handlers"
+            "storage",
+            "vscode"
           ],
           "mocking_needed": true,
-          "reason": "23-line factory creating all command handlers. Central to command registration architecture."
+          "reason": "Handles cache invalidation which affects stale data issues. Important for testing state consistency."
         },
         {
-          "name": "copyFileInsights",
+          "name": "deactivate",
           "file": "src/extension.ts",
-          "startLine": 242,
-          "endLine": 264,
+          "startLine": 676,
+          "endLine": 683,
+          "complexity": "low",
+          "dependencies": [
+            "storage",
+            "fileWatcher"
+          ],
+          "mocking_needed": true,
+          "reason": "Cleanup function that ensures proper disposal of watchers and saves state. Critical for preventing memory leaks and data loss."
+        },
+        {
+          "name": "showSettings",
+          "file": "src/extension.ts",
+          "startLine": 424,
+          "endLine": 463,
+          "complexity": "high",
+          "dependencies": [
+            "vscode",
+            "webview"
+          ],
+          "mocking_needed": true,
+          "reason": "Manages settings webview state and message handling. Contains switch statement for handling state changes from UI."
+        },
+        {
+          "name": "getSettingsHtml",
+          "file": "src/extension.ts",
+          "startLine": 465,
+          "endLine": 612,
+          "complexity": "high",
+          "dependencies": [
+            "vscode",
+            "configuration"
+          ],
+          "mocking_needed": true,
+          "reason": "Generates UI with current state. Very long function (148 lines) that synchronizes configuration state with webview, includes navigation handlers."
+        },
+        {
+          "name": "openLatestReport",
+          "file": "src/extension.ts",
+          "startLine": 614,
+          "endLine": 643,
           "complexity": "medium",
           "dependencies": [
             "vscode",
-            "clipboard",
-            "tree-view"
+            "storage",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "23-line function with conditional logic for copying insights. Important for user workflow."
+          "reason": "Loads persisted analysis data and navigates to results. Tests deserialization and error handling for data persistence."
         },
         {
-          "name": "copyMenuStructure",
+          "name": "openLatestUnitTestReport",
           "file": "src/extension.ts",
-          "startLine": 288,
-          "endLine": 310,
+          "startLine": 645,
+          "endLine": 674,
           "complexity": "medium",
           "dependencies": [
             "vscode",
-            "clipboard",
-            "formatter"
+            "storage",
+            "fs"
           ],
           "mocking_needed": true,
-          "reason": "23-line function for structure export. Supports documentation and sharing workflows."
+          "reason": "Similar to openLatestReport, tests deserialization of unit test data and navigation. Important for state consistency."
         },
         {
           "name": "copyAllInsights",
@@ -577,212 +533,63 @@
           "complexity": "low",
           "dependencies": [
             "vscode",
-            "clipboard",
-            "insights-service"
+            "storage"
           ],
           "mocking_needed": true,
-          "reason": "15-line command for bulk insight copying. User-facing feature requiring clipboard interaction."
+          "reason": "Reads from stored state to copy data. Tests state retrieval and error handling when data is missing."
         },
         {
-          "name": "deactivate",
+          "name": "copyFileInsights",
           "file": "src/extension.ts",
-          "startLine": 676,
-          "endLine": 683,
+          "startLine": 242,
+          "endLine": 264,
+          "complexity": "medium",
+          "dependencies": [
+            "vscode",
+            "storage"
+          ],
+          "mocking_needed": true,
+          "reason": "Accesses persisted file-level data. Tests state retrieval for specific files and conditional logic."
+        },
+        {
+          "name": "showProviderStatus",
+          "file": "src/extension.ts",
+          "startLine": 312,
+          "endLine": 358,
+          "complexity": "high",
+          "dependencies": [
+            "vscode",
+            "configuration",
+            "providers"
+          ],
+          "mocking_needed": true,
+          "reason": "Long function (47 lines) that displays configuration state. Tests state reading and UI synchronization."
+        },
+        {
+          "name": "switchProvider",
+          "file": "src/extension.ts",
+          "startLine": 360,
+          "endLine": 394,
+          "complexity": "medium",
+          "dependencies": [
+            "vscode",
+            "configuration"
+          ],
+          "mocking_needed": true,
+          "reason": "Updates configuration state. Tests state persistence of provider settings with validation and error handling."
+        },
+        {
+          "name": "constructor",
+          "file": "src/storage/incrementalStorage.ts",
+          "startLine": 50,
+          "endLine": 58,
           "complexity": "low",
           "dependencies": [
             "vscode",
-            "disposables"
+            "storage"
           ],
           "mocking_needed": true,
-          "reason": "Extension cleanup entry point. Essential for proper resource disposal and preventing memory leaks."
-        }
-      ]
-    },
-    {
-      "group_id": "documentation-generation",
-      "name": "Documentation & Export Pipeline",
-      "priority": 5,
-      "functions": [
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 133,
-          "endLine": 159,
-          "complexity": "high",
-          "dependencies": [
-            "fs",
-            "markdown-formatting"
-          ],
-          "mocking_needed": true,
-          "reason": "Longest conditional block (27 lines) likely handling critical documentation generation or export logic. High complexity suggests core transformation logic that must be thoroughly tested."
-        },
-        {
-          "name": "dfs",
-          "file": "src/insightGenerator.ts",
-          "startLine": 201,
-          "endLine": 227,
-          "complexity": "high",
-          "dependencies": [
-            "data-structures"
-          ],
-          "mocking_needed": false,
-          "reason": "Named function (depth-first search) with 27 lines and nested loops. Critical for traversing complex data structures like AST or dependency graphs. Core algorithm that affects accuracy of analysis results."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 207,
-          "endLine": 224,
-          "complexity": "high",
-          "dependencies": [
-            "data-processing"
-          ],
-          "mocking_needed": false,
-          "reason": "18-line nested loop within dfs function. Complex iteration logic likely processing multiple items, crucial for correct data transformation in documentation pipeline."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 80,
-          "endLine": 93,
-          "complexity": "medium",
-          "dependencies": [
-            "data-processing"
-          ],
-          "mocking_needed": false,
-          "reason": "14-line loop with nested conditional. Early in file suggests primary data processing loop for insights generation. Essential for iterating through analysis results."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 102,
-          "endLine": 114,
-          "complexity": "medium",
-          "dependencies": [
-            "validation"
-          ],
-          "mocking_needed": false,
-          "reason": "13-line conditional block likely validating or filtering data before export. Critical for ensuring documentation accuracy and preventing malformed outputs."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 81,
-          "endLine": 92,
-          "complexity": "medium",
-          "dependencies": [
-            "data-processing"
-          ],
-          "mocking_needed": false,
-          "reason": "12-line nested conditional within major loop. Handles specific processing cases, important for correct data transformation and formatting."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 213,
-          "endLine": 223,
-          "complexity": "medium",
-          "dependencies": [
-            "data-processing"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line deeply nested loop (third level). Complex iteration logic critical for detailed processing of hierarchical data structures in documentation."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 53,
-          "endLine": 63,
-          "complexity": "medium",
-          "dependencies": [
-            "validation"
-          ],
-          "mocking_needed": false,
-          "reason": "First significant conditional (11 lines) near file start. Likely entry point validation or initialization logic that sets up the entire pipeline."
-        },
-        {
-          "name": "for",
-          "file": "src/insightGenerator.ts",
-          "startLine": 259,
-          "endLine": 269,
-          "complexity": "medium",
-          "dependencies": [
-            "formatting"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line loop in middle section. Likely handles formatting or aggregation of insights, important for proper Markdown generation and output structure."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 66,
-          "endLine": 76,
-          "complexity": "medium",
-          "dependencies": [
-            "validation"
-          ],
-          "mocking_needed": false,
-          "reason": "11-line conditional following initial validation. Secondary validation or branching logic that affects pipeline flow and output selection."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 136,
-          "endLine": 145,
-          "complexity": "medium",
-          "dependencies": [
-            "formatting"
-          ],
-          "mocking_needed": false,
-          "reason": "10-line nested conditional within the largest block. Handles specific formatting or export case, important for documentation quality."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 167,
-          "endLine": 176,
-          "complexity": "medium",
-          "dependencies": [
-            "export"
-          ],
-          "mocking_needed": true,
-          "reason": "10-line conditional likely handling export logic or file persistence. Critical for verifying proper file writing and export compatibility with external LLMs."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 178,
-          "endLine": 187,
-          "complexity": "medium",
-          "dependencies": [
-            "export"
-          ],
-          "mocking_needed": true,
-          "reason": "10-line conditional following export block. Likely handles alternative export format or error handling for file operations."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 290,
-          "endLine": 299,
-          "complexity": "medium",
-          "dependencies": [
-            "context-window"
-          ],
-          "mocking_needed": false,
-          "reason": "10-line conditional in later section. May handle context window management for large codebases, critical test case mentioned in requirements."
-        },
-        {
-          "name": "if",
-          "file": "src/insightGenerator.ts",
-          "startLine": 310,
-          "endLine": 319,
-          "complexity": "medium",
-          "dependencies": [
-            "formatting"
-          ],
-          "mocking_needed": false,
-          "reason": "10-line conditional likely handling final formatting or organization of insights before output, important for ensuring proper structure."
+          "reason": "Initializes storage system for state persistence. Foundation for all data persistence testing with timestamp tracking."
         }
       ]
     }

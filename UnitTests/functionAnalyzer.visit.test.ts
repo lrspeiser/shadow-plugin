@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import { createSourceFile } from 'typescript';
 
 describe('visit function', () => {
   let sourceFile: ts.SourceFile;
@@ -11,7 +10,7 @@ describe('visit function', () => {
     functionNames = new Set<string>();
     dependencies = [];
     
-    // Define the visit function as it appears in the source
+    // Define the visit function that we're testing
     visit = (n: ts.Node) => {
       // Look for function calls
       if (ts.isCallExpression(n)) {
@@ -33,156 +32,180 @@ describe('visit function', () => {
     };
   });
 
-  test('should detect simple function call dependencies', () => {
+  test('should detect simple function call', () => {
     const code = `
-      function foo() {}
-      function bar() { foo(); }
-    `;
-    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('foo');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('foo');
-    expect(dependencies.length).toBe(1);
-  });
-
-  test('should detect property access expression dependencies', () => {
-    const code = `
-      const obj = { method: () => {} };
-      obj.method();
-    `;
-    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('method');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('method');
-  });
-
-  test('should detect multiple function call dependencies', () => {
-    const code = `
-      function alpha() {}
-      function beta() {}
-      function gamma() {
-        alpha();
-        beta();
-        alpha();
+      function test() {
+        myFunction();
       }
     `;
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('alpha');
-    functionNames.add('beta');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('alpha');
-    expect(dependencies).toContain('beta');
-    expect(dependencies.filter(d => d === 'alpha').length).toBe(2);
+    functionNames.add('myFunction');
+
+    visit(sourceFile);
+
+    expect(dependencies).toContain('myFunction');
+    expect(dependencies.length).toBe(1);
   });
 
-  test('should not detect function calls not in functionNames set', () => {
+  test('should detect property access function call', () => {
     const code = `
-      function foo() {}
-      function bar() {}
-      function baz() { foo(); bar(); }
+      function test() {
+        obj.myMethod();
+      }
     `;
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('foo');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('foo');
-    expect(dependencies).not.toContain('bar');
+    functionNames.add('myMethod');
+
+    visit(sourceFile);
+
+    expect(dependencies).toContain('myMethod');
     expect(dependencies.length).toBe(1);
+  });
+
+  test('should detect multiple function calls', () => {
+    const code = `
+      function test() {
+        funcA();
+        funcB();
+        obj.funcC();
+      }
+    `;
+    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+    functionNames.add('funcA');
+    functionNames.add('funcB');
+    functionNames.add('funcC');
+
+    visit(sourceFile);
+
+    expect(dependencies).toContain('funcA');
+    expect(dependencies).toContain('funcB');
+    expect(dependencies).toContain('funcC');
+    expect(dependencies.length).toBe(3);
+  });
+
+  test('should ignore function calls not in functionNames set', () => {
+    const code = `
+      function test() {
+        unknownFunction();
+        obj.unknownMethod();
+      }
+    `;
+    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+    functionNames.add('knownFunction');
+
+    visit(sourceFile);
+
+    expect(dependencies.length).toBe(0);
   });
 
   test('should handle nested function calls', () => {
     const code = `
-      function outer() {
-        function inner() {
-          target();
-        }
-        inner();
+      function test() {
+        funcA(funcB(funcC()));
       }
     `;
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('target');
-    functionNames.add('inner');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('target');
-    expect(dependencies).toContain('inner');
-  });
+    functionNames.add('funcA');
+    functionNames.add('funcB');
+    functionNames.add('funcC');
 
-  test('should handle chained property access', () => {
-    const code = `
-      const obj = { nested: { fn: () => {} } };
-      obj.nested.fn();
-    `;
-    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('fn');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('fn');
+    visit(sourceFile);
+
+    expect(dependencies).toContain('funcA');
+    expect(dependencies).toContain('funcB');
+    expect(dependencies).toContain('funcC');
+    expect(dependencies.length).toBe(3);
   });
 
   test('should handle empty source file', () => {
     const code = '';
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('foo');
-    
-    ts.forEachChild(sourceFile, visit);
-    
+    functionNames.add('anyFunction');
+
+    visit(sourceFile);
+
     expect(dependencies.length).toBe(0);
   });
 
-  test('should handle source with no function calls', () => {
+  test('should handle code with no function calls', () => {
     const code = `
       const x = 5;
       const y = 10;
       const z = x + y;
     `;
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('foo');
-    
-    ts.forEachChild(sourceFile, visit);
-    
+    functionNames.add('myFunction');
+
+    visit(sourceFile);
+
     expect(dependencies.length).toBe(0);
   });
 
-  test('should handle arrow functions with calls', () => {
+  test('should detect same function called multiple times', () => {
     const code = `
-      const arrow = () => {
-        targetFunc();
-      };
+      function test() {
+        myFunc();
+        myFunc();
+        myFunc();
+      }
     `;
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('targetFunc');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('targetFunc');
+    functionNames.add('myFunc');
+
+    visit(sourceFile);
+
+    expect(dependencies.filter(d => d === 'myFunc').length).toBe(3);
+  });
+
+  test('should handle chained property access', () => {
+    const code = `
+      function test() {
+        obj.nested.myMethod();
+      }
+    `;
+    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+    functionNames.add('myMethod');
+
+    visit(sourceFile);
+
+    expect(dependencies).toContain('myMethod');
   });
 
   test('should handle mixed identifier and property access calls', () => {
     const code = `
-      function standalone() {}
-      const obj = { method: () => {} };
-      function caller() {
-        standalone();
-        obj.method();
+      function test() {
+        directCall();
+        obj.methodCall();
+        anotherDirectCall();
       }
     `;
     sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-    functionNames.add('standalone');
+    functionNames.add('directCall');
+    functionNames.add('methodCall');
+    functionNames.add('anotherDirectCall');
+
+    visit(sourceFile);
+
+    expect(dependencies).toContain('directCall');
+    expect(dependencies).toContain('methodCall');
+    expect(dependencies).toContain('anotherDirectCall');
+    expect(dependencies.length).toBe(3);
+  });
+
+  test('should handle function calls with arguments', () => {
+    const code = `
+      function test() {
+        myFunc(1, 2, 3);
+        obj.method('arg1', 'arg2');
+      }
+    `;
+    sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+    functionNames.add('myFunc');
     functionNames.add('method');
-    
-    ts.forEachChild(sourceFile, visit);
-    
-    expect(dependencies).toContain('standalone');
+
+    visit(sourceFile);
+
+    expect(dependencies).toContain('myFunc');
     expect(dependencies).toContain('method');
     expect(dependencies.length).toBe(2);
   });

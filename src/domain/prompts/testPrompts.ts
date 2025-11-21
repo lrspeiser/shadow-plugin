@@ -168,7 +168,8 @@ export function buildGenerationPrompt(
     func: TestableFunction,
     sourceCode: string,
     testingFramework: string,
-    existingMocks?: string
+    existingMocks?: string,
+    fileContext?: { exports: string[]; defaultExport?: boolean; importPathFromTests: string }
 ): string {
     return `You are an expert test engineer. Generate a complete, runnable test for this function.
 
@@ -191,6 +192,12 @@ ${existingMocks}
 \`\`\`
 ` : ''}
 
+## File Context
+- Source path: ${func.file}
+- Import path FROM UnitTests/: ${fileContext?.importPathFromTests || `../${func.file.replace(/\.ts$/, '')}`}
+- Exported symbols: ${(fileContext?.exports || []).join(', ') || 'unknown'}
+- Default export: ${fileContext?.defaultExport ? 'yes' : 'no'}
+
 ## Your Task
 Generate a complete ${testingFramework} test that:
 1. Includes ALL necessary imports with CORRECT paths from UnitTests/ directory
@@ -199,8 +206,10 @@ Generate a complete ${testingFramework} test that:
 4. Uses proper assertions
 5. Is syntactically valid and ready to run
 
-IMPORTANT: Test files are located in UnitTests/ directory.
-For a source file at "${func.file}", the import path from UnitTests/ must be "../${func.file.replace(/\.ts$/, '')}".
+IMPORTANT RULES:
+- Use EXACTLY the import path shown above for the target module.
+- Do NOT invent symbols. Only reference exported symbols listed above.
+- If the function is a named export, use named import. If default export only, import default.
 
 IMPORTANT OUTPUT RULES:
 - Return ONLY JSON wrapped between <json> and </json> tags.
@@ -211,7 +220,7 @@ Expected JSON shape:
 <json>{
   "test_file_path": "UnitTests/${func.file.replace(/.*\//, '').replace(/\.ts$/, '.test.ts')}",
   "imports": [
-    "import { ${func.name} } from '../${func.file.replace(/\.ts$/, '')}';",
+    "// Do not import the target module here — the harness will inject the correct import",
     "import * as vscode from 'vscode';"
   ],
   "mocks": [

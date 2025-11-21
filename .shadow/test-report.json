@@ -1,0 +1,34 @@
+{
+  "summary": {
+    "total_tests": 1,
+    "passed": 0,
+    "failed": 0,
+    "errors": 1,
+    "pass_rate": 0,
+    "files_generated": 1,
+    "files_passing": 0
+  },
+  "test_results": [
+    {
+      "test_file": "all",
+      "status": "error",
+      "passed": 0,
+      "failed": 0,
+      "errors": 1,
+      "duration": 0,
+      "error_details": [
+        {
+          "test_name": "Jest Execution",
+          "error_message": "Command failed: npm test -- --json\n",
+          "stack_trace": ""
+        }
+      ]
+    }
+  ],
+  "generated_at": "2025-11-21T06:37:03.574Z",
+  "recommendations": [
+    "Pass rate is below 70%. Consider reviewing test logic and mocking strategy.",
+    "1 tests have errors. Review test setup and configuration.",
+    "1 test files have failures. Review error messages in the detailed results."
+  ]
+}
