@@ -3215,6 +3215,7 @@ Return ONLY the Markdown report, no additional text or explanations.`;
         }
 
         const isClaude = provider.getName() === 'claude';
+        const isOpenAI = provider.getName() === 'openai';
         SWLogger.log('[LLM] Fixing failing test...');
 
         try {
@@ -3228,6 +3229,8 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                             role: 'user',
                             content: prompt
                         }],
+                        // Force JSON mode for OpenAI to prevent markdown responses
+                        ...(isOpenAI && { responseFormat: { type: 'json_object' } })
                     });
                     
                     this.rateLimiter.recordRequest(provider.getName() as any);
@@ -3242,14 +3245,24 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                 throw new Error('LLM returned empty response');
             }
             
-            // Prefer <json>...</json> block
+            // Try multiple parsing strategies
             let jsonText: string | null = null;
-            const tagMatch = content.match(/<json>([\s\S]*?)<\/json>/i);
-            if (tagMatch) {
-                jsonText = tagMatch[1].trim();
+            
+            // Strategy 1: Whole content if it's JSON (for JSON mode responses)
+            const trimmed = content.trim();
+            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                jsonText = trimmed;
             }
             
-            // Fallback: ```json ... ``` fenced block
+            // Strategy 2: <json>...</json> block
+            if (!jsonText) {
+                const tagMatch = content.match(/<json>([\s\S]*?)<\/json>/i);
+                if (tagMatch) {
+                    jsonText = tagMatch[1].trim();
+                }
+            }
+            
+            // Strategy 3: ```json ... ``` fenced block
             if (!jsonText) {
                 const fenceMatch = content.match(/```json\s*([\s\S]*?)```/i);
                 if (fenceMatch) {
@@ -3257,16 +3270,9 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                 }
             }
             
-            // Fallback: whole content if it looks like JSON
-            if (!jsonText) {
-                const trimmed = content.trim();
-                if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-                    jsonText = trimmed;
-                }
-            }
-            
             if (!jsonText) {
                 SWLogger.log(`[LLM] No JSON found in response. Content: ${content.substring(0, 200)}...`);
+                SWLogger.log(`[LLM] Using ${isOpenAI ? 'OpenAI' : 'Claude'} provider with${isOpenAI ? '' : 'out'} JSON mode`);
                 throw new Error('No JSON found in response');
             }
             

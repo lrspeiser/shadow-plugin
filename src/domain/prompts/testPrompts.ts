@@ -272,16 +272,14 @@ Analyze the error and fix the test code. Common issues:
 - Incorrect assertions
 - Type mismatches
 
-⚠️ CRITICAL INSTRUCTION: You MUST respond with ONLY valid JSON in the exact format shown below.
-Do NOT write explanations, analysis, or markdown outside the JSON structure.
-Do NOT write "# Analysis" or any prose.
-Your ENTIRE response must be parseable by JSON.parse().
+⚠️ CRITICAL: Respond with ONLY valid JSON. No markdown, no prose, no code fences.
+Your response must be a valid JSON object that can be parsed directly.
 
-Respond with this EXACT JSON structure wrapped in <json></json> tags:
-<json>{
+Return this exact structure:
+{
   "status": "pass",
   "fixed_code": "// Complete fixed test code here",
   "explanation": "Brief explanation of the fix",
   "remaining_issues": []
-}</json>`;
+}`;
 }
