@@ -193,11 +193,14 @@ ${existingMocks}
 
 ## Your Task
 Generate a complete ${testingFramework} test that:
-1. Includes ALL necessary imports
+1. Includes ALL necessary imports with CORRECT paths from UnitTests/ directory
 2. Sets up mocks for dependencies (if needed)
 3. Tests multiple scenarios (happy path, edge cases, error handling)
 4. Uses proper assertions
 5. Is syntactically valid and ready to run
+
+IMPORTANT: Test files are located in UnitTests/ directory.
+For a source file at "${func.file}", the import path from UnitTests/ must be "../${func.file.replace(/\.ts$/, '')}".
 
 IMPORTANT OUTPUT RULES:
 - Return ONLY JSON wrapped between <json> and </json> tags.
@@ -206,9 +209,9 @@ IMPORTANT OUTPUT RULES:
 
 Expected JSON shape:
 <json>{
-  "test_file_path": "${func.file.replace(/\\.ts$/, '.test.ts')}",
+  "test_file_path": "UnitTests/${func.file.replace(/.*\//, '').replace(/\.ts$/, '.test.ts')}",
   "imports": [
-    "import { ${func.name} } from '../${func.file.replace('src/', '')}';",
+    "import { ${func.name} } from '../${func.file.replace(/\.ts$/, '')}';",
     "import * as vscode from 'vscode';"
   ],
   "mocks": [
