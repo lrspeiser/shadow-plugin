@@ -157,19 +157,23 @@ export class LLMTestSetupService {
             const prodDeps = setupPlan.dependencies.filter(d => !d.dev).map(d => `${d.name}@${d.version}`);
 
             if (devDeps.length > 0) {
-                SWLogger.log(`[TestSetup] Installing dev dependencies: ${devDeps.join(', ')}`);
+                SWLogger.log(`[TestSetup] Installing ${devDeps.length} dev dependencies: ${devDeps.join(', ')}`);
+                SWLogger.log(`[TestSetup] Running npm install --save-dev (this may take 1-2 minutes)...`);
                 const installResult = await this.installDependencies(workspaceRoot, devDeps, true);
                 
                 if (installResult.success) {
                     result.dependenciesInstalled.push(...devDeps);
+                    SWLogger.log(`[TestSetup] ✅ Successfully installed ${devDeps.length} dev dependencies`);
                 } else {
                     result.errors.push(`Failed to install dev dependencies: ${installResult.error}`);
                     result.success = false;
+                    SWLogger.log(`[TestSetup] ❌ Failed to install dev dependencies: ${installResult.error}`);
                 }
             }
 
             if (prodDeps.length > 0) {
-                SWLogger.log(`[TestSetup] Installing prod dependencies: ${prodDeps.join(', ')}`);
+                SWLogger.log(`[TestSetup] Installing ${prodDeps.length} prod dependencies: ${prodDeps.join(', ')}`);
+                SWLogger.log(`[TestSetup] Running npm install --save (this may take 1-2 minutes)...`);
                 const installResult = await this.installDependencies(workspaceRoot, prodDeps, false);
                 
                 if (installResult.success) {
