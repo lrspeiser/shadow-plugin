@@ -5,247 +5,203 @@ import * as path from 'path';
 jest.mock('fs');
 jest.mock('path');
 
-describe('traverse function', () => {
-  let mockReaddirSync: jest.MockedFunction<typeof fs.readdirSync>;
-  let mockPathJoin: jest.MockedFunction<typeof path.join>;
+describe('traverse', () => {
   let files: string[];
-  let skipDirs: Set<string>;
-  let traverse: (currentDir: string) => void;
+  const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', '.git']);
+  const CODE_EXTENSIONS: Record<string, boolean> = {
+    '.ts': true,
+    '.tsx': true,
+    '.js': true,
+    '.jsx': true,
+    '.py': true,
+    '.java': true
+  };
+
+  const traverse = (currentPath: string) => {
+    const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name);
+
+      if (entry.isDirectory()) {
+        if (!SKIP_DIRS.has(entry.name) && !entry.name.startsWith('.')) {
+          traverse(fullPath);
+        }
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name);
+        if (CODE_EXTENSIONS[ext]) {
+          files.push(fullPath);
+        }
+      }
+    }
+  };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockReaddirSync = fs.readdirSync as jest.MockedFunction<typeof fs.readdirSync>;
-    mockPathJoin = path.join as jest.MockedFunction<typeof path.join>;
-    
-    // Initialize the context for traverse function
     files = [];
-    skipDirs = new Set(['node_modules', '.git']);
-    
-    // Mock path.join to return concatenated paths
-    mockPathJoin.mockImplementation((...args) => args.join('/'));
-    
-    // Define traverse function inline (since it's nested in the actual code)
-    traverse = (currentDir: string) => {
-      try {
-        const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-        
-        for (const entry of entries) {
-          const fullPath = path.join(currentDir, entry.name);
-          
-          // Skip hidden files/dirs and skip directories
-          if (entry.name.startsWith('.')) {
-            continue;
-          }
-          
-          if (entry.isDirectory()) {
-            if (!skipDirs.has(entry.name)) {
-              traverse(fullPath);
-            }
-          } else if (entry.isFile()) {
-            files.push(fullPath);
-          }
-        }
-      } catch (error) {
-        // Skip directories we can't read
-      }
-    };
-  });
-
-  describe('happy path', () => {
-    test('should collect files from directory', () => {
-      const mockEntries = [
-        { name: 'file1.ts', isDirectory: () => false, isFile: () => true },
-        { name: 'file2.ts', isDirectory: () => false, isFile: () => true }
-      ];
-      mockReaddirSync.mockReturnValue(mockEntries as any);
-
-      traverse('/test/dir');
-
-      expect(files).toEqual(['/test/dir/file1.ts', '/test/dir/file2.ts']);
-      expect(mockReaddirSync).toHaveBeenCalledWith('/test/dir', { withFileTypes: true });
-    });
-
-    test('should recursively traverse subdirectories', () => {
-      mockReaddirSync
-        .mockReturnValueOnce([
-          { name: 'subdir', isDirectory: () => true, isFile: () => false },
-          { name: 'file1.ts', isDirectory: () => false, isFile: () => true }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'file2.ts', isDirectory: () => false, isFile: () => true }
-        ] as any);
-
-      traverse('/test/dir');
-
-      expect(files).toEqual(['/test/dir/file1.ts', '/test/dir/subdir/file2.ts']);
-      expect(mockReaddirSync).toHaveBeenCalledTimes(2);
-    });
-
-    test('should handle empty directory', () => {
-      mockReaddirSync.mockReturnValue([] as any);
-
-      traverse('/test/empty');
-
-      expect(files).toEqual([]);
-      expect(mockReaddirSync).toHaveBeenCalledWith('/test/empty', { withFileTypes: true });
+    jest.clearAllMocks();
+    (path.join as jest.Mock).mockImplementation((...args: string[]) => args.join('/'));
+    (path.extname as jest.Mock).mockImplementation((filename: string) => {
+      const parts = filename.split('.');
+      return parts.length > 1 ? '.' + parts[parts.length - 1] : '';
     });
   });
 
-  describe('filtering behavior', () => {
-    test('should skip hidden files starting with dot', () => {
-      const mockEntries = [
-        { name: '.hidden', isDirectory: () => false, isFile: () => true },
-        { name: 'visible.ts', isDirectory: () => false, isFile: () => true }
-      ];
-      mockReaddirSync.mockReturnValue(mockEntries as any);
+  test('should collect files with valid code extensions', () => {
+    const mockEntries = [
+      { name: 'file1.ts', isDirectory: () => false, isFile: () => true },
+      { name: 'file2.js', isDirectory: () => false, isFile: () => true },
+      { name: 'file3.txt', isDirectory: () => false, isFile: () => true }
+    ];
 
-      traverse('/test/dir');
+    (fs.readdirSync as jest.Mock).mockReturnValue(mockEntries);
 
-      expect(files).toEqual(['/test/dir/visible.ts']);
-    });
+    traverse('/test/path');
 
-    test('should skip hidden directories starting with dot', () => {
-      mockReaddirSync
-        .mockReturnValueOnce([
-          { name: '.hidden-dir', isDirectory: () => true, isFile: () => false },
-          { name: 'file.ts', isDirectory: () => false, isFile: () => true }
-        ] as any);
-
-      traverse('/test/dir');
-
-      expect(files).toEqual(['/test/dir/file.ts']);
-      expect(mockReaddirSync).toHaveBeenCalledTimes(1);
-    });
-
-    test('should skip directories in skipDirs set', () => {
-      mockReaddirSync
-        .mockReturnValueOnce([
-          { name: 'node_modules', isDirectory: () => true, isFile: () => false },
-          { name: '.git', isDirectory: () => true, isFile: () => false },
-          { name: 'src', isDirectory: () => true, isFile: () => false },
-          { name: 'file.ts', isDirectory: () => false, isFile: () => true }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'code.ts', isDirectory: () => false, isFile: () => true }
-        ] as any);
-
-      traverse('/test/dir');
-
-      expect(files).toEqual(['/test/dir/file.ts', '/test/dir/src/code.ts']);
-      expect(mockReaddirSync).toHaveBeenCalledTimes(2);
-      expect(mockReaddirSync).not.toHaveBeenCalledWith('/test/dir/node_modules', { withFileTypes: true });
-      expect(mockReaddirSync).not.toHaveBeenCalledWith('/test/dir/.git', { withFileTypes: true });
-    });
-
-    test('should not add directories to files array', () => {
-      const mockEntries = [
-        { name: 'dir1', isDirectory: () => true, isFile: () => false }
-      ];
-      mockReaddirSync
-        .mockReturnValueOnce(mockEntries as any)
-        .mockReturnValueOnce([] as any);
-
-      traverse('/test/dir');
-
-      expect(files).toEqual([]);
-    });
+    expect(files).toHaveLength(2);
+    expect(files).toContain('/test/path/file1.ts');
+    expect(files).toContain('/test/path/file2.js');
+    expect(files).not.toContain('/test/path/file3.txt');
   });
 
-  describe('error handling', () => {
-    test('should silently skip directories that throw errors', () => {
-      mockReaddirSync.mockImplementation(() => {
-        throw new Error('Permission denied');
-      });
-
-      expect(() => traverse('/test/protected')).not.toThrow();
-      expect(files).toEqual([]);
-    });
-
-    test('should continue traversing after error in subdirectory', () => {
-      mockReaddirSync
-        .mockReturnValueOnce([
-          { name: 'good-dir', isDirectory: () => true, isFile: () => false },
-          { name: 'bad-dir', isDirectory: () => true, isFile: () => false }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'file.ts', isDirectory: () => false, isFile: () => true }
-        ] as any)
-        .mockImplementationOnce(() => {
-          throw new Error('Cannot read directory');
-        });
-
-      traverse('/test/dir');
-
-      expect(files).toEqual(['/test/dir/good-dir/file.ts']);
-    });
-
-    test('should handle EACCES error', () => {
-      const error: any = new Error('EACCES: permission denied');
-      error.code = 'EACCES';
-      mockReaddirSync.mockImplementation(() => {
-        throw error;
-      });
-
-      expect(() => traverse('/test/protected')).not.toThrow();
-      expect(files).toEqual([]);
-    });
-
-    test('should handle ENOENT error', () => {
-      const error: any = new Error('ENOENT: no such file or directory');
-      error.code = 'ENOENT';
-      mockReaddirSync.mockImplementation(() => {
-        throw error;
-      });
-
-      expect(() => traverse('/test/missing')).not.toThrow();
-      expect(files).toEqual([]);
-    });
-  });
-
-  describe('complex scenarios', () => {
-    test('should handle deeply nested directory structure', () => {
-      mockReaddirSync
-        .mockReturnValueOnce([
-          { name: 'level1', isDirectory: () => true, isFile: () => false }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'level2', isDirectory: () => true, isFile: () => false }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'deep-file.ts', isDirectory: () => false, isFile: () => true }
-        ] as any);
-
-      traverse('/test');
-
-      expect(files).toEqual(['/test/level1/level2/deep-file.ts']);
-      expect(mockReaddirSync).toHaveBeenCalledTimes(3);
-    });
-
-    test('should handle mixed files and directories', () => {
-      mockReaddirSync
-        .mockReturnValueOnce([
-          { name: 'file1.ts', isDirectory: () => false, isFile: () => true },
-          { name: 'dir1', isDirectory: () => true, isFile: () => false },
-          { name: 'file2.ts', isDirectory: () => false, isFile: () => true },
-          { name: 'dir2', isDirectory: () => true, isFile: () => false },
-          { name: 'file3.ts', isDirectory: () => false, isFile: () => true }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'nested1.ts', isDirectory: () => false, isFile: () => true }
-        ] as any)
-        .mockReturnValueOnce([
-          { name: 'nested2.ts', isDirectory: () => false, isFile: () => true }
-        ] as any);
-
-      traverse('/test');
-
-      expect(files).toEqual([
-        '/test/file1.ts',
-        '/test/file2.ts',
-        '/test/file3.ts',
-        '/test/dir1/nested1.ts',
-        '/test/dir2/nested2.ts'
+  test('should recursively traverse subdirectories', () => {
+    (fs.readdirSync as jest.Mock)
+      .mockReturnValueOnce([
+        { name: 'src', isDirectory: () => true, isFile: () => false },
+        { name: 'file1.ts', isDirectory: () => false, isFile: () => true }
+      ])
+      .mockReturnValueOnce([
+        { name: 'file2.js', isDirectory: () => false, isFile: () => true }
       ]);
-    });
+
+    traverse('/test/path');
+
+    expect(files).toHaveLength(2);
+    expect(files).toContain('/test/path/file1.ts');
+    expect(files).toContain('/test/path/src/file2.js');
+    expect(fs.readdirSync).toHaveBeenCalledTimes(2);
   });
-});
+
+  test('should skip directories in SKIP_DIRS set', () => {
+    const mockEntries = [
+      { name: 'node_modules', isDirectory: () => true, isFile: () => false },
+      { name: 'dist', isDirectory: () => true, isFile: () => false },
+      { name: 'src', isDirectory: () => true, isFile: () => false }
+    ];
+
+    (fs.readdirSync as jest.Mock)
+      .mockReturnValueOnce(mockEntries)
+      .mockReturnValueOnce([
+        { name: 'file1.ts', isDirectory: () => false, isFile: () => true }
+      ]);
+
+    traverse('/test/path');
+
+    expect(fs.readdirSync).toHaveBeenCalledTimes(2);
+    expect(fs.readdirSync).toHaveBeenCalledWith('/test/path', { withFileTypes: true });
+    expect(fs.readdirSync).toHaveBeenCalledWith('/test/path/src', { withFileTypes: true });
+    expect(files).toHaveLength(1);
+  });
+
+  test('should skip hidden directories starting with dot', () => {
+    const mockEntries = [
+      { name: '.git', isDirectory: () => true, isFile: () => false },
+      { name: '.vscode', isDirectory: () => true, isFile: () => false },
+      { name: 'src', isDirectory: () => true, isFile: () => false }
+    ];
+
+    (fs.readdirSync as jest.Mock)
+      .mockReturnValueOnce(mockEntries)
+      .mockReturnValueOnce([
+        { name: 'file1.ts', isDirectory: () => false, isFile: () => true }
+      ]);
+
+    traverse('/test/path');
+
+    expect(fs.readdirSync).toHaveBeenCalledTimes(2);
+    expect(files).toHaveLength(1);
+    expect(files).toContain('/test/path/src/file1.ts');
+  });
+
+  test('should handle empty directories', () => {
+    (fs.readdirSync as jest.Mock).mockReturnValue([]);
+
+    traverse('/test/path');
+
+    expect(files).toHaveLength(0);
+    expect(fs.readdirSync).toHaveBeenCalledWith('/test/path', { withFileTypes: true });
+  });
+
+  test('should handle multiple file types correctly', () => {
+    const mockEntries = [
+      { name: 'file1.ts', isDirectory: () => false, isFile: () => true },
+      { name: 'file2.tsx', isDirectory: () => false, isFile: () => true },
+      { name: 'file3.py', isDirectory: () => false, isFile: () => true },
+      { name: 'file4.java', isDirectory: () => false, isFile: () => true },
+      { name: 'README.md', isDirectory: () => false, isFile: () => true }
+    ];
+
+    (fs.readdirSync as jest.Mock).mockReturnValue(mockEntries);
+
+    traverse('/test/path');
+
+    expect(files).toHaveLength(4);
+    expect(files).toContain('/test/path/file1.ts');
+    expect(files).toContain('/test/path/file2.tsx');
+    expect(files).toContain('/test/path/file3.py');
+    expect(files).toContain('/test/path/file4.java');
+    expect(files).not.toContain('/test/path/README.md');
+  });
+
+  test('should handle deeply nested directory structures', () => {
+    (fs.readdirSync as jest.Mock)
+      .mockReturnValueOnce([
+        { name: 'level1', isDirectory: () => true, isFile: () => false }
+      ])
+      .mockReturnValueOnce([
+        { name: 'level2', isDirectory: () => true, isFile: () => false }
+      ])
+      .mockReturnValueOnce([
+        { name: 'file.ts', isDirectory: () => false, isFile: () => true }
+      ]);
+
+    traverse('/test/path');
+
+    expect(files).toHaveLength(1);
+    expect(files).toContain('/test/path/level1/level2/file.ts');
+    expect(fs.readdirSync).toHaveBeenCalledTimes(3);
+  });
+
+  test('should handle mixed files and directories', () => {
+    (fs.readdirSync as jest.Mock)
+      .mockReturnValueOnce([
+        { name: 'file1.ts', isDirectory: () => false, isFile: () => true },
+        { name: 'subdir', isDirectory: () => true, isFile: () => false },
+        { name: 'file2.js', isDirectory: () => false, isFile: () => true }
+      ])
+      .mockReturnValueOnce([
+        { name: 'file3.tsx', isDirectory: () => false, isFile: () => true }
+      ]);
+
+    traverse('/test/path');
+
+    expect(files).toHaveLength(3);
+    expect(files).toContain('/test/path/file1.ts');
+    expect(files).toContain('/test/path/file2.js');
+    expect(files).toContain('/test/path/subdir/file3.tsx');
+  });
+
+  test('should not add files without extensions', () => {
+    const mockEntries = [
+      { name: 'Makefile', isDirectory: () => false, isFile: () => true },
+      { name: 'Dockerfile', isDirectory: () => false, isFile: () => true },
+      { name: 'file.ts', isDirectory: () => false, isFile: () => true }
+    ];
+
+    (fs.readdirSync as jest.Mock).mockReturnValue(mockEntries);
+
+    traverse('/test/path');
+
+    expect(files).toHaveLength(1);
+    expect(files).toContain('/test/path/file.ts');
+  });
+}

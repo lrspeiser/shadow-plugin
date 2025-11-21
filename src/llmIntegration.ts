@@ -1686,19 +1686,33 @@ export async function generateUnitTests(): Promise<void> {
                         SWLogger.log(`[Phase 3] Error for '${funcName}': ${syntaxCheck.error}`);
                         SWLogger.log(`[Phase 3] Target function: ${funcName}`);
                         
-                        
-                        const fixResult = await LLMTestGenerationService.fixSyntaxError(
-                            testFilePath,
-                            syntaxCheck.error || 'Unknown syntax error',
-                            workspaceRoot,
-                            llmService
-                        );
-                        
-                        if (fixResult.success) {
-                            SWLogger.log(`[Phase 3] LLM applied fix for '${funcName}', re-validating...`);
-                        } else {
-                            SWLogger.log(`[Phase 3] ❌ LLM fix failed for '${funcName}': ${fixResult.error}`);
-                            break; // No point continuing if LLM can't fix it
+                        try {
+                            const fixResult = await LLMTestGenerationService.fixSyntaxError(
+                                testFilePath,
+                                syntaxCheck.error || 'Unknown syntax error',
+                                workspaceRoot,
+                                llmService
+                            );
+                            
+                            if (fixResult.success) {
+                                SWLogger.log(`[Phase 3] LLM applied fix for '${funcName}', re-validating...`);
+                                // Re-validate immediately after fix is written
+                                const revalidation = await LLMTestGenerationService.validateSyntax(testFilePath, workspaceRoot);
+                                if (revalidation.valid) {
+                                    syntaxValid = true;
+                                    SWLogger.log(`[Phase 3] ✅ Re-validation passed for '${funcName}'`);
+                                    break;
+                                } else {
+                                    SWLogger.log(`[Phase 3] ⚠️  Fix was written but re-validation still failed for '${funcName}': ${revalidation.error}`);
+                                    // Continue to next iteration to try again
+                                }
+                            } else {
+                                SWLogger.log(`[Phase 3] ❌ LLM fix failed for '${funcName}': ${fixResult.error || 'Unknown error'}`);
+                                break; // No point continuing if LLM can't fix it
+                            }
+                        } catch (fixError: any) {
+                            SWLogger.log(`[Phase 3] ❌ Exception during fix attempt for '${funcName}': ${fixError.message}`);
+                            break; // Stop retrying on exceptions
                         }
                     }
                     
