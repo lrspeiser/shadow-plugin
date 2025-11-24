@@ -1777,7 +1777,8 @@ export async function generateUnitTests(): Promise<void> {
                         llmService,
                         (current, total, funcName) => {
                             SWLogger.log(`[Phase 3] Generated test ${current}/${total}: ${funcName}`);
-                        }
+                        },
+                        lastLLMInsights // Pass architecture insights for context-aware test generation
                     );
                 } catch (batchError: any) {
                     SWLogger.log(`[Phase 3] ❌ Error generating test batch: ${batchError.message}`);

@@ -7,21 +7,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TestableFunction, TestGenerationState } from './types/testPlanTypes';
 import { TestGenerationResult } from './types/testResultTypes';
-import { buildGenerationPrompt } from '../../prompts/testPrompts';
+import { buildGenerationPrompt, ArchitectureContext } from '../../prompts/testPrompts';
 import { TestExecutionService } from './testExecutionService';
 import { SWLogger } from '../../../logger';
 
 export class LLMTestGenerationService {
     /**
      * Generate tests for a batch of functions
+     * @param architectureInsights Optional architecture insights from architecture analysis to inform test generation
      */
     static async generateTestBatch(
         functions: TestableFunction[],
         workspaceRoot: string,
         llmService: any,
-        onProgress?: (current: number, total: number, functionName: string) => void
+        onProgress?: (current: number, total: number, functionName: string) => void,
+        architectureInsights?: any
     ): Promise<Map<string, TestGenerationResult>> {
         SWLogger.log(`[TestGeneration] Generating tests for ${functions.length} functions`);
+        if (architectureInsights) {
+            SWLogger.log(`[TestGeneration] Using architecture insights to inform test generation`);
+        }
 
         const results = new Map<string, TestGenerationResult>();
 
@@ -43,8 +48,14 @@ export class LLMTestGenerationService {
                 const mockPath = path.join(workspaceRoot, 'src', 'test', '__mocks__', 'vscode.ts');
                 const existingMocks = fs.existsSync(mockPath) ? fs.readFileSync(mockPath, 'utf-8') : undefined;
 
+                // Build architecture context for this function
+                const architectureContext = this.buildArchitectureContextForFunction(
+                    func,
+                    architectureInsights
+                );
+
                 // Build prompt for this specific function
-                const prompt = buildGenerationPrompt(func, sourceCode, 'jest', existingMocks, fileContext);
+                const prompt = buildGenerationPrompt(func, sourceCode, 'jest', existingMocks, fileContext, architectureContext);
 
                 // Call LLM to generate test
                 const testResult = await llmService.generateTestForFunction(prompt);
@@ -362,5 +373,85 @@ export class LLMTestGenerationService {
             SWLogger.log(`[TestGeneration] Error extracting source for ${func.name}: ${error.message}`);
             return `// Error reading source: ${error.message}`;
         }
+    }
+
+    /**
+     * Build architecture context for a specific function from architecture insights
+     * This extracts relevant issues, edge cases, and test recommendations
+     */
+    private static buildArchitectureContextForFunction(
+        func: TestableFunction,
+        architectureInsights: any
+    ): ArchitectureContext | undefined {
+        if (!architectureInsights) {
+            return undefined;
+        }
+
+        const context: ArchitectureContext = {};
+
+        // Extract relevant issues for this function's file
+        if (architectureInsights.issues && Array.isArray(architectureInsights.issues)) {
+            context.issues = architectureInsights.issues
+                .filter((issue: any) => {
+                    // Check if issue mentions this function or file
+                    const issueText = JSON.stringify(issue).toLowerCase();
+                    const funcNameLower = func.name.toLowerCase();
+                    const funcFileLower = func.file.toLowerCase();
+                    return issueText.includes(funcNameLower) || issueText.includes(funcFileLower);
+                })
+                .map((issue: any) => ({
+                    title: issue.title || issue.name || 'Unknown Issue',
+                    description: issue.description || issue.details || '',
+                    relevantFiles: issue.files || issue.relevantFiles,
+                    relevantFunctions: issue.functions || issue.relevantFunctions
+                }));
+        }
+
+        // Extract priority items mentioning this function
+        if (architectureInsights.priorities && Array.isArray(architectureInsights.priorities)) {
+            context.priorities = architectureInsights.priorities
+                .filter((priority: any) => {
+                    const priorityText = JSON.stringify(priority).toLowerCase();
+                    return priorityText.includes(func.name.toLowerCase()) || 
+                           priorityText.includes(func.file.toLowerCase());
+                })
+                .map((priority: any) => ({
+                    title: priority.title || priority.name || 'Unknown Priority',
+                    description: priority.description || priority.details || '',
+                    relevantFiles: priority.files || priority.relevantFiles,
+                    relevantFunctions: priority.functions || priority.relevantFunctions
+                }));
+        }
+
+        // Check if this function is in recommended_test_targets
+        if (architectureInsights.recommended_test_targets && Array.isArray(architectureInsights.recommended_test_targets)) {
+            const matchingTarget = architectureInsights.recommended_test_targets.find(
+                (target: any) => 
+                    target.function_name === func.name ||
+                    target.file_path === func.file ||
+                    (target.file_path && func.file.endsWith(target.file_path))
+            );
+
+            if (matchingTarget) {
+                context.testReason = matchingTarget.reason;
+                context.edgeCases = matchingTarget.edge_cases;
+            }
+        }
+
+        // Only return context if we found something relevant
+        const hasIssues = context.issues && context.issues.length > 0;
+        const hasPriorities = context.priorities && context.priorities.length > 0;
+        const hasTestReason = !!context.testReason;
+        const hasEdgeCases = context.edgeCases && context.edgeCases.length > 0;
+
+        if (hasIssues || hasPriorities || hasTestReason || hasEdgeCases) {
+            SWLogger.log(`[TestGeneration] Found architecture context for ${func.name}: ` +
+                `${context.issues?.length || 0} issues, ` +
+                `${context.priorities?.length || 0} priorities, ` +
+                `${context.edgeCases?.length || 0} edge cases`);
+            return context;
+        }
+
+        return undefined;
     }
 }
