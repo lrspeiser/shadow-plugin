@@ -453,8 +453,10 @@ Examples:
 
 [Continue with top 3-5 priorities, each with title, description, relevantFiles, and relevantFunctions]
 
-## Unit Test Recommendations
-**CRITICAL**: Based on your architecture analysis, recommend specific functions/modules for unit testing.
+## Unit Test Recommendations (REQUIRED)
+**CRITICAL**: Based on your architecture analysis, you MUST populate the \`recommended_test_targets\` field in your JSON response.
+
+This is a REQUIRED field that directly feeds into the automated test generation system. Your testing recommendations will be used to prioritize which functions get unit tests generated first.
 
 Your testing strategy should leverage YOUR ARCHITECTURAL INSIGHTS:
 - Functions in critical paths (entry points, core business logic)
@@ -462,36 +464,24 @@ Your testing strategy should leverage YOUR ARCHITECTURAL INSIGHTS:
 - Complex functions (high LOC, many dependencies)
 - Functions at integration points between layers
 - Functions involved in duplicate/incompatible systems you found
-- Recently changed code (from orphaned files analysis)
 - Functions with high coupling or circular dependencies
+- Functions that handle errors or edge cases poorly (from Success/Errors section)
 
-For each recommended test target, provide:
-1. **Function Name**: Exact function name
-2. **File Path**: Full path to file
-3. **Priority**: critical|high|medium
-4. **Reason**: Why this function needs testing (reference your architecture analysis)
-5. **Dependencies**: What needs mocking (vscode, fs, http, etc.)
-6. **Complexity**: simple|moderate|complex
-7. **Test Areas**: Specific scenarios to test (happy path, error cases, edge cases)
+For each recommended test target, populate these fields:
+- **function_name**: Exact function name (e.g., "analyzeWorkspace")
+- **file_path**: Full relative path (e.g., "src/analyzer.ts")
+- **priority**: "critical" | "high" | "medium"
+- **reason**: Why this function needs testing - reference your architecture analysis findings
+- **complexity**: "low" | "medium" | "high" (affects test generation approach)
+- **dependencies**: Array of external deps that need mocking ["vscode", "fs", "http"]
+- **edge_cases**: Array of specific test scenarios ["empty input", "invalid format", "timeout"]
 
-Format (provide in a separate JSON code block in your response):
-\`\`\`json
-{
-  "recommended_test_targets": [
-    {
-      "function_name": "analyzeWorkspace",
-      "file_path": "src/analyzer.ts",
-      "priority": "critical",
-      "reason": "Entry point for core analysis feature. Complex function with file I/O and multiple dependencies.",
-      "dependencies": ["fs", "path"],
-      "complexity": "complex",
-      "test_areas": ["valid workspace", "empty workspace", "large codebase", "file read errors"]
-    }
-  ]
-}
-\`\`\`
-
-Provide 15-30 test targets, prioritized by criticality.
+IMPORTANT:
+- Provide at least 15-30 test targets
+- Put critical/high priority targets first
+- Include dependencies so test generator knows what to mock
+- Include edge_cases so tests cover error scenarios
+- The \`recommended_test_targets\` field in your response is REQUIRED - do not omit it
 
 IMPORTANT: 
 - Use MARKDOWN format (NOT HTML) - the content will be rendered in VSCode

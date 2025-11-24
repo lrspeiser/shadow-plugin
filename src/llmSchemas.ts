@@ -205,6 +205,49 @@ export const llmInsightsSchema = {
             type: "string",
             description: "LLM refactoring prompt (optional)"
         },
+        recommended_test_targets: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    function_name: {
+                        type: "string",
+                        description: "Name of the function to test"
+                    },
+                    file_path: {
+                        type: "string",
+                        description: "Path to the file containing the function"
+                    },
+                    priority: {
+                        type: "string",
+                        enum: ["critical", "high", "medium"],
+                        description: "Testing priority based on risk and importance"
+                    },
+                    reason: {
+                        type: "string",
+                        description: "Why this function should be tested (e.g., 'handles user input validation', 'core business logic', 'error-prone area')"
+                    },
+                    complexity: {
+                        type: "string",
+                        enum: ["low", "medium", "high"],
+                        description: "Estimated complexity of testing this function"
+                    },
+                    dependencies: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "External dependencies that need mocking (e.g., ['vscode', 'fs', 'database'])"
+                    },
+                    edge_cases: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "Known edge cases or error conditions to test"
+                    }
+                },
+                required: ["function_name", "file_path", "priority", "reason"],
+                additionalProperties: false
+            },
+            description: "Recommended functions to prioritize for unit testing, based on architecture analysis. Focus on high-risk areas, complex logic, and error-prone code."
+        },
         requests: {
             type: "array",
             items: {

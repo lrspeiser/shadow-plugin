@@ -164,13 +164,58 @@ Return your response in this JSON format:
     return prompt;
 }
 
+/**
+ * Architecture context for test generation
+ * This context comes from architecture insights and helps generate better tests
+ */
+export interface ArchitectureContext {
+    issues?: Array<{ title: string; description: string; relevantFiles?: string[]; relevantFunctions?: string[] }>;
+    priorities?: Array<{ title: string; description: string; relevantFiles?: string[]; relevantFunctions?: string[] }>;
+    testReason?: string; // Why this function was selected for testing
+    edgeCases?: string[]; // Known edge cases from architecture analysis
+    relatedIssues?: string[]; // Architecture issues related to this function
+}
+
 export function buildGenerationPrompt(
     func: TestableFunction,
     sourceCode: string,
     testingFramework: string,
     existingMocks?: string,
-    fileContext?: { exports: string[]; defaultExport?: boolean; importPathFromTests: string }
+    fileContext?: { exports: string[]; defaultExport?: boolean; importPathFromTests: string },
+    architectureContext?: ArchitectureContext
 ): string {
+    // Find architecture issues related to this function's file
+    let relatedIssues = '';
+    let relatedEdgeCases = '';
+    
+    if (architectureContext) {
+        // Check if any architecture issues mention this function or file
+        const funcFile = func.file;
+        const funcName = func.name;
+        
+        const relevantIssues = architectureContext.issues?.filter(issue => {
+            const inFiles = issue.relevantFiles?.some(f => f.includes(funcFile) || funcFile.includes(f));
+            const inFunctions = issue.relevantFunctions?.some(f => f.includes(funcName) || funcName.includes(f));
+            return inFiles || inFunctions;
+        }) || [];
+        
+        if (relevantIssues.length > 0) {
+            relatedIssues = `\n## Architecture Issues to Address in Tests
+The following architecture issues have been identified for this area. Make sure your tests cover these concerns:
+${relevantIssues.map(i => `- **${i.title}**: ${i.description}`).join('\n')}\n`;
+        }
+        
+        if (architectureContext.testReason) {
+            relatedIssues += `\n**Why Test This Function**: ${architectureContext.testReason}\n`;
+        }
+        
+        if (architectureContext.edgeCases && architectureContext.edgeCases.length > 0) {
+            relatedEdgeCases = `\n## Known Edge Cases to Test
+Architecture analysis identified these edge cases:
+${architectureContext.edgeCases.map(ec => `- ${ec}`).join('\n')}\n`;
+        }
+    }
+    
     return `You are an expert test engineer. Generate a complete, runnable test for this function.
 
 ## Function to Test
@@ -198,6 +243,8 @@ ${existingMocks}
 - Exported symbols: ${(fileContext?.exports || []).join(', ') || 'unknown'}
 - Default export: ${fileContext?.defaultExport ? 'yes' : 'no'}
 
+${relatedIssues}
+${relatedEdgeCases}
 ## Your Task
 Generate a complete ${testingFramework} test that:
 1. Includes ALL necessary imports with CORRECT paths from UnitTests/ directory
@@ -205,6 +252,7 @@ Generate a complete ${testingFramework} test that:
 3. Tests multiple scenarios (happy path, edge cases, error handling)
 4. Uses proper assertions
 5. Is syntactically valid and ready to run
+6. Addresses any architecture issues or edge cases mentioned above
 
 IMPORTANT RULES:
 - Use EXACTLY the import path shown above for the target module.

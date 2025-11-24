@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { AnalysisCache } from './cache';
+import { shouldSkipDirectory, shouldAnalyzeFile, getLanguageFromExtension, SKIP_DIRECTORIES } from './utils/fileFilter';
 
 export interface CodeAnalysis {
     totalFiles: number;
@@ -120,22 +121,8 @@ const CODE_EXTENSIONS: { [key: string]: string } = {
     '.php': 'php'
 };
 
-const SKIP_DIRS = new Set([
-    'node_modules',
-    '__pycache__',
-    '.git',
-    '.venv',
-    'venv',
-    'dist',
-    'build',
-    '.pytest_cache',
-    '.mypy_cache',
-    'ShadowFiles',
-    'target',
-    'pkg',
-    '.next',
-    'out'
-]);
+// Using shared SKIP_DIRECTORIES from utils/fileFilter.ts
+const SKIP_DIRS = SKIP_DIRECTORIES;
 
 export class CodeAnalyzer {
     constructor(private cache: AnalysisCache) {}
@@ -287,12 +274,12 @@ export class CodeAnalyzer {
                 const fullPath = path.join(currentPath, entry.name);
 
                 if (entry.isDirectory()) {
-                    if (!SKIP_DIRS.has(entry.name) && !entry.name.startsWith('.')) {
+                    if (!shouldSkipDirectory(entry.name) && !entry.name.startsWith('.')) {
                         traverse(fullPath);
                     }
                 } else if (entry.isFile()) {
-                    const ext = path.extname(entry.name);
-                    if (CODE_EXTENSIONS[ext]) {
+                    // Use shared filter for consistent exclusion
+                    if (shouldAnalyzeFile(fullPath)) {
                         files.push(fullPath);
                     }
                 }
@@ -305,11 +292,6 @@ export class CodeAnalyzer {
 
     private findAllFiles(dir: string): string[] {
         const files: string[] = [];
-        const skipDirs = new Set([
-            'node_modules', '__pycache__', '.git', '.venv', 'venv',
-            'dist', 'build', '.pytest_cache', '.mypy_cache',
-            'target', 'pkg', '.next', 'out', '.shadow'
-        ]);
 
         const traverse = (currentDir: string) => {
             try {
@@ -318,13 +300,14 @@ export class CodeAnalyzer {
                 for (const entry of entries) {
                     const fullPath = path.join(currentDir, entry.name);
                     
-                    // Skip hidden files/dirs and skip directories
+                    // Skip hidden files/dirs
                     if (entry.name.startsWith('.')) {
                         continue;
                     }
                     
                     if (entry.isDirectory()) {
-                        if (!skipDirs.has(entry.name)) {
+                        // Use shared skip directory check
+                        if (!shouldSkipDirectory(entry.name)) {
                             traverse(fullPath);
                         }
                     } else if (entry.isFile()) {

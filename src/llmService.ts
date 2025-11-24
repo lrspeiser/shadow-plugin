@@ -18,6 +18,7 @@ import { PromptBuilder } from './domain/prompts/promptBuilder';
 import { IncrementalAnalysisService } from './domain/services/incrementalAnalysisService';
 import { RefactoringPromptBuilder, FunctionAnalysis } from './domain/prompts/refactoringPromptBuilder';
 import { FunctionAnalyzer } from './analysis/functionAnalyzer';
+import { shouldAnalyzeFile } from './utils/fileFilter';
 
 export interface AnalysisContext {
     files: Array<{
@@ -211,7 +212,12 @@ export class LLMService {
         // STEP 1: File-level analysis (limit to prevent token overflow)
         const fileSummaries: FileSummary[] = [];
         const maxFilesToAnalyze = 50;
-        const filesToAnalyze = analysis.files.slice(0, maxFilesToAnalyze);
+        
+        // Filter out test files, config files, and other non-analyzable files using shared filter
+        const analyzableFiles = analysis.files.filter(f => shouldAnalyzeFile(f.path));
+        SWLogger.log(`Filtered ${analysis.files.length} files to ${analyzableFiles.length} analyzable files`);
+        
+        const filesToAnalyze = analyzableFiles.slice(0, maxFilesToAnalyze);
 
         for (let i = 0; i < filesToAnalyze.length; i++) {
             const file = filesToAnalyze[i];
