@@ -1,0 +1,41 @@
+{
+  "file": "src/domain/services/testConfigurationService.ts",
+  "role": "Core Logic",
+  "purpose": "Automatically detects and configures test framework settings to ensure generated tests work without manual user setup",
+  "userVisibleActions": [
+    "Automatically detects which test framework (Jest, Mocha, Vitest, Pytest) is being used in the project",
+    "Identifies missing test dependencies and provides setup recommendations",
+    "Validates that test configuration files exist and are properly configured",
+    "Reports whether the test environment is ready to run generated tests",
+    "Suggests specific setup actions needed to fix configuration issues"
+  ],
+  "developerVisibleActions": [
+    "Scans workspace root for package.json to identify test framework from scripts and dependencies",
+    "Checks for framework-specific configuration files (jest.config.js, .mocharc, vitest.config.ts, pytest.ini)",
+    "Detects TypeScript setup and verifies TypeScript-specific test dependencies (ts-jest, @jest/globals)",
+    "Analyzes installed dependencies versus required dependencies for the detected framework",
+    "Returns structured status report with framework type, configuration state, and required actions",
+    "Provides list of missing dependencies that need to be installed",
+    "Determines if manual setup steps are required before tests can run"
+  ],
+  "keyFunctions": [
+    {
+      "name": "detectTestConfiguration",
+      "desc": "Scans project to identify test framework and configuration completeness",
+      "inputs": "workspaceRoot (string path to project root)",
+      "outputs": "TestConfigStatus object with framework type, configuration status, missing dependencies, and setup actions"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "SWLogger"
+  ],
+  "intent": "Eliminates manual test configuration burden by automatically detecting what test framework is used, what's missing, and what setup is needed, ensuring generated tests can run immediately without user intervention or troubleshooting",
+  "rawContent": "```json\n{\n  \"purpose\": \"Automatically detects and configures test framework settings to ensure generated tests work without manual user setup\",\n  \"userVisibleActions\": [\n    \"Automatically detects which test framework (Jest, Mocha, Vitest, Pytest) is being used in the project\",\n    \"Identifies missing test dependencies and provides setup recommendations\",\n    \"Validates that test configuration files exist and are properly configured\",\n    \"Reports whether the test environment is ready to run generated tests\",\n    \"Suggests specific setup actions needed to fix configuration issues\"\n  ],\n  \"developerVisibleActions\": [\n    \"Scans workspace root for package.json to identify test framework from scripts and dependencies\",\n    \"Checks for framework-specific configuration files (jest.config.js, .mocharc, vitest.config.ts, pytest.ini)\",\n    \"Detects TypeScript setup and verifies TypeScript-specific test dependencies (ts-jest, @jest/globals)\",\n    \"Analyzes installed dependencies versus required dependencies for the detected framework\",\n    \"Returns structured status report with framework type, configuration state, and required actions\",\n    \"Provides list of missing dependencies that need to be installed\",\n    \"Determines if manual setup steps are required before tests can run\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestConfiguration\",\n      \"desc\": \"Scans project to identify test framework and configuration completeness\",\n      \"inputs\": \"workspaceRoot (string path to project root)\",\n      \"outputs\": \"TestConfigStatus object with framework type, configuration status, missing dependencies, and setup actions\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"Eliminates manual test configuration burden by automatically detecting what test framework is used, what's missing, and what setup is needed, ensuring generated tests can run immediately without user intervention or troubleshooting\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:41:19.867Z"
+  }
+}

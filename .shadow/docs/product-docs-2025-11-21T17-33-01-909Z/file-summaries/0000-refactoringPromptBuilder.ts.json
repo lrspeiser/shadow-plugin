@@ -1,0 +1,56 @@
+{
+  "file": "src/domain/prompts/refactoringPromptBuilder.ts",
+  "role": "Core Logic",
+  "purpose": "Generates AI prompts that instruct an LLM to create detailed code refactoring plans with function extraction recommendations.",
+  "userVisibleActions": [
+    "Receives detailed refactoring recommendations for improving code organization",
+    "Gets step-by-step migration plans for extracting functions to new files",
+    "Views before/after code examples showing proposed refactoring changes",
+    "Sees analysis of function dependencies and which code calls what"
+  ],
+  "developerVisibleActions": [
+    "Builds comprehensive prompts that guide LLMs to generate refactoring reports",
+    "Includes code analysis data, product documentation, and architecture insights in prompts",
+    "Generates prompts that request function extraction plans with dependencies and migration steps",
+    "Provides function-level analysis including responsibilities, dependencies, and dependents",
+    "Creates prompts requesting before/after code examples for refactoring changes"
+  ],
+  "keyFunctions": [
+    {
+      "name": "buildDetailedRefactoringPrompt",
+      "desc": "Creates a comprehensive prompt for generating detailed refactoring recommendations",
+      "inputs": "context (analysis settings), codeAnalysis (parsed code structure), productDocs (optional documentation), architectureInsights (optional LLM insights), functionAnalyses (optional function metadata)",
+      "outputs": "String prompt for LLM to generate refactoring report"
+    },
+    {
+      "name": "buildBasePrompt",
+      "desc": "Constructs the foundational prompt section with project context and code analysis",
+      "inputs": "context, codeAnalysis, productDocs, architectureInsights",
+      "outputs": "String containing base prompt instructions"
+    },
+    {
+      "name": "buildFunctionAnalysisSection",
+      "desc": "Adds detailed function analysis information to the prompt",
+      "inputs": "functionAnalyses (array of function metadata)",
+      "outputs": "String section describing function responsibilities and relationships"
+    },
+    {
+      "name": "buildExtractionRequirementsSection",
+      "desc": "Specifies requirements for LLM to generate function extraction plans",
+      "inputs": "None",
+      "outputs": "String section with extraction planning instructions"
+    }
+  ],
+  "dependencies": [
+    "../../analyzer (CodeAnalysis, FileInfo, FunctionMetadata)",
+    "../../llmService (AnalysisContext, LLMInsights)",
+    "../../fileDocumentation (EnhancedProductDocumentation)"
+  ],
+  "intent": "This file exists to translate code analysis results into structured prompts that guide AI models to generate actionable refactoring recommendations. It solves the problem of getting useful, detailed refactoring suggestions by carefully crafting prompts that include function dependencies, extraction plans, and migration steps rather than generic improvement advice.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Generates AI prompts that instruct an LLM to create detailed code refactoring plans with function extraction recommendations.\",\n  \"userVisibleActions\": [\n    \"Receives detailed refactoring recommendations for improving code organization\",\n    \"Gets step-by-step migration plans for extracting functions to new files\",\n    \"Views before/after code examples showing proposed refactoring changes\",\n    \"Sees analysis of function dependencies and which code calls what\"\n  ],\n  \"developerVisibleActions\": [\n    \"Builds comprehensive prompts that guide LLMs to generate refactoring reports\",\n    \"Includes code analysis data, product documentation, and architecture insights in prompts\",\n    \"Generates prompts that request function extraction plans with dependencies and migration steps\",\n    \"Provides function-level analysis including responsibilities, dependencies, and dependents\",\n    \"Creates prompts requesting before/after code examples for refactoring changes\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildDetailedRefactoringPrompt\",\n      \"desc\": \"Creates a comprehensive prompt for generating detailed refactoring recommendations\",\n      \"inputs\": \"context (analysis settings), codeAnalysis (parsed code structure), productDocs (optional documentation), architectureInsights (optional LLM insights), functionAnalyses (optional function metadata)\",\n      \"outputs\": \"String prompt for LLM to generate refactoring report\"\n    },\n    {\n      \"name\": \"buildBasePrompt\",\n      \"desc\": \"Constructs the foundational prompt section with project context and code analysis\",\n      \"inputs\": \"context, codeAnalysis, productDocs, architectureInsights\",\n      \"outputs\": \"String containing base prompt instructions\"\n    },\n    {\n      \"name\": \"buildFunctionAnalysisSection\",\n      \"desc\": \"Adds detailed function analysis information to the prompt\",\n      \"inputs\": \"functionAnalyses (array of function metadata)\",\n      \"outputs\": \"String section describing function responsibilities and relationships\"\n    },\n    {\n      \"name\": \"buildExtractionRequirementsSection\",\n      \"desc\": \"Specifies requirements for LLM to generate function extraction plans\",\n      \"inputs\": \"None\",\n      \"outputs\": \"String section with extraction planning instructions\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer (CodeAnalysis, FileInfo, FunctionMetadata)\",\n    \"../../llmService (AnalysisContext, LLMInsights)\",\n    \"../../fileDocumentation (EnhancedProductDocumentation)\"\n  ],\n  \"intent\": \"This file exists to translate code analysis results into structured prompts that guide AI models to generate actionable refactoring recommendations. It solves the problem of getting useful, detailed refactoring suggestions by carefully crafting prompts that include function dependencies, extraction plans, and migration steps rather than generic improvement advice.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:40:06.761Z"
+  }
+}

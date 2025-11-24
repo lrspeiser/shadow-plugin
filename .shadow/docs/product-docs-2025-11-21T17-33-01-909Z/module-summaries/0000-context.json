@@ -1,0 +1,59 @@
+{
+  "module": "src/context",
+  "moduleType": "other",
+  "capabilities": [
+    "Automatically converts code analysis results into LLM-ready context format",
+    "Persists analysis data between sessions in workspace .shadow/docs directory",
+    "Structures analyzed code information for efficient AI processing",
+    "Maintains historical record of code analysis for future reference"
+  ],
+  "summary": "The context module serves as a bridge between code analysis output and AI language model consumption. It automatically transforms technical code analysis results into a structured format optimized for LLM processing, ensuring that insights from code scanning can be effectively utilized by AI-powered features.\n\nWhen code is analyzed, this module saves the results to the workspace's .shadow/docs directory, creating a persistent knowledge base. This allows analysis data to be reused across sessions without requiring re-analysis, improving performance and maintaining continuity. The module handles the serialization and storage of complex analysis structures, making them readily accessible for downstream AI features.\n\nUsers benefit from this module transparently - their code analysis results are automatically preserved and formatted without manual intervention. The persistent storage means that documentation, code insights, and analysis metadata remain available even after restarting the development environment, enabling consistent AI-assisted workflows throughout the development lifecycle.",
+  "files": [
+    {
+      "file": "src/context/analysisContextBuilder.ts",
+      "role": "Core Logic",
+      "purpose": "Converts code analysis results into a context format for LLM processing and saves them to disk for future use",
+      "userVisibleActions": [
+        "Code analysis results are automatically saved to workspace for future reference",
+        "Analysis data persists between sessions in .shadow/docs directory"
+      ],
+      "developerVisibleActions": [
+        "Transforms raw code analysis into LLM-compatible context format",
+        "Saves analysis with metadata (timestamps, version) to .shadow/docs/code-analysis.json",
+        "Creates necessary directories (.shadow/docs) if they don't exist",
+        "Handles workspace validation before saving"
+      ],
+      "keyFunctions": [
+        {
+          "name": "convertCodeAnalysisToContext",
+          "desc": "Transforms CodeAnalysis object into AnalysisContext format suitable for LLM consumption",
+          "inputs": "CodeAnalysis object containing files, imports, entry points, and metrics",
+          "outputs": "AnalysisContext object with reformatted data structure"
+        },
+        {
+          "name": "saveCodeAnalysis",
+          "desc": "Persists code analysis results to disk with metadata for future use",
+          "inputs": "CodeAnalysis object to save",
+          "outputs": "void (creates code-analysis.json file in workspace)"
+        }
+      ],
+      "dependencies": [
+        "vscode",
+        "fs",
+        "path",
+        "../analyzer",
+        "../llmService"
+      ],
+      "intent": "This file exists to bridge the gap between code analysis results and LLM processing by transforming data into the appropriate format and ensuring analysis results are persisted across sessions, allowing the extension to reuse previous analysis work without re-scanning the codebase",
+      "rawContent": "```json\n{\n  \"purpose\": \"Converts code analysis results into a context format for LLM processing and saves them to disk for future use\",\n  \"userVisibleActions\": [\n    \"Code analysis results are automatically saved to workspace for future reference\",\n    \"Analysis data persists between sessions in .shadow/docs directory\"\n  ],\n  \"developerVisibleActions\": [\n    \"Transforms raw code analysis into LLM-compatible context format\",\n    \"Saves analysis with metadata (timestamps, version) to .shadow/docs/code-analysis.json\",\n    \"Creates necessary directories (.shadow/docs) if they don't exist\",\n    \"Handles workspace validation before saving\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"convertCodeAnalysisToContext\",\n      \"desc\": \"Transforms CodeAnalysis object into AnalysisContext format suitable for LLM consumption\",\n      \"inputs\": \"CodeAnalysis object containing files, imports, entry points, and metrics\",\n      \"outputs\": \"AnalysisContext object with reformatted data structure\"\n    },\n    {\n      \"name\": \"saveCodeAnalysis\",\n      \"desc\": \"Persists code analysis results to disk with metadata for future use\",\n      \"inputs\": \"CodeAnalysis object to save\",\n      \"outputs\": \"void (creates code-analysis.json file in workspace)\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\",\n    \"../analyzer\",\n    \"../llmService\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between code analysis results and LLM processing by transforming data into the appropriate format and ensuring analysis results are persisted across sessions, allowing the extension to reuse previous analysis work without re-scanning the codebase\"\n}\n```"
+    }
+  ],
+  "endpoints": [],
+  "commands": [],
+  "workers": [],
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:49:28.659Z"
+  }
+}

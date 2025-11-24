@@ -12,6 +12,65 @@ import { SWLogger } from '../../../logger';
 
 export class LLMTestSetupService {
     /**
+     * Check if dependencies are already installed
+     */
+    static checkInstalledDependencies(workspaceRoot: string, requiredDeps: string[]): { installed: string[]; missing: string[] } {
+        const packageJsonPath = path.join(workspaceRoot, 'package.json');
+        const nodeModulesPath = path.join(workspaceRoot, 'node_modules');
+        
+        const installed: string[] = [];
+        const missing: string[] = [];
+        
+        if (!fs.existsSync(packageJsonPath)) {
+            return { installed: [], missing: requiredDeps };
+        }
+        
+        try {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+            
+            for (const dep of requiredDeps) {
+                const depName = dep.split('@')[0]; // Handle versions like "jest@^29.0.0"
+                
+                // Check if in package.json
+                const inPackageJson = !!allDeps[depName];
+                
+                // Check if actually installed in node_modules
+                const installedInModules = fs.existsSync(path.join(nodeModulesPath, depName));
+                
+                if (inPackageJson && installedInModules) {
+                    installed.push(dep);
+                } else {
+                    missing.push(dep);
+                }
+            }
+        } catch (error) {
+            SWLogger.log(`[TestSetup] Error checking dependencies: ${error}`);
+            return { installed: [], missing: requiredDeps };
+        }
+        
+        return { installed, missing };
+    }
+    
+    /**
+     * Generate install commands for missing dependencies
+     */
+    static generateInstallCommands(workspaceRoot: string, missingDeps: string[]): { npm: string; yarn: string; pnpm: string } {
+        // Detect which package manager is being used
+        const hasYarnLock = fs.existsSync(path.join(workspaceRoot, 'yarn.lock'));
+        const hasPnpmLock = fs.existsSync(path.join(workspaceRoot, 'pnpm-lock.yaml'));
+        const hasPackageLock = fs.existsSync(path.join(workspaceRoot, 'package-lock.json'));
+        
+        const depList = missingDeps.join(' ');
+        
+        return {
+            npm: `npm install --save-dev ${depList}`,
+            yarn: `yarn add --dev ${depList}`,
+            pnpm: `pnpm add --save-dev ${depList}`
+        };
+    }
+    
+    /**
      * Detect current test environment
      */
     static detectTestEnvironment(workspaceRoot: string): TestEnvironment {

@@ -1,0 +1,75 @@
+{
+  "file": "src/analyzer.ts",
+  "role": "Core Logic",
+  "purpose": "Defines data structures and interfaces for code analysis results, including file metadata, function information, dependencies, test mappings, and code quality metrics.",
+  "userVisibleActions": [
+    "View analysis of codebase structure including file counts, line counts, and function counts",
+    "See identification of large files that may need refactoring",
+    "View detected orphaned files that aren't imported anywhere",
+    "See entry points in the codebase",
+    "View duplicate code detection results",
+    "See function-level risk assessments (high/medium/low)",
+    "View function dependencies including database, HTTP, filesystem, and other external services",
+    "See test coverage mapping showing which tests cover which source files and functions",
+    "View uncovered functions that lack tests",
+    "See code quality metrics including complexity scores and maintainability ratings"
+  ],
+  "developerVisibleActions": [
+    "Import and use CodeAnalysis interface to structure analysis results",
+    "Access file metadata including lines of code, functions per file, and cyclomatic complexity",
+    "Query function metadata including parameters, return types, visibility, and documentation",
+    "Track function branches (if/else/switch/loop/exception handling)",
+    "Analyze dependencies by type (database, HTTP, filesystem, cache, etc.)",
+    "Monitor state mutations (assignments, modifications, deletions)",
+    "Map source files to their corresponding test files",
+    "Identify untested functions and areas lacking coverage",
+    "Access duplicate code groups with similarity scores",
+    "Use caching mechanism to speed up repeated analyses",
+    "Query import relationships between files",
+    "Get entry point detection results"
+  ],
+  "keyFunctions": [
+    {
+      "name": "CodeAnalysis",
+      "desc": "Main interface representing complete codebase analysis results",
+      "inputs": "N/A (interface definition)",
+      "outputs": "Structure containing totalFiles, totalLines, totalFunctions, largeFiles, file list, function list, imports, orphaned files, entry points, duplicates, and optional enhanced metadata"
+    },
+    {
+      "name": "FunctionMetadata",
+      "desc": "Detailed metadata about a single function including complexity, dependencies, and risk",
+      "inputs": "N/A (interface definition)",
+      "outputs": "Structure with symbolName, file, parameters, returnType, visibility, docstring, branches, dependencies, state mutations, risk level, and line numbers"
+    },
+    {
+      "name": "TestMapping",
+      "desc": "Maps source code to test files and identifies coverage gaps",
+      "inputs": "N/A (interface definition)",
+      "outputs": "Maps from source files to test files, functions to test names, and list of uncovered functions"
+    },
+    {
+      "name": "DuplicateGroup",
+      "desc": "Groups duplicate or similar code blocks together",
+      "inputs": "N/A (interface definition)",
+      "outputs": "Array of duplicate instances with similarity score and total duplicate lines"
+    },
+    {
+      "name": "QualityMetrics",
+      "desc": "Provides code quality scores and ratings",
+      "inputs": "N/A (interface definition)",
+      "outputs": "Overall score, complexity score, maintainability rating, test coverage percentage, and documentation completeness"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "./cache (AnalysisCache)"
+  ],
+  "intent": "This file exists to provide a comprehensive type system for code analysis results, enabling developers to understand codebase structure, quality, dependencies, test coverage, and potential issues. It serves as the contract between analysis tools and their consumers, ensuring consistent and structured representation of code metrics, function metadata, dependency tracking, and quality assessments.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines data structures and interfaces for code analysis results, including file metadata, function information, dependencies, test mappings, and code quality metrics.\",\n  \"userVisibleActions\": [\n    \"View analysis of codebase structure including file counts, line counts, and function counts\",\n    \"See identification of large files that may need refactoring\",\n    \"View detected orphaned files that aren't imported anywhere\",\n    \"See entry points in the codebase\",\n    \"View duplicate code detection results\",\n    \"See function-level risk assessments (high/medium/low)\",\n    \"View function dependencies including database, HTTP, filesystem, and other external services\",\n    \"See test coverage mapping showing which tests cover which source files and functions\",\n    \"View uncovered functions that lack tests\",\n    \"See code quality metrics including complexity scores and maintainability ratings\"\n  ],\n  \"developerVisibleActions\": [\n    \"Import and use CodeAnalysis interface to structure analysis results\",\n    \"Access file metadata including lines of code, functions per file, and cyclomatic complexity\",\n    \"Query function metadata including parameters, return types, visibility, and documentation\",\n    \"Track function branches (if/else/switch/loop/exception handling)\",\n    \"Analyze dependencies by type (database, HTTP, filesystem, cache, etc.)\",\n    \"Monitor state mutations (assignments, modifications, deletions)\",\n    \"Map source files to their corresponding test files\",\n    \"Identify untested functions and areas lacking coverage\",\n    \"Access duplicate code groups with similarity scores\",\n    \"Use caching mechanism to speed up repeated analyses\",\n    \"Query import relationships between files\",\n    \"Get entry point detection results\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"CodeAnalysis\",\n      \"desc\": \"Main interface representing complete codebase analysis results\",\n      \"inputs\": \"N/A (interface definition)\",\n      \"outputs\": \"Structure containing totalFiles, totalLines, totalFunctions, largeFiles, file list, function list, imports, orphaned files, entry points, duplicates, and optional enhanced metadata\"\n    },\n    {\n      \"name\": \"FunctionMetadata\",\n      \"desc\": \"Detailed metadata about a single function including complexity, dependencies, and risk\",\n      \"inputs\": \"N/A (interface definition)\",\n      \"outputs\": \"Structure with symbolName, file, parameters, returnType, visibility, docstring, branches, dependencies, state mutations, risk level, and line numbers\"\n    },\n    {\n      \"name\": \"TestMapping\",\n      \"desc\": \"Maps source code to test files and identifies coverage gaps\",\n      \"inputs\": \"N/A (interface definition)\",\n      \"outputs\": \"Maps from source files to test files, functions to test names, and list of uncovered functions\"\n    },\n    {\n      \"name\": \"DuplicateGroup\",\n      \"desc\": \"Groups duplicate or similar code blocks together\",\n      \"inputs\": \"N/A (interface definition)\",\n      \"outputs\": \"Array of duplicate instances with similarity score and total duplicate lines\"\n    },\n    {\n      \"name\": \"QualityMetrics\",\n      \"desc\": \"Provides code quality scores and ratings\",\n      \"inputs\": \"N/A (interface definition)\",\n      \"outputs\": \"Overall score, complexity score, maintainability rating, test coverage percentage, and documentation completeness\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"./cache (AnalysisCache)\"\n  ],\n  \"intent\": \"This file exists to provide a comprehensive type system for code analysis results, enabling developers to understand codebase structure, quality, dependencies, test coverage, and potential issues. It serves as the contract between analysis tools and their consumers, ensuring consistent and structured representation of code metrics, function metadata, dependency tracking, and quality assessments.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:36:41.940Z"
+  }
+}

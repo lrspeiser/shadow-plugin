@@ -1,0 +1,79 @@
+{
+  "file": "src/config/configurationManager.ts",
+  "role": "Core Logic",
+  "purpose": "Manages all Shadow Watch extension configuration settings and notifies listeners when settings change",
+  "userVisibleActions": [
+    "Enable or disable the Shadow Watch extension",
+    "Toggle automatic analysis when saving files",
+    "Show or hide inline hints in the editor",
+    "Configure which LLM provider to use (OpenAI or Claude)",
+    "Set the output format for LLM analysis results",
+    "Choose minimum severity level for displaying diagnostics",
+    "Customize API keys and endpoints for LLM services",
+    "Adjust timeout settings for analysis operations",
+    "Control file size and line count limits for analysis"
+  ],
+  "developerVisibleActions": [
+    "Access type-safe configuration properties through getter methods",
+    "Register callbacks that trigger when user changes settings",
+    "Validate configuration values to ensure they meet requirements",
+    "Retrieve AI provider settings including API keys and model names",
+    "Get analysis parameters like debounce delays and file size limits",
+    "Check if specific features are enabled before executing logic",
+    "Receive automatic notifications when workspace configuration changes"
+  ],
+  "keyFunctions": [
+    {
+      "name": "onConfigurationChange",
+      "desc": "Registers a callback function that executes whenever configuration settings change",
+      "inputs": "callback: () => void",
+      "outputs": "void"
+    },
+    {
+      "name": "removeConfigurationChangeListener",
+      "desc": "Unregisters a previously registered configuration change callback",
+      "inputs": "callback: () => void",
+      "outputs": "void"
+    },
+    {
+      "name": "validate",
+      "desc": "Checks if current configuration values are valid and returns any errors found",
+      "inputs": "none",
+      "outputs": "ConfigValidationResult with valid flag and error messages"
+    },
+    {
+      "name": "enabled",
+      "desc": "Returns whether the Shadow Watch extension is currently enabled",
+      "inputs": "none (getter property)",
+      "outputs": "boolean"
+    },
+    {
+      "name": "analyzeOnSave",
+      "desc": "Returns whether automatic analysis should run when files are saved",
+      "inputs": "none (getter property)",
+      "outputs": "boolean"
+    },
+    {
+      "name": "llmProvider",
+      "desc": "Returns the configured LLM provider (OpenAI or Claude)",
+      "inputs": "none (getter property)",
+      "outputs": "LLMProvider type ('openai' or 'claude')"
+    },
+    {
+      "name": "severityThreshold",
+      "desc": "Returns the minimum severity level for displaying diagnostics",
+      "inputs": "none (getter property)",
+      "outputs": "SeverityThreshold type ('error', 'warning', or 'info')"
+    }
+  ],
+  "dependencies": [
+    "vscode"
+  ],
+  "intent": "This file exists to provide a centralized, type-safe way to access all Shadow Watch configuration settings, eliminating scattered configuration calls throughout the codebase and ensuring consistent access to user preferences. It solves the problem of configuration management by providing a single source of truth with automatic change detection and listener notification.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages all Shadow Watch extension configuration settings and notifies listeners when settings change\",\n  \"userVisibleActions\": [\n    \"Enable or disable the Shadow Watch extension\",\n    \"Toggle automatic analysis when saving files\",\n    \"Show or hide inline hints in the editor\",\n    \"Configure which LLM provider to use (OpenAI or Claude)\",\n    \"Set the output format for LLM analysis results\",\n    \"Choose minimum severity level for displaying diagnostics\",\n    \"Customize API keys and endpoints for LLM services\",\n    \"Adjust timeout settings for analysis operations\",\n    \"Control file size and line count limits for analysis\"\n  ],\n  \"developerVisibleActions\": [\n    \"Access type-safe configuration properties through getter methods\",\n    \"Register callbacks that trigger when user changes settings\",\n    \"Validate configuration values to ensure they meet requirements\",\n    \"Retrieve AI provider settings including API keys and model names\",\n    \"Get analysis parameters like debounce delays and file size limits\",\n    \"Check if specific features are enabled before executing logic\",\n    \"Receive automatic notifications when workspace configuration changes\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"onConfigurationChange\",\n      \"desc\": \"Registers a callback function that executes whenever configuration settings change\",\n      \"inputs\": \"callback: () => void\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"removeConfigurationChangeListener\",\n      \"desc\": \"Unregisters a previously registered configuration change callback\",\n      \"inputs\": \"callback: () => void\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"validate\",\n      \"desc\": \"Checks if current configuration values are valid and returns any errors found\",\n      \"inputs\": \"none\",\n      \"outputs\": \"ConfigValidationResult with valid flag and error messages\"\n    },\n    {\n      \"name\": \"enabled\",\n      \"desc\": \"Returns whether the Shadow Watch extension is currently enabled\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"analyzeOnSave\",\n      \"desc\": \"Returns whether automatic analysis should run when files are saved\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"boolean\"\n    },\n    {\n      \"name\": \"llmProvider\",\n      \"desc\": \"Returns the configured LLM provider (OpenAI or Claude)\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"LLMProvider type ('openai' or 'claude')\"\n    },\n    {\n      \"name\": \"severityThreshold\",\n      \"desc\": \"Returns the minimum severity level for displaying diagnostics\",\n      \"inputs\": \"none (getter property)\",\n      \"outputs\": \"SeverityThreshold type ('error', 'warning', or 'info')\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\"\n  ],\n  \"intent\": \"This file exists to provide a centralized, type-safe way to access all Shadow Watch configuration settings, eliminating scattered configuration calls throughout the codebase and ensuring consistent access to user preferences. It solves the problem of configuration management by providing a single source of truth with automatic change detection and listener notification.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:37:18.165Z"
+  }
+}

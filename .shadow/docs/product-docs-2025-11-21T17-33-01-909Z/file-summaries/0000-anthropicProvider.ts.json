@@ -1,0 +1,66 @@
+{
+  "file": "src/ai/providers/anthropicProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Provides integration with Anthropic's Claude AI models for sending chat requests and receiving AI-generated responses",
+  "userVisibleActions": [
+    "Sends messages to Claude AI and receives intelligent responses",
+    "Generates structured JSON outputs from Claude based on schemas",
+    "Automatically retries failed requests with exponential backoff",
+    "Validates Claude API configuration before allowing requests",
+    "Extracts and parses JSON from Claude's responses automatically"
+  ],
+  "developerVisibleActions": [
+    "Configure Claude API key through configuration manager to enable the provider",
+    "Send chat requests with system prompts, conversation history, and model selection",
+    "Request structured outputs by providing a JSON schema and receive validated responses",
+    "Check if Claude is configured and available before making requests",
+    "Handle errors when API key is missing or requests fail",
+    "Automatically converts OpenAI-format messages to Claude's format",
+    "Receives responses with token usage information and content"
+  ],
+  "keyFunctions": [
+    {
+      "name": "isConfigured",
+      "desc": "Checks if Claude API key is set up and provider is ready to use",
+      "inputs": "none",
+      "outputs": "boolean indicating configuration status"
+    },
+    {
+      "name": "getName",
+      "desc": "Returns the provider identifier",
+      "inputs": "none",
+      "outputs": "string 'claude'"
+    },
+    {
+      "name": "sendRequest",
+      "desc": "Sends a chat completion request to Claude with messages and options",
+      "inputs": "LLMRequestOptions with messages, model, maxTokens, systemPrompt",
+      "outputs": "LLMResponse with content, model, and token usage"
+    },
+    {
+      "name": "sendStructuredOutputRequest",
+      "desc": "Sends a request to Claude and ensures the response matches a provided JSON schema",
+      "inputs": "LLMRequestOptions plus JSON schema definition",
+      "outputs": "StructuredOutputResponse with validated JSON data and metadata"
+    },
+    {
+      "name": "initialize",
+      "desc": "Sets up the Claude client with API key from configuration",
+      "inputs": "none (reads from config)",
+      "outputs": "void (initializes internal client)"
+    }
+  ],
+  "dependencies": [
+    "@anthropic-ai/sdk",
+    "../../config/configurationManager",
+    "../../utils/jsonExtractor",
+    "./ILLMProvider"
+  ],
+  "intent": "This file exists to abstract and implement the specific integration with Anthropic's Claude API, converting between the application's generic LLM interface and Claude's specific API format, handling authentication, request formatting, response parsing, and error handling for Claude-specific operations.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides integration with Anthropic's Claude AI models for sending chat requests and receiving AI-generated responses\",\n  \"userVisibleActions\": [\n    \"Sends messages to Claude AI and receives intelligent responses\",\n    \"Generates structured JSON outputs from Claude based on schemas\",\n    \"Automatically retries failed requests with exponential backoff\",\n    \"Validates Claude API configuration before allowing requests\",\n    \"Extracts and parses JSON from Claude's responses automatically\"\n  ],\n  \"developerVisibleActions\": [\n    \"Configure Claude API key through configuration manager to enable the provider\",\n    \"Send chat requests with system prompts, conversation history, and model selection\",\n    \"Request structured outputs by providing a JSON schema and receive validated responses\",\n    \"Check if Claude is configured and available before making requests\",\n    \"Handle errors when API key is missing or requests fail\",\n    \"Automatically converts OpenAI-format messages to Claude's format\",\n    \"Receives responses with token usage information and content\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"isConfigured\",\n      \"desc\": \"Checks if Claude API key is set up and provider is ready to use\",\n      \"inputs\": \"none\",\n      \"outputs\": \"boolean indicating configuration status\"\n    },\n    {\n      \"name\": \"getName\",\n      \"desc\": \"Returns the provider identifier\",\n      \"inputs\": \"none\",\n      \"outputs\": \"string 'claude'\"\n    },\n    {\n      \"name\": \"sendRequest\",\n      \"desc\": \"Sends a chat completion request to Claude with messages and options\",\n      \"inputs\": \"LLMRequestOptions with messages, model, maxTokens, systemPrompt\",\n      \"outputs\": \"LLMResponse with content, model, and token usage\"\n    },\n    {\n      \"name\": \"sendStructuredOutputRequest\",\n      \"desc\": \"Sends a request to Claude and ensures the response matches a provided JSON schema\",\n      \"inputs\": \"LLMRequestOptions plus JSON schema definition\",\n      \"outputs\": \"StructuredOutputResponse with validated JSON data and metadata\"\n    },\n    {\n      \"name\": \"initialize\",\n      \"desc\": \"Sets up the Claude client with API key from configuration\",\n      \"inputs\": \"none (reads from config)\",\n      \"outputs\": \"void (initializes internal client)\"\n    }\n  ],\n  \"dependencies\": [\n    \"@anthropic-ai/sdk\",\n    \"../../config/configurationManager\",\n    \"../../utils/jsonExtractor\",\n    \"./ILLMProvider\"\n  ],\n  \"intent\": \"This file exists to abstract and implement the specific integration with Anthropic's Claude API, converting between the application's generic LLM interface and Claude's specific API format, handling authentication, request formatting, response parsing, and error handling for Claude-specific operations.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:34:40.081Z"
+  }
+}

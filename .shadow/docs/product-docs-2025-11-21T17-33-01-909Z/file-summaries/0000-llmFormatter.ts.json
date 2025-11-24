@@ -1,0 +1,82 @@
+{
+  "file": "src/llmFormatter.ts",
+  "role": "Core Logic",
+  "purpose": "Formats code architecture insights into different output formats optimized for various LLM interfaces and human readability",
+  "userVisibleActions": [
+    "Receives formatted architecture issues grouped by severity (errors, warnings, info)",
+    "Sees issues organized with visual indicators (🔴 for errors, ⚠️ for warnings, ℹ️ for info)",
+    "Gets actionable guidance on how to address detected issues",
+    "Receives output optimized for their chosen LLM interface (Cursor, ChatGPT, or generic)",
+    "Sees compact summaries when requesting condensed output",
+    "Views file paths and line numbers where issues occur",
+    "Gets context about what each issue means and why it matters"
+  ],
+  "developerVisibleActions": [
+    "Developer calls formatInsights() to convert raw insights into formatted text",
+    "Developer specifies output format: 'cursor', 'chatgpt', 'compact', or 'generic'",
+    "Developer receives formatted markdown text ready to display or send to LLM",
+    "Developer gets insights grouped and sorted by severity automatically",
+    "Developer sees file locations and affected code patterns in the output",
+    "Developer receives actionable suggestions and next steps included in the output"
+  ],
+  "keyFunctions": [
+    {
+      "name": "formatInsights",
+      "desc": "Main entry point that routes insights to the appropriate formatter based on specified format",
+      "inputs": "insights: Insight[], format: string (default 'cursor')",
+      "outputs": "Formatted string ready for display or LLM consumption"
+    },
+    {
+      "name": "formatForCursor",
+      "desc": "Formats insights specifically for Cursor IDE with severity grouping, emoji indicators, and actionable guidance",
+      "inputs": "insights: Insight[]",
+      "outputs": "Markdown-formatted string optimized for Cursor"
+    },
+    {
+      "name": "formatForChatGPT",
+      "desc": "Formats insights for ChatGPT with conversational tone and context about being a codebase analysis",
+      "inputs": "insights: Insight[]",
+      "outputs": "Markdown-formatted string optimized for ChatGPT"
+    },
+    {
+      "name": "formatCompact",
+      "desc": "Formats insights in a condensed format with just essential information and counts",
+      "inputs": "insights: Insight[]",
+      "outputs": "Compact markdown string with summary statistics"
+    },
+    {
+      "name": "formatGeneric",
+      "desc": "Formats insights in a generic markdown format suitable for any LLM or documentation",
+      "inputs": "insights: Insight[]",
+      "outputs": "Generic markdown-formatted string"
+    },
+    {
+      "name": "formatInsightForCursor",
+      "desc": "Formats a single insight with location, message, and suggestion details for Cursor",
+      "inputs": "insight: Insight",
+      "outputs": "Formatted string for one insight"
+    },
+    {
+      "name": "formatInsightForChatGPT",
+      "desc": "Formats a single insight with conversational style for ChatGPT",
+      "inputs": "insight: Insight",
+      "outputs": "Formatted string for one insight"
+    },
+    {
+      "name": "formatInsightGeneric",
+      "desc": "Formats a single insight in a neutral, generic style",
+      "inputs": "insight: Insight",
+      "outputs": "Formatted string for one insight"
+    }
+  ],
+  "dependencies": [
+    "./insightGenerator (Insight type)"
+  ],
+  "intent": "Transforms raw code analysis data into human-readable, LLM-optimized formats that help developers understand and act on architecture issues by presenting them in the most effective way for their chosen AI assistant or documentation needs",
+  "rawContent": "```json\n{\n  \"purpose\": \"Formats code architecture insights into different output formats optimized for various LLM interfaces and human readability\",\n  \"userVisibleActions\": [\n    \"Receives formatted architecture issues grouped by severity (errors, warnings, info)\",\n    \"Sees issues organized with visual indicators (🔴 for errors, ⚠️ for warnings, ℹ️ for info)\",\n    \"Gets actionable guidance on how to address detected issues\",\n    \"Receives output optimized for their chosen LLM interface (Cursor, ChatGPT, or generic)\",\n    \"Sees compact summaries when requesting condensed output\",\n    \"Views file paths and line numbers where issues occur\",\n    \"Gets context about what each issue means and why it matters\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer calls formatInsights() to convert raw insights into formatted text\",\n    \"Developer specifies output format: 'cursor', 'chatgpt', 'compact', or 'generic'\",\n    \"Developer receives formatted markdown text ready to display or send to LLM\",\n    \"Developer gets insights grouped and sorted by severity automatically\",\n    \"Developer sees file locations and affected code patterns in the output\",\n    \"Developer receives actionable suggestions and next steps included in the output\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"formatInsights\",\n      \"desc\": \"Main entry point that routes insights to the appropriate formatter based on specified format\",\n      \"inputs\": \"insights: Insight[], format: string (default 'cursor')\",\n      \"outputs\": \"Formatted string ready for display or LLM consumption\"\n    },\n    {\n      \"name\": \"formatForCursor\",\n      \"desc\": \"Formats insights specifically for Cursor IDE with severity grouping, emoji indicators, and actionable guidance\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Markdown-formatted string optimized for Cursor\"\n    },\n    {\n      \"name\": \"formatForChatGPT\",\n      \"desc\": \"Formats insights for ChatGPT with conversational tone and context about being a codebase analysis\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Markdown-formatted string optimized for ChatGPT\"\n    },\n    {\n      \"name\": \"formatCompact\",\n      \"desc\": \"Formats insights in a condensed format with just essential information and counts\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Compact markdown string with summary statistics\"\n    },\n    {\n      \"name\": \"formatGeneric\",\n      \"desc\": \"Formats insights in a generic markdown format suitable for any LLM or documentation\",\n      \"inputs\": \"insights: Insight[]\",\n      \"outputs\": \"Generic markdown-formatted string\"\n    },\n    {\n      \"name\": \"formatInsightForCursor\",\n      \"desc\": \"Formats a single insight with location, message, and suggestion details for Cursor\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Formatted string for one insight\"\n    },\n    {\n      \"name\": \"formatInsightForChatGPT\",\n      \"desc\": \"Formats a single insight with conversational style for ChatGPT\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Formatted string for one insight\"\n    },\n    {\n      \"name\": \"formatInsightGeneric\",\n      \"desc\": \"Formats a single insight in a neutral, generic style\",\n      \"inputs\": \"insight: Insight\",\n      \"outputs\": \"Formatted string for one insight\"\n    }\n  ],\n  \"dependencies\": [\n    \"./insightGenerator (Insight type)\"\n  ],\n  \"intent\": \"Transforms raw code analysis data into human-readable, LLM-optimized formats that help developers understand and act on architecture issues by presenting them in the most effective way for their chosen AI assistant or documentation needs\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:47:12.635Z"
+  }
+}

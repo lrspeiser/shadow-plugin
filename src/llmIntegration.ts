@@ -1566,6 +1566,48 @@ export async function generateUnitTests(): Promise<void> {
                 reporter.report('Phase 1/4: Generating test setup plan...');
                 const setupPlan = await LLMTestSetupService.generateSetupPlan(workspaceRoot, llmService);
                 
+                // Check which dependencies are actually missing and surface commands to install
+                const requiredDeps = setupPlan.dependencies.map(d => `${d.name}@${d.version}`);
+                const depCheck = LLMTestSetupService.checkInstalledDependencies(workspaceRoot, requiredDeps);
+                
+                if (depCheck.missing.length > 0) {
+                    const installCommands = LLMTestSetupService.generateInstallCommands(workspaceRoot, depCheck.missing);
+                    
+                    SWLogger.log(`\n=== MISSING DEPENDENCIES ===`);
+                    SWLogger.log(`${depCheck.missing.length} dependencies need to be installed:`);
+                    for (const dep of depCheck.missing) {
+                        SWLogger.log(`  - ${dep}`);
+                    }
+                    SWLogger.log(`\nTo install, run ONE of these commands in your terminal:`);
+                    SWLogger.log(`  ${installCommands.npm}`);
+                    SWLogger.log(`  ${installCommands.yarn}`);
+                    SWLogger.log(`  ${installCommands.pnpm}`);
+                    SWLogger.log(`=== END MISSING DEPENDENCIES ===\n`);
+                    
+                    const installChoice = await vscode.window.showWarningMessage(
+                        `Missing ${depCheck.missing.length} test dependencies. Install automatically or manually?`,
+                        { modal: true },
+                        'Auto Install',
+                        'Show Commands',
+                        'Cancel'
+                    );
+                    
+                    if (installChoice === 'Show Commands') {
+                        vscode.window.showInformationMessage(
+                            `Run this command: ${installCommands.npm}`,
+                            'Copy Command'
+                        ).then(result => {
+                            if (result === 'Copy Command') {
+                                vscode.env.clipboard.writeText(installCommands.npm);
+                            }
+                        });
+                        throw new Error('User chose to install dependencies manually. Run the command shown in the Output panel, then try again.');
+                    } else if (installChoice === 'Cancel') {
+                        throw new Error('User cancelled test generation');
+                    }
+                    // If 'Auto Install' is chosen, continue with the existing flow
+                }
+                
                 // Ask user for confirmation
                 const setupConfirm = await vscode.window.showInformationMessage(
                     `Setup test environment? Will install ${setupPlan.dependencies.length} dependencies and create ${setupPlan.config_files.length} config files.`,
@@ -1598,6 +1640,71 @@ export async function generateUnitTests(): Promise<void> {
                 SWLogger.log('[Phase 1] Test environment already configured');
             }
             
+            // VERIFY DEPENDENCIES BEFORE CONTINUING
+            SWLogger.log('[Phase 1] Verifying test dependencies are installed...');
+            const testEnvCheck = LLMTestSetupService.detectTestEnvironment(workspaceRoot);
+            
+            // Re-check if dependencies are actually installed in node_modules
+            if (testEnvCheck.existingTestFramework) {
+                const frameworkName = testEnvCheck.existingTestFramework;
+                const nodeModulesPath = path.join(workspaceRoot, 'node_modules', frameworkName);
+                
+                if (!fs.existsSync(nodeModulesPath)) {
+                    const installCommands = LLMTestSetupService.generateInstallCommands(
+                        workspaceRoot, 
+                        [frameworkName]
+                    );
+                    
+                    SWLogger.log(`\n=== DEPENDENCIES NOT INSTALLED ===`);
+                    SWLogger.log(`Test framework '${frameworkName}' is in package.json but not installed in node_modules.`);
+                    SWLogger.log(`\nRun ONE of these commands to install:`);
+                    SWLogger.log(`  ${installCommands.npm}`);
+                    SWLogger.log(`  ${installCommands.yarn}`);
+                    SWLogger.log(`  ${installCommands.pnpm}`);
+                    SWLogger.log(`=== END ===\n`);
+                    
+                    await vscode.window.showErrorMessage(
+                        `Test dependencies are not installed. Please run the installation command shown in the Output panel and try again.`,
+                        'Open Output Panel'
+                    ).then(result => {
+                        if (result === 'Open Output Panel') {
+                            vscode.commands.executeCommand('workbench.action.output.toggleOutput');
+                        }
+                    });
+                    
+                    throw new Error(`Test dependencies not installed. Run: ${installCommands.npm}`);
+                }
+            } else if (testEnvCheck.missingDependencies.length > 0) {
+                const installCommands = LLMTestSetupService.generateInstallCommands(
+                    workspaceRoot, 
+                    testEnvCheck.missingDependencies
+                );
+                
+                SWLogger.log(`\n=== DEPENDENCIES NOT INSTALLED ===`);
+                SWLogger.log(`Missing ${testEnvCheck.missingDependencies.length} test dependencies:`);
+                for (const dep of testEnvCheck.missingDependencies) {
+                    SWLogger.log(`  - ${dep}`);
+                }
+                SWLogger.log(`\nRun ONE of these commands to install:`);
+                SWLogger.log(`  ${installCommands.npm}`);
+                SWLogger.log(`  ${installCommands.yarn}`);
+                SWLogger.log(`  ${installCommands.pnpm}`);
+                SWLogger.log(`=== END ===\n`);
+                
+                await vscode.window.showErrorMessage(
+                    `Test dependencies are not installed. Please run the installation command shown in the Output panel and try again.`,
+                    'Open Output Panel'
+                ).then(result => {
+                    if (result === 'Open Output Panel') {
+                        vscode.commands.executeCommand('workbench.action.output.toggleOutput');
+                    }
+                });
+                
+                throw new Error(`Test dependencies not installed. Run: ${installCommands.npm}`);
+            }
+            
+            SWLogger.log('[Phase 1] ✅ All test dependencies verified');
+            
             // PHASE 2: TEST PLANNING
             reporter.report('Phase 2/4: Analyzing functions with LLM...');
             SWLogger.log('[Phase 2] Analyzing functions and creating test plan...');
@@ -1610,7 +1717,9 @@ export async function generateUnitTests(): Promise<void> {
             
             // Get code files from workspace
             const { CodeAnalyzer } = await import('./analyzer');
-            const analyzer = new CodeAnalyzer(cache);
+            const { AnalysisCache } = await import('./cache');
+            const tempCache = new AnalysisCache(path.join(workspaceRoot, '.shadowwatch-cache'));
+            const analyzer = new CodeAnalyzer(tempCache);
             const codeFiles = (analyzer as any).findCodeFiles(workspaceRoot);
             
             SWLogger.log(`[Phase 2] Found ${codeFiles.length} code files to analyze`);

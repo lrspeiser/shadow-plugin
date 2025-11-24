@@ -1,0 +1,65 @@
+{
+  "file": "src/diagnosticsProvider.ts",
+  "role": "Core Logic",
+  "purpose": "Manages diagnostic messages (warnings, errors, info) displayed in VS Code's Problems panel based on code insights",
+  "userVisibleActions": [
+    "User sees diagnostic messages appear in the Problems panel when issues are detected",
+    "User sees warnings, errors, or informational messages inline in their code editor with squiggly underlines",
+    "User can click on diagnostic messages to navigate to the problematic line of code",
+    "User sees diagnostics organized by file in the Problems panel",
+    "User sees 'Shadow Watch' as the source of diagnostic messages",
+    "User sees diagnostics cleared when issues are resolved or analysis is reset"
+  ],
+  "developerVisibleActions": [
+    "Developer triggers diagnostic updates by providing insights from code analysis",
+    "Developer can update diagnostics for all files at once with a batch of insights",
+    "Developer can update diagnostics for a specific file individually",
+    "Developer can clear all diagnostics from the Problems panel",
+    "Developer sees diagnostics automatically grouped by file path",
+    "Developer controls diagnostic severity levels (error, warning, info) through insight severity",
+    "Developer provides insight metadata (file path, line number, description, severity) to generate diagnostics"
+  ],
+  "keyFunctions": [
+    {
+      "name": "updateDiagnostics",
+      "desc": "Updates all diagnostics across multiple files based on provided insights",
+      "inputs": "Array of Insight objects containing file paths, line numbers, and descriptions",
+      "outputs": "void - displays diagnostics in VS Code Problems panel"
+    },
+    {
+      "name": "updateDiagnosticsForFile",
+      "desc": "Updates diagnostics for a specific file only",
+      "inputs": "VS Code URI of the file and array of Insight objects for that file",
+      "outputs": "void - displays diagnostics for the specific file"
+    },
+    {
+      "name": "clear",
+      "desc": "Removes all diagnostics from the Problems panel",
+      "inputs": "none",
+      "outputs": "void - clears all displayed diagnostics"
+    },
+    {
+      "name": "createDiagnostic",
+      "desc": "Converts an insight into a VS Code diagnostic message with proper formatting and severity",
+      "inputs": "Insight object with description, line number, and severity",
+      "outputs": "VS Code Diagnostic object ready for display"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up resources when the diagnostics provider is no longer needed",
+      "inputs": "none",
+      "outputs": "void - releases diagnostic collection resources"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "./insightGenerator"
+  ],
+  "intent": "This file exists to bridge between code analysis results (insights) and VS Code's native diagnostics system, translating detected issues into user-friendly messages that appear in the Problems panel and inline in the editor, making code quality issues immediately visible to developers.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Manages diagnostic messages (warnings, errors, info) displayed in VS Code's Problems panel based on code insights\",\n  \"userVisibleActions\": [\n    \"User sees diagnostic messages appear in the Problems panel when issues are detected\",\n    \"User sees warnings, errors, or informational messages inline in their code editor with squiggly underlines\",\n    \"User can click on diagnostic messages to navigate to the problematic line of code\",\n    \"User sees diagnostics organized by file in the Problems panel\",\n    \"User sees 'Shadow Watch' as the source of diagnostic messages\",\n    \"User sees diagnostics cleared when issues are resolved or analysis is reset\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer triggers diagnostic updates by providing insights from code analysis\",\n    \"Developer can update diagnostics for all files at once with a batch of insights\",\n    \"Developer can update diagnostics for a specific file individually\",\n    \"Developer can clear all diagnostics from the Problems panel\",\n    \"Developer sees diagnostics automatically grouped by file path\",\n    \"Developer controls diagnostic severity levels (error, warning, info) through insight severity\",\n    \"Developer provides insight metadata (file path, line number, description, severity) to generate diagnostics\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"updateDiagnostics\",\n      \"desc\": \"Updates all diagnostics across multiple files based on provided insights\",\n      \"inputs\": \"Array of Insight objects containing file paths, line numbers, and descriptions\",\n      \"outputs\": \"void - displays diagnostics in VS Code Problems panel\"\n    },\n    {\n      \"name\": \"updateDiagnosticsForFile\",\n      \"desc\": \"Updates diagnostics for a specific file only\",\n      \"inputs\": \"VS Code URI of the file and array of Insight objects for that file\",\n      \"outputs\": \"void - displays diagnostics for the specific file\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Removes all diagnostics from the Problems panel\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void - clears all displayed diagnostics\"\n    },\n    {\n      \"name\": \"createDiagnostic\",\n      \"desc\": \"Converts an insight into a VS Code diagnostic message with proper formatting and severity\",\n      \"inputs\": \"Insight object with description, line number, and severity\",\n      \"outputs\": \"VS Code Diagnostic object ready for display\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up resources when the diagnostics provider is no longer needed\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void - releases diagnostic collection resources\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"./insightGenerator\"\n  ],\n  \"intent\": \"This file exists to bridge between code analysis results (insights) and VS Code's native diagnostics system, translating detected issues into user-friendly messages that appear in the Problems panel and inline in the editor, making code quality issues immediately visible to developers.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:37:52.816Z"
+  }
+}

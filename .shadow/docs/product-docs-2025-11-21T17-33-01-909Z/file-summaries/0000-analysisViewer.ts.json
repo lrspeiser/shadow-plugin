@@ -1,0 +1,86 @@
+{
+  "file": "src/analysisViewer.ts",
+  "role": "GUI View",
+  "purpose": "Provides a tree view interface for browsing and exploring code analysis results in VS Code",
+  "userVisibleActions": [
+    "View a hierarchical tree of code analysis results in the sidebar",
+    "See project statistics (file count, function count, complexity metrics)",
+    "Browse analyzed files organized by directory structure",
+    "Click on files to see their functions and entry points",
+    "Click on functions to jump to their location in the code",
+    "See file-level metrics (lines of code, complexity, function count)",
+    "View entry points and their relationships",
+    "See 'No analysis available' message when no analysis has been run",
+    "Expand/collapse sections to drill down into analysis details"
+  ],
+  "developerVisibleActions": [
+    "Tree view updates automatically when new analysis is available",
+    "Analysis data is received from the analyzer module",
+    "Tree items are organized into categories: statistics, files, functions, entry points",
+    "Each tree item can be clicked to trigger navigation or reveal more details",
+    "File paths are resolved and displayed relative to workspace",
+    "Icons and descriptions enhance visual presentation of analysis data"
+  ],
+  "keyFunctions": [
+    {
+      "name": "setAnalysis",
+      "desc": "Updates the tree view with new analysis results",
+      "inputs": "CodeAnalysis object or null",
+      "outputs": "void (triggers tree refresh)"
+    },
+    {
+      "name": "refresh",
+      "desc": "Forces the tree view to reload and redisplay all items",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getTreeItem",
+      "desc": "Returns the visual representation of a tree item",
+      "inputs": "AnalysisItem element",
+      "outputs": "vscode.TreeItem"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Returns child items for a given tree node (or root items if none specified)",
+      "inputs": "optional AnalysisItem element",
+      "outputs": "Promise of AnalysisItem array"
+    },
+    {
+      "name": "getRootItems",
+      "desc": "Generates top-level tree items (statistics, files, functions, entry points)",
+      "inputs": "none",
+      "outputs": "Array of AnalysisItem"
+    },
+    {
+      "name": "getStatisticsItems",
+      "desc": "Creates tree items showing project-wide metrics",
+      "inputs": "none",
+      "outputs": "Array of AnalysisItem with statistics"
+    },
+    {
+      "name": "getFilesItems",
+      "desc": "Organizes analyzed files into a directory tree structure",
+      "inputs": "none",
+      "outputs": "Array of AnalysisItem representing files and directories"
+    },
+    {
+      "name": "getFileDetails",
+      "desc": "Shows functions and metrics for a specific file",
+      "inputs": "AnalysisItem representing a file",
+      "outputs": "Array of AnalysisItem with file details"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "analyzer (CodeAnalysis, FileInfo, FunctionInfo, EntryPoint types)",
+    "path"
+  ],
+  "intent": "This file exists to provide developers with a navigable, visual representation of their codebase analysis results directly within VS Code's sidebar, making it easy to explore code structure, complexity, and relationships without leaving the editor",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view interface for browsing and exploring code analysis results in VS Code\",\n  \"userVisibleActions\": [\n    \"View a hierarchical tree of code analysis results in the sidebar\",\n    \"See project statistics (file count, function count, complexity metrics)\",\n    \"Browse analyzed files organized by directory structure\",\n    \"Click on files to see their functions and entry points\",\n    \"Click on functions to jump to their location in the code\",\n    \"See file-level metrics (lines of code, complexity, function count)\",\n    \"View entry points and their relationships\",\n    \"See 'No analysis available' message when no analysis has been run\",\n    \"Expand/collapse sections to drill down into analysis details\"\n  ],\n  \"developerVisibleActions\": [\n    \"Tree view updates automatically when new analysis is available\",\n    \"Analysis data is received from the analyzer module\",\n    \"Tree items are organized into categories: statistics, files, functions, entry points\",\n    \"Each tree item can be clicked to trigger navigation or reveal more details\",\n    \"File paths are resolved and displayed relative to workspace\",\n    \"Icons and descriptions enhance visual presentation of analysis data\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"setAnalysis\",\n      \"desc\": \"Updates the tree view with new analysis results\",\n      \"inputs\": \"CodeAnalysis object or null\",\n      \"outputs\": \"void (triggers tree refresh)\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Forces the tree view to reload and redisplay all items\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Returns the visual representation of a tree item\",\n      \"inputs\": \"AnalysisItem element\",\n      \"outputs\": \"vscode.TreeItem\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for a given tree node (or root items if none specified)\",\n      \"inputs\": \"optional AnalysisItem element\",\n      \"outputs\": \"Promise of AnalysisItem array\"\n    },\n    {\n      \"name\": \"getRootItems\",\n      \"desc\": \"Generates top-level tree items (statistics, files, functions, entry points)\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem\"\n    },\n    {\n      \"name\": \"getStatisticsItems\",\n      \"desc\": \"Creates tree items showing project-wide metrics\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem with statistics\"\n    },\n    {\n      \"name\": \"getFilesItems\",\n      \"desc\": \"Organizes analyzed files into a directory tree structure\",\n      \"inputs\": \"none\",\n      \"outputs\": \"Array of AnalysisItem representing files and directories\"\n    },\n    {\n      \"name\": \"getFileDetails\",\n      \"desc\": \"Shows functions and metrics for a specific file\",\n      \"inputs\": \"AnalysisItem representing a file\",\n      \"outputs\": \"Array of AnalysisItem with file details\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"analyzer (CodeAnalysis, FileInfo, FunctionInfo, EntryPoint types)\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to provide developers with a navigable, visual representation of their codebase analysis results directly within VS Code's sidebar, making it easy to explore code structure, complexity, and relationships without leaving the editor\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:36:18.687Z"
+  }
+}

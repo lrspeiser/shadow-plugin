@@ -410,11 +410,16 @@ export class CodeAnalyzer {
         const functions: FunctionInfo[] = [];
         const lines = content.split('\n');
         
+        // Control flow keywords to exclude
+        const CONTROL_FLOW_KEYWORDS = new Set([
+            'if', 'else', 'for', 'while', 'switch', 'catch', 'with'
+        ]);
+        
         // Regular function declarations
         const funcRegex = /^\s*(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(/;
         // Arrow functions assigned to const/let/var
         const arrowRegex = /^\s*(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?\(/;
-        // Method definitions
+        // Method definitions - but exclude control flow keywords
         const methodRegex = /^\s*(?:async\s+)?(\w+)\s*\([^)]*\)\s*{/;
 
         for (let i = 0; i < lines.length; i++) {
@@ -424,6 +429,12 @@ export class CodeAnalyzer {
 
             if (funcMatch) {
                 const name = funcMatch[1];
+                
+                // Skip control flow keywords
+                if (CONTROL_FLOW_KEYWORDS.has(name)) {
+                    continue;
+                }
+                
                 const startLine = i + 1;
                 
                 // Find matching closing brace

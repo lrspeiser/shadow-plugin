@@ -1,0 +1,62 @@
+{
+  "file": "src/infrastructure/fileSystem/fileCache.ts",
+  "role": "Core Logic",
+  "purpose": "Optimizes file system operations by caching file contents to reduce redundant file reads and improve performance across the extension",
+  "userVisibleActions": [
+    "Faster file operations when accessing the same files multiple times",
+    "Improved responsiveness when extension reads project files",
+    "Automatic updates when files are modified externally"
+  ],
+  "developerVisibleActions": [
+    "Retrieve cached file contents instead of reading from disk repeatedly",
+    "Automatic cache invalidation when files change on disk",
+    "Access cache statistics to monitor performance (hits, misses, evictions)",
+    "Configure cache size limits and time-to-live settings",
+    "Clear cache manually or invalidate specific files",
+    "Monitor memory usage through cache size tracking"
+  ],
+  "keyFunctions": [
+    {
+      "name": "getFile",
+      "desc": "Retrieves file content from cache if available and valid, otherwise reads from disk and caches it",
+      "inputs": "filePath: string",
+      "outputs": "Promise<string> - file content"
+    },
+    {
+      "name": "invalidate",
+      "desc": "Removes a specific file from the cache, forcing next access to read from disk",
+      "inputs": "filePath: string",
+      "outputs": "void"
+    },
+    {
+      "name": "clear",
+      "desc": "Empties the entire cache and resets statistics",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "getStats",
+      "desc": "Returns cache performance metrics including hits, misses, evictions, and size",
+      "inputs": "none",
+      "outputs": "CacheStats object"
+    },
+    {
+      "name": "dispose",
+      "desc": "Cleans up resources including file system watcher and cache contents",
+      "inputs": "none",
+      "outputs": "void"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "fs",
+    "path"
+  ],
+  "intent": "This file exists to improve extension performance by preventing repeated disk reads of the same files. It solves the problem of slow file system operations causing UI lag by caching frequently accessed files, automatically invalidating the cache when files change, and using an LRU eviction policy to manage memory efficiently.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Optimizes file system operations by caching file contents to reduce redundant file reads and improve performance across the extension\",\n  \"userVisibleActions\": [\n    \"Faster file operations when accessing the same files multiple times\",\n    \"Improved responsiveness when extension reads project files\",\n    \"Automatic updates when files are modified externally\"\n  ],\n  \"developerVisibleActions\": [\n    \"Retrieve cached file contents instead of reading from disk repeatedly\",\n    \"Automatic cache invalidation when files change on disk\",\n    \"Access cache statistics to monitor performance (hits, misses, evictions)\",\n    \"Configure cache size limits and time-to-live settings\",\n    \"Clear cache manually or invalidate specific files\",\n    \"Monitor memory usage through cache size tracking\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"getFile\",\n      \"desc\": \"Retrieves file content from cache if available and valid, otherwise reads from disk and caches it\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"Promise<string> - file content\"\n    },\n    {\n      \"name\": \"invalidate\",\n      \"desc\": \"Removes a specific file from the cache, forcing next access to read from disk\",\n      \"inputs\": \"filePath: string\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"clear\",\n      \"desc\": \"Empties the entire cache and resets statistics\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getStats\",\n      \"desc\": \"Returns cache performance metrics including hits, misses, evictions, and size\",\n      \"inputs\": \"none\",\n      \"outputs\": \"CacheStats object\"\n    },\n    {\n      \"name\": \"dispose\",\n      \"desc\": \"Cleans up resources including file system watcher and cache contents\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"fs\",\n    \"path\"\n  ],\n  \"intent\": \"This file exists to improve extension performance by preventing repeated disk reads of the same files. It solves the problem of slow file system operations causing UI lag by caching frequently accessed files, automatically invalidating the cache when files change, and using an LRU eviction policy to manage memory efficiently.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:45:01.356Z"
+  }
+}

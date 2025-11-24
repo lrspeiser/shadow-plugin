@@ -1,0 +1,62 @@
+{
+  "file": "src/domain/services/testing/llmTestSetupService.ts",
+  "role": "Core Logic",
+  "purpose": "Detects test environment configuration and generates automated test setup plans using LLM analysis.",
+  "userVisibleActions": [
+    "Automatically detects the programming language and testing framework in the workspace",
+    "Identifies existing test infrastructure (package.json, jest config, test directories)",
+    "Generates a test setup plan with configuration recommendations",
+    "Creates missing test directories and configuration files",
+    "Installs required testing dependencies automatically",
+    "Provides feedback on setup progress and results"
+  ],
+  "developerVisibleActions": [
+    "Scans workspace to identify TypeScript, JavaScript, Python, Java, or C++ projects",
+    "Detects testing frameworks (Jest, Mocha, pytest, JUnit, Google Test)",
+    "Analyzes package.json and configuration files to understand existing setup",
+    "Generates LLM prompts to create customized test configurations",
+    "Executes setup commands (npm install, directory creation, file generation)",
+    "Returns structured setup results with success/failure status"
+  ],
+  "keyFunctions": [
+    {
+      "name": "detectTestEnvironment",
+      "desc": "Analyzes workspace to identify programming language, testing framework, and existing configuration",
+      "inputs": "workspaceRoot (string path)",
+      "outputs": "TestEnvironment object with language, framework, and configuration details"
+    },
+    {
+      "name": "getAllFiles",
+      "desc": "Recursively scans directory to collect all files for language detection",
+      "inputs": "dirPath (string), fileList (optional array)",
+      "outputs": "Array of file paths"
+    },
+    {
+      "name": "generateSetupPlan",
+      "desc": "Creates an LLM-based test setup plan based on detected environment",
+      "inputs": "environment (TestEnvironment), llmService",
+      "outputs": "TestSetupPlan with configuration steps and recommendations"
+    },
+    {
+      "name": "executeSetupPlan",
+      "desc": "Runs the generated setup plan by creating files and installing dependencies",
+      "inputs": "plan (TestSetupPlan), workspaceRoot (string)",
+      "outputs": "SetupExecutionResult with success status and messages"
+    }
+  ],
+  "dependencies": [
+    "fs",
+    "path",
+    "child_process",
+    "testSetupTypes",
+    "testPrompts",
+    "SWLogger"
+  ],
+  "intent": "This service exists to eliminate manual test environment setup by automatically detecting the project type and generating appropriate test configurations. It solves the problem of developers needing to manually configure testing frameworks, create test directories, and install dependencies by using LLM intelligence to understand the project structure and generate appropriate setup steps.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Detects test environment configuration and generates automated test setup plans using LLM analysis.\",\n  \"userVisibleActions\": [\n    \"Automatically detects the programming language and testing framework in the workspace\",\n    \"Identifies existing test infrastructure (package.json, jest config, test directories)\",\n    \"Generates a test setup plan with configuration recommendations\",\n    \"Creates missing test directories and configuration files\",\n    \"Installs required testing dependencies automatically\",\n    \"Provides feedback on setup progress and results\"\n  ],\n  \"developerVisibleActions\": [\n    \"Scans workspace to identify TypeScript, JavaScript, Python, Java, or C++ projects\",\n    \"Detects testing frameworks (Jest, Mocha, pytest, JUnit, Google Test)\",\n    \"Analyzes package.json and configuration files to understand existing setup\",\n    \"Generates LLM prompts to create customized test configurations\",\n    \"Executes setup commands (npm install, directory creation, file generation)\",\n    \"Returns structured setup results with success/failure status\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"detectTestEnvironment\",\n      \"desc\": \"Analyzes workspace to identify programming language, testing framework, and existing configuration\",\n      \"inputs\": \"workspaceRoot (string path)\",\n      \"outputs\": \"TestEnvironment object with language, framework, and configuration details\"\n    },\n    {\n      \"name\": \"getAllFiles\",\n      \"desc\": \"Recursively scans directory to collect all files for language detection\",\n      \"inputs\": \"dirPath (string), fileList (optional array)\",\n      \"outputs\": \"Array of file paths\"\n    },\n    {\n      \"name\": \"generateSetupPlan\",\n      \"desc\": \"Creates an LLM-based test setup plan based on detected environment\",\n      \"inputs\": \"environment (TestEnvironment), llmService\",\n      \"outputs\": \"TestSetupPlan with configuration steps and recommendations\"\n    },\n    {\n      \"name\": \"executeSetupPlan\",\n      \"desc\": \"Runs the generated setup plan by creating files and installing dependencies\",\n      \"inputs\": \"plan (TestSetupPlan), workspaceRoot (string)\",\n      \"outputs\": \"SetupExecutionResult with success status and messages\"\n    }\n  ],\n  \"dependencies\": [\n    \"fs\",\n    \"path\",\n    \"child_process\",\n    \"testSetupTypes\",\n    \"testPrompts\",\n    \"SWLogger\"\n  ],\n  \"intent\": \"This service exists to eliminate manual test environment setup by automatically detecting the project type and generating appropriate test configurations. It solves the problem of developers needing to manually configure testing frameworks, create test directories, and install dependencies by using LLM intelligence to understand the project structure and generate appropriate setup steps.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:42:29.598Z"
+  }
+}

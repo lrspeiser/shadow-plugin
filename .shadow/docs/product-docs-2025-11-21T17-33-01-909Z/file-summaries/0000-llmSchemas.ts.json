@@ -1,0 +1,40 @@
+{
+  "file": "src/llmSchemas.ts",
+  "role": "Core Logic",
+  "purpose": "Defines JSON schemas that structure LLM (Claude) responses to ensure valid, parseable outputs for product analysis, issue identification, and documentation generation.",
+  "userVisibleActions": [
+    "User receives structured analysis of product purpose and architecture rationale",
+    "User sees categorized issues (architectural, code quality, documentation, maintenance) with clear titles and descriptions",
+    "User gets actionable recommendations with specific fixes for each identified issue",
+    "User receives consistent, predictable documentation formats from LLM analysis"
+  ],
+  "developerVisibleActions": [
+    "Developer defines schema structure for product purpose analysis including design decisions and user goals",
+    "Developer specifies issue schema with title, description, relevant files, functions, severity, and category fields",
+    "Developer ensures LLM outputs include structured recommendations with confidence levels",
+    "Developer constrains LLM responses to predefined formats using JSON Schema validation",
+    "Developer guarantees parseable responses without manual text parsing or extraction"
+  ],
+  "keyFunctions": [
+    {
+      "name": "productPurposeAnalysisSchema",
+      "desc": "Schema for analyzing product purpose, architecture rationale, design decisions, user goals, and contextual factors",
+      "inputs": "N/A (schema definition)",
+      "outputs": "JSON schema object with required fields: productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors"
+    },
+    {
+      "name": "issueItemSchema",
+      "desc": "Schema for individual issue items with title, description, relevant files/functions, severity, and category",
+      "inputs": "N/A (schema definition)",
+      "outputs": "JSON schema object defining issue structure with human-readable titles and detailed descriptions including proposed fixes"
+    }
+  ],
+  "dependencies": [],
+  "intent": "This file exists to guarantee structured, valid, and machine-parseable responses from Claude AI by defining strict JSON schemas. It eliminates the need for fragile text parsing by enforcing a contract between the LLM and the application, ensuring consistent output formats for product analysis, issue identification, and recommendations.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines JSON schemas that structure LLM (Claude) responses to ensure valid, parseable outputs for product analysis, issue identification, and documentation generation.\",\n  \"userVisibleActions\": [\n    \"User receives structured analysis of product purpose and architecture rationale\",\n    \"User sees categorized issues (architectural, code quality, documentation, maintenance) with clear titles and descriptions\",\n    \"User gets actionable recommendations with specific fixes for each identified issue\",\n    \"User receives consistent, predictable documentation formats from LLM analysis\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer defines schema structure for product purpose analysis including design decisions and user goals\",\n    \"Developer specifies issue schema with title, description, relevant files, functions, severity, and category fields\",\n    \"Developer ensures LLM outputs include structured recommendations with confidence levels\",\n    \"Developer constrains LLM responses to predefined formats using JSON Schema validation\",\n    \"Developer guarantees parseable responses without manual text parsing or extraction\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"productPurposeAnalysisSchema\",\n      \"desc\": \"Schema for analyzing product purpose, architecture rationale, design decisions, user goals, and contextual factors\",\n      \"inputs\": \"N/A (schema definition)\",\n      \"outputs\": \"JSON schema object with required fields: productPurpose, architectureRationale, designDecisions, userGoals, contextualFactors\"\n    },\n    {\n      \"name\": \"issueItemSchema\",\n      \"desc\": \"Schema for individual issue items with title, description, relevant files/functions, severity, and category\",\n      \"inputs\": \"N/A (schema definition)\",\n      \"outputs\": \"JSON schema object defining issue structure with human-readable titles and detailed descriptions including proposed fixes\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to guarantee structured, valid, and machine-parseable responses from Claude AI by defining strict JSON schemas. It eliminates the need for fragile text parsing by enforcing a contract between the LLM and the application, ensuring consistent output formats for product analysis, issue identification, and recommendations.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:47:45.238Z"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "file": "src/ai/llmResponseParser.ts",
+  "role": "Core Logic",
+  "purpose": "Parses and extracts structured information from LLM text responses into typed data structures for file summaries, module summaries, and product documentation.",
+  "userVisibleActions": [
+    "User receives structured file analysis from unstructured LLM text responses",
+    "User gets parsed product documentation with consistent formatting",
+    "User sees extracted module summaries with organized information",
+    "User receives fallback text extraction when JSON parsing fails"
+  ],
+  "developerVisibleActions": [
+    "Developer calls parseFileSummary() to convert LLM response text into FileSummary objects",
+    "Developer calls parseModuleSummary() to extract module-level information from LLM output",
+    "Developer calls parseProductDocumentation() to get enhanced product documentation from LLM responses",
+    "Developer calls parseLLMInsights() to extract analysis insights from LLM text",
+    "Developer receives structured data with fallback extraction when JSON parsing fails",
+    "Parser attempts JSON extraction first, then falls back to text pattern matching",
+    "Parser handles malformed or incomplete LLM responses gracefully"
+  ],
+  "keyFunctions": [
+    {
+      "name": "parseFileSummary",
+      "desc": "Converts LLM response text into a structured FileSummary object",
+      "inputs": "content (string), filePath (string), role (string)",
+      "outputs": "FileSummary object with purpose, actions, functions, dependencies"
+    },
+    {
+      "name": "parseModuleSummary",
+      "desc": "Extracts module-level information from LLM response",
+      "inputs": "content (string), moduleName (string)",
+      "outputs": "ModuleSummary object with module details"
+    },
+    {
+      "name": "parseProductDocumentation",
+      "desc": "Parses enhanced product documentation from LLM output",
+      "inputs": "content (string)",
+      "outputs": "EnhancedProductDocumentation object"
+    },
+    {
+      "name": "parseLLMInsights",
+      "desc": "Extracts analysis insights and context from LLM responses",
+      "inputs": "content (string)",
+      "outputs": "LLMInsights object with structured analysis data"
+    },
+    {
+      "name": "extractSection",
+      "desc": "Extracts a specific named section from text content",
+      "inputs": "content (string), sectionName (string)",
+      "outputs": "Extracted section text as string"
+    },
+    {
+      "name": "extractListSection",
+      "desc": "Extracts a list/array section from text content",
+      "inputs": "content (string), sectionName (string)",
+      "outputs": "Array of extracted list items"
+    }
+  ],
+  "dependencies": [
+    "../fileDocumentation",
+    "../llmService"
+  ],
+  "intent": "This file exists to bridge the gap between unstructured LLM text responses and the structured data types required by the application. It solves the problem of reliably extracting consistent, typed information from potentially varied LLM output formats, with robust fallback mechanisms when the LLM doesn't return perfectly formatted JSON.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Parses and extracts structured information from LLM text responses into typed data structures for file summaries, module summaries, and product documentation.\",\n  \"userVisibleActions\": [\n    \"User receives structured file analysis from unstructured LLM text responses\",\n    \"User gets parsed product documentation with consistent formatting\",\n    \"User sees extracted module summaries with organized information\",\n    \"User receives fallback text extraction when JSON parsing fails\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer calls parseFileSummary() to convert LLM response text into FileSummary objects\",\n    \"Developer calls parseModuleSummary() to extract module-level information from LLM output\",\n    \"Developer calls parseProductDocumentation() to get enhanced product documentation from LLM responses\",\n    \"Developer calls parseLLMInsights() to extract analysis insights from LLM text\",\n    \"Developer receives structured data with fallback extraction when JSON parsing fails\",\n    \"Parser attempts JSON extraction first, then falls back to text pattern matching\",\n    \"Parser handles malformed or incomplete LLM responses gracefully\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"parseFileSummary\",\n      \"desc\": \"Converts LLM response text into a structured FileSummary object\",\n      \"inputs\": \"content (string), filePath (string), role (string)\",\n      \"outputs\": \"FileSummary object with purpose, actions, functions, dependencies\"\n    },\n    {\n      \"name\": \"parseModuleSummary\",\n      \"desc\": \"Extracts module-level information from LLM response\",\n      \"inputs\": \"content (string), moduleName (string)\",\n      \"outputs\": \"ModuleSummary object with module details\"\n    },\n    {\n      \"name\": \"parseProductDocumentation\",\n      \"desc\": \"Parses enhanced product documentation from LLM output\",\n      \"inputs\": \"content (string)\",\n      \"outputs\": \"EnhancedProductDocumentation object\"\n    },\n    {\n      \"name\": \"parseLLMInsights\",\n      \"desc\": \"Extracts analysis insights and context from LLM responses\",\n      \"inputs\": \"content (string)\",\n      \"outputs\": \"LLMInsights object with structured analysis data\"\n    },\n    {\n      \"name\": \"extractSection\",\n      \"desc\": \"Extracts a specific named section from text content\",\n      \"inputs\": \"content (string), sectionName (string)\",\n      \"outputs\": \"Extracted section text as string\"\n    },\n    {\n      \"name\": \"extractListSection\",\n      \"desc\": \"Extracts a list/array section from text content\",\n      \"inputs\": \"content (string), sectionName (string)\",\n      \"outputs\": \"Array of extracted list items\"\n    }\n  ],\n  \"dependencies\": [\n    \"../fileDocumentation\",\n    \"../llmService\"\n  ],\n  \"intent\": \"This file exists to bridge the gap between unstructured LLM text responses and the structured data types required by the application. It solves the problem of reliably extracting consistent, typed information from potentially varied LLM output formats, with robust fallback mechanisms when the LLM doesn't return perfectly formatted JSON.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:33:39.972Z"
+  }
+}

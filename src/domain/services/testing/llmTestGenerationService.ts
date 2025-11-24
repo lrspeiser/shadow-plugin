@@ -156,9 +156,15 @@ export class LLMTestGenerationService {
         SWLogger.log(`[TestGeneration] Attempting to fix syntax error in ${testFilePath}`);
 
         // Check if this is a dependency error that can't be fixed by editing test code
-        const isDependencyError = syntaxError.includes('node_modules/@types/') || 
-                                  syntaxError.includes('has no exported member') ||
-                                  syntaxError.includes('Private identifiers are only available when targeting');
+        const isNodeModulesError = syntaxError.includes('node_modules/@types/') ||
+                                   syntaxError.includes('node_modules/openai') ||
+                                   syntaxError.includes('node_modules/@anthropic');
+        const isConfigError = syntaxError.includes('Private identifiers are only available when targeting') ||
+                              syntaxError.includes('--downlevelIteration');
+        const isPackageExportError = syntaxError.includes('has no exported member') && 
+                                     syntaxError.includes('node_modules');
+        
+        const isDependencyError = isNodeModulesError || isConfigError || isPackageExportError;
         
         if (isDependencyError) {
             SWLogger.log(`[TestGeneration] ⚠️ Dependency error detected - cannot fix by editing test code`);
@@ -308,22 +314,11 @@ export class LLMTestGenerationService {
                 }
             }
 
-            // If we can’t infer, return null and let existing imports stand
+            // If we can't infer, return null and let existing imports stand
             if (!importPath) return null;
 
-            // Attempt to import the symbol used in describe('name') if present
-            let symbol = null;
-            if (testResult.test_code) {
-                const m = testResult.test_code.match(/describe\(['"](.*?)['"]/);
-                if (m && m[1]) {
-                    // Use a safe identifier (fallback to default import if not exported)
-                    symbol = m[1].replace(/[^A-Za-z0-9_]/g, '_');
-                }
-            }
-            // Build named import by default
-            if (symbol) {
-                return `import { ${symbol} } from '${importPath}';`;
-            }
+            // Don't try to extract symbol from test description - those contain natural language
+            // Just use namespace import which always works
             return `import * as moduleUnderTest from '${importPath}';`;
         } catch {
             return null;

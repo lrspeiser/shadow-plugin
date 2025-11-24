@@ -1,0 +1,76 @@
+{
+  "file": "src/insightsViewer.ts",
+  "role": "GUI View",
+  "purpose": "Provides a tree view interface for browsing and exploring AI-generated architecture insights about the codebase",
+  "userVisibleActions": [
+    "View AI-generated architecture insights in a tree structure in the sidebar",
+    "Browse insights organized by categories (purpose, architecture, behavior, patterns, API, technical debt, security, performance, maintainability, dependencies)",
+    "Click on insight items to open related files or documentation",
+    "See real-time updates when insights.json or PROJECT_PURPOSE.md files change",
+    "Navigate to source code locations from insight items",
+    "View empty state prompts when no insights are available",
+    "Refresh insights view manually via refresh command"
+  ],
+  "developerVisibleActions": [
+    "Tree view automatically watches .shadow/insights.json for changes and refreshes",
+    "Tree view watches .shadow/docs/PROJECT_PURPOSE.md for purpose changes",
+    "File changes trigger automatic tree data refresh",
+    "Insights data is loaded from .shadow directory structure",
+    "Click handlers open files at specific line numbers when available",
+    "Tree items show icons, descriptions, and tooltips based on insight types",
+    "Empty directories are created automatically (.shadow, .shadow/docs)",
+    "TreeItem collapsible states control expansion behavior"
+  ],
+  "keyFunctions": [
+    {
+      "name": "setInsights",
+      "desc": "Updates the insights data displayed in the tree view and triggers a refresh",
+      "inputs": "insights: LLMInsights object containing analysis results",
+      "outputs": "void"
+    },
+    {
+      "name": "getTreeItem",
+      "desc": "Converts an InsightItem into a VS Code TreeItem for display",
+      "inputs": "element: InsightItem to convert",
+      "outputs": "vscode.TreeItem with label, icon, tooltip, and command"
+    },
+    {
+      "name": "getChildren",
+      "desc": "Returns child items for the tree view hierarchy",
+      "inputs": "element?: InsightItem (undefined for root level)",
+      "outputs": "Array of InsightItem objects or empty array"
+    },
+    {
+      "name": "setupFileWatcher",
+      "desc": "Configures automatic file watching for insights.json and PROJECT_PURPOSE.md changes",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "refresh",
+      "desc": "Manually triggers a refresh of the tree view display",
+      "inputs": "none",
+      "outputs": "void"
+    },
+    {
+      "name": "openFile",
+      "desc": "Opens a file in the editor at a specific line when user clicks an insight item",
+      "inputs": "filePath: string, line?: number",
+      "outputs": "Promise<void>"
+    }
+  ],
+  "dependencies": [
+    "vscode",
+    "LLMInsights from ./llmService",
+    "path",
+    "fs",
+    "FileWatcherService from ./domain/services/fileWatcherService"
+  ],
+  "intent": "This file exists to provide developers with an interactive, hierarchical view of AI-generated codebase insights within VS Code's sidebar. It solves the problem of making complex architecture analysis results easily browsable and navigable, with automatic updates when analysis results change, enabling developers to quickly understand code structure, patterns, and issues without manually reading through analysis files.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides a tree view interface for browsing and exploring AI-generated architecture insights about the codebase\",\n  \"userVisibleActions\": [\n    \"View AI-generated architecture insights in a tree structure in the sidebar\",\n    \"Browse insights organized by categories (purpose, architecture, behavior, patterns, API, technical debt, security, performance, maintainability, dependencies)\",\n    \"Click on insight items to open related files or documentation\",\n    \"See real-time updates when insights.json or PROJECT_PURPOSE.md files change\",\n    \"Navigate to source code locations from insight items\",\n    \"View empty state prompts when no insights are available\",\n    \"Refresh insights view manually via refresh command\"\n  ],\n  \"developerVisibleActions\": [\n    \"Tree view automatically watches .shadow/insights.json for changes and refreshes\",\n    \"Tree view watches .shadow/docs/PROJECT_PURPOSE.md for purpose changes\",\n    \"File changes trigger automatic tree data refresh\",\n    \"Insights data is loaded from .shadow directory structure\",\n    \"Click handlers open files at specific line numbers when available\",\n    \"Tree items show icons, descriptions, and tooltips based on insight types\",\n    \"Empty directories are created automatically (.shadow, .shadow/docs)\",\n    \"TreeItem collapsible states control expansion behavior\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"setInsights\",\n      \"desc\": \"Updates the insights data displayed in the tree view and triggers a refresh\",\n      \"inputs\": \"insights: LLMInsights object containing analysis results\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"getTreeItem\",\n      \"desc\": \"Converts an InsightItem into a VS Code TreeItem for display\",\n      \"inputs\": \"element: InsightItem to convert\",\n      \"outputs\": \"vscode.TreeItem with label, icon, tooltip, and command\"\n    },\n    {\n      \"name\": \"getChildren\",\n      \"desc\": \"Returns child items for the tree view hierarchy\",\n      \"inputs\": \"element?: InsightItem (undefined for root level)\",\n      \"outputs\": \"Array of InsightItem objects or empty array\"\n    },\n    {\n      \"name\": \"setupFileWatcher\",\n      \"desc\": \"Configures automatic file watching for insights.json and PROJECT_PURPOSE.md changes\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"refresh\",\n      \"desc\": \"Manually triggers a refresh of the tree view display\",\n      \"inputs\": \"none\",\n      \"outputs\": \"void\"\n    },\n    {\n      \"name\": \"openFile\",\n      \"desc\": \"Opens a file in the editor at a specific line when user clicks an insight item\",\n      \"inputs\": \"filePath: string, line?: number\",\n      \"outputs\": \"Promise<void>\"\n    }\n  ],\n  \"dependencies\": [\n    \"vscode\",\n    \"LLMInsights from ./llmService\",\n    \"path\",\n    \"fs\",\n    \"FileWatcherService from ./domain/services/fileWatcherService\"\n  ],\n  \"intent\": \"This file exists to provide developers with an interactive, hierarchical view of AI-generated codebase insights within VS Code's sidebar. It solves the problem of making complex architecture analysis results easily browsable and navigable, with automatic updates when analysis results change, enabling developers to quickly understand code structure, patterns, and issues without manually reading through analysis files.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:46:53.152Z"
+  }
+}

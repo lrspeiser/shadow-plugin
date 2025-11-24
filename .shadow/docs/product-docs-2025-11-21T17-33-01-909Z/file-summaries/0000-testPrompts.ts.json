@@ -1,0 +1,49 @@
+{
+  "file": "src/domain/prompts/testPrompts.ts",
+  "role": "Core Logic",
+  "purpose": "Provides prompt builders that generate structured instructions for an LLM to analyze codebases and create test plans, configurations, and test implementations.",
+  "userVisibleActions": [
+    "Automatically analyzes the project structure and suggests appropriate testing frameworks",
+    "Generates prioritized test plans based on code complexity and risk",
+    "Creates test implementations for specific functions",
+    "Provides test setup recommendations including dependencies and configurations"
+  ],
+  "developerVisibleActions": [
+    "Call buildSetupPrompt() with workspace info to get LLM prompt for test configuration recommendations",
+    "Call buildPlanningPrompt() with code analysis to get LLM prompt for test strategy and prioritization",
+    "Call buildImplementationPrompt() with function details to get LLM prompt for generating actual test code",
+    "Receive structured JSON responses from LLM containing test plans, configurations, and code",
+    "Prompts guide LLM to consider code complexity, dependencies, edge cases, and testing best practices"
+  ],
+  "keyFunctions": [
+    {
+      "name": "buildSetupPrompt",
+      "desc": "Creates a prompt asking LLM to analyze codebase structure and recommend optimal test setup",
+      "inputs": "workspaceRoot: string, fileList: string[], packageJsonContent?: string",
+      "outputs": "Formatted prompt string requesting JSON response with language, framework, dependencies, and config files"
+    },
+    {
+      "name": "buildPlanningPrompt",
+      "desc": "Creates a prompt asking LLM to generate a prioritized test plan based on code analysis",
+      "inputs": "context: CodeAnalysis, functions: any[], productDocs?: any, architectureInsights?: any",
+      "outputs": "Formatted prompt string requesting JSON response with priority levels, coverage targets, and testing strategy"
+    },
+    {
+      "name": "buildImplementationPrompt",
+      "desc": "Creates a prompt asking LLM to generate actual test code for a specific function",
+      "inputs": "testableFunction: TestableFunction, setupInfo: any, contextualInfo?: any",
+      "outputs": "Formatted prompt string requesting complete test implementation with setup, assertions, and edge cases"
+    }
+  ],
+  "dependencies": [
+    "../../analyzer (CodeAnalysis type)",
+    "../services/testing/types/testPlanTypes (TestableFunction type)"
+  ],
+  "intent": "This file exists to standardize how the system communicates with LLMs for test generation tasks. It encapsulates the complex prompt engineering needed to get high-quality, structured test recommendations and implementations from language models, ensuring consistent formatting and comprehensive coverage of testing concerns.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Provides prompt builders that generate structured instructions for an LLM to analyze codebases and create test plans, configurations, and test implementations.\",\n  \"userVisibleActions\": [\n    \"Automatically analyzes the project structure and suggests appropriate testing frameworks\",\n    \"Generates prioritized test plans based on code complexity and risk\",\n    \"Creates test implementations for specific functions\",\n    \"Provides test setup recommendations including dependencies and configurations\"\n  ],\n  \"developerVisibleActions\": [\n    \"Call buildSetupPrompt() with workspace info to get LLM prompt for test configuration recommendations\",\n    \"Call buildPlanningPrompt() with code analysis to get LLM prompt for test strategy and prioritization\",\n    \"Call buildImplementationPrompt() with function details to get LLM prompt for generating actual test code\",\n    \"Receive structured JSON responses from LLM containing test plans, configurations, and code\",\n    \"Prompts guide LLM to consider code complexity, dependencies, edge cases, and testing best practices\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildSetupPrompt\",\n      \"desc\": \"Creates a prompt asking LLM to analyze codebase structure and recommend optimal test setup\",\n      \"inputs\": \"workspaceRoot: string, fileList: string[], packageJsonContent?: string\",\n      \"outputs\": \"Formatted prompt string requesting JSON response with language, framework, dependencies, and config files\"\n    },\n    {\n      \"name\": \"buildPlanningPrompt\",\n      \"desc\": \"Creates a prompt asking LLM to generate a prioritized test plan based on code analysis\",\n      \"inputs\": \"context: CodeAnalysis, functions: any[], productDocs?: any, architectureInsights?: any\",\n      \"outputs\": \"Formatted prompt string requesting JSON response with priority levels, coverage targets, and testing strategy\"\n    },\n    {\n      \"name\": \"buildImplementationPrompt\",\n      \"desc\": \"Creates a prompt asking LLM to generate actual test code for a specific function\",\n      \"inputs\": \"testableFunction: TestableFunction, setupInfo: any, contextualInfo?: any\",\n      \"outputs\": \"Formatted prompt string requesting complete test implementation with setup, assertions, and edge cases\"\n    }\n  ],\n  \"dependencies\": [\n    \"../../analyzer (CodeAnalysis type)\",\n    \"../services/testing/types/testPlanTypes (TestableFunction type)\"\n  ],\n  \"intent\": \"This file exists to standardize how the system communicates with LLMs for test generation tasks. It encapsulates the complex prompt engineering needed to get high-quality, structured test recommendations and implementations from language models, ensuring consistent formatting and comprehensive coverage of testing concerns.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:40:25.710Z"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "file": "src/domain/services/testing/types/testSetupTypes.ts",
+  "role": "Core Logic",
+  "purpose": "Defines TypeScript type definitions for test setup and execution functionality, including test plans, dependencies, configuration files, and environment detection.",
+  "userVisibleActions": [
+    "User receives structured information about test setup plans including framework and dependencies",
+    "User sees results of test setup execution with created files and installed dependencies",
+    "User receives feedback on test environment status including missing dependencies",
+    "User gets notified about mock requirements needed for testing"
+  ],
+  "developerVisibleActions": [
+    "Developer uses TestSetupPlan interface to structure test configuration data including framework, dependencies, and mock requirements",
+    "Developer uses TestEnvironment interface to detect existing test infrastructure and identify gaps",
+    "Developer uses SetupExecutionResult interface to report success/failure of test setup operations",
+    "Developer specifies configuration files with paths and content through ConfigFile interface",
+    "Developer tracks which dependencies are dev dependencies through Dependency interface"
+  ],
+  "keyFunctions": [],
+  "dependencies": [],
+  "intent": "This file exists to provide type safety and structure for the test setup service, ensuring consistent data shapes when planning, executing, and reporting on automated test environment configuration. It solves the problem of maintaining contract definitions between components that analyze project structure, generate test configurations, and execute setup operations.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Defines TypeScript type definitions for test setup and execution functionality, including test plans, dependencies, configuration files, and environment detection.\",\n  \"userVisibleActions\": [\n    \"User receives structured information about test setup plans including framework and dependencies\",\n    \"User sees results of test setup execution with created files and installed dependencies\",\n    \"User receives feedback on test environment status including missing dependencies\",\n    \"User gets notified about mock requirements needed for testing\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer uses TestSetupPlan interface to structure test configuration data including framework, dependencies, and mock requirements\",\n    \"Developer uses TestEnvironment interface to detect existing test infrastructure and identify gaps\",\n    \"Developer uses SetupExecutionResult interface to report success/failure of test setup operations\",\n    \"Developer specifies configuration files with paths and content through ConfigFile interface\",\n    \"Developer tracks which dependencies are dev dependencies through Dependency interface\"\n  ],\n  \"keyFunctions\": [],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to provide type safety and structure for the test setup service, ensuring consistent data shapes when planning, executing, and reporting on automated test environment configuration. It solves the problem of maintaining contract definitions between components that analyze project structure, generate test configurations, and execute setup operations.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:43:35.248Z"
+  }
+}

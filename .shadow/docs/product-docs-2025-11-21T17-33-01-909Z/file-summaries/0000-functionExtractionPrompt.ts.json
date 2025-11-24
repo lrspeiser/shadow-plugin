@@ -1,0 +1,33 @@
+{
+  "file": "src/domain/prompts/functionExtractionPrompt.ts",
+  "role": "Core Logic",
+  "purpose": "Builds a prompt template for LLM-based extraction of testable functions, methods, and classes from source code files, replacing regex-based extraction that incorrectly captured control flow keywords.",
+  "userVisibleActions": [
+    "N/A - Internal prompt generation utility with no direct user interface"
+  ],
+  "developerVisibleActions": [
+    "Developer calls buildFunctionExtractionPrompt() with an array of source files to analyze",
+    "Receives a formatted prompt string that can be sent to an LLM for code analysis",
+    "Can specify maximum functions to extract per file via maxFunctionsPerFile parameter",
+    "System automatically truncates files over 10,000 characters to prevent token limit issues",
+    "System includes file paths, languages, and formatted source code in the prompt",
+    "System instructs LLM to extract functions/methods/classes while excluding control flow statements",
+    "System requests structured output including name, file path, line numbers, complexity, dependencies, and visibility for each extracted item"
+  ],
+  "keyFunctions": [
+    {
+      "name": "buildFunctionExtractionPrompt",
+      "desc": "Constructs an LLM prompt for extracting testable code elements from source files with specific rules to avoid control flow keywords",
+      "inputs": "files (array of objects with path, content, language), maxFunctionsPerFile (optional number, default 50)",
+      "outputs": "Formatted prompt string containing instructions and source code for LLM analysis"
+    }
+  ],
+  "dependencies": [],
+  "intent": "This file exists to solve the problem of accurately extracting testable functions from source code by using LLM-based analysis instead of regex patterns. It addresses the specific issue where regex incorrectly captured control flow keywords (if, for, while, etc.) as functions. The prompt template ensures the LLM understands what constitutes a valid testable function versus control flow statements, enabling more accurate test generation workflows.",
+  "rawContent": "```json\n{\n  \"purpose\": \"Builds a prompt template for LLM-based extraction of testable functions, methods, and classes from source code files, replacing regex-based extraction that incorrectly captured control flow keywords.\",\n  \"userVisibleActions\": [\n    \"N/A - Internal prompt generation utility with no direct user interface\"\n  ],\n  \"developerVisibleActions\": [\n    \"Developer calls buildFunctionExtractionPrompt() with an array of source files to analyze\",\n    \"Receives a formatted prompt string that can be sent to an LLM for code analysis\",\n    \"Can specify maximum functions to extract per file via maxFunctionsPerFile parameter\",\n    \"System automatically truncates files over 10,000 characters to prevent token limit issues\",\n    \"System includes file paths, languages, and formatted source code in the prompt\",\n    \"System instructs LLM to extract functions/methods/classes while excluding control flow statements\",\n    \"System requests structured output including name, file path, line numbers, complexity, dependencies, and visibility for each extracted item\"\n  ],\n  \"keyFunctions\": [\n    {\n      \"name\": \"buildFunctionExtractionPrompt\",\n      \"desc\": \"Constructs an LLM prompt for extracting testable code elements from source files with specific rules to avoid control flow keywords\",\n      \"inputs\": \"files (array of objects with path, content, language), maxFunctionsPerFile (optional number, default 50)\",\n      \"outputs\": \"Formatted prompt string containing instructions and source code for LLM analysis\"\n    }\n  ],\n  \"dependencies\": [],\n  \"intent\": \"This file exists to solve the problem of accurately extracting testable functions from source code by using LLM-based analysis instead of regex patterns. It addresses the specific issue where regex incorrectly captured control flow keywords (if, for, while, etc.) as functions. The prompt template ensures the LLM understands what constitutes a valid testable function versus control flow statements, enabling more accurate test generation workflows.\"\n}\n```",
+  "_metadata": {
+    "index": 0,
+    "total": 0,
+    "savedAt": "2025-11-21T17:39:24.595Z"
+  }
+}
