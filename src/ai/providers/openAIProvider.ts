@@ -5,6 +5,22 @@ import { OpenAI } from 'openai';
 import { ILLMProvider, LLMRequestOptions, LLMResponse, StructuredOutputResponse } from './ILLMProvider';
 import { getConfigurationManager } from '../../config/configurationManager';
 import { extractJSON } from '../../utils/jsonExtractor';
+import { SWLogger } from '../../logger';
+
+// Track LLM call statistics
+let llmCallCount = 0;
+let totalInputTokens = 0;
+let totalOutputTokens = 0;
+
+export function getOpenAILLMStats() {
+    return { callCount: llmCallCount, inputTokens: totalInputTokens, outputTokens: totalOutputTokens };
+}
+
+export function resetOpenAILLMStats() {
+    llmCallCount = 0;
+    totalInputTokens = 0;
+    totalOutputTokens = 0;
+}
 
 export class OpenAIProvider implements ILLMProvider {
     private client: OpenAI | null = null;
@@ -49,6 +65,13 @@ export class OpenAIProvider implements ILLMProvider {
               ]
             : options.messages;
 
+        // Log the call before making it
+        llmCallCount++;
+        const callId = llmCallCount;
+        const promptLength = messages.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+        SWLogger.log(`[LLM Call #${callId}] OpenAI sendRequest - prompt chars: ${promptLength}`);
+        const startTime = Date.now();
+
         const response = await this.client.chat.completions.create({
             model: options.model || 'gpt-4o',
             messages: messages.map(msg => ({
@@ -57,6 +80,15 @@ export class OpenAIProvider implements ILLMProvider {
             })),
             response_format: options.responseFormat
         });
+
+        // Log token usage
+        const inputTokens = (response as any).usage?.prompt_tokens || 0;
+        const outputTokens = (response as any).usage?.completion_tokens || 0;
+        totalInputTokens += inputTokens;
+        totalOutputTokens += outputTokens;
+        const elapsed = Date.now() - startTime;
+        SWLogger.log(`[LLM Call #${callId}] OpenAI response - input: ${inputTokens} tokens, output: ${outputTokens} tokens, time: ${elapsed}ms`);
+        SWLogger.log(`[LLM Call #${callId}] Running totals - calls: ${llmCallCount}, input: ${totalInputTokens}, output: ${totalOutputTokens}`);
 
         const firstChoice = response.choices?.[0];
         const content = firstChoice?.message?.content || '';

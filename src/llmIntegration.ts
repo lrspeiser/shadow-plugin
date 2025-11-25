@@ -18,6 +18,7 @@ import { InsightsViewerProvider } from './insightsViewer';
 import { UnitTestsNavigatorProvider } from './unitTestsNavigator';
 import { SWLogger } from './logger';
 import { getStateManager } from './state/llmStateManager';
+import { getLLMStats, resetLLMStats } from './ai/providers/anthropicProvider';
 import { convertCodeAnalysisToContext, saveCodeAnalysis, loadSavedCodeAnalysis as loadSavedCodeAnalysisFromFile } from './context/analysisContextBuilder';
 import { DocumentationFormatter } from './domain/formatters/documentationFormatter';
 import { AnalysisResultRepository } from './infrastructure/persistence/analysisResultRepository';
@@ -2047,6 +2048,10 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
 
     SWLogger.section('Comprehensive Analysis');
     SWLogger.log('Starting sequential analysis workflow...');
+    
+    // Reset LLM stats at the start of analysis
+    resetLLMStats();
+    SWLogger.log('LLM call tracking reset');
 
     const { progressService } = await import('./infrastructure/progressService');
     
@@ -2297,6 +2302,14 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                 treeProvider.setProductDocsStatus('complete');
                 treeProvider.setInsightsStatus('complete');
             }
+            
+            // Log LLM usage summary
+            const stats = getLLMStats();
+            SWLogger.section('LLM Usage Summary');
+            SWLogger.log(`Total LLM calls: ${stats.callCount}`);
+            SWLogger.log(`Total input tokens: ${stats.inputTokens}`);
+            SWLogger.log(`Total output tokens: ${stats.outputTokens}`);
+            SWLogger.log(`Total tokens: ${stats.inputTokens + stats.outputTokens}`);
             SWLogger.log('Analysis workflow complete');
         }
     });

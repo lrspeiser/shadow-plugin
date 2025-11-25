@@ -5,6 +5,22 @@ import Anthropic from '@anthropic-ai/sdk';
 import { ILLMProvider, LLMRequestOptions, LLMResponse, StructuredOutputResponse } from './ILLMProvider';
 import { getConfigurationManager } from '../../config/configurationManager';
 import { extractJSON } from '../../utils/jsonExtractor';
+import { SWLogger } from '../../logger';
+
+// Track LLM call statistics
+let llmCallCount = 0;
+let totalInputTokens = 0;
+let totalOutputTokens = 0;
+
+export function getLLMStats() {
+    return { callCount: llmCallCount, inputTokens: totalInputTokens, outputTokens: totalOutputTokens };
+}
+
+export function resetLLMStats() {
+    llmCallCount = 0;
+    totalInputTokens = 0;
+    totalOutputTokens = 0;
+}
 
 export class AnthropicProvider implements ILLMProvider {
     private client: Anthropic | null = null;
@@ -50,12 +66,28 @@ export class AnthropicProvider implements ILLMProvider {
                 content: msg.content
             }));
 
+        // Log the call before making it
+        llmCallCount++;
+        const callId = llmCallCount;
+        const promptLength = (options.systemPrompt?.length || 0) + claudeMessages.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+        SWLogger.log(`[LLM Call #${callId}] Claude sendRequest - prompt chars: ${promptLength}`);
+        const startTime = Date.now();
+
         const response = await this.client.messages.create({
             model: options.model || 'claude-sonnet-4-5',
             system: options.systemPrompt,
             messages: claudeMessages as any,
             max_tokens: options.maxTokens || 8192 // Claude Sonnet max is 8192
         });
+
+        // Log token usage
+        const inputTokens = (response as any).usage?.input_tokens || 0;
+        const outputTokens = (response as any).usage?.output_tokens || 0;
+        totalInputTokens += inputTokens;
+        totalOutputTokens += outputTokens;
+        const elapsed = Date.now() - startTime;
+        SWLogger.log(`[LLM Call #${callId}] Claude response - input: ${inputTokens} tokens, output: ${outputTokens} tokens, time: ${elapsed}ms`);
+        SWLogger.log(`[LLM Call #${callId}] Running totals - calls: ${llmCallCount}, input: ${totalInputTokens}, output: ${totalOutputTokens}`);
 
         // Handle different content block types
         const firstBlock = response.content[0];
@@ -88,6 +120,13 @@ export class AnthropicProvider implements ILLMProvider {
                 content: msg.content
             }));
 
+        // Log the call before making it
+        llmCallCount++;
+        const callId = llmCallCount;
+        const promptLength = (options.systemPrompt?.length || 0) + claudeMessages.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+        SWLogger.log(`[LLM Call #${callId}] Claude sendStructuredRequest - prompt chars: ${promptLength}`);
+        const startTime = Date.now();
+
         const response = await (this.client as any).beta.messages.create({
             model: options.model || 'claude-sonnet-4-5',
             betas: ['structured-outputs-2025-11-13'],
@@ -99,6 +138,15 @@ export class AnthropicProvider implements ILLMProvider {
                 schema: schema
             }
         });
+
+        // Log token usage
+        const inputTokens = (response as any).usage?.input_tokens || 0;
+        const outputTokens = (response as any).usage?.output_tokens || 0;
+        totalInputTokens += inputTokens;
+        totalOutputTokens += outputTokens;
+        const elapsed = Date.now() - startTime;
+        SWLogger.log(`[LLM Call #${callId}] Claude structured response - input: ${inputTokens} tokens, output: ${outputTokens} tokens, time: ${elapsed}ms`);
+        SWLogger.log(`[LLM Call #${callId}] Running totals - calls: ${llmCallCount}, input: ${totalInputTokens}, output: ${totalOutputTokens}`);
 
         // Handle different content block types
         const firstBlock = response.content[0];
