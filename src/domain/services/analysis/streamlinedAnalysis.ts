@@ -255,27 +255,48 @@ export class StreamlinedAnalysisService {
     ): Promise<StreamlinedResult> {
         SWLogger.log(`[Large] Sampling key files from ${files.length} total`);
         
-        // Select key files: entry points + largest files + files from each folder
-        const keyFiles = new Set<string>();
+        const keyFiles: string[] = [];
         
-        // Add entry points
-        for (const ep of summary.entryPoints.slice(0, 5)) {
-            if (files.includes(ep)) keyFiles.add(ep);
-        }
-        
-        // Add files from each major folder (up to 2 per folder)
-        for (const folder of summary.folders.slice(0, 10)) {
-            const folderFiles = files.filter(f => f.startsWith(folder.path));
-            for (const f of folderFiles.slice(0, 2)) {
-                keyFiles.add(f);
+        // Priority 1: Entry points (extension.ts, index.ts, main.ts, etc.)
+        const entryPatterns = ['extension.ts', 'index.ts', 'main.ts', 'app.ts', 'index.js', 'main.js'];
+        for (const file of files) {
+            const basename = file.split('/').pop() || '';
+            if (entryPatterns.includes(basename) && keyFiles.length < 3) {
+                keyFiles.push(file);
+                SWLogger.log(`[Large] Added entry point: ${file}`);
             }
         }
         
-        // Limit to 15 files max
-        const filesToAnalyze = Array.from(keyFiles).slice(0, 15);
-        SWLogger.log(`[Large] Selected ${filesToAnalyze.length} key files to analyze`);
+        // Priority 2: Get diversity - one file from each unique top-level folder
+        const foldersSeen = new Set<string>();
+        for (const file of files) {
+            const parts = file.split('/');
+            const topFolder = parts.length > 1 ? parts[0] : '.';
+            if (!foldersSeen.has(topFolder) && !keyFiles.includes(file)) {
+                foldersSeen.add(topFolder);
+                keyFiles.push(file);
+                SWLogger.log(`[Large] Added from folder ${topFolder}: ${file}`);
+                if (keyFiles.length >= 12) break;
+            }
+        }
+        
+        // Priority 3: Fill remaining slots with any other files
+        for (const file of files) {
+            if (!keyFiles.includes(file) && keyFiles.length < 15) {
+                keyFiles.push(file);
+            }
+        }
+        
+        SWLogger.log(`[Large] Selected ${keyFiles.length} key files to analyze`);
+        
+        if (keyFiles.length === 0) {
+            SWLogger.log(`[Large] ERROR: No files selected! Files available: ${files.slice(0, 5).join(', ')}...`);
+            // Fallback: just take first 15 files
+            keyFiles.push(...files.slice(0, 15));
+            SWLogger.log(`[Large] Fallback: using first ${keyFiles.length} files`);
+        }
         
         // Use same approach as small project
-        return this.analyzeSmallProject(workspaceRoot, filesToAnalyze, llmService, onProgress);
+        return this.analyzeSmallProject(workspaceRoot, keyFiles, llmService, onProgress);
     }
 }
