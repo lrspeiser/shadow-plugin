@@ -135,6 +135,62 @@ export class LLMService {
         return provider === 'claude' ? 'claude-sonnet-4-5' : 'gpt-5.1';
     }
 
+    /**
+     * Build a simplified architecture prompt for small projects (≤10 files, ≤1000 lines)
+     * This reduces token usage and speeds up analysis significantly
+     */
+    private buildSimplifiedArchitecturePrompt(
+        context: AnalysisContext,
+        codeAnalysis?: CodeAnalysis,
+        productDocs?: EnhancedProductDocumentation
+    ): string {
+        const fileList = context.files.map(f => `- ${f.path} (${f.lines} lines, ${f.functions} functions)`).join('\n');
+        const functionList = codeAnalysis?.functions?.map(f => `- ${f.name} in ${f.file} (lines ${f.startLine}-${f.endLine})`).join('\n') || 'No functions detected';
+        
+        let prompt = `Analyze this small codebase and provide architecture insights.
+
+## Project Statistics
+- Total Files: ${context.totalFiles}
+- Total Lines: ${context.totalLines}
+- Total Functions: ${context.totalFunctions}
+
+## Files
+${fileList}
+
+## Functions
+${functionList}
+`;
+
+        if (productDocs?.overview) {
+            prompt += `\n## Product Overview\n${productDocs.overview}\n`;
+        }
+
+        prompt += `
+## Your Task
+Provide a concise architecture analysis. Since this is a small project, focus on:
+1. What the code does (brief summary)
+2. Code quality strengths (2-3 points)
+3. Potential improvements (if any)
+4. Which functions should have unit tests (prioritize by importance)
+
+Return JSON with these fields:
+- overallAssessment: Brief 1-2 sentence summary
+- strengths: Array of 2-3 strength strings
+- issues: Array of issue objects with {title, description, relevantFiles, relevantFunctions} - can be empty for simple code
+- organization: Brief assessment of code organization
+- entryPointsAnalysis: Brief entry points analysis
+- orphanedFilesAnalysis: Brief orphaned files analysis  
+- folderReorganization: Suggestions (can be "No changes needed" for small projects)
+- recommendations: Array of recommendation objects with {title, description, relevantFiles, relevantFunctions}
+- priorities: Array of priority objects with {title, description, relevantFiles, relevantFunctions}
+- successErrors: Brief success/error handling analysis
+- recommended_test_targets: Array of functions to test with {function_name, file_path, priority ("critical"/"high"/"medium"), reason, complexity ("low"/"medium"/"high"), dependencies: [], edge_cases: []}
+
+Keep responses concise - this is a small project that doesn't need enterprise-level analysis.`;
+
+        return prompt;
+    }
+
     public async promptForApiKey(provider?: LLMProvider): Promise<boolean> {
         const targetProvider = provider || this.getProvider();
         const isClaude = targetProvider === 'claude';
@@ -731,7 +787,18 @@ export class LLMService {
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
         const fileAccessHelper = new FileAccessHelper(workspaceRoot);
         const incrementalService = new IncrementalAnalysisService(fileAccessHelper);
-        const basePrompt = this.promptBuilder.buildArchitecturePrompt(context, codeAnalysis, productDocs, productPurposeAnalysis, fileAccessHelper);
+        
+        // Check if this is a small project - use simplified analysis
+        const isSmallProject = context.totalFiles <= 10 && context.totalLines <= 1000;
+        let basePrompt: string;
+        
+        if (isSmallProject) {
+            console.log(`[Architecture Insights] Small project detected (${context.totalFiles} files, ${context.totalLines} lines) - using simplified analysis`);
+            basePrompt = this.buildSimplifiedArchitecturePrompt(context, codeAnalysis, productDocs);
+        } else {
+            basePrompt = this.promptBuilder.buildArchitecturePrompt(context, codeAnalysis, productDocs, productPurposeAnalysis, fileAccessHelper);
+        }
+        
         const providerName = isClaude ? 'Claude' : 'OpenAI';
         console.log(`[Architecture Insights] Using ${providerName} provider`);
         console.log('Architecture prompt length:', basePrompt.length);
