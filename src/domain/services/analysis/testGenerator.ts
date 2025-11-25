@@ -92,7 +92,17 @@ ${targetInfo}
 3. Include setup/teardown if needed
 4. Make tests runnable immediately
 
-Generate complete, working test code.`;
+## CRITICAL SYNTAX RULES
+- Each describe() block must end with });  
+- Each it() block must end with });
+- Variable declarations use semicolons: const obj = { a: 1 };
+- NEVER put }); after an object literal - use }; instead
+- Example correct syntax:
+  const obj = { a: 1, b: 2 };  // semicolon only
+  const nested = { a: { b: 1 } };  // semicolon only
+  it('test', () => { expect(1).toBe(1); });  // }); for callback
+
+Generate complete, working test code with correct JavaScript syntax.`;
 }
 
 /**
