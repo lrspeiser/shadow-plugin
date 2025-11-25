@@ -627,127 +627,49 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
     private getRootItems(): TreeItem[] {
         const items: TreeItem[] = [];
 
-        // Analyze Workspace button (required first step)
-        const analyzeBtn = new TreeItem('📊 Analyze Workspace', vscode.TreeItemCollapsibleState.None);
+        // Run Analysis button
+        const analyzeBtn = new TreeItem('⚡ Run Analysis', vscode.TreeItemCollapsibleState.None);
         analyzeBtn.type = 'action';
-        
-        if (this.analysisStatus === 'complete') {
-            analyzeBtn.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('charts.green'));
-            const lastRun = this.formatTimestamp(this.analysisTimestamp);
-            analyzeBtn.description = lastRun ? `Last run: ${lastRun}` : '✅ Complete';
-        } else {
-            analyzeBtn.iconPath = new vscode.ThemeIcon('search');
-            analyzeBtn.description = 'Required first step';
-        }
-        
+        analyzeBtn.iconPath = new vscode.ThemeIcon('zap');
+        analyzeBtn.description = 'Analyze code for issues, duplicates, dead code';
         analyzeBtn.command = {
-            command: 'shadowWatch.analyze',
-            title: 'Analyze Workspace'
+            command: 'shadowWatch.runStreamlinedAnalysis',
+            title: 'Run Analysis'
         };
         items.push(analyzeBtn);
 
-        // Generate Unit Tests button
-        const genUnitTestsBtn = new TreeItem('🧪 Generate Unit Tests', vscode.TreeItemCollapsibleState.None);
-        genUnitTestsBtn.type = 'action';
-        
-        // Check if already generating
-        if (this.unitTestStatus === 'generating') {
-            genUnitTestsBtn.iconPath = new vscode.ThemeIcon('sync~spin');
-            genUnitTestsBtn.description = 'Generating... (click Cancel in notification to stop)';
-            genUnitTestsBtn.contextValue = 'disabled';
-            genUnitTestsBtn.command = undefined; // Disabled while generating
-        }
-        // Check prerequisites - need analysis and product docs
-        else if (this.analysisStatus !== 'complete' || 
-                (this.productDocsStatus !== 'complete' && this.insightsStatus !== 'complete')) {
-            if (this.analysisStatus !== 'complete') {
-                genUnitTestsBtn.iconPath = new vscode.ThemeIcon('beaker');
-                genUnitTestsBtn.description = 'Run "Analyze Workspace" first';
-                genUnitTestsBtn.contextValue = 'disabled';
-            } else {
-                genUnitTestsBtn.iconPath = new vscode.ThemeIcon('beaker');
-                genUnitTestsBtn.description = 'Generate product docs first';
-                genUnitTestsBtn.contextValue = 'disabled';
-            }
-            genUnitTestsBtn.command = undefined; // Disabled
-        } else {
-            genUnitTestsBtn.iconPath = new vscode.ThemeIcon('beaker');
-            genUnitTestsBtn.description = 'Click to generate';
-            genUnitTestsBtn.command = {
-                command: 'shadowWatch.generateUnitTests',
-                title: 'Generate Unit Tests'
-            };
-        }
-        items.push(genUnitTestsBtn);
-
-        // Run Unit Tests button (only show if tests have been generated)
-        if (this.unitTestStatus === 'complete') {
-            const runUnitTestsBtn = new TreeItem('▶️ Run Unit Tests', vscode.TreeItemCollapsibleState.None);
-            runUnitTestsBtn.type = 'action';
-            runUnitTestsBtn.iconPath = new vscode.ThemeIcon('play');
-            runUnitTestsBtn.description = 'Run tests and generate report';
-            runUnitTestsBtn.command = {
-                command: 'shadowWatch.runUnitTests',
-                title: 'Run Unit Tests'
-            };
-            items.push(runUnitTestsBtn);
-        }
-
-        // Open Documentation button (opens .shadow/docs folder)
-        const openDocsBtn = new TreeItem('📁 Open Documentation', vscode.TreeItemCollapsibleState.None);
-        openDocsBtn.type = 'action';
-        openDocsBtn.iconPath = new vscode.ThemeIcon('folder-opened');
-        openDocsBtn.description = 'View saved docs and insights';
-        openDocsBtn.command = {
-            command: 'shadowWatch.openDocsFolder',
-            title: 'Open Documentation'
+        // Run Analysis + Tests button
+        const analyzeTestsBtn = new TreeItem('🧪 Run Analysis + Tests', vscode.TreeItemCollapsibleState.None);
+        analyzeTestsBtn.type = 'action';
+        analyzeTestsBtn.iconPath = new vscode.ThemeIcon('beaker');
+        analyzeTestsBtn.description = 'Analyze code and generate/run unit tests';
+        analyzeTestsBtn.command = {
+            command: 'shadowWatch.runStreamlinedAnalysisWithTests',
+            title: 'Run Analysis + Tests'
         };
-        items.push(openDocsBtn);
+        items.push(analyzeTestsBtn);
 
-        // Open Latest Report button (if report exists)
-        if (this.reportPath) {
-            const fs = require('fs');
-            if (fs.existsSync(this.reportPath)) {
-                const openReportBtn = new TreeItem('📄 Open Latest Report', vscode.TreeItemCollapsibleState.None);
-                openReportBtn.type = 'action';
-                openReportBtn.iconPath = new vscode.ThemeIcon('file-text');
-                const lastRun = this.formatTimestamp(this.reportTimestamp);
-                openReportBtn.description = lastRun ? `Last run: ${lastRun}` : 'Click to open';
-                openReportBtn.command = {
-                    command: 'shadowWatch.openLatestReport',
-                    title: 'Open Latest Report'
-                };
-                items.push(openReportBtn);
-            }
-        }
-
-        // Open Latest Unit Test Report button (if report exists)
-        if (this.unitTestReportPath) {
-            const fs = require('fs');
-            if (fs.existsSync(this.unitTestReportPath)) {
-                const openUnitTestReportBtn = new TreeItem('📊 Open Latest Unit Test Report', vscode.TreeItemCollapsibleState.None);
-                openUnitTestReportBtn.type = 'action';
-                openUnitTestReportBtn.iconPath = new vscode.ThemeIcon('beaker');
-                const lastRun = this.formatTimestamp(this.unitTestReportTimestamp);
-                openUnitTestReportBtn.description = lastRun ? `Last run: ${lastRun}` : 'Click to open';
-                openUnitTestReportBtn.command = {
-                    command: 'shadowWatch.openLatestUnitTestReport',
-                    title: 'Open Latest Unit Test Report'
-                };
-                items.push(openUnitTestReportBtn);
-            }
-        }
-
-        // Open Settings UI
-        const openSettingsBtn = new TreeItem('⚙️ Open Settings', vscode.TreeItemCollapsibleState.None);
-        openSettingsBtn.type = 'action';
-        openSettingsBtn.iconPath = new vscode.ThemeIcon('settings-gear');
-        openSettingsBtn.description = 'View all Shadow Watch settings';
-        openSettingsBtn.command = {
+        // Settings
+        const settingsBtn = new TreeItem('⚙️ Settings', vscode.TreeItemCollapsibleState.None);
+        settingsBtn.type = 'action';
+        settingsBtn.iconPath = new vscode.ThemeIcon('settings-gear');
+        settingsBtn.description = 'Configure API key and options';
+        settingsBtn.command = {
             command: 'shadowWatch.openSettings',
-            title: 'Open Settings'
+            title: 'Settings'
         };
-        items.push(openSettingsBtn);
+        items.push(settingsBtn);
+
+        // Clear All Data
+        const clearBtn = new TreeItem('🗑️ Clear All Data', vscode.TreeItemCollapsibleState.None);
+        clearBtn.type = 'action';
+        clearBtn.iconPath = new vscode.ThemeIcon('trash');
+        clearBtn.description = 'Remove all generated files';
+        clearBtn.command = {
+            command: 'shadowWatch.clearAllData',
+            title: 'Clear All Data'
+        };
+        items.push(clearBtn);
 
         return items;
     }

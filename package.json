@@ -32,26 +32,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "shadowWatch.analyze",
-        "title": "Shadow Watch: Analyze Workspace",
-        "icon": "$(search)"
+        "command": "shadowWatch.runStreamlinedAnalysis",
+        "title": "Shadow Watch: Run Analysis",
+        "icon": "$(zap)"
       },
       {
-        "command": "shadowWatch.analyzeFile",
-        "title": "Shadow Watch: Analyze Current File"
+        "command": "shadowWatch.runStreamlinedAnalysisWithTests",
+        "title": "Shadow Watch: Run Analysis + Tests",
+        "icon": "$(beaker)"
       },
       {
-        "command": "shadowWatch.copyInsights",
-        "title": "Shadow Watch: Copy All Insights for LLM",
-        "icon": "$(copy)"
-      },
-      {
-        "command": "shadowWatch.copyFileInsights",
-        "title": "Shadow Watch: Copy File Insights for LLM"
-      },
-      {
-        "command": "shadowWatch.clearCache",
-        "title": "Shadow Watch: Clear Analysis Cache"
+        "command": "shadowWatch.openSettings",
+        "title": "Shadow Watch: Settings",
+        "icon": "$(settings-gear)"
       },
       {
         "command": "shadowWatch.clearAllData",
@@ -59,119 +52,13 @@
         "icon": "$(trash)"
       },
       {
-        "command": "shadowWatch.openSettings",
-        "title": "Shadow Watch: Open Settings",
-        "icon": "$(settings-gear)"
-      },
-      {
-        "command": "shadowWatch.switchProvider",
-        "title": "Shadow Watch: Switch LLM Provider"
-      },
-      {
-        "command": "shadowWatch.copyMenuStructure",
-        "title": "Shadow Watch: Copy Menu Structure",
-        "icon": "$(copy)"
-      },
-      {
-        "command": "shadowWatch.showInsights",
-        "title": "Shadow Watch: Show Insights Panel"
-      },
-      {
-        "command": "shadowWatch.enable",
-        "title": "Shadow Watch: Enable"
-      },
-      {
-        "command": "shadowWatch.disable",
-        "title": "Shadow Watch: Disable"
-      },
-      {
         "command": "shadowWatch.refreshInsights",
         "title": "Shadow Watch: Refresh",
         "icon": "$(refresh)"
       },
       {
-        "command": "shadowWatch.copyInsight",
-        "title": "Copy for LLM",
-        "icon": "$(copy)"
-      },
-      {
-        "command": "shadowWatch.generateProductDocs",
-        "title": "Shadow Watch: Generate Product Documentation",
-        "icon": "$(book)"
-      },
-      {
-        "command": "shadowWatch.generateLLMInsights",
-        "title": "Shadow Watch: Generate AI Architecture Insights",
-        "icon": "$(sparkle)"
-      },
-      {
-        "command": "shadowWatch.generateUnitTests",
-        "title": "Shadow Watch: Generate Unit Tests",
-        "icon": "$(beaker)"
-      },
-      {
-        "command": "shadowWatch.runUnitTests",
-        "title": "Shadow Watch: Run Unit Tests",
-        "icon": "$(play)"
-      },
-      {
-        "command": "shadowWatch.setApiKey",
-        "title": "Shadow Watch: Set OpenAI API Key"
-      },
-      {
-        "command": "shadowWatch.showProductDocs",
-        "title": "Shadow Watch: Show Product Documentation"
-      },
-      {
-        "command": "shadowWatch.showReports",
-        "title": "Shadow Watch: Show Reports",
-        "icon": "$(file-text)"
-      },
-      {
         "command": "shadowWatch.openReport",
         "title": "Open Report"
-      },
-      {
-        "command": "shadowWatch.showProductItemDetails",
-        "title": "Show Product Item Details"
-      },
-      {
-        "command": "shadowWatch.showInsightItemDetails",
-        "title": "Show Insight Details"
-      },
-      {
-        "command": "shadowWatch.copyInsightItem",
-        "title": "Copy Insight Item"
-      },
-      {
-        "command": "shadowWatch.generateWorkspaceReport",
-        "title": "Shadow Watch: Generate Workspace Report",
-        "icon": "$(file-text)"
-      },
-      {
-        "command": "shadowWatch.generateProductReport",
-        "title": "Shadow Watch: Generate Product Report",
-        "icon": "$(file-text)"
-      },
-      {
-        "command": "shadowWatch.generateArchitectureReport",
-        "title": "Shadow Watch: Generate Architecture Report",
-        "icon": "$(file-text)"
-      },
-      {
-        "command": "shadowWatch.runComprehensiveAnalysis",
-        "title": "Shadow Watch: Generate Refactoring Report",
-        "icon": "$(file-text)"
-      },
-      {
-        "command": "shadowWatch.runStreamlinedAnalysis",
-        "title": "Shadow Watch: Fast Analysis (Optimized for Small Projects)",
-        "icon": "$(zap)"
-      },
-      {
-        "command": "shadowWatch.runStreamlinedAnalysisWithTests",
-        "title": "Shadow Watch: Fast Analysis + Generate & Run Tests",
-        "icon": "$(beaker)"
       }
     ],
     "viewsContainers": {
