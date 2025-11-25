@@ -89,43 +89,34 @@ ${targetInfo}
 ## Requirements
 1. Use Jest syntax (describe, it, expect)
 2. Test normal cases AND edge cases
-3. Include setup/teardown if needed
-4. Make tests runnable immediately
-
-## CRITICAL SYNTAX RULES - READ CAREFULLY
-When declaring variables with objects, use ONLY a semicolon:
-  WRONG: const obj = { a: 1 });   <-- SYNTAX ERROR
-  RIGHT: const obj = { a: 1 };    <-- CORRECT
-
-The }); ending is ONLY for closing callbacks like describe() and it():
-  describe('test', () => {    <-- opens callback
-    it('case', () => {        <-- opens callback  
-      const x = { a: 1 };     <-- variable, ends with ;
-      expect(x.a).toBe(1);
-    });                       <-- closes it() callback
-  });                         <-- closes describe() callback
-
-Generate syntactically correct JavaScript. Double-check all object literals end with ; not });`;
+3. Each test must be syntactically valid JavaScript
+4. Make tests runnable immediately`;
 }
 
 /**
- * Fix common syntax issues in LLM-generated test code
+ * Validate JavaScript syntax using Node's vm module
  */
-function fixCommonSyntaxIssues(code: string): string {
-    // Fix }; that should be }); at end of describe/it blocks
-    // Pattern: closing brace with semicolon at end of line (should be });)
-    code = code.replace(/\};\s*$/gm, '});');
-    
-    // Fix standalone }; on its own line (common LLM mistake)
-    code = code.replace(/^\s*\};\s*$/gm, '});');
-    
-    // Ensure file ends with newline
-    if (!code.endsWith('\n')) {
-        code += '\n';
+function validateSyntax(code: string): { valid: boolean; error?: string } {
+    try {
+        // Use Function constructor to check syntax without executing
+        new Function(code);
+        return { valid: true };
+    } catch (e: any) {
+        return { valid: false, error: e.message };
     }
-    
-    return code;
 }
+
+/**
+ * Schema for syntax fix response
+ */
+const SYNTAX_FIX_SCHEMA = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        fixedCode: { type: "string", description: "The complete fixed test code" }
+    },
+    required: ["fixedCode"]
+};
 
 /**
  * Extract function code from file content by name
@@ -229,8 +220,45 @@ ${testData.setupCode}
 
     const testFilePath = path.join(testDir, 'generated.test.js');
     
-    // Clean up common LLM syntax mistakes
-    testFileContent = fixCommonSyntaxIssues(testFileContent);
+    // Validate syntax before writing
+    let syntaxCheck = validateSyntax(testFileContent);
+    
+    if (!syntaxCheck.valid) {
+        SWLogger.log(`[TestGen] Syntax error detected: ${syntaxCheck.error}`);
+        onProgress?.('Fixing syntax error...');
+        
+        // Ask LLM to fix the syntax error (single retry)
+        const fixPrompt = `The following Jest test code has a syntax error:
+
+ERROR: ${syntaxCheck.error}
+
+CODE:
+\`\`\`javascript
+${testFileContent}
+\`\`\`
+
+Fix the syntax error and return the complete corrected code.`;
+        
+        try {
+            const fixResponse = await llmService.sendStructuredRequest(
+                fixPrompt,
+                SYNTAX_FIX_SCHEMA,
+                'Fix the JavaScript syntax error. Return only valid code.'
+            );
+            
+            const fixedCode = (fixResponse.data as { fixedCode: string }).fixedCode;
+            const recheck = validateSyntax(fixedCode);
+            
+            if (recheck.valid) {
+                testFileContent = fixedCode;
+                SWLogger.log('[TestGen] Syntax fixed successfully');
+            } else {
+                SWLogger.log(`[TestGen] Fix attempt failed: ${recheck.error}`);
+            }
+        } catch (fixErr) {
+            SWLogger.log(`[TestGen] Fix request failed: ${fixErr}`);
+        }
+    }
     
     fs.writeFileSync(testFilePath, testFileContent);
     SWLogger.log(`[TestGen] Wrote tests to ${testFilePath}`);
