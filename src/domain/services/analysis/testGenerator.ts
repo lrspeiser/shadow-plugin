@@ -92,17 +92,20 @@ ${targetInfo}
 3. Include setup/teardown if needed
 4. Make tests runnable immediately
 
-## CRITICAL SYNTAX RULES
-- Each describe() block must end with });  
-- Each it() block must end with });
-- Variable declarations use semicolons: const obj = { a: 1 };
-- NEVER put }); after an object literal - use }; instead
-- Example correct syntax:
-  const obj = { a: 1, b: 2 };  // semicolon only
-  const nested = { a: { b: 1 } };  // semicolon only
-  it('test', () => { expect(1).toBe(1); });  // }); for callback
+## CRITICAL SYNTAX RULES - READ CAREFULLY
+When declaring variables with objects, use ONLY a semicolon:
+  WRONG: const obj = { a: 1 });   <-- SYNTAX ERROR
+  RIGHT: const obj = { a: 1 };    <-- CORRECT
 
-Generate complete, working test code with correct JavaScript syntax.`;
+The }); ending is ONLY for closing callbacks like describe() and it():
+  describe('test', () => {    <-- opens callback
+    it('case', () => {        <-- opens callback  
+      const x = { a: 1 };     <-- variable, ends with ;
+      expect(x.a).toBe(1);
+    });                       <-- closes it() callback
+  });                         <-- closes describe() callback
+
+Generate syntactically correct JavaScript. Double-check all object literals end with ; not });`;
 }
 
 /**
