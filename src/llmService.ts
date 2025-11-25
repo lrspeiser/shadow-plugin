@@ -136,6 +136,50 @@ export class LLMService {
     }
 
     /**
+     * Send a structured request to the LLM with a JSON schema for the response.
+     * This is a simplified interface for the new streamlined analysis services.
+     * 
+     * @param prompt - The user prompt
+     * @param schema - JSON schema for the expected response
+     * @param systemPrompt - Optional system prompt (defaults to generic analyzer)
+     * @returns Parsed JSON response matching the schema
+     */
+    public async sendStructuredRequest<T>(
+        prompt: string,
+        schema: object,
+        systemPrompt: string = 'You are an expert code analyzer. Respond with valid JSON matching the schema.'
+    ): Promise<{ data: T; rawContent: string }> {
+        const provider = this.providerFactory.getCurrentProvider();
+        if (!provider.isConfigured()) {
+            throw new Error('LLM API key not configured');
+        }
+
+        // Wait for rate limit if needed
+        await this.rateLimiter.waitUntilAvailable(provider.getName() as any);
+
+        const response = await this.retryHandler.executeWithRetry(
+            async () => {
+                const result = await provider.sendStructuredRequest(
+                    {
+                        model: this.getModelForProvider(provider.getName()),
+                        systemPrompt,
+                        messages: [{ role: 'user', content: prompt }]
+                    },
+                    schema
+                );
+                
+                this.rateLimiter.recordRequest(provider.getName() as any);
+                return result;
+            }
+        );
+
+        return {
+            data: response.data as T,
+            rawContent: JSON.stringify(response.data)
+        };
+    }
+
+    /**
      * Build a simplified architecture prompt for small projects (≤10 files, ≤1000 lines)
      * This reduces token usage and speeds up analysis significantly
      */

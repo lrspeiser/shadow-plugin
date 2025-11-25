@@ -3216,3 +3216,167 @@ LLM report generation failed: ${error.message}
     }
 }
 
+/**
+ * STREAMLINED ANALYSIS: Fast analysis for small projects
+ * Uses planner-first approach with minimal LLM calls
+ * 
+ * Workflow:
+ * 1. Scan project structure (no LLM)
+ * 2. Tiny projects (≤5 files): 1 LLM call for everything
+ * 3. Small projects (6-20 files): 1 call per file + 1 synthesis call
+ */
+export async function runStreamlinedAnalysis(cancellationToken?: vscode.CancellationToken): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        const result = await vscode.window.showWarningMessage(
+            'LLM API key not configured. Would you like to set it now?',
+            'Set API Key',
+            'Cancel'
+        );
+        
+        if (result === 'Set API Key') {
+            await setApiKey();
+            if (!llmService.isConfigured()) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    // Update UI to show generating status
+    if (treeProvider) {
+        treeProvider.setInsightsStatus('generating');
+    }
+
+    SWLogger.section('Streamlined Analysis');
+    SWLogger.log('Starting fast analysis workflow...');
+    
+    // Reset LLM stats at the start of analysis
+    resetLLMStats();
+
+    const { progressService } = await import('./infrastructure/progressService');
+    const { StreamlinedAnalysisService } = await import('./domain/services/analysis/streamlinedAnalysis');
+    
+    await progressService.withProgress('Fast Analysis', async (reporter) => {
+        try {
+            reporter.report('Scanning project...', 0);
+            
+            const result = await StreamlinedAnalysisService.analyze(
+                workspaceRoot,
+                llmService,
+                (message, callNumber) => {
+                    if (cancellationToken?.isCancellationRequested) {
+                        throw new Error('Cancelled by user');
+                    }
+                    reporter.report(`${message} (LLM call #${callNumber})`, 0);
+                }
+            );
+
+            // Convert streamlined result to LLMInsights format for compatibility
+            const insights: LLMInsights = {
+                overallAssessment: result.overview,
+                strengths: result.strengths,
+                issues: result.issues.map(i => typeof i === 'string' ? { title: i, description: i } : { title: i, description: i }),
+                organization: 'See overview',
+                entryPointsAnalysis: 'N/A (streamlined analysis)',
+                orphanedFilesAnalysis: 'N/A (streamlined analysis)',
+                folderReorganization: 'N/A (streamlined analysis)',
+                recommendations: result.issues.map(i => ({ title: String(i), description: String(i) })),
+                priorities: result.testTargets.map((t: any) => ({
+                    title: `Test: ${t.function || t.name}`,
+                    description: t.reason || 'Should be tested',
+                    relevantFiles: t.file ? [t.file] : []
+                }))
+            };
+
+            // Store results
+            stateManager.setLLMInsights(insights);
+            
+            // Save report
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const report = `# Streamlined Analysis Report
+Generated: ${new Date().toISOString()}
+
+## Overview
+${result.overview}
+
+## Stats
+- Files analyzed: ${result.stats.totalFiles}
+- Lines of code: ${result.stats.totalLines}
+- LLM calls: ${result.stats.llmCalls}
+- Time: ${(result.stats.totalTimeMs / 1000).toFixed(1)}s
+
+## Functions Found
+${result.functions.map((f: any) => `- **${f.name}** (${f.file}): ${f.purpose}`).join('\n')}
+
+## Strengths
+${result.strengths.map(s => `- ${s}`).join('\n')}
+
+## Issues
+${result.issues.length > 0 ? result.issues.map(i => `- ${i}`).join('\n') : 'No issues found'}
+
+## Test Targets
+${result.testTargets.map((t: any) => `- **${t.function || t.name}** (${t.file}) - ${t.priority} priority: ${t.reason}`).join('\n')}
+`;
+            
+            const reportPath = path.join(docsDir, `streamlined-analysis-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+            
+            if (treeProvider) {
+                treeProvider.setReportPath(reportPath);
+                treeProvider.setLLMInsights(insights);
+                treeProvider.setInsightsStatus('complete');
+            }
+
+            // Update viewers
+            const insightsViewer = stateManager.getInsightsViewer();
+            if (insightsViewer) {
+                insightsViewer.setInsights(insights);
+            }
+
+            await refreshReportsViewer();
+
+            SWLogger.section('Analysis Complete');
+            SWLogger.log(`Total time: ${result.stats.totalTimeMs}ms`);
+            SWLogger.log(`LLM calls: ${result.stats.llmCalls}`);
+            
+            const stats = getLLMStats();
+            SWLogger.log(`Total tokens: ${stats.inputTokens + stats.outputTokens}`);
+
+            vscode.window.showInformationMessage(
+                `✅ Fast analysis complete in ${(result.stats.totalTimeMs / 1000).toFixed(1)}s with ${result.stats.llmCalls} LLM call(s). View in Reports.`
+            );
+
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Analysis cancelled by user');
+            } else {
+                const errorMessage = error.message || String(error);
+                SWLogger.log(`ERROR: Streamlined analysis failed: ${errorMessage}`);
+                console.error('Streamlined analysis error:', error);
+                vscode.window.showErrorMessage(`Failed to complete analysis: ${errorMessage}`);
+            }
+        } finally {
+            if (treeProvider) {
+                treeProvider.setInsightsStatus('complete');
+            }
+        }
+    });
+}
+

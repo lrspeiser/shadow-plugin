@@ -162,6 +162,11 @@
         "command": "shadowWatch.runComprehensiveAnalysis",
         "title": "Shadow Watch: Generate Refactoring Report",
         "icon": "$(file-text)"
+      },
+      {
+        "command": "shadowWatch.runStreamlinedAnalysis",
+        "title": "Shadow Watch: Fast Analysis (Optimized for Small Projects)",
+        "icon": "$(zap)"
       }
     ],
     "viewsContainers": {
