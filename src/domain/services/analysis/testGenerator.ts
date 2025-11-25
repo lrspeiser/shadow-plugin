@@ -201,13 +201,13 @@ ${testData.setupCode}
 
     // Ensure Jest is available
     onProgress?.('Checking test dependencies...');
-    await ensureJestInstalled(workspaceRoot);
+    const configExt = await ensureJestInstalled(workspaceRoot);
 
     // Run tests
     onProgress?.('Running tests...');
     SWLogger.log('[TestGen] Running tests...');
     
-    const runResult = await runTests(workspaceRoot, testFilePath);
+    const runResult = await runTests(workspaceRoot, testFilePath, configExt);
 
     SWLogger.log(`[TestGen] Tests complete: ${runResult.passed} passed, ${runResult.failed} failed`);
 
@@ -221,7 +221,7 @@ ${testData.setupCode}
 /**
  * Ensure Jest is installed in the workspace
  */
-async function ensureJestInstalled(workspaceRoot: string): Promise<void> {
+async function ensureJestInstalled(workspaceRoot: string): Promise<string> {
     const packageJsonPath = path.join(workspaceRoot, 'package.json');
     
     if (!fs.existsSync(packageJsonPath)) {
@@ -237,28 +237,56 @@ async function ensureJestInstalled(workspaceRoot: string): Promise<void> {
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     }
 
-    // Check if jest is installed
+    // Check if jest and babel are installed (needed for ESM support)
     const nodeModulesJest = path.join(workspaceRoot, 'node_modules', 'jest');
     if (!fs.existsSync(nodeModulesJest)) {
-        SWLogger.log('[TestGen] Installing Jest...');
+        SWLogger.log('[TestGen] Installing Jest and Babel...');
         try {
-            await execAsync('npm install --save-dev jest', { cwd: workspaceRoot, timeout: 60000 });
+            await execAsync(
+                'npm install --save-dev jest @babel/core @babel/preset-env babel-jest',
+                { cwd: workspaceRoot, timeout: 120000 }
+            );
         } catch (err) {
-            SWLogger.log(`[TestGen] Jest install warning: ${err}`);
+            SWLogger.log(`[TestGen] Install warning: ${err}`);
         }
     }
 
-    // Create jest.config.js if needed
-    const jestConfigPath = path.join(workspaceRoot, 'jest.config.js');
-    if (!fs.existsSync(jestConfigPath)) {
-        const jestConfig = `module.exports = {
+    // Check if project uses ESM (type: module in package.json)
+    let isESM = false;
+    try {
+        const pkgContent = fs.readFileSync(packageJsonPath, 'utf-8');
+        const pkg = JSON.parse(pkgContent);
+        isESM = pkg.type === 'module';
+    } catch {}
+
+    // Use .cjs extension for config files in ESM projects
+    const configExt = isESM ? '.cjs' : '.js';
+
+    // Create jest.config with ESM transform
+    const jestConfigPath = path.join(workspaceRoot, `jest.config${configExt}`);
+    const jestConfig = `module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/UnitTests/**/*.test.js'],
-  verbose: true
+  verbose: true,
+  transform: {
+    '^.+\\.js$': 'babel-jest'
+  },
+  transformIgnorePatterns: []
 };
 `;
-        fs.writeFileSync(jestConfigPath, jestConfig);
-    }
+    fs.writeFileSync(jestConfigPath, jestConfig);
+
+    // Create babel.config for ESM->CJS transform
+    const babelConfigPath = path.join(workspaceRoot, `babel.config${configExt}`);
+    const babelConfig = `module.exports = {
+  presets: [
+    ['@babel/preset-env', { targets: { node: 'current' } }]
+  ]
+};
+`;
+    fs.writeFileSync(babelConfigPath, babelConfig);
+
+    return configExt; // Return so we know which config to use
 }
 
 /**
@@ -266,11 +294,16 @@ async function ensureJestInstalled(workspaceRoot: string): Promise<void> {
  */
 async function runTests(
     workspaceRoot: string,
-    testFilePath: string
+    testFilePath: string,
+    configExt: string = '.js'
 ): Promise<{ passed: number; failed: number; output: string }> {
+    // Use config file if it exists
+    const configPath = path.join(workspaceRoot, `jest.config${configExt}`);
+    const configArg = fs.existsSync(configPath) ? ` --config jest.config${configExt}` : '';
+    
     try {
         const { stdout, stderr } = await execAsync(
-            `npx jest "${testFilePath}" --json --no-coverage`,
+            `npx jest "${testFilePath}"${configArg} --json --no-coverage`,
             { cwd: workspaceRoot, timeout: 120000 }
         );
 
