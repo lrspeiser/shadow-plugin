@@ -2010,6 +2010,72 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * Generate a simple markdown report from existing analysis data (no LLM call)
+ * Used for small projects to avoid redundant report generation
+ */
+function generateSimpleReport(
+    context: AnalysisContext,
+    productDocs: EnhancedProductDocumentation | null | undefined,
+    insights: LLMInsights | null | undefined
+): string {
+    let report = `# Analysis Summary\n\n`;
+    report += `**Generated:** ${new Date().toISOString()}\n\n`;
+    
+    report += `## Project Overview\n`;
+    report += `- **Files:** ${context.totalFiles}\n`;
+    report += `- **Lines of Code:** ${context.totalLines}\n`;
+    report += `- **Functions:** ${context.totalFunctions}\n\n`;
+    
+    if (productDocs?.overview) {
+        report += `## Product Description\n${productDocs.overview}\n\n`;
+    }
+    
+    if (productDocs?.relevantFunctions && productDocs.relevantFunctions.length > 0) {
+        report += `## Key Functions\n`;
+        for (const func of productDocs.relevantFunctions) {
+            report += `- **${func.name}** (${func.file}): ${func.description || 'No description'}\n`;
+        }
+        report += `\n`;
+    }
+    
+    if (insights?.overallAssessment) {
+        report += `## Architecture Assessment\n${insights.overallAssessment}\n\n`;
+    }
+    
+    if (insights?.strengths && insights.strengths.length > 0) {
+        report += `## Strengths\n`;
+        for (const strength of insights.strengths) {
+            report += `- ${strength}\n`;
+        }
+        report += `\n`;
+    }
+    
+    if (insights?.issues && insights.issues.length > 0) {
+        report += `## Issues\n`;
+        for (const issue of insights.issues) {
+            if (typeof issue === 'string') {
+                report += `- ${issue}\n`;
+            } else {
+                report += `- **${issue.title}**: ${issue.description}\n`;
+            }
+        }
+        report += `\n`;
+    }
+    
+    if (insights?.recommended_test_targets && (insights as any).recommended_test_targets.length > 0) {
+        report += `## Recommended Test Targets\n`;
+        for (const target of (insights as any).recommended_test_targets) {
+            report += `- **${target.function_name}** (${target.file_path}) - ${target.priority} priority: ${target.reason}\n`;
+        }
+        report += `\n`;
+    }
+    
+    report += `---\n*This is a simplified report for small projects. Run on a larger codebase to get detailed reports.*\n`;
+    
+    return report;
+}
+
+/**
  * Sequential workflow: Analyze Workspace → Generate Product Docs → Generate Architecture Insights → Generate Report
  */
 export async function runComprehensiveAnalysis(cancellationToken?: vscode.CancellationToken): Promise<void> {
@@ -2192,29 +2258,10 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
                 throw new Error('Cancelled by user');
             }
 
-            // Step 4: Generate Comprehensive Report
-            reporter.report('Step 4/4: Generating comprehensive report...', 25);
-            SWLogger.log('Generating comprehensive report...');
-
-            // Defensive check to ensure all required data is available
-            if (!lastAnalysisContext) {
-                throw new Error('Analysis context is not available. Cannot generate comprehensive report.');
-            }
-
-            const report = await llmService.generateComprehensiveReport(
-                lastAnalysisContext,
-                lastCodeAnalysis || undefined,
-                lastEnhancedProductDocs || undefined,
-                lastLLMInsights || undefined,
-                reporter.cancellationToken
-            );
-
-            if (reporter.cancellationToken?.isCancellationRequested) {
-                throw new Error('Cancelled by user');
-            }
-
-            // Save report to file
-            reporter.report('Saving report...', 0);
+            // Step 4: Generate Reports
+            // Check if this is a small project - skip redundant reports
+            const isSmallProject = lastAnalysisContext.totalFiles <= 10 && lastAnalysisContext.totalLines <= 1000;
+            
             const shadowDir = path.join(workspaceRoot, '.shadow');
             const docsDir = path.join(shadowDir, 'docs');
             
@@ -2226,67 +2273,102 @@ export async function runComprehensiveAnalysis(cancellationToken?: vscode.Cancel
             }
 
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const reportPath = path.join(docsDir, `refactoring-report-${timestamp}.md`);
-            fs.writeFileSync(reportPath, report, 'utf-8');
+            
+            if (isSmallProject) {
+                // For small projects, skip the 4 separate LLM report calls
+                // Just save the data we already have as a simple summary
+                SWLogger.log('Small project detected - skipping redundant report generation');
+                reporter.report('Step 4/4: Saving analysis results...', 25);
+                
+                // Create a simple combined report from existing data
+                const simpleReport = generateSimpleReport(lastAnalysisContext, lastEnhancedProductDocs, lastLLMInsights);
+                const reportPath = path.join(docsDir, `analysis-summary-${timestamp}.md`);
+                fs.writeFileSync(reportPath, simpleReport, 'utf-8');
+                SWLogger.log(`Simple report saved to: ${reportPath}`);
+                
+                if (treeProvider) {
+                    treeProvider.setReportPath(reportPath);
+                }
+                
+                vscode.window.showInformationMessage(
+                    `✅ Analysis complete! Summary saved. View in Reports pane.`
+                );
+            } else {
+                // For larger projects, generate all 4 reports
+                reporter.report('Step 4/4: Generating comprehensive report...', 25);
+                SWLogger.log('Generating comprehensive report...');
 
-            SWLogger.log(`Report saved to: ${reportPath}`);
+                const report = await llmService.generateComprehensiveReport(
+                    lastAnalysisContext,
+                    lastCodeAnalysis || undefined,
+                    lastEnhancedProductDocs || undefined,
+                    lastLLMInsights || undefined,
+                    reporter.cancellationToken
+                );
 
-            // Track report path in tree provider
-            if (treeProvider) {
-                treeProvider.setReportPath(reportPath);
+                if (reporter.cancellationToken?.isCancellationRequested) {
+                    throw new Error('Cancelled by user');
+                }
+
+                const reportPath = path.join(docsDir, `refactoring-report-${timestamp}.md`);
+                fs.writeFileSync(reportPath, report, 'utf-8');
+                SWLogger.log(`Report saved to: ${reportPath}`);
+
+                if (treeProvider) {
+                    treeProvider.setReportPath(reportPath);
+                }
+
+                // Generate additional reports
+                SWLogger.log('Generating workspace report...');
+                reporter.report('Generating workspace report...', 0);
+                const workspaceReport = await llmService.generateWorkspaceReport(
+                    lastAnalysisContext,
+                    lastCodeAnalysis || undefined,
+                    reporter.cancellationToken
+                );
+                const workspaceReportPath = path.join(docsDir, `workspace-report-${timestamp}.md`);
+                fs.writeFileSync(workspaceReportPath, workspaceReport, 'utf-8');
+                if (treeProvider) {
+                    treeProvider.setWorkspaceReportPath(workspaceReportPath);
+                }
+                SWLogger.log(`Workspace report saved to: ${workspaceReportPath}`);
+
+                SWLogger.log('Generating product report...');
+                reporter.report('Generating product report...', 0);
+                const productReport = await llmService.generateProductReport(
+                    lastEnhancedProductDocs!,
+                    lastAnalysisContext || undefined,
+                    reporter.cancellationToken
+                );
+                const productReportPath = path.join(docsDir, `product-report-${timestamp}.md`);
+                fs.writeFileSync(productReportPath, productReport, 'utf-8');
+                if (treeProvider) {
+                    treeProvider.setProductReportPath(productReportPath);
+                }
+                SWLogger.log(`Product report saved to: ${productReportPath}`);
+
+                SWLogger.log('Generating architecture report...');
+                reporter.report('Generating architecture report...', 0);
+                const architectureReport = await llmService.generateArchitectureReport(
+                    lastLLMInsights!,
+                    lastAnalysisContext || undefined,
+                    lastCodeAnalysis || undefined,
+                    reporter.cancellationToken
+                );
+                const architectureReportPath = path.join(docsDir, `architecture-report-${timestamp}.md`);
+                fs.writeFileSync(architectureReportPath, architectureReport, 'utf-8');
+                if (treeProvider) {
+                    treeProvider.setArchitectureReportPath(architectureReportPath);
+                }
+                SWLogger.log(`Architecture report saved to: ${architectureReportPath}`);
+
+                vscode.window.showInformationMessage(
+                    `✅ Comprehensive analysis complete! All reports generated. View them in the Reports pane.`
+                );
             }
-
-            // Generate additional reports (workspace, product, architecture)
-            // These use the same data we just generated
-            SWLogger.log('Generating workspace report...');
-            reporter.report('Generating workspace report...', 0);
-            const workspaceReport = await llmService.generateWorkspaceReport(
-                lastAnalysisContext,
-                lastCodeAnalysis || undefined,
-                reporter.cancellationToken
-            );
-            const workspaceReportPath = path.join(docsDir, `workspace-report-${timestamp}.md`);
-            fs.writeFileSync(workspaceReportPath, workspaceReport, 'utf-8');
-            if (treeProvider) {
-                treeProvider.setWorkspaceReportPath(workspaceReportPath);
-            }
-            SWLogger.log(`Workspace report saved to: ${workspaceReportPath}`);
-
-            SWLogger.log('Generating product report...');
-            reporter.report('Generating product report...', 0);
-            const productReport = await llmService.generateProductReport(
-                lastEnhancedProductDocs!,
-                lastAnalysisContext || undefined,
-                reporter.cancellationToken
-            );
-            const productReportPath = path.join(docsDir, `product-report-${timestamp}.md`);
-            fs.writeFileSync(productReportPath, productReport, 'utf-8');
-            if (treeProvider) {
-                treeProvider.setProductReportPath(productReportPath);
-            }
-            SWLogger.log(`Product report saved to: ${productReportPath}`);
-
-            SWLogger.log('Generating architecture report...');
-            reporter.report('Generating architecture report...', 0);
-            const architectureReport = await llmService.generateArchitectureReport(
-                lastLLMInsights!,
-                lastAnalysisContext || undefined,
-                lastCodeAnalysis || undefined,
-                reporter.cancellationToken
-            );
-            const architectureReportPath = path.join(docsDir, `architecture-report-${timestamp}.md`);
-            fs.writeFileSync(architectureReportPath, architectureReport, 'utf-8');
-            if (treeProvider) {
-                treeProvider.setArchitectureReportPath(architectureReportPath);
-            }
-            SWLogger.log(`Architecture report saved to: ${architectureReportPath}`);
 
             // Update Reports viewer (both webview and tree view)
             await refreshReportsViewer();
-
-            vscode.window.showInformationMessage(
-                `✅ Comprehensive analysis complete! All reports generated. View them in the Reports pane.`
-            );
 
         } catch (error: any) {
             if (error.message === 'Cancelled by user') {
