@@ -2736,39 +2736,12 @@ export async function generateArchitectureReport(): Promise<void> {
  * Run unit tests and generate a report using LLM
  */
 /**
- * Refresh the Reports viewer with current report paths from tree provider
+ * Refresh the Reports tree view to show latest reports
  */
 async function refreshReportsViewer(): Promise<void> {
-    const treeProvider = stateManager.getTreeProvider();
-    const reportsViewer = stateManager.getReportsViewer();
     const reportsTreeProvider = stateManager.getReportsTreeProvider();
-    
-    if (!treeProvider) {
-        return;
-    }
-    
-    const reportPaths = treeProvider.getAllReportPaths();
-    
-    // Update the webview-based reports viewer (if initialized)
-    if (reportsViewer) {
-        reportsViewer.setReports({
-            workspace: { path: reportPaths.workspace.path, timestamp: reportPaths.workspace.timestamp },
-            product: { path: reportPaths.product.path, timestamp: reportPaths.product.timestamp },
-            architecture: { path: reportPaths.architecture.path, timestamp: reportPaths.architecture.timestamp },
-            refactoring: { path: reportPaths.refactoring.path, timestamp: reportPaths.refactoring.timestamp },
-            'unit-test': { path: reportPaths.unitTest.path, timestamp: reportPaths.unitTest.timestamp }
-        });
-    }
-    
-    // Update the tree view provider (always available)
     if (reportsTreeProvider) {
-        reportsTreeProvider.setReports({
-            workspace: { path: reportPaths.workspace.path, timestamp: reportPaths.workspace.timestamp },
-            product: { path: reportPaths.product.path, timestamp: reportPaths.product.timestamp },
-            architecture: { path: reportPaths.architecture.path, timestamp: reportPaths.architecture.timestamp },
-            refactoring: { path: reportPaths.refactoring.path, timestamp: reportPaths.refactoring.timestamp },
-            'unit-test': { path: reportPaths.unitTest.path, timestamp: reportPaths.unitTest.timestamp }
-        });
+        reportsTreeProvider.refresh();
     }
 }
 
