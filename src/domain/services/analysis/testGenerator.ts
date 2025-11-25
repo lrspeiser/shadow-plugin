@@ -314,18 +314,39 @@ async function ensureJestInstalled(workspaceRoot: string): Promise<string> {
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     }
 
-    // Check if jest and babel are installed (needed for ESM support)
-    const nodeModulesJest = path.join(workspaceRoot, 'node_modules', 'jest');
-    if (!fs.existsSync(nodeModulesJest)) {
-        SWLogger.log('[TestGen] Installing Jest and Babel...');
+    // Check if all required test dependencies are installed
+    const requiredDeps = ['jest', '@babel/core', '@babel/preset-env', 'babel-jest'];
+    const missingDeps: string[] = [];
+    
+    for (const dep of requiredDeps) {
+        const depPath = path.join(workspaceRoot, 'node_modules', dep);
+        if (!fs.existsSync(depPath)) {
+            missingDeps.push(dep);
+        }
+    }
+    
+    if (missingDeps.length > 0) {
+        SWLogger.log(`[TestGen] Installing missing dependencies: ${missingDeps.join(', ')}`);
         try {
             await execAsync(
-                'npm install --save-dev jest @babel/core @babel/preset-env babel-jest',
-                { cwd: workspaceRoot, timeout: 120000 }
+                `npm install --save-dev ${missingDeps.join(' ')}`,
+                { cwd: workspaceRoot, timeout: 180000 }
             );
-        } catch (err) {
-            SWLogger.log(`[TestGen] Install warning: ${err}`);
+            SWLogger.log('[TestGen] Dependencies installed successfully');
+        } catch (err: any) {
+            SWLogger.log(`[TestGen] Install error: ${err.message || err}`);
+            // Try installing one by one if batch fails
+            for (const dep of missingDeps) {
+                try {
+                    await execAsync(`npm install --save-dev ${dep}`, { cwd: workspaceRoot, timeout: 60000 });
+                    SWLogger.log(`[TestGen] Installed ${dep}`);
+                } catch (e: any) {
+                    SWLogger.log(`[TestGen] Failed to install ${dep}: ${e.message || e}`);
+                }
+            }
         }
+    } else {
+        SWLogger.log('[TestGen] All test dependencies already installed');
     }
 
     // Check if project uses ESM (type: module in package.json)

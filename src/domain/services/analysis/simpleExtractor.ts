@@ -311,19 +311,31 @@ export class SimpleExtractorService {
         SWLogger.log(`[Extractor] Analyzing file ${filePath} (${prompt.length} chars)`);
 
         const startTime = Date.now();
-        const response = await llmService.sendStructuredRequest(
-            prompt,
-            SCHEMAS.fileAnalysis,
-            'Analyze this file and extract the requested information.'
-        );
-        const elapsed = Date.now() - startTime;
+        try {
+            const response = await llmService.sendStructuredRequest(
+                prompt,
+                SCHEMAS.fileAnalysis,
+                'Analyze this file and extract the requested information.'
+            );
+            const elapsed = Date.now() - startTime;
+            
+            if (!response || !response.data) {
+                SWLogger.log(`[Extractor] WARNING: Empty response for ${filePath}`);
+                throw new Error('Empty LLM response');
+            }
+            
+            SWLogger.log(`[Extractor] ${filePath} analysis complete in ${elapsed}ms`);
 
-        return {
-            type: 'file',
-            data: { ...response.data, file: filePath },
-            tokensUsed: { input: 0, output: 0 },
-            timeMs: elapsed
-        };
+            return {
+                type: 'file',
+                data: { ...response.data, file: filePath },
+                tokensUsed: { input: 0, output: 0 },
+                timeMs: elapsed
+            };
+        } catch (err: any) {
+            SWLogger.log(`[Extractor] LLM error for ${filePath}: ${err.message || err}`);
+            throw err;
+        }
     }
 
     /**

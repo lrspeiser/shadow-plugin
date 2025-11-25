@@ -175,11 +175,13 @@ export class StreamlinedAnalysisService {
         SWLogger.log(`[Small] Analyzing ${files.length} files + synthesis`);
         
         const fileSummaries: { path: string; purpose: string; functions: any[] }[] = [];
+        let successCount = 0;
+        let errorCount = 0;
         
         // Analyze each file
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            onProgress?.(`Analyzing ${file}...`, i + 1);
+            onProgress?.(`Analyzing ${file}... (${i + 1}/${files.length})`, i + 1);
             
             try {
                 const result = await SimpleExtractorService.analyzeFile(
@@ -188,24 +190,47 @@ export class StreamlinedAnalysisService {
                     llmService
                 );
                 
+                const funcCount = result.data.functions?.length || 0;
+                SWLogger.log(`[Small] ✓ ${file}: ${funcCount} functions found`);
+                
                 fileSummaries.push({
                     path: file,
                     purpose: result.data.purpose || '',
                     functions: result.data.functions || []
                 });
-            } catch (error) {
-                SWLogger.log(`[Small] Error analyzing ${file}: ${error}`);
+                successCount++;
+            } catch (error: any) {
+                errorCount++;
+                SWLogger.log(`[Small] ✗ Error analyzing ${file}: ${error.message || error}`);
             }
+        }
+        
+        SWLogger.log(`[Small] File analysis complete: ${successCount} succeeded, ${errorCount} failed`);
+        
+        if (fileSummaries.length === 0) {
+            SWLogger.log('[Small] WARNING: No files were successfully analyzed!');
+            return {
+                overview: 'Analysis failed - no files could be processed',
+                functions: [],
+                modules: [],
+                strengths: [],
+                issues: ['Analysis failed to process any files. Check the Shadow Watch output log for details.'],
+                testTargets: [],
+                stats: { totalFiles: 0, totalLines: 0, llmCalls: 0, totalTimeMs: 0 }
+            };
         }
 
         // Synthesize architecture
         onProgress?.('Synthesizing architecture...', files.length + 1);
+        SWLogger.log(`[Small] Synthesizing from ${fileSummaries.length} file summaries...`);
+        
         const archResult = await SimpleExtractorService.synthesizeArchitecture(
             fileSummaries,
             llmService
         );
 
         const archData = archResult.data;
+        SWLogger.log(`[Small] Synthesis complete: ${archData.modules?.length || 0} modules, ${archData.testPriorities?.length || 0} test targets`);
 
         return {
             overview: archData.overview || '',
