@@ -29,52 +29,65 @@ const documentationFormatter = new DocumentationFormatter();
 const analysisResultRepository = new AnalysisResultRepository();
 
 /**
- * Format issues grouped by severity for report display
+ * Format issues grouped by category for report display
  */
 function formatIssuesBySeverity(issues: any[]): string {
     if (!issues || issues.length === 0) {
         return 'No issues found';
     }
     
-    // Handle both old format (string[]) and new format (object with severity)
-    const isNewFormat = issues.length > 0 && typeof issues[0] === 'object' && issues[0].severity;
+    // Handle both old format (string[]) and new format (object with category)
+    const isNewFormat = issues.length > 0 && typeof issues[0] === 'object' && (issues[0].category || issues[0].severity);
     
     if (!isNewFormat) {
         // Old format: just list them
         return issues.map(i => `- ${i}`).join('\n');
     }
     
-    // New format: group by severity
+    // New format: group by category
     const groups: Record<string, string[]> = {
-        critical: [],
-        major: [],
-        minor: [],
-        nit: []
+        bug: [],
+        duplicate: [],
+        'dead-code': [],
+        design: [],
+        performance: [],
+        security: [],
+        style: []
     };
     
     for (const issue of issues) {
-        const severity = issue.severity || 'minor';
+        const category = issue.category || issue.severity || 'style';
         const desc = issue.description || String(issue);
-        if (groups[severity]) {
-            groups[severity].push(desc);
+        if (groups[category]) {
+            groups[category].push(desc);
         } else {
-            groups['minor'].push(desc);
+            groups['style'].push(desc);
         }
     }
     
     const sections: string[] = [];
     
-    if (groups.critical.length > 0) {
-        sections.push(`**🔴 Critical** (must fix)\n${groups.critical.map(i => `- ${i}`).join('\n')}`);
+    // Order by importance for refactoring
+    if (groups.bug.length > 0) {
+        sections.push(`**🐛 Bugs** (${groups.bug.length})\n${groups.bug.map(i => `- ${i}`).join('\n')}`);
     }
-    if (groups.major.length > 0) {
-        sections.push(`**🟠 Major** (should fix)\n${groups.major.map(i => `- ${i}`).join('\n')}`);
+    if (groups.security.length > 0) {
+        sections.push(`**🔒 Security** (${groups.security.length})\n${groups.security.map(i => `- ${i}`).join('\n')}`);
     }
-    if (groups.minor.length > 0) {
-        sections.push(`**🟡 Minor** (fix when convenient)\n${groups.minor.map(i => `- ${i}`).join('\n')}`);
+    if (groups.duplicate.length > 0) {
+        sections.push(`**🔄 Duplicate Code** (${groups.duplicate.length})\n${groups.duplicate.map(i => `- ${i}`).join('\n')}`);
     }
-    if (groups.nit.length > 0) {
-        sections.push(`**⚪ Nits** (optional improvements)\n${groups.nit.map(i => `- ${i}`).join('\n')}`);
+    if (groups['dead-code'].length > 0) {
+        sections.push(`**🗑️ Dead Code** (${groups['dead-code'].length})\n${groups['dead-code'].map(i => `- ${i}`).join('\n')}`);
+    }
+    if (groups.design.length > 0) {
+        sections.push(`**🏗️ Design** (${groups.design.length})\n${groups.design.map(i => `- ${i}`).join('\n')}`);
+    }
+    if (groups.performance.length > 0) {
+        sections.push(`**⚡ Performance** (${groups.performance.length})\n${groups.performance.map(i => `- ${i}`).join('\n')}`);
+    }
+    if (groups.style.length > 0) {
+        sections.push(`**✏️ Style** (${groups.style.length})\n${groups.style.map(i => `- ${i}`).join('\n')}`);
     }
     
     return sections.length > 0 ? sections.join('\n\n') : 'No issues found';

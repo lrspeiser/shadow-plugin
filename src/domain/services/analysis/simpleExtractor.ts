@@ -43,10 +43,10 @@ export const SCHEMAS = {
                     type: "object",
                     additionalProperties: false,
                     properties: {
-                        severity: { type: "string", enum: ["critical", "major", "minor", "nit"], description: "critical=breaks functionality, major=significant bug/design flaw, minor=should fix but not urgent, nit=style/preference" },
+                        category: { type: "string", enum: ["bug", "duplicate", "dead-code", "design", "performance", "security", "style"], description: "bug=incorrect behavior, duplicate=redundant code, dead-code=unused code, design=architectural issue, performance=slow/inefficient, security=vulnerability, style=formatting/naming" },
                         description: { type: "string" }
                     },
-                    required: ["severity", "description"]
+                    required: ["category", "description"]
                 }
             },
             testTargets: {
@@ -152,13 +152,16 @@ export function buildTinyProjectPrompt(files: { path: string; content: string }[
 
 ${fileContents}
 
-Extract: overview, functions, dependencies, strengths, issues (with severity), and which functions need unit tests.
+Extract: overview, functions, dependencies, strengths, issues (categorized by type), and which functions need unit tests.
 
-Issue severity levels:
-- critical: Breaks functionality, crashes, data loss, security holes
-- major: Significant bugs, wrong results, design flaws that need fixing
-- minor: Should fix eventually but not urgent (missing validation, edge cases)
-- nit: Style preferences, optional improvements, defensive programming suggestions
+Issue categories:
+- bug: Incorrect behavior, wrong results, crashes
+- duplicate: Redundant/copy-paste code that should be consolidated
+- dead-code: Unused functions, unreachable code, orphaned files
+- design: Architectural issues, tight coupling, poor separation of concerns
+- performance: Inefficient algorithms, unnecessary operations
+- security: Vulnerabilities, exposed secrets, unsafe practices
+- style: Naming, formatting, missing types/docs (lowest priority)
 
 Example response:
 {
@@ -169,9 +172,9 @@ Example response:
   "dependencies": ["lodash"],
   "strengths": ["Clean function signatures", "Good error handling"],
   "issues": [
-    {"severity": "major", "description": "divide() returns NaN instead of error for zero divisor"},
-    {"severity": "minor", "description": "No input validation on add() - could return NaN for non-numbers"},
-    {"severity": "nit", "description": "Functions could use TypeScript for better type safety"}
+    {"category": "bug", "description": "divide() returns NaN instead of throwing error for zero divisor"},
+    {"category": "duplicate", "description": "addNumbers() in utils.js is identical to add() in math.js"},
+    {"category": "dead-code", "description": "unusedHelper() is exported but never imported anywhere"}
   ],
   "testTargets": [
     {"function": "divide", "file": "src/math.js", "priority": "high", "reason": "Division by zero edge case", "edgeCases": ["zero divisor", "negative numbers"]}
