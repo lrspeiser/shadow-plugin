@@ -956,7 +956,8 @@ export class LLMService {
                 hasOrganization: !!insights.organization,
                 hasReorganization: !!insights.folderReorganization,
                 recommendationsCount: insights.recommendations?.length || 0,
-                prioritiesCount: insights.priorities?.length || 0
+                prioritiesCount: insights.priorities?.length || 0,
+                testTargetsCount: insights.recommended_test_targets?.length || 0
             });
             
             return insights;

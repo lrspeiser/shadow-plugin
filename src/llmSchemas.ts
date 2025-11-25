@@ -257,7 +257,7 @@ export const llmInsightsSchema = {
             description: "Optional: Request specific files or grep searches to get more information. Use this if you need to examine specific code to provide better analysis. Maximum 5 requests per iteration."
         }
     },
-    required: ["overallAssessment", "strengths", "issues", "organization", "entryPointsAnalysis", "orphanedFilesAnalysis", "folderReorganization", "recommendations", "priorities", "successErrors"],
+    required: ["overallAssessment", "strengths", "issues", "organization", "entryPointsAnalysis", "orphanedFilesAnalysis", "folderReorganization", "recommendations", "priorities", "successErrors", "recommended_test_targets"],
     additionalProperties: false
 };
 
