@@ -45,9 +45,13 @@ function getCodeFiles(workspaceRoot: string, summary: ProjectSummary): string[] 
                 const entryRelPath = relPath ? `${relPath}/${entry.name}` : entry.name;
 
                 if (entry.isDirectory()) {
+                    // Skip hidden dirs, node_modules, build outputs, and shadow dirs
                     if (!entry.name.startsWith('.') && 
                         !entry.name.includes('node_modules') &&
-                        !entry.name.includes('.shadow')) {
+                        !entry.name.includes('.shadow') &&
+                        entry.name !== 'dist' &&
+                        entry.name !== 'out' &&
+                        entry.name !== 'build') {
                         walkDir(fullPath, entryRelPath);
                     }
                 } else if (entry.isFile()) {

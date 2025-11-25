@@ -152,11 +152,24 @@ export async function generateAndRunTests(
     onProgress?: (message: string) => void
 ): Promise<TestGenerationResult> {
     SWLogger.log('[TestGen] Starting test generation...');
+    
+    // Cap test targets to prevent token limit issues on large projects
+    const MAX_TEST_TARGETS = 10;
+    const cappedTargets = analysisResult.testTargets.slice(0, MAX_TEST_TARGETS);
+    if (analysisResult.testTargets.length > MAX_TEST_TARGETS) {
+        SWLogger.log(`[TestGen] Capping test targets from ${analysisResult.testTargets.length} to ${MAX_TEST_TARGETS}`);
+    }
+    
+    // Only include functions that are in our capped targets
+    const targetFunctions = new Set(cappedTargets.map(t => t.function));
+    const cappedFunctions = analysisResult.functions.filter(f => targetFunctions.has(f.name));
+    SWLogger.log(`[TestGen] Testing ${cappedFunctions.length} functions`);
+    
     onProgress?.('Reading source files...');
 
-    // Read source files
+    // Read source files (only files needed for capped functions)
     const fileContents = new Map<string, string>();
-    const uniqueFiles = new Set(analysisResult.functions.map(f => f.file));
+    const uniqueFiles = new Set(cappedFunctions.map(f => f.file));
     
     for (const file of uniqueFiles) {
         try {
@@ -168,10 +181,10 @@ export async function generateAndRunTests(
         }
     }
 
-    // Build prompt
+    // Build prompt with capped functions/targets
     const prompt = buildTestPrompt(
-        analysisResult.functions,
-        analysisResult.testTargets,
+        cappedFunctions,
+        cappedTargets,
         fileContents
     );
     SWLogger.log(`[TestGen] Prompt size: ${prompt.length} chars`);
