@@ -80,14 +80,15 @@ export class ReportsTreeProvider implements vscode.TreeDataProvider<ReportTreeIt
                 const filePath = path.join(docsDir, file);
                 const stats = fs.statSync(filePath);
                 
-                // Create friendly label
+                // Create friendly label with date/time
+                const dateStr = this.formatDateTime(stats.mtime);
                 let label = file;
                 if (file.startsWith('analysis-with-tests-')) {
-                    label = '🧪 Analysis + Tests';
+                    label = `🧪 Analysis + Tests - ${dateStr}`;
                 } else if (file.startsWith('streamlined-analysis-')) {
-                    label = '⚡ Analysis';
+                    label = `⚡ Analysis - ${dateStr}`;
                 } else if (file.endsWith('.md')) {
-                    label = '📄 ' + file.replace('.md', '');
+                    label = `📄 ${file.replace('.md', '')} - ${dateStr}`;
                 }
                 
                 items.push(new ReportTreeItem(
@@ -103,6 +104,17 @@ export class ReportsTreeProvider implements vscode.TreeDataProvider<ReportTreeIt
         
         // Limit to 10 most recent
         return items.slice(0, 10);
+    }
+
+    /**
+     * Format date/time for display in label
+     */
+    private formatDateTime(date: Date): string {
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const mins = date.getMinutes().toString().padStart(2, '0');
+        return `${month}/${day} ${hours}:${mins}`;
     }
 
     /**
