@@ -96,6 +96,25 @@ Generate complete, working test code.`;
 }
 
 /**
+ * Fix common syntax issues in LLM-generated test code
+ */
+function fixCommonSyntaxIssues(code: string): string {
+    // Fix }; that should be }); at end of describe/it blocks
+    // Pattern: closing brace with semicolon at end of line (should be });)
+    code = code.replace(/\};\s*$/gm, '});');
+    
+    // Fix standalone }; on its own line (common LLM mistake)
+    code = code.replace(/^\s*\};\s*$/gm, '});');
+    
+    // Ensure file ends with newline
+    if (!code.endsWith('\n')) {
+        code += '\n';
+    }
+    
+    return code;
+}
+
+/**
  * Extract function code from file content by name
  */
 function extractFunctionCode(content: string, funcName: string): string {
@@ -196,6 +215,10 @@ ${testData.setupCode}
     }
 
     const testFilePath = path.join(testDir, 'generated.test.js');
+    
+    // Clean up common LLM syntax mistakes
+    testFileContent = fixCommonSyntaxIssues(testFileContent);
+    
     fs.writeFileSync(testFilePath, testFileContent);
     SWLogger.log(`[TestGen] Wrote tests to ${testFilePath}`);
 
