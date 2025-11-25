@@ -17,12 +17,14 @@ export const SCHEMAS = {
     // Comprehensive analysis for tiny projects (1-3 files)
     tinyProject: {
         type: "object",
+        additionalProperties: false,
         properties: {
             overview: { type: "string", description: "What this code does in 1-2 sentences" },
             functions: {
                 type: "array",
                 items: {
                     type: "object",
+                    additionalProperties: false,
                     properties: {
                         name: { type: "string" },
                         purpose: { type: "string" },
@@ -30,7 +32,7 @@ export const SCHEMAS = {
                         startLine: { type: "number" },
                         endLine: { type: "number" }
                     },
-                    required: ["name", "purpose", "file"]
+                    required: ["name", "purpose", "file", "startLine", "endLine"]
                 }
             },
             dependencies: { type: "array", items: { type: "string" } },
@@ -40,6 +42,7 @@ export const SCHEMAS = {
                 type: "array",
                 items: {
                     type: "object",
+                    additionalProperties: false,
                     properties: {
                         function: { type: "string" },
                         file: { type: "string" },
@@ -47,16 +50,17 @@ export const SCHEMAS = {
                         reason: { type: "string" },
                         edgeCases: { type: "array", items: { type: "string" } }
                     },
-                    required: ["function", "file", "priority", "reason"]
+                    required: ["function", "file", "priority", "reason", "edgeCases"]
                 }
             }
         },
-        required: ["overview", "functions", "testTargets"]
+        required: ["overview", "functions", "dependencies", "strengths", "issues", "testTargets"]
     },
 
     // Single file analysis
     fileAnalysis: {
         type: "object",
+        additionalProperties: false,
         properties: {
             purpose: { type: "string" },
             exports: { type: "array", items: { type: "string" } },
@@ -64,24 +68,26 @@ export const SCHEMAS = {
                 type: "array",
                 items: {
                     type: "object",
+                    additionalProperties: false,
                     properties: {
                         name: { type: "string" },
                         purpose: { type: "string" },
                         params: { type: "string" },
                         returns: { type: "string" }
                     },
-                    required: ["name", "purpose"]
+                    required: ["name", "purpose", "params", "returns"]
                 }
             },
             dependencies: { type: "array", items: { type: "string" } },
             complexity: { type: "string", enum: ["low", "medium", "high"] }
         },
-        required: ["purpose", "functions"]
+        required: ["purpose", "exports", "functions", "dependencies", "complexity"]
     },
 
     // Architecture synthesis from file summaries
     architecture: {
         type: "object",
+        additionalProperties: false,
         properties: {
             overview: { type: "string" },
             architecture: { type: "string" },
@@ -89,12 +95,13 @@ export const SCHEMAS = {
                 type: "array",
                 items: {
                     type: "object",
+                    additionalProperties: false,
                     properties: {
                         name: { type: "string" },
                         purpose: { type: "string" },
                         files: { type: "array", items: { type: "string" } }
                     },
-                    required: ["name", "purpose"]
+                    required: ["name", "purpose", "files"]
                 }
             },
             strengths: { type: "array", items: { type: "string" } },
@@ -103,17 +110,18 @@ export const SCHEMAS = {
                 type: "array",
                 items: {
                     type: "object",
+                    additionalProperties: false,
                     properties: {
                         function: { type: "string" },
                         file: { type: "string" },
                         priority: { type: "string" },
                         reason: { type: "string" }
                     },
-                    required: ["function", "file", "reason"]
+                    required: ["function", "file", "priority", "reason"]
                 }
             }
         },
-        required: ["overview", "architecture", "strengths", "issues", "testPriorities"]
+        required: ["overview", "architecture", "modules", "strengths", "issues", "testPriorities"]
     }
 };
 
