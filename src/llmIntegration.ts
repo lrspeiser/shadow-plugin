@@ -3286,7 +3286,10 @@ export async function runStreamlinedAnalysis(cancellationToken?: vscode.Cancella
             const insights: LLMInsights = {
                 overallAssessment: result.overview,
                 strengths: result.strengths,
-                issues: result.issues.map(i => typeof i === 'string' ? { title: i, description: i } : { title: i, description: i }),
+                issues: result.issues.map(i => ({
+                    title: String(i),
+                    description: String(i)
+                })),
                 organization: 'See overview',
                 entryPointsAnalysis: 'N/A (streamlined analysis)',
                 orphanedFilesAnalysis: 'N/A (streamlined analysis)',
