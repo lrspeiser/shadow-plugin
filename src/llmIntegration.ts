@@ -28,6 +28,58 @@ const stateManager = getStateManager();
 const documentationFormatter = new DocumentationFormatter();
 const analysisResultRepository = new AnalysisResultRepository();
 
+/**
+ * Format issues grouped by severity for report display
+ */
+function formatIssuesBySeverity(issues: any[]): string {
+    if (!issues || issues.length === 0) {
+        return 'No issues found';
+    }
+    
+    // Handle both old format (string[]) and new format (object with severity)
+    const isNewFormat = issues.length > 0 && typeof issues[0] === 'object' && issues[0].severity;
+    
+    if (!isNewFormat) {
+        // Old format: just list them
+        return issues.map(i => `- ${i}`).join('\n');
+    }
+    
+    // New format: group by severity
+    const groups: Record<string, string[]> = {
+        critical: [],
+        major: [],
+        minor: [],
+        nit: []
+    };
+    
+    for (const issue of issues) {
+        const severity = issue.severity || 'minor';
+        const desc = issue.description || String(issue);
+        if (groups[severity]) {
+            groups[severity].push(desc);
+        } else {
+            groups['minor'].push(desc);
+        }
+    }
+    
+    const sections: string[] = [];
+    
+    if (groups.critical.length > 0) {
+        sections.push(`**🔴 Critical** (must fix)\n${groups.critical.map(i => `- ${i}`).join('\n')}`);
+    }
+    if (groups.major.length > 0) {
+        sections.push(`**🟠 Major** (should fix)\n${groups.major.map(i => `- ${i}`).join('\n')}`);
+    }
+    if (groups.minor.length > 0) {
+        sections.push(`**🟡 Minor** (fix when convenient)\n${groups.minor.map(i => `- ${i}`).join('\n')}`);
+    }
+    if (groups.nit.length > 0) {
+        sections.push(`**⚪ Nits** (optional improvements)\n${groups.nit.map(i => `- ${i}`).join('\n')}`);
+    }
+    
+    return sections.length > 0 ? sections.join('\n\n') : 'No issues found';
+}
+
 export function initializeLLMService() {
     const llmService = new LLMService();
     stateManager.setLLMService(llmService);
@@ -3305,7 +3357,7 @@ ${result.functions.map((f: any) => `- **${f.name}** (${f.file}): ${f.purpose}`).
 ${result.strengths.map(s => `- ${s}`).join('\n')}
 
 ## Issues
-${result.issues.length > 0 ? result.issues.map(i => `- ${i}`).join('\n') : 'No issues found'}
+${formatIssuesBySeverity(result.issues)}
 
 ## Test Targets
 ${result.testTargets.map((t: any) => `- **${t.function || t.name}** (${t.file}) - ${t.priority} priority: ${t.reason}`).join('\n')}
@@ -3465,7 +3517,7 @@ ${analysisResult.functions.map((f: any) => `- **${f.name}** (${f.file}): ${f.pur
 ${analysisResult.strengths.map((s: string) => `- ${s}`).join('\n')}
 
 ### Issues
-${analysisResult.issues.length > 0 ? analysisResult.issues.map((i: string) => `- ${i}`).join('\n') : 'None found'}
+${formatIssuesBySeverity(analysisResult.issues)}
 
 ---
 

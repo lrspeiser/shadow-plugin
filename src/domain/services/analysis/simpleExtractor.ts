@@ -37,7 +37,18 @@ export const SCHEMAS = {
             },
             dependencies: { type: "array", items: { type: "string" } },
             strengths: { type: "array", items: { type: "string" } },
-            issues: { type: "array", items: { type: "string" } },
+            issues: {
+                type: "array",
+                items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                        severity: { type: "string", enum: ["critical", "major", "minor", "nit"], description: "critical=breaks functionality, major=significant bug/design flaw, minor=should fix but not urgent, nit=style/preference" },
+                        description: { type: "string" }
+                    },
+                    required: ["severity", "description"]
+                }
+            },
             testTargets: {
                 type: "array",
                 items: {
@@ -141,7 +152,13 @@ export function buildTinyProjectPrompt(files: { path: string; content: string }[
 
 ${fileContents}
 
-Extract: overview, functions, dependencies, strengths, issues, and which functions need unit tests.
+Extract: overview, functions, dependencies, strengths, issues (with severity), and which functions need unit tests.
+
+Issue severity levels:
+- critical: Breaks functionality, crashes, data loss, security holes
+- major: Significant bugs, wrong results, design flaws that need fixing
+- minor: Should fix eventually but not urgent (missing validation, edge cases)
+- nit: Style preferences, optional improvements, defensive programming suggestions
 
 Example response:
 {
@@ -151,7 +168,11 @@ Example response:
   ],
   "dependencies": ["lodash"],
   "strengths": ["Clean function signatures", "Good error handling"],
-  "issues": ["No input validation"],
+  "issues": [
+    {"severity": "major", "description": "divide() returns NaN instead of error for zero divisor"},
+    {"severity": "minor", "description": "No input validation on add() - could return NaN for non-numbers"},
+    {"severity": "nit", "description": "Functions could use TypeScript for better type safety"}
+  ],
   "testTargets": [
     {"function": "divide", "file": "src/math.js", "priority": "high", "reason": "Division by zero edge case", "edgeCases": ["zero divisor", "negative numbers"]}
   ]
