@@ -154,6 +154,9 @@ export class CommandRegistry {
             vscode.commands.registerCommand('shadowWatch.runStreamlinedAnalysis', async () => {
                 await llmIntegration.runStreamlinedAnalysis();
             }),
+            vscode.commands.registerCommand('shadowWatch.runStreamlinedAnalysisWithTests', async () => {
+                await llmIntegration.runStreamlinedAnalysisWithTests();
+            }),
             vscode.commands.registerCommand('shadowWatch.showReports', async () => {
                 await llmIntegration.showReports();
             }),

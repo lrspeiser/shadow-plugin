@@ -167,6 +167,11 @@
         "command": "shadowWatch.runStreamlinedAnalysis",
         "title": "Shadow Watch: Fast Analysis (Optimized for Small Projects)",
         "icon": "$(zap)"
+      },
+      {
+        "command": "shadowWatch.runStreamlinedAnalysisWithTests",
+        "title": "Shadow Watch: Fast Analysis + Generate & Run Tests",
+        "icon": "$(beaker)"
       }
     ],
     "viewsContainers": {

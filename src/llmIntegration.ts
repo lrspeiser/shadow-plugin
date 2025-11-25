@@ -3383,3 +3383,168 @@ ${result.testTargets.map((t: any) => `- **${t.function || t.name}** (${t.file}) 
     });
 }
 
+/**
+ * STREAMLINED ANALYSIS WITH TESTS
+ * Same as streamlined analysis but also generates and runs unit tests
+ */
+export async function runStreamlinedAnalysisWithTests(cancellationToken?: vscode.CancellationToken): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        const result = await vscode.window.showWarningMessage(
+            'LLM API key not configured. Would you like to set it now?',
+            'Set API Key',
+            'Cancel'
+        );
+        
+        if (result === 'Set API Key') {
+            await setApiKey();
+            if (!llmService.isConfigured()) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    if (treeProvider) {
+        treeProvider.setInsightsStatus('generating');
+    }
+
+    SWLogger.section('Streamlined Analysis + Tests');
+    SWLogger.log('Starting fast analysis with test generation...');
+    
+    resetLLMStats();
+
+    const { progressService } = await import('./infrastructure/progressService');
+    const { StreamlinedAnalysisService } = await import('./domain/services/analysis/streamlinedAnalysis');
+    const { generateAndRunTests } = await import('./domain/services/analysis/testGenerator');
+    
+    await progressService.withProgress('Fast Analysis + Tests', async (reporter) => {
+        try {
+            // Phase 1: Analysis
+            reporter.report('Phase 1: Analyzing code...', 0);
+            
+            const analysisResult = await StreamlinedAnalysisService.analyze(
+                workspaceRoot,
+                llmService,
+                (message, callNumber) => {
+                    if (cancellationToken?.isCancellationRequested) {
+                        throw new Error('Cancelled by user');
+                    }
+                    reporter.report(`Analysis: ${message}`, 0);
+                }
+            );
+
+            SWLogger.log(`Analysis complete: ${analysisResult.functions.length} functions, ${analysisResult.testTargets.length} test targets`);
+
+            // Phase 2: Test Generation
+            reporter.report('Phase 2: Generating tests...', 50);
+            
+            const testResult = await generateAndRunTests(
+                workspaceRoot,
+                {
+                    functions: analysisResult.functions,
+                    testTargets: analysisResult.testTargets,
+                    overview: analysisResult.overview
+                },
+                llmService,
+                (message) => {
+                    if (cancellationToken?.isCancellationRequested) {
+                        throw new Error('Cancelled by user');
+                    }
+                    reporter.report(`Tests: ${message}`, 0);
+                }
+            );
+
+            // Save combined report
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const report = `# Analysis + Test Report
+Generated: ${new Date().toISOString()}
+
+## Analysis Summary
+${analysisResult.overview}
+
+### Stats
+- Files: ${analysisResult.stats.totalFiles}
+- Lines: ${analysisResult.stats.totalLines}
+- Functions: ${analysisResult.functions.length}
+- Analysis time: ${(analysisResult.stats.totalTimeMs / 1000).toFixed(1)}s
+
+### Functions
+${analysisResult.functions.map((f: any) => `- **${f.name}** (${f.file}): ${f.purpose}`).join('\n')}
+
+### Strengths
+${analysisResult.strengths.map((s: string) => `- ${s}`).join('\n')}
+
+### Issues
+${analysisResult.issues.length > 0 ? analysisResult.issues.map((i: string) => `- ${i}`).join('\n') : 'None found'}
+
+---
+
+## Test Results
+- Tests generated: ${testResult.testsGenerated}
+- Test file: ${testResult.testFilePath}
+- **Passed: ${testResult.runResult?.passed || 0}**
+- **Failed: ${testResult.runResult?.failed || 0}**
+
+### Test Output
+\`\`\`
+${testResult.runResult?.output?.substring(0, 2000) || 'No output'}
+\`\`\`
+`;
+            
+            const reportPath = path.join(docsDir, `analysis-with-tests-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+
+            if (treeProvider) {
+                treeProvider.setReportPath(reportPath);
+                treeProvider.setInsightsStatus('complete');
+            }
+
+            await refreshReportsViewer();
+
+            const stats = getLLMStats();
+            SWLogger.section('Complete');
+            SWLogger.log(`Total LLM calls: ${stats.callCount}`);
+            SWLogger.log(`Total tokens: ${stats.inputTokens + stats.outputTokens}`);
+
+            const passRate = testResult.runResult ? 
+                `${testResult.runResult.passed}/${testResult.runResult.passed + testResult.runResult.failed} passed` :
+                'not run';
+
+            vscode.window.showInformationMessage(
+                `✅ Analysis + Tests complete! ${testResult.testsGenerated} tests generated, ${passRate}. View report.`
+            );
+
+        } catch (error: any) {
+            if (error.message === 'Cancelled by user') {
+                vscode.window.showInformationMessage('Cancelled by user');
+            } else {
+                const errorMessage = error.message || String(error);
+                SWLogger.log(`ERROR: ${errorMessage}`);
+                console.error('Error:', error);
+                vscode.window.showErrorMessage(`Failed: ${errorMessage}`);
+            }
+        } finally {
+            if (treeProvider) {
+                treeProvider.setInsightsStatus('complete');
+            }
+        }
+    });
+}
+
