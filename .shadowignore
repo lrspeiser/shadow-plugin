@@ -1,0 +1,13 @@
+# Shadow Watch Ignore File
+# Add patterns for folders/files to exclude from analysis
+# One pattern per line, supports glob patterns
+
+# Common excludes (uncomment as needed):
+# node_modules
+# dist
+# build
+# coverage
+# __pycache__
+# .git
+# *.test.ts
+# *.spec.js

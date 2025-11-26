@@ -14,6 +14,28 @@ import { SWLogger } from '../../../logger';
 
 const execAsync = promisify(exec);
 
+// Schema for ignore pattern suggestions
+const IGNORE_PATTERNS_SCHEMA = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        patterns: {
+            type: "array",
+            items: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                    pattern: { type: "string", description: "Folder or file pattern to ignore" },
+                    reason: { type: "string", description: "Why this should be ignored" }
+                },
+                required: ["pattern", "reason"]
+            },
+            description: "Patterns to add to .shadowignore"
+        }
+    },
+    required: ["patterns"]
+};
+
 // Schema for test environment setup
 const TEST_ENV_SCHEMA = {
     type: "object",
@@ -318,6 +340,120 @@ Keep it minimal - only what's needed to run tests.`;
 }
 
 /**
+ * Ask LLM to suggest folders to ignore and update .shadowignore
+ */
+async function suggestIgnorePatterns(
+    workspaceRoot: string,
+    projectInfo: string,
+    llmService: any,
+    onProgress?: (message: string) => void
+): Promise<void> {
+    SWLogger.log('[TestGen] Asking LLM to suggest ignore patterns...');
+    onProgress?.('Analyzing folders to ignore...');
+    
+    // Get list of top-level directories
+    const topLevelDirs: string[] = [];
+    try {
+        const entries = fs.readdirSync(workspaceRoot, { withFileTypes: true });
+        for (const entry of entries) {
+            if (entry.isDirectory() && !entry.name.startsWith('.')) {
+                topLevelDirs.push(entry.name);
+            }
+        }
+    } catch {}
+    
+    const prompt = `Analyze this project and suggest folders/patterns that should be EXCLUDED from code analysis.
+
+Project Info:
+${projectInfo}
+
+Top-level directories: ${topLevelDirs.join(', ')}
+
+Suggest patterns for:
+1. Build output folders (dist, build, out, .next, etc.)
+2. Dependency folders (node_modules, vendor, venv, etc.)
+3. Generated/compiled code
+4. Test fixtures or mock data folders
+5. Third-party code copied into the repo
+6. IDE/editor folders (.idea, .vscode, etc.)
+7. Cache folders
+
+Only suggest folders that actually exist or are common for this project type.
+DO NOT suggest: src, lib (if it's source), or the main code folders.`;
+
+    try {
+        const response = await llmService.sendStructuredRequest(
+            prompt,
+            IGNORE_PATTERNS_SCHEMA,
+            'Suggest folders to ignore from analysis. Be conservative - only suggest obvious non-source folders.'
+        );
+        
+        const suggestions = response.data as {
+            patterns: { pattern: string; reason: string }[];
+        };
+        
+        if (!suggestions.patterns || suggestions.patterns.length === 0) {
+            SWLogger.log('[TestGen] No additional ignore patterns suggested');
+            return;
+        }
+        
+        SWLogger.log(`[TestGen] LLM suggested ${suggestions.patterns.length} ignore patterns`);
+        
+        // Read existing .shadowignore or create new
+        const ignorePath = path.join(workspaceRoot, '.shadowignore');
+        let existingContent = '';
+        let existingPatterns = new Set<string>();
+        
+        if (fs.existsSync(ignorePath)) {
+            existingContent = fs.readFileSync(ignorePath, 'utf-8');
+            // Parse existing patterns
+            existingContent.split('\n').forEach(line => {
+                const trimmed = line.trim();
+                if (trimmed && !trimmed.startsWith('#')) {
+                    existingPatterns.add(trimmed);
+                }
+            });
+        }
+        
+        // Filter out patterns that already exist
+        const newPatterns = suggestions.patterns.filter(p => !existingPatterns.has(p.pattern));
+        
+        if (newPatterns.length === 0) {
+            SWLogger.log('[TestGen] All suggested patterns already in .shadowignore');
+            return;
+        }
+        
+        // Build new content to append
+        const timestamp = new Date().toISOString().split('T')[0];
+        let newContent = existingContent;
+        
+        if (!existingContent) {
+            // Create new file with header
+            newContent = `# Shadow Watch Ignore File
+# Patterns for folders/files to exclude from analysis
+# Auto-generated: ${timestamp}
+
+`;
+        } else if (!existingContent.endsWith('\n')) {
+            newContent += '\n';
+        }
+        
+        // Add new patterns with comments
+        newContent += `\n# Auto-suggested patterns (${timestamp})\n`;
+        for (const p of newPatterns) {
+            newContent += `${p.pattern}  # ${p.reason}\n`;
+        }
+        
+        fs.writeFileSync(ignorePath, newContent);
+        SWLogger.log(`[TestGen] Updated .shadowignore with ${newPatterns.length} new patterns`);
+        
+    } catch (err: any) {
+        SWLogger.log(`[TestGen] Ignore pattern suggestion failed: ${err.message}`);
+        // Non-fatal - continue without updating ignore file
+    }
+}
+
+/**
  * Extract function code from file content by name
  */
 function extractFunctionCode(content: string, funcName: string): string {
@@ -356,6 +492,9 @@ export async function generateAndRunTests(
     onProgress?.('Detecting project setup...');
     const projectInfo = detectProjectInfo(workspaceRoot);
     SWLogger.log(`[TestGen] Project info:\n${projectInfo}`);
+    
+    // Step 1.5: Ask LLM to suggest ignore patterns (updates .shadowignore)
+    await suggestIgnorePatterns(workspaceRoot, projectInfo, llmService, onProgress);
     
     // Step 2: Ask LLM to set up test environment
     const envSetup = await setupTestEnvironment(workspaceRoot, projectInfo, llmService, onProgress);
