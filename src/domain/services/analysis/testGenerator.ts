@@ -995,9 +995,20 @@ You MUST:
         // Provide list of valid mock targets (actual source files in the project)
         const validMockTargets = [...uniqueFiles].map(f => '../' + f.replace(/\.ts$/, '').replace(/\.js$/, '')).join('\n- ');
         
+        // Get the test target info which includes why this function was selected
+        const testTarget = cappedTargets.find(t => t.function === func.name);
+        const testReason = testTarget?.reason || 'Selected for testing';
+        const testPriority = testTarget?.priority || 'medium';
+        
+        // Truncate file content if too large (keep first 4000 chars which usually covers most files)
+        const MAX_FILE_CHARS = 4000;
+        const truncatedContent = content.length > MAX_FILE_CHARS 
+            ? content.substring(0, MAX_FILE_CHARS) + '\n\n// ... (file truncated for brevity)'
+            : content;
+        
         const singlePrompt = `Generate a ${envSetup.framework} unit test for this function.
 
-Project setup:
+## Project Setup
 - Import style: ${envSetup.importStyle}
 - Module system: ${envSetup.moduleSystem || 'commonjs'}
 - Test environment: ${envSetup.testEnvironment || 'node'}
@@ -1006,13 +1017,25 @@ Project setup:
 - Import path from test: ${importPath}
 - Language: ${isTypeScript ? 'TypeScript (strict mode - NO implicit any)' : 'JavaScript'}
 
-Function: ${func.name}${useAlias ? ` (import as '${importAlias}' to avoid name collision)` : ''}
-Purpose: ${func.purpose || 'Unknown'}
-${classInfo.isClassMethod ? `\n**THIS IS A CLASS METHOD on ${classInfo.className}${classInfo.isStatic ? ' (static)' : ''} - NOT a standalone function!**` : ''}
+## Function to Test
+**Name:** ${func.name}${useAlias ? ` (import as '${importAlias}' to avoid name collision)` : ''}
+**Purpose:** ${func.purpose || 'Unknown'}
+**Parameters:** ${func.params || 'none'}
+**Returns:** ${func.returns || 'void'}
+**Test Priority:** ${testPriority}
+**Why Test This:** ${testReason}
+${testTarget?.edgeCases?.length ? `**Edge Cases to Test:** ${testTarget.edgeCases.join(', ')}` : ''}
+${classInfo.isClassMethod ? `\n**⚠️ THIS IS A CLASS METHOD on ${classInfo.className}${classInfo.isStatic ? ' (static)' : ''} - NOT a standalone function!**` : ''}
 
-Source Code:
-\`\`\`
-${funcCode}
+## IMPORTANT: Use the Return Type Above
+The function returns **${func.returns || 'void'}** - your test assertions MUST match this return type.
+- If it returns an object, test object properties
+- If it returns a Promise, await it and test the resolved value
+- If it returns void, test side effects instead
+
+## Source File Context
+\`\`\`typescript
+${truncatedContent}
 \`\`\`
 
 VALID FILES YOU CAN MOCK (these are the ONLY source files that exist):

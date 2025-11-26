@@ -125,10 +125,11 @@ export const SCHEMAS = {
                     properties: {
                         function: { type: "string" },
                         file: { type: "string" },
-                        priority: { type: "string" },
-                        reason: { type: "string" }
+                        priority: { type: "string", enum: ["high", "medium", "low"] },
+                        reason: { type: "string" },
+                        edgeCases: { type: "array", items: { type: "string" }, description: "Specific edge cases and scenarios to test" }
                     },
-                    required: ["function", "file", "priority", "reason"]
+                    required: ["function", "file", "priority", "reason", "edgeCases"]
                 }
             }
         },
@@ -209,15 +210,27 @@ Example response:
  * Build prompt for architecture synthesis
  */
 export function buildArchitecturePrompt(fileSummaries: { path: string; purpose: string; functions: any[] }[]): string {
-    const summaryText = fileSummaries.map(f => 
-        `- ${f.path}: ${f.purpose} [${f.functions?.map(fn => fn.name).join(', ') || 'no functions'}]`
-    ).join('\n');
+    // Include function details (params, returns) in the summary for better test prioritization
+    const summaryText = fileSummaries.map(f => {
+        const funcDetails = f.functions?.map(fn => {
+            const sig = fn.params ? `${fn.name}(${fn.params})` : fn.name;
+            const ret = fn.returns ? ` -> ${fn.returns}` : '';
+            return `${sig}${ret}`;
+        }).join(', ') || 'no functions';
+        return `- ${f.path}: ${f.purpose}\n  Functions: [${funcDetails}]`;
+    }).join('\n');
 
     return `Synthesize architecture from these file summaries:
 
 ${summaryText}
 
-Extract: overview, architecture description, modules, strengths, issues, and test priorities.
+Extract: overview, architecture description, modules, strengths, issues, and test priorities with specific edge cases.
+
+For test priorities, identify functions that:
+- Have complex logic or multiple code paths
+- Handle errors or edge cases
+- Are critical to the system
+- Have external dependencies that need mocking
 
 Example response:
 {
@@ -229,7 +242,7 @@ Example response:
   "strengths": ["Clear separation of concerns", "Consistent error handling"],
   "issues": ["Missing input validation in controllers"],
   "testPriorities": [
-    {"function": "validateUser", "file": "src/auth/login.ts", "priority": "high", "reason": "Security critical"}
+    {"function": "validateUser", "file": "src/auth/login.ts", "priority": "high", "reason": "Security critical - validates credentials", "edgeCases": ["invalid password", "locked account", "expired session", "null username"]}
   ]
 }`;
 }
