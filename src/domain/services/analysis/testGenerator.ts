@@ -154,8 +154,7 @@ export async function generateAndRunTests(
 ): Promise<TestGenerationResult> {
     SWLogger.log('[TestGen] Starting test generation...');
     
-    // Cap test targets to prevent token limit issues on large projects
-    // Keep this low (5) to avoid hitting Claude's 8192 token output limit
+    // Cap test targets - we'll generate tests ONE AT A TIME to avoid token limits
     const MAX_TEST_TARGETS = 5;
     const cappedTargets = analysisResult.testTargets.slice(0, MAX_TEST_TARGETS);
     if (analysisResult.testTargets.length > MAX_TEST_TARGETS) {
@@ -165,7 +164,7 @@ export async function generateAndRunTests(
     // Only include functions that are in our capped targets
     const targetFunctions = new Set(cappedTargets.map(t => t.function));
     const cappedFunctions = analysisResult.functions.filter(f => targetFunctions.has(f.name));
-    SWLogger.log(`[TestGen] Testing ${cappedFunctions.length} functions`);
+    SWLogger.log(`[TestGen] Will generate tests for ${cappedFunctions.length} functions (one at a time)`);
     
     onProgress?.('Reading source files...');
 
@@ -183,54 +182,77 @@ export async function generateAndRunTests(
         }
     }
 
-    // Build prompt with capped functions/targets
-    const prompt = buildTestPrompt(
-        cappedFunctions,
-        cappedTargets,
-        fileContents
-    );
-    SWLogger.log(`[TestGen] Prompt size: ${prompt.length} chars`);
+    // Generate tests ONE FUNCTION AT A TIME to avoid hitting Claude's 8192 token output limit
+    const generatedTests: { functionName: string; fileName: string; testCode: string }[] = [];
+    
+    for (let i = 0; i < cappedFunctions.length; i++) {
+        const func = cappedFunctions[i];
+        const target = cappedTargets.find(t => t.function === func.name);
+        
+        onProgress?.(`Generating test ${i + 1}/${cappedFunctions.length}: ${func.name}...`);
+        SWLogger.log(`[TestGen] Generating test for ${func.name} (${i + 1}/${cappedFunctions.length})`);
+        
+        const content = fileContents.get(func.file) || '';
+        const funcCode = extractFunctionCode(content, func.name);
+        
+        // Simple, focused prompt for ONE function
+        const singlePrompt = `Generate a Jest test for this function:
 
-    // Call LLM
-    onProgress?.('Generating tests with Claude...');
-    SWLogger.log('[TestGen] Calling LLM for test generation...');
-    
-    let testData: {
-        framework: string;
-        setupCode: string;
-        tests: { functionName: string; fileName: string; testCode: string }[];
-    };
-    
-    try {
-        const response = await llmService.sendStructuredRequest(
-            prompt,
-            TEST_GENERATION_SCHEMA,
-            'You are an expert test engineer. Generate concise, runnable Jest tests. Keep each test suite short.'
-        );
-        testData = response.data;
+Function: ${func.name}
+File: ${func.file}
+Purpose: ${func.purpose || 'Unknown'}
+${target ? `Priority: ${target.priority} - ${target.reason}` : ''}
+
+Code:
+\`\`\`javascript
+${funcCode}
+\`\`\`
+
+Generate 2-3 test cases. Keep it concise.`;
         
-        if (!testData || !testData.tests) {
-            throw new Error('Invalid test generation response');
+        try {
+            const response = await llmService.sendStructuredRequest(
+                singlePrompt,
+                {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                        testCode: { type: "string", description: "Complete Jest test code for this function" }
+                    },
+                    required: ["testCode"]
+                },
+                'Generate a concise Jest test. Return only the test code.'
+            );
+            
+            if (response.data?.testCode) {
+                generatedTests.push({
+                    functionName: func.name,
+                    fileName: func.file,
+                    testCode: response.data.testCode
+                });
+                SWLogger.log(`[TestGen] ✓ Generated test for ${func.name}`);
+            }
+        } catch (err: any) {
+            SWLogger.log(`[TestGen] ✗ Failed to generate test for ${func.name}: ${err.message || err}`);
         }
-        
-        SWLogger.log(`[TestGen] Generated ${testData.tests.length} test suites`);
-    } catch (err: any) {
-        SWLogger.log(`[TestGen] Test generation failed: ${err.message || err}`);
-        // Return a minimal fallback test so the run doesn't completely fail
-        testData = {
-            framework: 'jest',
-            setupCode: '// Test generation failed - see Shadow Watch logs',
-            tests: [{
-                functionName: 'placeholder',
-                fileName: 'unknown',
-                testCode: `describe('Placeholder', () => {
+    }
+    
+    SWLogger.log(`[TestGen] Generated ${generatedTests.length}/${cappedFunctions.length} tests`);
+    
+    // Build test data structure
+    const testData = {
+        framework: 'jest',
+        setupCode: generatedTests.length > 0 ? '' : '// No tests generated - see Shadow Watch logs',
+        tests: generatedTests.length > 0 ? generatedTests : [{
+            functionName: 'placeholder',
+            fileName: 'unknown',
+            testCode: `describe('Placeholder', () => {
   it('should be replaced with real tests', () => {
     expect(true).toBe(true);
   });
 });`
-            }]
-        };
-    }
+        }]
+    };
 
     // Create test directory
     const testDir = path.join(workspaceRoot, 'UnitTests');
