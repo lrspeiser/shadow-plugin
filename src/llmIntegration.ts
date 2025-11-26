@@ -3619,13 +3619,37 @@ ${testResult.runResult?.output?.substring(0, 2000) || 'No output'}
     });
 }
 
+// Schema for test report generation
+const TEST_REPORT_SCHEMA = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        summary: { type: "string", description: "Brief summary of test results" },
+        analysis: { type: "string", description: "Analysis of what passed, what failed, and why" },
+        recommendations: {
+            type: "array",
+            items: { type: "string" },
+            description: "Specific recommendations to fix failing tests or improve coverage"
+        }
+    },
+    required: ["summary", "analysis", "recommendations"]
+};
+
 /**
  * RUN TESTS ONLY
  * Runs existing tests without regenerating them - much faster for re-testing after fixing build errors
  */
 export async function runTestsOnly(): Promise<void> {
+    const llmService = stateManager.getLLMService();
+    const treeProvider = stateManager.getTreeProvider();
+    
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    if (!llmService.isConfigured()) {
+        vscode.window.showErrorMessage('LLM API key not configured. Go to Settings to configure.');
         return;
     }
 
@@ -3644,24 +3668,117 @@ export async function runTestsOnly(): Promise<void> {
                 (message) => reporter.report(message, 0)
             );
 
-            // Show result
+            // Generate report with LLM analysis
+            reporter.report('Generating test report...', 80);
+            
+            const shadowDir = path.join(workspaceRoot, '.shadow');
+            const docsDir = path.join(shadowDir, 'docs');
+            if (!fs.existsSync(docsDir)) {
+                fs.mkdirSync(docsDir, { recursive: true });
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const passed = testResult.runResult?.passed || 0;
+            const failed = testResult.runResult?.failed || 0;
+            const output = testResult.runResult?.output || 'No output';
+            
+            // Build error section if needed
+            let buildErrorSection = '';
+            if (testResult.buildErrors && testResult.buildErrors.length > 0) {
+                const userErrors = testResult.buildErrors.filter((e: any) => e.isUserCode);
+                if (userErrors.length > 0) {
+                    buildErrorSection = `\n## ⚠️ Build Errors\n` +
+                        userErrors.map((e: any) => `- **${e.file}:${e.line}** - ${e.message}`).join('\n') +
+                        `\n`;
+                }
+            }
+            
+            // Ask LLM to analyze the test results
+            let llmAnalysis = { summary: '', analysis: '', recommendations: [] as string[] };
+            try {
+                const prompt = `Analyze these test results and provide insights.
+
+Test Results:
+- Passed: ${passed}
+- Failed: ${failed}
+- Tests were ${testResult.buildErrorsSkippedTests ? 'SKIPPED due to build errors' : 'executed'}
+
+Test Output (truncated):
+\`\`\`
+${output.substring(0, 3000)}
+\`\`\`
+
+${buildErrorSection ? `Build Errors Found:\n${buildErrorSection}` : ''}
+
+Provide:
+1. A brief summary of the results
+2. Analysis of what's working and what needs attention
+3. Specific recommendations to fix issues`;
+
+                const response = await llmService.sendStructuredRequest(
+                    prompt,
+                    TEST_REPORT_SCHEMA,
+                    'Analyze test results and provide actionable insights.'
+                );
+                llmAnalysis = response.data as typeof llmAnalysis;
+            } catch (err: any) {
+                SWLogger.log(`[TestRun] LLM analysis failed: ${err.message}`);
+                llmAnalysis = {
+                    summary: `${passed} passed, ${failed} failed`,
+                    analysis: 'LLM analysis unavailable',
+                    recommendations: []
+                };
+            }
+            
+            // Generate report
+            const report = `# Test Run Report
+Generated: ${new Date().toISOString()}
+
+## Summary
+${llmAnalysis.summary}
+
+## Results
+- **Passed:** ${passed}
+- **Failed:** ${failed}
+- **Status:** ${testResult.buildErrorsSkippedTests ? '⚠️ Skipped (build errors)' : passed > 0 && failed === 0 ? '✅ All passing' : '🧪 Some failures'}
+${buildErrorSection}
+## Analysis
+${llmAnalysis.analysis}
+
+## Recommendations
+${llmAnalysis.recommendations.length > 0 ? llmAnalysis.recommendations.map(r => `- ${r}`).join('\n') : '- No specific recommendations'}
+
+## Test Output
+\`\`\`
+${output.substring(0, 2000)}
+\`\`\`
+`;
+            
+            const reportPath = path.join(docsDir, `test-run-${timestamp}.md`);
+            fs.writeFileSync(reportPath, report, 'utf-8');
+            SWLogger.log(`[TestRun] Report saved to ${reportPath}`);
+            
+            if (treeProvider) {
+                treeProvider.setReportPath(reportPath);
+            }
+            
+            await refreshReportsViewer();
+
+            // Show result notification
             if (testResult.buildErrorsSkippedTests) {
                 const errorCount = testResult.buildErrors?.filter((e: any) => e.isUserCode).length || 0;
                 vscode.window.showWarningMessage(
-                    `⚠️ Tests skipped due to ${errorCount} build error(s). Fix them and try again.`
+                    `⚠️ Tests skipped due to ${errorCount} build error(s). See report for details.`
                 );
-            } else if (testResult.runResult) {
-                const { passed, failed } = testResult.runResult;
-                if (failed === 0 && passed > 0) {
-                    vscode.window.showInformationMessage(`✅ All ${passed} tests passed!`);
-                } else if (failed > 0) {
-                    vscode.window.showWarningMessage(`🧪 Tests: ${passed} passed, ${failed} failed`);
-                } else {
-                    vscode.window.showInformationMessage(testResult.runResult.output || 'Tests completed');
-                }
+            } else if (failed === 0 && passed > 0) {
+                vscode.window.showInformationMessage(`✅ All ${passed} tests passed! Report generated.`);
+            } else if (failed > 0) {
+                vscode.window.showWarningMessage(`🧪 ${passed} passed, ${failed} failed. See report for analysis.`);
+            } else {
+                vscode.window.showInformationMessage('Tests completed. See report for details.');
             }
 
-            SWLogger.log(`Tests complete: ${testResult.runResult?.passed || 0} passed, ${testResult.runResult?.failed || 0} failed`);
+            SWLogger.log(`Tests complete: ${passed} passed, ${failed} failed`);
 
         } catch (error: any) {
             const errorMessage = error.message || String(error);
