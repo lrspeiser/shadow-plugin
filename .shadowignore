@@ -33,3 +33,17 @@ out/  # Build output or compiled code directory
 .vscode/  # VS Code editor configuration folder
 coverage/  # Jest test coverage reports directory
 .jest/  # Jest cache directory
+
+# Auto-suggested patterns (2025-11-26)
+node_modules/  # Dependency folder containing third-party packages
+dist/  # Build output folder for compiled/bundled code
+out/  # Build output folder for compiled code
+.vsix  # VS Code extension package files (binary distribution files)
+*.vsix  # VS Code extension package files (binary distribution files)
+.vscode/  # IDE configuration folder
+.next/  # Next.js build output folder if used
+coverage/  # Jest test coverage reports
+.jest-cache/  # Jest cache folder
+build/  # Common build output folder
+*.map  # Source map files generated during build
+*.log  # Log files

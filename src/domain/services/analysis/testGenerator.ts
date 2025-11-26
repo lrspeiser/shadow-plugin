@@ -235,6 +235,42 @@ ${targetInfo}
 }
 
 /**
+ * Fix implicit any types that TypeScript strict mode rejects
+ * LLMs often generate `let x;` which fails in strict TypeScript
+ */
+function fixImplicitAnyTypes(code: string): string {
+    // Fix untyped let/const declarations: `let x;` -> `let x: any;`
+    // Match: let/const followed by identifier, optionally with comma-separated list, ending with semicolon
+    // But NOT if there's already a type annotation or assignment
+    let fixed = code;
+    
+    // Pattern 1: Simple `let x;` or `const x;` declarations
+    fixed = fixed.replace(
+        /^(\s*)(let|const)\s+(\w+)\s*;$/gm,
+        '$1$2 $3: any;'
+    );
+    
+    // Pattern 2: `let x, y;` multiple declarations
+    fixed = fixed.replace(
+        /^(\s*)(let|const)\s+(\w+)\s*,\s*(\w+)\s*;$/gm,
+        '$1$2 $3: any, $4: any;'
+    );
+    
+    // Pattern 3: Declaration without initialization inside blocks (with proper indentation)
+    // This handles cases like `let mockDate;` inside describe/beforeEach
+    fixed = fixed.replace(
+        /(\s+)(let|const)\s+(\w+)\s*;/g,
+        (match, indent, keyword, varName) => {
+            // Don't replace if it looks like it already has a type
+            if (match.includes(':')) return match;
+            return `${indent}${keyword} ${varName}: any;`;
+        }
+    );
+    
+    return fixed;
+}
+
+/**
  * Validate JavaScript syntax using Node's vm module
  */
 function validateSyntax(code: string): { valid: boolean; error?: string } {
@@ -801,6 +837,12 @@ ${testData.setupCode}
     const isTypeScript = fs.existsSync(path.join(workspaceRoot, 'tsconfig.json'));
     const testFileExt = isTypeScript ? '.test.ts' : '.test.js';
     const testFilePath = path.join(testDir, `generated${testFileExt}`);
+    
+    // For TypeScript projects, fix implicit any types that LLMs often generate
+    if (isTypeScript) {
+        testFileContent = fixImplicitAnyTypes(testFileContent);
+        SWLogger.log('[TestGen] Applied TypeScript type fixes');
+    }
     
     // Validate syntax before writing
     let syntaxCheck = validateSyntax(testFileContent);
