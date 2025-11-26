@@ -74,6 +74,9 @@ export class CommandRegistry {
                 const uri = vscode.Uri.file(ignorePath);
                 const document = await vscode.workspace.openTextDocument(uri);
                 await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+            }),
+            vscode.commands.registerCommand('shadowWatch.runTestsOnly', async () => {
+                await llmIntegration.runTestsOnly();
             })
         );
 

@@ -64,6 +64,11 @@
         "command": "shadowWatch.openShadowIgnore",
         "title": "Shadow Watch: Edit .shadowignore",
         "icon": "$(exclude)"
+      },
+      {
+        "command": "shadowWatch.runTestsOnly",
+        "title": "Shadow Watch: Run Tests Only",
+        "icon": "$(play)"
       }
     ],
     "viewsContainers": {

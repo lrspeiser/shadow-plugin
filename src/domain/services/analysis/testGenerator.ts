@@ -884,3 +884,85 @@ async function runTests(
         }
     }
 }
+
+/**
+ * Run existing tests without regenerating them
+ * Checks for build errors first, then runs tests if they exist
+ */
+export async function runExistingTests(
+    workspaceRoot: string,
+    onProgress?: (message: string) => void
+): Promise<TestGenerationResult> {
+    SWLogger.log('[TestGen] Running existing tests...');
+    
+    const testDir = path.join(workspaceRoot, 'UnitTests');
+    const testFilePath = path.join(testDir, 'generated.test.js');
+    
+    // Check if test file exists
+    if (!fs.existsSync(testFilePath)) {
+        SWLogger.log('[TestGen] No existing tests found');
+        return {
+            testsGenerated: 0,
+            testFilePath,
+            runResult: {
+                passed: 0,
+                failed: 0,
+                output: 'No tests found. Run "Analysis + Tests" first to generate tests.'
+            }
+        };
+    }
+    
+    // Check for build errors first
+    onProgress?.('Checking for build errors...');
+    const buildCheck = await checkBuildErrors(workspaceRoot, testFilePath);
+    
+    if (buildCheck.hasErrors) {
+        const userCodeErrors = buildCheck.errors.filter(e => e.isUserCode);
+        const testCodeErrors = buildCheck.errors.filter(e => !e.isUserCode);
+        
+        SWLogger.log(`[TestGen] Build errors: ${userCodeErrors.length} in user code, ${testCodeErrors.length} in tests`);
+        
+        if (userCodeErrors.length > 0) {
+            onProgress?.(`Found ${userCodeErrors.length} build error(s) - fix them first`);
+            return {
+                testsGenerated: 0,
+                testFilePath,
+                buildErrors: buildCheck.errors,
+                buildErrorsSkippedTests: true,
+                runResult: {
+                    passed: 0,
+                    failed: 0,
+                    output: `Tests skipped due to ${userCodeErrors.length} build error(s):\n\n` +
+                            userCodeErrors.map(e => `  ${e.file}:${e.line} - ${e.message}`).join('\n')
+                }
+            };
+        }
+    }
+    
+    // Determine test command - check package.json for test script
+    let runCommand = 'npx jest';
+    const packageJsonPath = path.join(workspaceRoot, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+        try {
+            const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            if (pkg.scripts?.test && pkg.scripts.test.includes('jest')) {
+                runCommand = 'npm test --';
+            }
+        } catch {}
+    }
+    
+    // Run the tests
+    onProgress?.('Running tests...');
+    SWLogger.log(`[TestGen] Running: ${runCommand}`);
+    
+    const runResult = await runTests(workspaceRoot, testFilePath, runCommand);
+    
+    SWLogger.log(`[TestGen] Results: ${runResult.passed} passed, ${runResult.failed} failed`);
+    
+    return {
+        testsGenerated: 0, // We didn't generate new tests
+        testFilePath,
+        buildErrors: buildCheck.hasErrors ? buildCheck.errors : undefined,
+        runResult
+    };
+}

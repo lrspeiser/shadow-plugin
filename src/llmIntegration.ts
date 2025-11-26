@@ -3619,3 +3619,55 @@ ${testResult.runResult?.output?.substring(0, 2000) || 'No output'}
     });
 }
 
+/**
+ * RUN TESTS ONLY
+ * Runs existing tests without regenerating them - much faster for re-testing after fixing build errors
+ */
+export async function runTestsOnly(): Promise<void> {
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    SWLogger.section('Run Tests Only');
+    SWLogger.log('Running existing tests without regeneration...');
+
+    const { progressService } = await import('./infrastructure/progressService');
+    const { runExistingTests } = await import('./domain/services/analysis/testGenerator');
+    
+    await progressService.withProgress('Running Tests', async (reporter) => {
+        try {
+            const testResult = await runExistingTests(
+                workspaceRoot,
+                (message) => reporter.report(message, 0)
+            );
+
+            // Show result
+            if (testResult.buildErrorsSkippedTests) {
+                const errorCount = testResult.buildErrors?.filter((e: any) => e.isUserCode).length || 0;
+                vscode.window.showWarningMessage(
+                    `⚠️ Tests skipped due to ${errorCount} build error(s). Fix them and try again.`
+                );
+            } else if (testResult.runResult) {
+                const { passed, failed } = testResult.runResult;
+                if (failed === 0 && passed > 0) {
+                    vscode.window.showInformationMessage(`✅ All ${passed} tests passed!`);
+                } else if (failed > 0) {
+                    vscode.window.showWarningMessage(`🧪 Tests: ${passed} passed, ${failed} failed`);
+                } else {
+                    vscode.window.showInformationMessage(testResult.runResult.output || 'Tests completed');
+                }
+            }
+
+            SWLogger.log(`Tests complete: ${testResult.runResult?.passed || 0} passed, ${testResult.runResult?.failed || 0} failed`);
+
+        } catch (error: any) {
+            const errorMessage = error.message || String(error);
+            SWLogger.log(`ERROR: ${errorMessage}`);
+            vscode.window.showErrorMessage(`Failed to run tests: ${errorMessage}`);
+        }
+    });
+}
+

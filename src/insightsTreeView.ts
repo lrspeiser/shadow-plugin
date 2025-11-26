@@ -649,6 +649,17 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         };
         items.push(analyzeTestsBtn);
 
+        // Run Tests Only button
+        const runTestsBtn = new TreeItem('▶️ Run Tests Only', vscode.TreeItemCollapsibleState.None);
+        runTestsBtn.type = 'action';
+        runTestsBtn.iconPath = new vscode.ThemeIcon('play');
+        runTestsBtn.description = 'Re-run existing tests (no LLM calls)';
+        runTestsBtn.command = {
+            command: 'shadowWatch.runTestsOnly',
+            title: 'Run Tests Only'
+        };
+        items.push(runTestsBtn);
+
         // Settings
         const settingsBtn = new TreeItem('⚙️ Settings', vscode.TreeItemCollapsibleState.None);
         settingsBtn.type = 'action';
