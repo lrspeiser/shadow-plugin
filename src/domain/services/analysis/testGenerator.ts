@@ -244,28 +244,37 @@ function fixImplicitAnyTypes(code: string): string {
     // But NOT if there's already a type annotation or assignment
     let fixed = code;
     
-    // Pattern 1: Simple `let x;` or `const x;` declarations
-    fixed = fixed.replace(
-        /^(\s*)(let|const)\s+(\w+)\s*;$/gm,
-        '$1$2 $3: any;'
-    );
-    
-    // Pattern 2: `let x, y;` multiple declarations
-    fixed = fixed.replace(
-        /^(\s*)(let|const)\s+(\w+)\s*,\s*(\w+)\s*;$/gm,
-        '$1$2 $3: any, $4: any;'
-    );
-    
-    // Pattern 3: Declaration without initialization inside blocks (with proper indentation)
-    // This handles cases like `let mockDate;` inside describe/beforeEach
-    fixed = fixed.replace(
-        /(\s+)(let|const)\s+(\w+)\s*;/g,
-        (match, indent, keyword, varName) => {
-            // Don't replace if it looks like it already has a type
-            if (match.includes(':')) return match;
+    // Process line by line for more reliable matching
+    const lines = fixed.split('\n');
+    const fixedLines = lines.map(line => {
+        // Skip if line already has type annotation or assignment
+        if (line.includes(':') || line.includes('=')) return line;
+        
+        // Pattern: `let varName;` or `const varName;` with any leading whitespace
+        const singleDeclMatch = line.match(/^(\s*)(let|const|var)\s+(\w+)\s*;\s*$/);
+        if (singleDeclMatch) {
+            const [, indent, keyword, varName] = singleDeclMatch;
             return `${indent}${keyword} ${varName}: any;`;
         }
-    );
+        
+        // Pattern: `let x, y, z;` multiple declarations
+        const multiDeclMatch = line.match(/^(\s*)(let|const|var)\s+([\w\s,]+)\s*;\s*$/);
+        if (multiDeclMatch) {
+            const [, indent, keyword, varList] = multiDeclMatch;
+            const vars = varList.split(',').map(v => v.trim()).filter(v => v);
+            // Check each var doesn't have type annotation
+            const fixedVars = vars.map(v => v.includes(':') ? v : `${v}: any`);
+            return `${indent}${keyword} ${fixedVars.join(', ')};`;
+        }
+        
+        return line;
+    });
+    
+    fixed = fixedLines.join('\n');
+    
+    // Also fix function parameters without types if they appear
+    // Pattern: `function foo(x, y)` -> `function foo(x: any, y: any)`
+    // This is trickier and may need refinement
     
     return fixed;
 }
@@ -1045,23 +1054,65 @@ async function checkBuildErrors(
         return { hasErrors: false, errors: [], rawOutput: '' };
     }
     
+    // Check if the test file is a TypeScript file
+    if (!testFilePath.endsWith('.ts') && !testFilePath.endsWith('.tsx')) {
+        SWLogger.log('[TestGen] Test file is not TypeScript, skipping TypeScript check');
+        return { hasErrors: false, errors: [], rawOutput: '' };
+    }
+    
     try {
-        // Run TypeScript compiler in check mode (no emit)
-        const { stdout, stderr } = await execAsync(
-            'npx tsc --noEmit 2>&1 || true',
-            { cwd: workspaceRoot, timeout: 60000 }
-        );
+        // Run TypeScript compiler specifically on the test file
+        // Use --noEmit to just check without compiling
+        // Read the tsconfig but target the specific test file
+        const relativePath = path.relative(workspaceRoot, testFilePath);
+        SWLogger.log(`[TestGen] Type-checking test file: ${relativePath}`);
         
-        const output = stdout + stderr;
-        const errors = parseBuildErrors(output, workspaceRoot, testFilePath);
+        // Create a temporary tsconfig that includes the test file
+        // This ensures we check the test file even if it's outside src/
+        const tempTsconfigContent = JSON.stringify({
+            extends: './tsconfig.json',
+            compilerOptions: {
+                noEmit: true,
+                skipLibCheck: true,
+                rootDir: '.',  // Override to allow files outside src/
+                strict: true
+            },
+            include: [relativePath],
+            exclude: ['node_modules']
+        }, null, 2);
         
-        SWLogger.log(`[TestGen] Found ${errors.length} build errors`);
+        const tempTsconfigPath = path.join(workspaceRoot, 'tsconfig.testcheck.json');
+        fs.writeFileSync(tempTsconfigPath, tempTsconfigContent);
         
-        return {
-            hasErrors: errors.length > 0,
-            errors,
-            rawOutput: output
-        };
+        try {
+            const { stdout, stderr } = await execAsync(
+                `npx tsc --project tsconfig.testcheck.json 2>&1 || true`,
+                { cwd: workspaceRoot, timeout: 60000 }
+            );
+            
+            const output = stdout + stderr;
+            SWLogger.log(`[TestGen] TypeScript check output length: ${output.length}`);
+            
+            const errors = parseBuildErrors(output, workspaceRoot, testFilePath);
+            
+            SWLogger.log(`[TestGen] Found ${errors.length} build errors in test file`);
+            if (errors.length > 0) {
+                SWLogger.log(`[TestGen] First few errors: ${errors.slice(0, 3).map(e => e.message).join('; ')}`);
+            }
+            
+            return {
+                hasErrors: errors.length > 0,
+                errors,
+                rawOutput: output
+            };
+        } finally {
+            // Clean up temp tsconfig
+            try {
+                fs.unlinkSync(tempTsconfigPath);
+            } catch {
+                // Ignore cleanup errors
+            }
+        }
     } catch (err: any) {
         SWLogger.log(`[TestGen] Build check failed: ${err.message}`);
         return { hasErrors: false, errors: [], rawOutput: err.message };
