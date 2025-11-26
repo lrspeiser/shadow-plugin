@@ -714,6 +714,21 @@ export async function generateAndRunTests(
         }
     }
 
+    // Detect duplicate function names - we need unique aliases for imports
+    const functionNameCounts = new Map<string, number>();
+    for (const func of cappedFunctions) {
+        functionNameCounts.set(func.name, (functionNameCounts.get(func.name) || 0) + 1);
+    }
+    const duplicateFunctionNames = new Set(
+        [...functionNameCounts.entries()].filter(([, count]) => count > 1).map(([name]) => name)
+    );
+    if (duplicateFunctionNames.size > 0) {
+        SWLogger.log(`[TestGen] Found duplicate function names: ${[...duplicateFunctionNames].join(', ')}`);
+    }
+    
+    // Track which aliases we've used for duplicate names
+    const usedAliases = new Map<string, number>();
+    
     // Generate tests ONE FUNCTION AT A TIME to avoid hitting Claude's 8192 token output limit
     const generatedTests: { functionName: string; fileName: string; testCode: string }[] = [];
     
@@ -730,6 +745,20 @@ export async function generateAndRunTests(
         // Calculate the import path from UnitTests to the source file
         const importPath = '../' + func.file.replace(/\.ts$/, '').replace(/\.js$/, '');
         
+        // Generate unique alias if this function name is duplicated across files
+        let importAlias = func.name;
+        let useAlias = false;
+        if (duplicateFunctionNames.has(func.name)) {
+            const aliasIndex = (usedAliases.get(func.name) || 0) + 1;
+            usedAliases.set(func.name, aliasIndex);
+            // Create alias from filename, e.g., sendRequest from anthropicProvider -> sendRequestAnthropic
+            const fileBaseName = path.basename(func.file, path.extname(func.file));
+            const suffix = fileBaseName.replace(/Provider$/i, '').replace(/[^a-zA-Z0-9]/g, '');
+            importAlias = `${func.name}${suffix.charAt(0).toUpperCase()}${suffix.slice(1)}`;
+            useAlias = true;
+            SWLogger.log(`[TestGen] Using alias '${importAlias}' for ${func.name} from ${func.file}`);
+        }
+        
 // Prompt that asks for REAL imports based on detected setup
         const isTypeScript = fs.existsSync(path.join(workspaceRoot, 'tsconfig.json'));
         const typeScriptInstructions = isTypeScript ? `
@@ -739,6 +768,15 @@ export async function generateAndRunTests(
    - Avoid implicit 'any' types - add explicit type annotations everywhere
    - If you need to store original values, type them: \`let original: typeof obj.prop\`
    - For unknown types, use \`unknown\` and type guard, not implicit any` : '';
+        
+        // Build import statement based on whether we need an alias
+        const importStatement = useAlias
+            ? (envSetup.importStyle === 'esm' 
+                ? `import { ${func.name} as ${importAlias} } from '${importPath}'`
+                : `const { ${func.name}: ${importAlias} } = require('${importPath}')`)
+            : (envSetup.importStyle === 'esm'
+                ? `import { ${func.name} } from '${importPath}'`
+                : `const { ${func.name} } = require('${importPath}')`);
         
         const singlePrompt = `Generate a ${envSetup.framework} unit test for this function.
 
@@ -751,7 +789,7 @@ Project setup:
 - Import path from test: ${importPath}
 - Language: ${isTypeScript ? 'TypeScript (strict mode - NO implicit any)' : 'JavaScript'}
 
-Function: ${func.name}
+Function: ${func.name}${useAlias ? ` (import as '${importAlias}' to avoid name collision)` : ''}
 Purpose: ${func.purpose || 'Unknown'}
 
 Source Code:
@@ -760,10 +798,11 @@ ${funcCode}
 \`\`\`
 
 Generate a test that:
-1. Imports the REAL function from the source file using: ${envSetup.importStyle === 'esm' ? `import { ${func.name} } from '${importPath}'` : `const { ${func.name} } = require('${importPath}')`}
-2. Has 2-3 test cases in a describe block
-3. Mocks any external dependencies the function uses
-4. Tests both success and edge cases${typeScriptInstructions}`;
+1. Imports the function using EXACTLY: ${importStatement}
+2. ${useAlias ? `Uses '${importAlias}' (not '${func.name}') in all test code since we're using an alias` : `Uses '${func.name}' in test code`}
+3. Has 2-3 test cases in a describe block named '${importAlias}' (from ${path.basename(func.file)})
+4. Mocks any external dependencies the function uses
+5. Tests both success and edge cases${typeScriptInstructions}`;
         
         try {
             const response = await llmService.sendStructuredRequest(

@@ -47,3 +47,10 @@ coverage/  # Jest test coverage reports
 build/  # Common build output folder
 *.map  # Source map files generated during build
 *.log  # Log files
+
+# Auto-suggested patterns (2025-11-26)
+node_modules/  # Third-party dependencies, not source code
+dist/  # Build output directory containing compiled code
+out/  # Build output directory containing compiled code
+*.vsix  # Compiled extension packages, not source code
+.vscode/  # IDE-specific configuration files

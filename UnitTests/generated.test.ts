@@ -1,125 +1,37 @@
 /**
  * Auto-generated unit tests
- * Generated: 2025-11-26T17:17:48.344Z
+ * Generated: 2025-11-26T17:33:46.084Z
  */
 
 
 
 
-// Tests for analyzeWorkspace from src/extension.ts
-const { analyzeWorkspace } = require('../src/extension');
-const vscode = require('vscode');
-const { getConfigurationManager } = require('../src/extension');
-
-jest.mock('vscode', () => ({
-  window: {
-    showWarningMessage: jest.fn()
-  }
-}));
-
-jest.mock('../src/extension', () => {
-  const actual = jest.requireActual('../src/extension');
-  return {
-    ...actual,
-    getConfigurationManager: jest.fn()
-  };
-});
-
-describe('analyzeWorkspace', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should show warning message when Shadow Watch is disabled', () => {
-    const mockConfigManager = { enabled: false };
-    getConfigurationManager.mockReturnValue(mockConfigManager);
-
-    analyzeWorkspace();
-
-    expect(getConfigurationManager).toHaveBeenCalled();
-    expect(vscode.window.showWarningMessage).toHaveBeenCalledWith('Shadow Watch is disabled');
-  });
-
-  it('should not show warning message when Shadow Watch is enabled', () => {
-    const mockConfigManager = { enabled: true };
-    getConfigurationManager.mockReturnValue(mockConfigManager);
-
-    analyzeWorkspace();
-
-    expect(getConfigurationManager).toHaveBeenCalled();
-    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
-  });
-
-  it('should return early when configuration manager indicates disabled state', () => {
-    const mockConfigManager = { enabled: false };
-    getConfigurationManager.mockReturnValue(mockConfigManager);
-
-    const result = analyzeWorkspace();
-
-    expect(result).toBeUndefined();
-    expect(getConfigurationManager).toHaveBeenCalledTimes(1);
-  });
-});
-
-// Tests for canMakeRequest from src/ai/llmRateLimiter.ts
-const { canMakeRequest } = require('../src/ai/llmRateLimiter');
-
-describe('canMakeRequest', () => {
-  let mockDate;
-  let originalNow;
-
-  beforeEach(() => {
-    originalNow = Date.now;
-    mockDate = jest.spyOn(Date, 'now');
-  });
-
-  afterEach(() => {
-    mockDate.mockRestore();
-  });
-
-  it('should allow request when no previous requests exist', () => {
-    mockDate.mockReturnValue(1000000);
-    const result = canMakeRequest('openai');
-    expect(result).toBe(true);
-  });
-
-  it('should deny request when rate limit is exceeded', () => {
-    mockDate.mockReturnValue(1000000);
-    canMakeRequest('openai');
-    mockDate.mockReturnValue(1000100);
-    const result = canMakeRequest('openai');
-    expect(result).toBe(false);
-  });
-
-  it('should allow request after rate limit window has passed', () => {
-    mockDate.mockReturnValue(1000000);
-    canMakeRequest('anthropic');
-    mockDate.mockReturnValue(1000000 + 61000);
-    const result = canMakeRequest('anthropic');
-    expect(result).toBe(true);
-  });
-});
-
 // Tests for parseFileSummary from src/ai/llmResponseParser.ts
 const { parseFileSummary } = require('../src/ai/llmResponseParser');
 
 describe('parseFileSummary', () => {
-  it('should parse valid JSON response', () => {
-    const jsonResponse = JSON.stringify({ summary: 'This is a test summary' });
-    const result = parseFileSummary(jsonResponse);
-    expect(result).toBe('This is a test summary');
+  it('should parse valid JSON response with summary object', () => {
+    const jsonResponse: string = JSON.stringify({ summary: 'This is a file summary' });
+    const result: string = parseFileSummary(jsonResponse);
+    expect(result).toBe('This is a file summary');
   });
 
   it('should extract summary from text when JSON parsing fails', () => {
-    const textResponse = 'Some text before\nsummary: This is extracted summary\nSome text after';
-    const result = parseFileSummary(textResponse);
-    expect(result).toContain('This is extracted summary');
+    const textResponse: string = 'Some preamble text\n\nSummary: This file contains utility functions\n\nMore text after';
+    const result: string = parseFileSummary(textResponse);
+    expect(result).toContain('This file contains utility functions');
   });
 
-  it('should handle empty or invalid input gracefully', () => {
-    const emptyResponse = '';
-    const result = parseFileSummary(emptyResponse);
-    expect(result).toBeDefined();
+  it('should handle malformed input and return fallback', () => {
+    const malformedResponse: string = 'No summary pattern here at all';
+    const result: string = parseFileSummary(malformedResponse);
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('should handle empty string input', () => {
+    const emptyResponse: string = '';
+    const result: string = parseFileSummary(emptyResponse);
     expect(typeof result).toBe('string');
   });
 });
@@ -132,288 +44,215 @@ describe('executeWithRetry', () => {
     jest.clearAllMocks();
   });
 
-  it('should successfully execute operation on first attempt', async () => {
-    const mockOperation = jest.fn().mockResolvedValue('success');
-    const result = await executeWithRetry(mockOperation, { maxRetries: 3, initialDelay: 100 });
+  it('should successfully execute operation on first try', async () => {
+    const mockOperation = jest.fn<Promise<string>, []>().mockResolvedValue('success');
+    const result: string = await executeWithRetry(mockOperation);
     expect(result).toBe('success');
     expect(mockOperation).toHaveBeenCalledTimes(1);
   });
 
   it('should retry operation on failure and eventually succeed', async () => {
-    const mockOperation = jest.fn()
-      .mockRejectedValueOnce(new Error('Temporary failure'))
-      .mockRejectedValueOnce(new Error('Another failure'))
-      .mockResolvedValueOnce('success after retries');
-    const result = await executeWithRetry(mockOperation, { maxRetries: 3, initialDelay: 10 });
-    expect(result).toBe('success after retries');
+    const mockOperation = jest.fn<Promise<string>, []>()
+      .mockRejectedValueOnce(new Error('First failure'))
+      .mockRejectedValueOnce(new Error('Second failure'))
+      .mockResolvedValueOnce('success');
+    const result: string = await executeWithRetry(mockOperation, { maxRetries: 3, initialDelay: 10 });
+    expect(result).toBe('success');
     expect(mockOperation).toHaveBeenCalledTimes(3);
   });
 
   it('should throw error after exhausting all retries', async () => {
-    const finalError = new Error('Permanent failure');
-    const mockOperation = jest.fn().mockRejectedValue(finalError);
-    await expect(executeWithRetry(mockOperation, { maxRetries: 2, initialDelay: 10 })).rejects.toThrow('Permanent failure');
+    const mockError: Error = new Error('Persistent failure');
+    const mockOperation = jest.fn<Promise<string>, []>().mockRejectedValue(mockError);
+    await expect(executeWithRetry(mockOperation, { maxRetries: 2, initialDelay: 10 })).rejects.toThrow('Persistent failure');
     expect(mockOperation).toHaveBeenCalledTimes(3);
   });
 });
 
-// Tests for sendStructuredRequest from src/ai/providers/anthropicProvider.ts
-const { sendStructuredRequest } = require('../src/ai/providers/anthropicProvider');
+// Tests for sendRequest from src/ai/providers/anthropicProvider.ts
+const { sendRequest } = require('../src/ai/providers/anthropicProvider');
 
-describe('sendStructuredRequest', () => {
-  let mockFetch;
-  let originalFetch;
-
-  beforeEach(() => {
-    originalFetch = global.fetch;
-    mockFetch = jest.fn();
-    global.fetch = mockFetch;
-  });
-
-  afterEach(() => {
-    global.fetch = originalFetch;
-    jest.clearAllMocks();
-  });
-
-  it('should successfully send a structured request and return parsed response', async () => {
-    const mockResponseData = {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ result: 'success', data: { value: 42 } })
-      }]
-    };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponseData,
-      status: 200,
-      statusText: 'OK'
-    });
-
-    const schema = {
-      type: 'object',
-      properties: {
-        result: { type: 'string' },
-        data: { type: 'object' }
-      }
-    };
-
-    const result = await sendStructuredRequest('test prompt', schema, 'test-api-key');
-
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('anthropic.com'),
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          'x-api-key': 'test-api-key',
-          'anthropic-version': expect.any(String),
-          'content-type': 'application/json'
-        })
-      })
-    );
-    expect(result).toEqual({ result: 'success', data: { value: 42 } });
-  });
-
-  it('should throw error when API request fails', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      statusText: 'Unauthorized',
-      json: async () => ({ error: 'Invalid API key' })
-    });
-
-    const schema = { type: 'object' };
-
-    await expect(sendStructuredRequest('test prompt', schema, 'invalid-key')).rejects.toThrow();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle malformed JSON response gracefully', async () => {
-    const mockResponseData = {
-      content: [{
-        type: 'text',
-        text: 'not valid json'
-      }]
-    };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponseData,
-      status: 200,
-      statusText: 'OK'
-    });
-
-    const schema = { type: 'object' };
-
-    await expect(sendStructuredRequest('test prompt', schema, 'test-api-key')).rejects.toThrow();
-  });
-});
-
-// Tests for sendStructuredRequest from src/ai/providers/openAIProvider.ts
-const { sendStructuredRequest: sendStructuredRequestOpenAI } = require('../src/ai/providers/openAIProvider');
-
-describe('sendStructuredRequest', () => {
-  let mockOpenAI;
-  let mockBetaParse;
-  let originalOpenAI;
+describe('sendRequest', () => {
+  let mockAnthropicCreate: jest.Mock<any, any>;
+  let originalAnthropic: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBetaParse = jest.fn();
-    mockOpenAI = {
-      beta: {
-        chat: {
-          completions: {
-            parse: mockBetaParse
-          }
-        }
+    mockAnthropicCreate = jest.fn();
+    originalAnthropic = (global as any).Anthropic;
+    (global as any).Anthropic = jest.fn().mockImplementation(() => ({
+      messages: {
+        create: mockAnthropicCreate
       }
-    };
-    originalOpenAI = global.openAIClient;
-    global.openAIClient = mockOpenAI;
+    }));
   });
 
   afterEach(() => {
-    global.openAIClient = originalOpenAI;
+    (global as any).Anthropic = originalAnthropic;
   });
 
-  it('should successfully parse structured response from OpenAI', async () => {
-    const mockSchema = {
-      type: 'object',
-      properties: {
-        name: { type: 'string' },
-        age: { type: 'number' }
+  it('should successfully send a request and return formatted response with token usage', async () => {
+    const mockResponse: any = {
+      id: 'msg_123',
+      content: [{ type: 'text', text: 'Hello, how can I help you?' }],
+      usage: {
+        input_tokens: 10,
+        output_tokens: 8
       },
-      required: ['name', 'age']
+      stop_reason: 'end_turn'
     };
-    const mockResponse = {
-      choices: [{
-        message: {
-          parsed: { name: 'John Doe', age: 30 }
-        }
-      }]
-    };
-    mockBetaParse.mockResolvedValue(mockResponse);
+    mockAnthropicCreate.mockResolvedValue(mockResponse);
 
-    const result = await sendStructuredRequestOpenAI('Test prompt', mockSchema, 'gpt-4o');
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'user', content: 'Hello' }
+    ];
+    const result: any = await sendRequest('claude-3-sonnet-20240229', messages, {}, 'test-api-key');
 
-    expect(mockBetaParse).toHaveBeenCalledWith({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: 'Test prompt' }],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'response_schema',
-          schema: mockSchema,
-          strict: true
-        }
-      }
+    expect(result).toEqual({
+      content: 'Hello, how can I help you?',
+      tokensUsed: { input: 10, output: 8, total: 18 },
+      stopReason: 'end_turn'
     });
-    expect(result).toEqual({ name: 'John Doe', age: 30 });
-  });
-
-  it('should handle API errors gracefully', async () => {
-    const mockSchema = { type: 'object', properties: {} };
-    const error = new Error('API Error: Rate limit exceeded');
-    mockBetaParse.mockRejectedValue(error);
-
-    await expect(sendStructuredRequestOpenAI('Test prompt', mockSchema, 'gpt-4o')).rejects.toThrow('API Error: Rate limit exceeded');
-    expect(mockBetaParse).toHaveBeenCalledTimes(1);
-  });
-
-  it('should use default model when not specified', async () => {
-    const mockSchema = { type: 'object', properties: { result: { type: 'string' } } };
-    const mockResponse = {
-      choices: [{
-        message: {
-          parsed: { result: 'success' }
-        }
-      }]
-    };
-    mockBetaParse.mockResolvedValue(mockResponse);
-
-    const result = await sendStructuredRequestOpenAI('Test prompt', mockSchema);
-
-    expect(mockBetaParse).toHaveBeenCalledWith(
+    expect(mockAnthropicCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: expect.any(String),
-        messages: [{ role: 'user', content: 'Test prompt' }]
+        model: 'claude-3-sonnet-20240229',
+        messages: messages
       })
     );
-    expect(result).toEqual({ result: 'success' });
+  });
+
+  it('should handle system messages by converting to system parameter', async () => {
+    const mockResponse: any = {
+      id: 'msg_456',
+      content: [{ type: 'text', text: 'Response with system context' }],
+      usage: {
+        input_tokens: 25,
+        output_tokens: 15
+      },
+      stop_reason: 'end_turn'
+    };
+    mockAnthropicCreate.mockResolvedValue(mockResponse);
+
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'system', content: 'You are a helpful assistant' },
+      { role: 'user', content: 'Help me' }
+    ];
+    const result: any = await sendRequest('claude-3-opus-20240229', messages, {}, 'test-api-key');
+
+    expect(result.content).toBe('Response with system context');
+    expect(mockAnthropicCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        system: 'You are a helpful assistant',
+        messages: [{ role: 'user', content: 'Help me' }]
+      })
+    );
+  });
+
+  it('should handle API errors and throw appropriate error', async () => {
+    const apiError: Error = new Error('API rate limit exceeded');
+    mockAnthropicCreate.mockRejectedValue(apiError);
+
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'user', content: 'Test message' }
+    ];
+
+    await expect(sendRequest('claude-3-sonnet-20240229', messages, {}, 'test-api-key')).rejects.toThrow('API rate limit exceeded');
+    expect(mockAnthropicCreate).toHaveBeenCalled();
   });
 });
 
-// Tests for analyzeWorkspace from src/analyzer.ts
-const { analyzeWorkspace: analyzeWorkspaceAnalyzer } = require('../src/analyzer');
-const fs = require('fs');
-const path = require('path');
+// Tests for sendRequest from src/ai/providers/openAIProvider.ts
+const { sendRequest } = require('../src/ai/providers/openAIProvider');
 
-jest.mock('fs');
-jest.mock('path');
+describe('sendRequest', () => {
+  let mockOpenAICreate: jest.Mock<Promise<any>, any[]>;
+  let mockLogger: { log: jest.Mock<void, [string]>; error: jest.Mock<void, [string, any?]> };
+  let originalOpenAI: any;
+  let originalLogger: any;
 
-const mockFs = fs;
-const mockPath = path;
-
-describe('analyzeWorkspace', () => {
   beforeEach(() => {
+    mockOpenAICreate = jest.fn<Promise<any>, any[]>();
+    mockLogger = {
+      log: jest.fn<void, [string]>(),
+      error: jest.fn<void, [string, any?]>()
+    };
+
+    const mockOpenAIInstance: any = {
+      chat: {
+        completions: {
+          create: mockOpenAICreate
+        }
+      }
+    };
+
+    jest.mock('openai', () => {
+      return {
+        __esModule: true,
+        default: jest.fn(() => mockOpenAIInstance)
+      };
+    });
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should analyze a workspace with valid TypeScript files', () => {
-    const workspacePath = '/test/workspace';
-    const mockFiles = ['index.ts', 'utils.ts'];
-    const mockStats1 = { isDirectory: () => false, isFile: () => true };
-    const mockStats2 = { isDirectory: () => false, isFile: () => true };
-    const mockContent1 = 'export function test() { return 42; }';
-    const mockContent2 = 'export const util = () => true;';
+  it('should successfully send a request and return response with token tracking', async () => {
+    const mockResponse: any = {
+      choices: [{ message: { content: 'Test response' } }],
+      usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+    };
+    mockOpenAICreate.mockResolvedValue(mockResponse);
 
-    mockFs.readdirSync = jest.fn().mockReturnValue(mockFiles);
-    mockFs.statSync = jest.fn().mockReturnValueOnce(mockStats1).mockReturnValueOnce(mockStats2);
-    mockFs.readFileSync = jest.fn().mockReturnValueOnce(mockContent1).mockReturnValueOnce(mockContent2);
-    mockPath.join = jest.fn((...args) => args.join('/'));
-    mockPath.extname = jest.fn((file) => file.endsWith('.ts') ? '.ts' : '');
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'user', content: 'Test message' }
+    ];
+    const options: { model: string; temperature: number } = {
+      model: 'gpt-4',
+      temperature: 0.7
+    };
 
-    const result = analyzeWorkspaceAnalyzer(workspacePath);
+    const result: any = await sendRequest(messages, options);
 
-    expect(mockFs.readdirSync).toHaveBeenCalledWith(workspacePath);
-    expect(result).toBeDefined();
+    expect(mockOpenAICreate).toHaveBeenCalledWith(expect.objectContaining({
+      messages,
+      model: options.model,
+      temperature: options.temperature
+    }));
+    expect(result).toEqual(mockResponse);
   });
 
-  it('should handle empty workspace directory', () => {
-    const workspacePath = '/test/empty';
-    const mockFiles = [];
+  it('should handle API errors and throw appropriate error', async () => {
+    const mockError: Error = new Error('API rate limit exceeded');
+    mockOpenAICreate.mockRejectedValue(mockError);
 
-    mockFs.readdirSync = jest.fn().mockReturnValue(mockFiles);
-    mockPath.join = jest.fn((...args) => args.join('/'));
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'user', content: 'Test message' }
+    ];
+    const options: { model: string } = { model: 'gpt-4' };
 
-    const result = analyzeWorkspaceAnalyzer(workspacePath);
-
-    expect(mockFs.readdirSync).toHaveBeenCalledWith(workspacePath);
-    expect(result).toBeDefined();
+    await expect(sendRequest(messages, options)).rejects.toThrow('API rate limit exceeded');
   });
 
-  it('should skip non-TypeScript files and directories', () => {
-    const workspacePath = '/test/mixed';
-    const mockFiles = ['test.ts', 'readme.md', 'node_modules'];
-    const mockStatsFile = { isDirectory: () => false, isFile: () => true };
-    const mockStatsDir = { isDirectory: () => true, isFile: () => false };
-    const mockContent = 'export function main() {}';
+  it('should handle empty messages array', async () => {
+    const mockResponse: any = {
+      choices: [{ message: { content: 'Empty response' } }],
+      usage: { prompt_tokens: 0, completion_tokens: 5, total_tokens: 5 }
+    };
+    mockOpenAICreate.mockResolvedValue(mockResponse);
 
-    mockFs.readdirSync = jest.fn().mockReturnValue(mockFiles);
-    mockFs.statSync = jest.fn().mockReturnValueOnce(mockStatsFile).mockReturnValueOnce(mockStatsFile).mockReturnValueOnce(mockStatsDir);
-    mockFs.readFileSync = jest.fn().mockReturnValue(mockContent);
-    mockPath.join = jest.fn((...args) => args.join('/'));
-    mockPath.extname = jest.fn((file) => {
-      if (file.endsWith('.ts')) return '.ts';
-      if (file.endsWith('.md')) return '.md';
-      return '';
-    });
+    const messages: Array<{ role: string; content: string }> = [];
+    const options: { model: string } = { model: 'gpt-3.5-turbo' };
 
-    const result = analyzeWorkspaceAnalyzer(workspacePath);
+    const result: any = await sendRequest(messages, options);
 
-    expect(mockFs.readdirSync).toHaveBeenCalled();
-    expect(result).toBeDefined();
+    expect(mockOpenAICreate).toHaveBeenCalledWith(expect.objectContaining({
+      messages,
+      model: options.model
+    }));
+    expect(result).toEqual(mockResponse);
   });
 });
+
+// Tests for analyzeFileMetadata from src/analysis/enhancedAnalyzer.ts
+const { analyzeFileMetadata } = require('../src/analysis/enhancedAnalyzer'); const fs = require('fs'); const path = require('path'); describe('analyzeFileMetadata', () => { let mockReadFileSync: jest.Mock<string, [fs.PathOrFileDescriptor, BufferEncoding]>; let originalReadFileSync: typeof fs.readFileSync; beforeEach(() => { originalReadFileSync = fs.readFileSync; mockReadFileSync = jest.fn<string, [fs.PathOrFileDescriptor, BufferEncoding]>(); fs.readFileSync = mockReadFileSync; }); afterEach(() => { fs.readFileSync = originalReadFileSync; jest.restoreAllMocks(); }); test('should analyze a TypeScript file with a simple function', () => { const filePath: string = '/test/sample.ts'; const fileContent: string = 'function add(a: number, b: number): number { return a + b; }'; mockReadFileSync.mockReturnValue(fileContent); const result: unknown = analyzeFileMetadata(filePath); expect(mockReadFileSync).toHaveBeenCalledWith(filePath, 'utf-8'); expect(result).toBeDefined(); expect(typeof result).toBe('object'); expect(result).toHaveProperty('functions'); const resultObj: { functions?: unknown[] } = result as { functions?: unknown[] }; expect(Array.isArray(resultObj.functions)).toBe(true); if (resultObj.functions && resultObj.functions.length > 0) { const firstFunc: unknown = resultObj.functions[0]; expect(firstFunc).toHaveProperty('name'); const funcWithName: { name?: string } = firstFunc as { name?: string }; expect(funcWithName.name).toBe('add'); } }); test('should handle files with no functions', () => { const filePath: string = '/test/empty.ts'; const fileContent: string = 'const x: number = 5;'; mockReadFileSync.mockReturnValue(fileContent); const result: unknown = analyzeFileMetadata(filePath); expect(result).toBeDefined(); expect(typeof result).toBe('object'); expect(result).toHaveProperty('functions'); const resultObj: { functions?: unknown[] } = result as { functions?: unknown[] }; expect(Array.isArray(resultObj.functions)).toBe(true); expect(resultObj.functions?.length || 0).toBe(0); }); test('should handle file read errors gracefully', () => { const filePath: string = '/test/nonexistent.ts'; mockReadFileSync.mockImplementation(() => { throw new Error('File not found'); }); expect(() => analyzeFileMetadata(filePath)).toThrow('File not found'); }); });
