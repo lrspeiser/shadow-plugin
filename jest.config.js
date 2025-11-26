@@ -1,9 +1,19 @@
 module.exports = {
+  preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/UnitTests/**/*.test.js'],
-  verbose: true,
+  roots: ['<rootDir>/UnitTests'],
+  testMatch: ['**/*.test.ts', '**/*.test.js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  collectCoverageFrom: ['**/*.{ts,js}', '!**/*.test.{ts,js}', '!**/node_modules/**', '!**/dist/**'],
   transform: {
-    '^.+\.js$': 'babel-jest'
+    '^.+\\.ts$': 'ts-jest'
   },
-  transformIgnorePatterns: []
+  globals: {
+    'ts-jest': {
+      tsconfig: {
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true
+      }
+    }
+  }
 };

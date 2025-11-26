@@ -44,7 +44,7 @@ export class CommandRegistry {
             vscode.commands.registerCommand('shadowWatch.clearAllData', handlers.clearAllData),
             vscode.commands.registerCommand('shadowWatch.refreshInsights', async () => {
                 // Refresh just reloads the tree view
-                components.insightsProvider.refresh();
+                components.insightsViewer.refresh();
             }),
             vscode.commands.registerCommand('shadowWatch.openReport', async (filePath: string) => {
                 try {
@@ -54,6 +54,26 @@ export class CommandRegistry {
                 } catch (error) {
                     vscode.window.showErrorMessage(`Failed to open report: ${error instanceof Error ? error.message : String(error)}`);
                 }
+            }),
+            vscode.commands.registerCommand('shadowWatch.openShadowIgnore', async () => {
+                const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                if (!workspaceRoot) {
+                    vscode.window.showErrorMessage('No workspace folder open');
+                    return;
+                }
+                const path = require('path');
+                const fs = require('fs');
+                const ignorePath = path.join(workspaceRoot, '.shadowignore');
+                
+                // Create default file if it doesn't exist
+                if (!fs.existsSync(ignorePath)) {
+                    const defaultContent = `# Shadow Watch Ignore File\n# Add patterns for folders/files to exclude from analysis\n# One pattern per line, supports glob patterns\n\n# Common excludes (uncomment as needed):\n# node_modules\n# dist\n# build\n# coverage\n# __pycache__\n# .git\n# *.test.ts\n# *.spec.js\n`;
+                    fs.writeFileSync(ignorePath, defaultContent);
+                }
+                
+                const uri = vscode.Uri.file(ignorePath);
+                const document = await vscode.workspace.openTextDocument(uri);
+                await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
             })
         );
 

@@ -3228,7 +3228,9 @@ Return ONLY the Markdown report, no additional text or explanations.`;
                 }
                 
                 // Save the full response to a debug file for inspection
-                const debugPath = path.join(require('os').tmpdir(), `llm-response-debug-${Date.now()}.json`);
+                const os = require('os');
+                const pathModule = require('path');
+                const debugPath = pathModule.join(os.tmpdir(), `llm-response-debug-${Date.now()}.json`);
                 try {
                     require('fs').writeFileSync(debugPath, jsonText, 'utf-8');
                     SWLogger.log(`[LLM] Full response saved to: ${debugPath}`);

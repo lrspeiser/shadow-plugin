@@ -95,25 +95,8 @@ export function activate(context: vscode.ExtensionContext) {
  */
 function createCommandHandlers(components: ExtensionComponents): CommandHandlers {
     return {
-        analyzeWorkspace: () => analyzeWorkspace(),
-        analyzeCurrentFile: () => analyzeCurrentFile(),
-        copyAllInsights: () => copyAllInsights(),
-        copyFileInsights: () => copyFileInsights(),
-        copyInsight: (item: any) => copyInsight(item),
-        clearCache: () => clearCache(),
         clearAllData: () => clearAllData(),
-        showSettings: () => showSettings(),
-        openLatestReport: () => openLatestReport(),
-        openLatestUnitTestReport: () => openLatestUnitTestReport(),
-        switchProvider: () => switchProvider(),
-        copyMenuStructure: () => copyMenuStructure(),
-        showProviderStatus: () => showProviderStatus(),
-        navigateToProductItem: (item: any) => navigationHandler.navigateToProductItem(item),
-        navigateToAnalysisItem: (item: any) => navigationHandler.navigateToAnalysisItem(item),
-        copyInsightItem: (item: any) => navigationHandler.copyInsightItem(item),
-        showProductItemDetails: (item: any) => navigationHandler.showProductItemDetails(item),
-        showInsightItemDetails: (item: any) => navigationHandler.showInsightItemDetails(item),
-        showUnitTestItemDetails: (item: any) => navigationHandler.showUnitTestItemDetails(item)
+        showSettings: () => showSettings()
     };
 }
 

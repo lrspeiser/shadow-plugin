@@ -3511,6 +3511,43 @@ export async function runStreamlinedAnalysisWithTests(cancellationToken?: vscode
             }
             
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            
+            // Build error section if there are build errors
+            let buildErrorSection = '';
+            if (testResult.buildErrors && testResult.buildErrors.length > 0) {
+                const userErrors = testResult.buildErrors.filter((e: any) => e.isUserCode);
+                const testErrors = testResult.buildErrors.filter((e: any) => !e.isUserCode);
+                
+                if (userErrors.length > 0) {
+                    buildErrorSection += `
+## ⚠️ Build Errors in Your Code
+The following TypeScript/compilation errors were found in your source code. These must be fixed before tests can run reliably.
+
+${userErrors.map((e: any) => `### ${e.file}:${e.line}
+- **Error**: ${e.message}
+- **Code**: ${e.code || 'N/A'}
+- **Suggested Fix**: Check the error message and fix the type/reference issue in your code.
+`).join('\n')}`;
+                }
+                
+                if (testErrors.length > 0) {
+                    buildErrorSection += `
+## ℹ️ Errors in Generated Tests
+These errors are in the auto-generated test files and may be due to import issues or mocking problems.
+
+${testErrors.map((e: any) => `- **${e.file}:${e.line}** - ${e.message}`).join('\n')}
+`;
+                }
+            }
+            
+            const testStatusHeader = testResult.buildErrorsSkippedTests 
+                ? '## ⏸️ Test Execution Skipped\nTests were not executed due to build errors in your source code. Fix the errors above and re-run.'
+                : `## Test Results
+- Tests generated: ${testResult.testsGenerated}
+- Test file: ${testResult.testFilePath}
+- **Passed: ${testResult.runResult?.passed || 0}**
+- **Failed: ${testResult.runResult?.failed || 0}**`;
+
             const report = `# Analysis + Test Report
 Generated: ${new Date().toISOString()}
 
@@ -3531,14 +3568,10 @@ ${analysisResult.strengths.map((s: string) => `- ${s}`).join('\n')}
 
 ### Issues
 ${formatIssuesBySeverity(analysisResult.issues)}
-
+${buildErrorSection}
 ---
 
-## Test Results
-- Tests generated: ${testResult.testsGenerated}
-- Test file: ${testResult.testFilePath}
-- **Passed: ${testResult.runResult?.passed || 0}**
-- **Failed: ${testResult.runResult?.failed || 0}**
+${testStatusHeader}
 
 ### Test Output
 \`\`\`

@@ -59,6 +59,11 @@
       {
         "command": "shadowWatch.openReport",
         "title": "Open Report"
+      },
+      {
+        "command": "shadowWatch.openShadowIgnore",
+        "title": "Shadow Watch: Edit .shadowignore",
+        "icon": "$(exclude)"
       }
     ],
     "viewsContainers": {

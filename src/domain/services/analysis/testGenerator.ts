@@ -77,9 +77,20 @@ export const TEST_GENERATION_SCHEMA = {
     required: ["framework", "setupCode", "tests"]
 };
 
+export interface BuildError {
+    file: string;
+    line: number;
+    column: number;
+    message: string;
+    code?: string;
+    isUserCode: boolean; // true if error is in user's code, false if in generated tests
+}
+
 export interface TestGenerationResult {
     testsGenerated: number;
     testFilePath: string;
+    buildErrors?: BuildError[];
+    buildErrorsSkippedTests?: boolean; // true if tests were skipped due to build errors in user code
     runResult?: {
         passed: number;
         failed: number;
@@ -531,6 +542,41 @@ Keep the imports to the source files - this is a real unit test.`;
     fs.writeFileSync(testFilePath, testFileContent);
     SWLogger.log(`[TestGen] Wrote tests to ${testFilePath}`);
 
+    // Check for build errors BEFORE running tests
+    onProgress?.('Checking for build errors...');
+    const buildCheck = await checkBuildErrors(workspaceRoot, testFilePath);
+    
+    if (buildCheck.hasErrors) {
+        const userCodeErrors = buildCheck.errors.filter(e => e.isUserCode);
+        const testCodeErrors = buildCheck.errors.filter(e => !e.isUserCode);
+        
+        SWLogger.log(`[TestGen] Build errors detected: ${userCodeErrors.length} in user code, ${testCodeErrors.length} in tests`);
+        
+        // If there are errors in user code, we cannot run tests reliably
+        if (userCodeErrors.length > 0) {
+            SWLogger.log('[TestGen] Skipping test execution due to user code errors');
+            onProgress?.(`Found ${userCodeErrors.length} build error(s) in your code - see report for details`);
+            
+            return {
+                testsGenerated: testData.tests.length,
+                testFilePath,
+                buildErrors: buildCheck.errors,
+                buildErrorsSkippedTests: true,
+                runResult: {
+                    passed: 0,
+                    failed: 0,
+                    output: `Tests skipped due to ${userCodeErrors.length} build error(s) in source code:\n\n` +
+                            userCodeErrors.map(e => `  ${e.file}:${e.line} - ${e.message}`).join('\n')
+                }
+            };
+        }
+        
+        // If only test code has errors, report them but note we tried to generate tests
+        if (testCodeErrors.length > 0) {
+            SWLogger.log('[TestGen] Generated tests have errors (may be due to import issues)');
+        }
+    }
+
     // Run tests using the command from LLM setup
     onProgress?.('Running tests...');
     SWLogger.log(`[TestGen] Running tests with: ${envSetup.runCommand}`);
@@ -542,8 +588,98 @@ Keep the imports to the source files - this is a real unit test.`;
     return {
         testsGenerated: testData.tests.length,
         testFilePath,
+        buildErrors: buildCheck.hasErrors ? buildCheck.errors : undefined,
         runResult
     };
+}
+
+/**
+ * Check for TypeScript/build errors before running tests
+ */
+async function checkBuildErrors(
+    workspaceRoot: string,
+    testFilePath: string
+): Promise<{ hasErrors: boolean; errors: BuildError[]; rawOutput: string }> {
+    SWLogger.log('[TestGen] Checking for build/compilation errors...');
+    
+    // First check if TypeScript is being used
+    const tsconfigPath = path.join(workspaceRoot, 'tsconfig.json');
+    if (!fs.existsSync(tsconfigPath)) {
+        SWLogger.log('[TestGen] No tsconfig.json, skipping TypeScript check');
+        return { hasErrors: false, errors: [], rawOutput: '' };
+    }
+    
+    try {
+        // Run TypeScript compiler in check mode (no emit)
+        const { stdout, stderr } = await execAsync(
+            'npx tsc --noEmit 2>&1 || true',
+            { cwd: workspaceRoot, timeout: 60000 }
+        );
+        
+        const output = stdout + stderr;
+        const errors = parseBuildErrors(output, workspaceRoot, testFilePath);
+        
+        SWLogger.log(`[TestGen] Found ${errors.length} build errors`);
+        
+        return {
+            hasErrors: errors.length > 0,
+            errors,
+            rawOutput: output
+        };
+    } catch (err: any) {
+        SWLogger.log(`[TestGen] Build check failed: ${err.message}`);
+        return { hasErrors: false, errors: [], rawOutput: err.message };
+    }
+}
+
+/**
+ * Parse TypeScript/compilation errors from output
+ */
+function parseBuildErrors(output: string, workspaceRoot: string, testFilePath: string): BuildError[] {
+    const errors: BuildError[] = [];
+    
+    // Match TypeScript error format: file(line,col): error TSxxxx: message
+    // Also match: file:line:col - error TSxxxx: message
+    const patterns = [
+        /^(.+?)\((\d+),(\d+)\):\s*error\s+(TS\d+):\s*(.+)$/gm,
+        /^(.+?):(\d+):(\d+)\s*-\s*error\s+(TS\d+):\s*(.+)$/gm
+    ];
+    
+    for (const pattern of patterns) {
+        let match;
+        while ((match = pattern.exec(output)) !== null) {
+            const [, filePath, line, col, code, message] = match;
+            
+            // Normalize the file path
+            const normalizedPath = filePath.trim();
+            const fullPath = path.isAbsolute(normalizedPath) 
+                ? normalizedPath 
+                : path.join(workspaceRoot, normalizedPath);
+            
+            // Determine if this is user code or generated test code
+            const isUserCode = !fullPath.includes('UnitTests') && 
+                               !fullPath.includes('generated.test') &&
+                               !fullPath.includes('node_modules');
+            
+            errors.push({
+                file: normalizedPath,
+                line: parseInt(line),
+                column: parseInt(col),
+                message: message.trim(),
+                code,
+                isUserCode
+            });
+        }
+    }
+    
+    // Deduplicate errors
+    const seen = new Set<string>();
+    return errors.filter(e => {
+        const key = `${e.file}:${e.line}:${e.message}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 /**

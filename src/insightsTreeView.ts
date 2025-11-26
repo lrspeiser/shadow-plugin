@@ -660,6 +660,17 @@ export class InsightsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
         };
         items.push(settingsBtn);
 
+        // Shadow Ignore
+        const ignoreBtn = new TreeItem('📝 Edit .shadowignore', vscode.TreeItemCollapsibleState.None);
+        ignoreBtn.type = 'action';
+        ignoreBtn.iconPath = new vscode.ThemeIcon('exclude');
+        ignoreBtn.description = 'Exclude folders from analysis';
+        ignoreBtn.command = {
+            command: 'shadowWatch.openShadowIgnore',
+            title: 'Edit .shadowignore'
+        };
+        items.push(ignoreBtn);
+
         // Clear All Data
         const clearBtn = new TreeItem('🗑️ Clear All Data', vscode.TreeItemCollapsibleState.None);
         clearBtn.type = 'action';

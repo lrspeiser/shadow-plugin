@@ -14,6 +14,65 @@ import { SWLogger } from '../../../logger';
 import { scanProjectStructure, ProjectSummary } from './analysisPlanner';
 import { SimpleExtractorService, SCHEMAS } from './simpleExtractor';
 
+/**
+ * Read and parse .shadowignore file
+ * Returns array of patterns to ignore (similar to .gitignore)
+ */
+function loadShadowIgnore(workspaceRoot: string): string[] {
+    const ignorePath = path.join(workspaceRoot, '.shadowignore');
+    const defaultIgnores = [
+        'node_modules',
+        '.shadow',
+        'dist',
+        'out', 
+        'build',
+        'coverage',
+        '__pycache__',
+        '.git',
+        'UnitTests' // Our generated tests
+    ];
+    
+    if (!fs.existsSync(ignorePath)) {
+        return defaultIgnores;
+    }
+    
+    try {
+        const content = fs.readFileSync(ignorePath, 'utf-8');
+        const customIgnores = content
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith('#')); // Skip empty lines and comments
+        
+        SWLogger.log(`[ShadowIgnore] Loaded ${customIgnores.length} custom ignore patterns`);
+        return [...defaultIgnores, ...customIgnores];
+    } catch (err) {
+        SWLogger.log(`[ShadowIgnore] Could not read .shadowignore: ${err}`);
+        return defaultIgnores;
+    }
+}
+
+/**
+ * Check if a path should be ignored based on patterns
+ */
+function shouldIgnore(filePath: string, ignorePatterns: string[]): boolean {
+    for (const pattern of ignorePatterns) {
+        // Simple pattern matching - supports folder names and wildcards
+        if (pattern.includes('*')) {
+            // Convert glob to regex
+            const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+            if (regex.test(filePath) || regex.test(path.basename(filePath))) {
+                return true;
+            }
+        } else {
+            // Exact folder/file name match
+            if (filePath.includes(pattern) || filePath.startsWith(pattern)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 export interface StreamlinedResult {
     overview: string;
     functions: any[];
@@ -30,11 +89,12 @@ export interface StreamlinedResult {
 }
 
 /**
- * Get list of code files from project summary
+ * Get list of code files from project summary, respecting .shadowignore
  */
 function getCodeFiles(workspaceRoot: string, summary: ProjectSummary): string[] {
     const files: string[] = [];
-    const skipPatterns = ['.test.', '.spec.', '_test.', 'node_modules', '.shadow'];
+    const ignorePatterns = loadShadowIgnore(workspaceRoot);
+    const testPatterns = ['.test.', '.spec.', '_test.'];
     const codeExtensions = new Set(['.js', '.ts', '.jsx', '.tsx', '.py', '.go', '.rs']);
 
     function walkDir(dir: string, relPath: string = '') {
@@ -45,20 +105,16 @@ function getCodeFiles(workspaceRoot: string, summary: ProjectSummary): string[] 
                 const entryRelPath = relPath ? `${relPath}/${entry.name}` : entry.name;
 
                 if (entry.isDirectory()) {
-                    // Skip hidden dirs, node_modules, build outputs, and shadow dirs
-                    if (!entry.name.startsWith('.') && 
-                        !entry.name.includes('node_modules') &&
-                        !entry.name.includes('.shadow') &&
-                        entry.name !== 'dist' &&
-                        entry.name !== 'out' &&
-                        entry.name !== 'build') {
+                    // Check against ignore patterns
+                    if (!entry.name.startsWith('.') && !shouldIgnore(entryRelPath, ignorePatterns)) {
                         walkDir(fullPath, entryRelPath);
                     }
                 } else if (entry.isFile()) {
                     const ext = path.extname(entry.name).toLowerCase();
-                    const shouldSkip = skipPatterns.some(p => entry.name.includes(p));
+                    const isTestFile = testPatterns.some(p => entry.name.includes(p));
+                    const isIgnored = shouldIgnore(entryRelPath, ignorePatterns);
                     
-                    if (codeExtensions.has(ext) && !shouldSkip) {
+                    if (codeExtensions.has(ext) && !isTestFile && !isIgnored) {
                         files.push(entryRelPath);
                     }
                 }
