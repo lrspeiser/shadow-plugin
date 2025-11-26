@@ -1,8 +1,9 @@
 /**
- * Simple Test Generator
+ * Test Generator with LLM-driven environment setup
  * 
- * Generates unit tests based on streamlined analysis results.
- * Single LLM call to generate all tests for small projects.
+ * 1. Detects project language/framework
+ * 2. Asks LLM to configure test environment
+ * 3. Generates proper unit tests with real imports
  */
 
 import * as fs from 'fs';
@@ -12,6 +13,38 @@ import { promisify } from 'util';
 import { SWLogger } from '../../../logger';
 
 const execAsync = promisify(exec);
+
+// Schema for test environment setup
+const TEST_ENV_SCHEMA = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        language: { type: "string", description: "Primary language (typescript, javascript, python, etc.)" },
+        framework: { type: "string", description: "Test framework to use (jest, pytest, mocha, etc.)" },
+        dependencies: { 
+            type: "array", 
+            items: { type: "string" },
+            description: "npm/pip packages to install for testing"
+        },
+        configFiles: {
+            type: "array",
+            items: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                    filename: { type: "string" },
+                    content: { type: "string" }
+                },
+                required: ["filename", "content"]
+            },
+            description: "Config files to create (jest.config.js, etc.)"
+        },
+        testFileExtension: { type: "string", description: "Extension for test files (.test.ts, .test.js, _test.py)" },
+        importStyle: { type: "string", description: "How to import: 'esm' for import/export, 'commonjs' for require, 'python' for import" },
+        runCommand: { type: "string", description: "Command to run tests (npm test, pytest, etc.)" }
+    },
+    required: ["language", "framework", "dependencies", "configFiles", "testFileExtension", "importStyle", "runCommand"]
+};
 
 // Schema for test generation response
 export const TEST_GENERATION_SCHEMA = {
@@ -120,6 +153,160 @@ const SYNTAX_FIX_SCHEMA = {
 };
 
 /**
+ * Detect project characteristics for test setup
+ */
+function detectProjectInfo(workspaceRoot: string): string {
+    const info: string[] = [];
+    
+    // Check for package.json (Node.js/JavaScript/TypeScript)
+    const packageJsonPath = path.join(workspaceRoot, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+        try {
+            const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            info.push(`package.json exists`);
+            info.push(`type: ${pkg.type || 'commonjs'}`);
+            if (pkg.devDependencies?.typescript || pkg.dependencies?.typescript) info.push('uses typescript');
+            if (pkg.devDependencies?.jest || pkg.dependencies?.jest) info.push('has jest installed');
+            if (pkg.devDependencies?.mocha || pkg.dependencies?.mocha) info.push('has mocha installed');
+            if (pkg.scripts?.test) info.push(`test script: ${pkg.scripts.test}`);
+        } catch {}
+    }
+    
+    // Check for tsconfig.json (TypeScript)
+    if (fs.existsSync(path.join(workspaceRoot, 'tsconfig.json'))) {
+        info.push('tsconfig.json exists (TypeScript project)');
+    }
+    
+    // Check for requirements.txt or setup.py (Python)
+    if (fs.existsSync(path.join(workspaceRoot, 'requirements.txt'))) {
+        info.push('requirements.txt exists (Python project)');
+    }
+    if (fs.existsSync(path.join(workspaceRoot, 'setup.py')) || fs.existsSync(path.join(workspaceRoot, 'pyproject.toml'))) {
+        info.push('Python package config exists');
+    }
+    
+    // Check for existing test directories
+    const testDirs = ['tests', 'test', '__tests__', 'UnitTests', 'spec'];
+    for (const dir of testDirs) {
+        if (fs.existsSync(path.join(workspaceRoot, dir))) {
+            info.push(`existing test directory: ${dir}`);
+        }
+    }
+    
+    // List source file types
+    const srcFiles = fs.readdirSync(workspaceRoot, { recursive: true }) as string[];
+    const extensions: Record<string, number> = {};
+    for (const file of srcFiles.slice(0, 200)) { // Sample first 200
+        if (typeof file === 'string' && !file.includes('node_modules')) {
+            const ext = path.extname(file);
+            if (ext) extensions[ext] = (extensions[ext] || 0) + 1;
+        }
+    }
+    const topExts = Object.entries(extensions)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([ext, count]) => `${ext}: ${count}`);
+    info.push(`file types: ${topExts.join(', ')}`);
+    
+    return info.join('\n');
+}
+
+/**
+ * Ask LLM to set up the test environment
+ */
+async function setupTestEnvironment(
+    workspaceRoot: string,
+    projectInfo: string,
+    llmService: any,
+    onProgress?: (message: string) => void
+): Promise<{ success: boolean; testDir: string; importStyle: string; extension: string; runCommand: string }> {
+    SWLogger.log('[TestGen] Asking LLM to configure test environment...');
+    onProgress?.('Configuring test environment...');
+    
+    const prompt = `Set up a unit test environment for this project.
+
+Project Info:
+${projectInfo}
+
+Workspace: ${workspaceRoot}
+
+Analyze the project and provide:
+1. The appropriate test framework and dependencies to install
+2. Config files needed (jest.config.js, etc.)
+3. How imports should work in test files
+
+Keep it minimal - only what's needed to run tests.`;
+
+    try {
+        const response = await llmService.sendStructuredRequest(
+            prompt,
+            TEST_ENV_SCHEMA,
+            'Configure the test environment. Be specific with config file contents.'
+        );
+        
+        const setup = response.data as {
+            language: string;
+            framework: string;
+            dependencies: string[];
+            configFiles: { filename: string; content: string }[];
+            testFileExtension: string;
+            importStyle: string;
+            runCommand: string;
+        };
+        
+        SWLogger.log(`[TestGen] LLM recommends: ${setup.framework} for ${setup.language}`);
+        
+        // Install dependencies
+        if (setup.dependencies.length > 0) {
+            onProgress?.(`Installing ${setup.dependencies.length} test dependencies...`);
+            SWLogger.log(`[TestGen] Installing: ${setup.dependencies.join(', ')}`);
+            
+            const installCmd = setup.language === 'python' 
+                ? `pip install ${setup.dependencies.join(' ')}`
+                : `npm install --save-dev ${setup.dependencies.join(' ')}`;
+            
+            try {
+                await execAsync(installCmd, { cwd: workspaceRoot, timeout: 180000 });
+                SWLogger.log('[TestGen] Dependencies installed');
+            } catch (err: any) {
+                SWLogger.log(`[TestGen] Install warning: ${err.message}`);
+            }
+        }
+        
+        // Write config files
+        for (const config of setup.configFiles) {
+            const configPath = path.join(workspaceRoot, config.filename);
+            SWLogger.log(`[TestGen] Writing ${config.filename}`);
+            fs.writeFileSync(configPath, config.content);
+        }
+        
+        // Ensure test directory exists
+        const testDir = path.join(workspaceRoot, 'UnitTests');
+        if (!fs.existsSync(testDir)) {
+            fs.mkdirSync(testDir, { recursive: true });
+        }
+        
+        return {
+            success: true,
+            testDir,
+            importStyle: setup.importStyle,
+            extension: setup.testFileExtension,
+            runCommand: setup.runCommand
+        };
+    } catch (err: any) {
+        SWLogger.log(`[TestGen] Setup failed: ${err.message}`);
+        // Fall back to basic Jest setup
+        return {
+            success: false,
+            testDir: path.join(workspaceRoot, 'UnitTests'),
+            importStyle: 'commonjs',
+            extension: '.test.js',
+            runCommand: 'npx jest'
+        };
+    }
+}
+
+/**
  * Extract function code from file content by name
  */
 function extractFunctionCode(content: string, funcName: string): string {
@@ -154,6 +341,15 @@ export async function generateAndRunTests(
 ): Promise<TestGenerationResult> {
     SWLogger.log('[TestGen] Starting test generation...');
     
+    // Step 1: Detect project characteristics
+    onProgress?.('Detecting project setup...');
+    const projectInfo = detectProjectInfo(workspaceRoot);
+    SWLogger.log(`[TestGen] Project info:\n${projectInfo}`);
+    
+    // Step 2: Ask LLM to set up test environment
+    const envSetup = await setupTestEnvironment(workspaceRoot, projectInfo, llmService, onProgress);
+    SWLogger.log(`[TestGen] Environment setup: ${envSetup.success ? 'success' : 'fallback'}, import style: ${envSetup.importStyle}`);
+    
     // Cap test targets - we'll generate tests ONE AT A TIME to avoid token limits
     const MAX_TEST_TARGETS = 5;
     const cappedTargets = analysisResult.testTargets.slice(0, MAX_TEST_TARGETS);
@@ -164,7 +360,7 @@ export async function generateAndRunTests(
     // Only include functions that are in our capped targets
     const targetFunctions = new Set(cappedTargets.map(t => t.function));
     const cappedFunctions = analysisResult.functions.filter(f => targetFunctions.has(f.name));
-    SWLogger.log(`[TestGen] Will generate tests for ${cappedFunctions.length} functions (one at a time)`);
+    SWLogger.log(`[TestGen] Will generate tests for ${cappedFunctions.length} functions`);
     
     onProgress?.('Reading source files...');
 
@@ -195,23 +391,31 @@ export async function generateAndRunTests(
         const content = fileContents.get(func.file) || '';
         const funcCode = extractFunctionCode(content, func.name);
         
-        // Simple, focused prompt for ONE function - SELF-CONTAINED tests
-        const singlePrompt = `Generate a SELF-CONTAINED Jest test for this function.
+        // Calculate the import path from UnitTests to the source file
+        const importPath = '../' + func.file.replace(/\.ts$/, '').replace(/\.js$/, '');
+        
+        // Prompt that asks for REAL imports based on detected setup
+        const singlePrompt = `Generate a Jest unit test for this function.
 
-IMPORTANT: The test must be completely standalone:
-1. Copy the function code directly into the test file (do NOT import from source)
-2. Mock any external dependencies inline
-3. The test must run without any imports from the project
+Project setup:
+- Import style: ${envSetup.importStyle}
+- Test file will be in: UnitTests/
+- Source file: ${func.file}
+- Import path from test: ${importPath}
 
 Function: ${func.name}
 Purpose: ${func.purpose || 'Unknown'}
 
-Original Code:
-\`\`\`javascript
+Source Code:
+\`\`\`
 ${funcCode}
 \`\`\`
 
-Generate a describe block with 2-3 test cases. Include the function definition at the top of the describe block so it's self-contained. Only use standard Jest globals (describe, it, expect, jest).`;
+Generate a test that:
+1. Imports the REAL function from the source file using: ${envSetup.importStyle === 'esm' ? `import { ${func.name} } from '${importPath}'` : `const { ${func.name} } = require('${importPath}')`}
+2. Has 2-3 test cases in a describe block
+3. Mocks any external dependencies the function uses
+4. Tests both success and edge cases`;
         
         try {
             const response = await llmService.sendStructuredRequest(
@@ -220,11 +424,11 @@ Generate a describe block with 2-3 test cases. Include the function definition a
                     type: "object",
                     additionalProperties: false,
                     properties: {
-                        testCode: { type: "string", description: "Complete Jest test code for this function" }
+                        testCode: { type: "string", description: "Complete test code with import and describe block" }
                     },
                     required: ["testCode"]
                 },
-                'Generate a concise Jest test. Return only the test code.'
+                'Generate a unit test that imports from the real source file.'
             );
             
             if (response.data?.testCode) {
@@ -291,7 +495,7 @@ ${testData.setupCode}
         onProgress?.('Fixing syntax error...');
         
         // Ask LLM to fix the syntax error (single retry)
-        const fixPrompt = `The following Jest test code has a syntax error:
+        const fixPrompt = `The following test code has a syntax error:
 
 ERROR: ${syntaxCheck.error}
 
@@ -300,11 +504,8 @@ CODE:
 ${testFileContent}
 \`\`\`
 
-Fix the syntax error. IMPORTANT RULES:
-1. Tests must be SELF-CONTAINED - NO imports from the project source files
-2. Each function being tested should be DEFINED INLINE in the test file
-3. Only use Jest globals (describe, it, expect, jest) - no require/import except for jest globals
-4. Return the complete corrected code.`;
+Fix the syntax error and return the complete corrected code.
+Keep the imports to the source files - this is a real unit test.`;
         
         try {
             const fixResponse = await llmService.sendStructuredRequest(
@@ -330,15 +531,11 @@ Fix the syntax error. IMPORTANT RULES:
     fs.writeFileSync(testFilePath, testFileContent);
     SWLogger.log(`[TestGen] Wrote tests to ${testFilePath}`);
 
-    // Ensure Jest is available
-    onProgress?.('Checking test dependencies...');
-    const configExt = await ensureJestInstalled(workspaceRoot);
-
-    // Run tests
+    // Run tests using the command from LLM setup
     onProgress?.('Running tests...');
-    SWLogger.log('[TestGen] Running tests...');
+    SWLogger.log(`[TestGen] Running tests with: ${envSetup.runCommand}`);
     
-    const runResult = await runTests(workspaceRoot, testFilePath, configExt);
+    const runResult = await runTests(workspaceRoot, testFilePath, envSetup.runCommand);
 
     SWLogger.log(`[TestGen] Tests complete: ${runResult.passed} passed, ${runResult.failed} failed`);
 
@@ -350,112 +547,26 @@ Fix the syntax error. IMPORTANT RULES:
 }
 
 /**
- * Ensure Jest is installed in the workspace
- */
-async function ensureJestInstalled(workspaceRoot: string): Promise<string> {
-    const packageJsonPath = path.join(workspaceRoot, 'package.json');
-    
-    if (!fs.existsSync(packageJsonPath)) {
-        // Create basic package.json
-        const packageJson = {
-            name: path.basename(workspaceRoot),
-            version: "1.0.0",
-            scripts: {
-                test: "jest"
-            },
-            devDependencies: {}
-        };
-        fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-    }
-
-    // Check if all required test dependencies are installed
-    const requiredDeps = ['jest', '@babel/core', '@babel/preset-env', 'babel-jest'];
-    const missingDeps: string[] = [];
-    
-    for (const dep of requiredDeps) {
-        const depPath = path.join(workspaceRoot, 'node_modules', dep);
-        if (!fs.existsSync(depPath)) {
-            missingDeps.push(dep);
-        }
-    }
-    
-    if (missingDeps.length > 0) {
-        SWLogger.log(`[TestGen] Installing missing dependencies: ${missingDeps.join(', ')}`);
-        try {
-            await execAsync(
-                `npm install --save-dev ${missingDeps.join(' ')}`,
-                { cwd: workspaceRoot, timeout: 180000 }
-            );
-            SWLogger.log('[TestGen] Dependencies installed successfully');
-        } catch (err: any) {
-            SWLogger.log(`[TestGen] Install error: ${err.message || err}`);
-            // Try installing one by one if batch fails
-            for (const dep of missingDeps) {
-                try {
-                    await execAsync(`npm install --save-dev ${dep}`, { cwd: workspaceRoot, timeout: 60000 });
-                    SWLogger.log(`[TestGen] Installed ${dep}`);
-                } catch (e: any) {
-                    SWLogger.log(`[TestGen] Failed to install ${dep}: ${e.message || e}`);
-                }
-            }
-        }
-    } else {
-        SWLogger.log('[TestGen] All test dependencies already installed');
-    }
-
-    // Check if project uses ESM (type: module in package.json)
-    let isESM = false;
-    try {
-        const pkgContent = fs.readFileSync(packageJsonPath, 'utf-8');
-        const pkg = JSON.parse(pkgContent);
-        isESM = pkg.type === 'module';
-    } catch {}
-
-    // Use .cjs extension for config files in ESM projects
-    const configExt = isESM ? '.cjs' : '.js';
-
-    // Create jest.config with ESM transform
-    const jestConfigPath = path.join(workspaceRoot, `jest.config${configExt}`);
-    const jestConfig = `module.exports = {
-  testEnvironment: 'node',
-  testMatch: ['**/UnitTests/**/*.test.js'],
-  verbose: true,
-  transform: {
-    '^.+\\.js$': 'babel-jest'
-  },
-  transformIgnorePatterns: []
-};
-`;
-    fs.writeFileSync(jestConfigPath, jestConfig);
-
-    // Create babel.config for ESM->CJS transform
-    const babelConfigPath = path.join(workspaceRoot, `babel.config${configExt}`);
-    const babelConfig = `module.exports = {
-  presets: [
-    ['@babel/preset-env', { targets: { node: 'current' } }]
-  ]
-};
-`;
-    fs.writeFileSync(babelConfigPath, babelConfig);
-
-    return configExt; // Return so we know which config to use
-}
-
-/**
  * Run tests and capture results
  */
 async function runTests(
     workspaceRoot: string,
     testFilePath: string,
-    configExt: string = '.js'
+    runCommand: string
 ): Promise<{ passed: number; failed: number; output: string }> {
-    // Use config file if it exists
-    const configPath = path.join(workspaceRoot, `jest.config${configExt}`);
-    const configArg = fs.existsSync(configPath) ? ` --config jest.config${configExt}` : '';
+    // Build the full command - append the test file if command looks like jest/pytest
+    let fullCommand = runCommand;
+    if (runCommand.includes('jest') || runCommand.includes('npx jest')) {
+        fullCommand = `${runCommand} "${testFilePath}" --json --no-coverage`;
+    } else if (runCommand.includes('pytest')) {
+        fullCommand = `${runCommand} "${testFilePath}" -v`;
+    }
+    
+    SWLogger.log(`[TestGen] Executing: ${fullCommand}`);
     
     try {
         const { stdout, stderr } = await execAsync(
-            `npx jest "${testFilePath}"${configArg} --json --no-coverage`,
+            fullCommand,
             { cwd: workspaceRoot, timeout: 120000 }
         );
 
