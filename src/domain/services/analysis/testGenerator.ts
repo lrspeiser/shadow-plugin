@@ -195,20 +195,23 @@ export async function generateAndRunTests(
         const content = fileContents.get(func.file) || '';
         const funcCode = extractFunctionCode(content, func.name);
         
-        // Simple, focused prompt for ONE function
-        const singlePrompt = `Generate a Jest test for this function:
+        // Simple, focused prompt for ONE function - SELF-CONTAINED tests
+        const singlePrompt = `Generate a SELF-CONTAINED Jest test for this function.
+
+IMPORTANT: The test must be completely standalone:
+1. Copy the function code directly into the test file (do NOT import from source)
+2. Mock any external dependencies inline
+3. The test must run without any imports from the project
 
 Function: ${func.name}
-File: ${func.file}
 Purpose: ${func.purpose || 'Unknown'}
-${target ? `Priority: ${target.priority} - ${target.reason}` : ''}
 
-Code:
+Original Code:
 \`\`\`javascript
 ${funcCode}
 \`\`\`
 
-Generate 2-3 test cases. Keep it concise.`;
+Generate a describe block with 2-3 test cases. Include the function definition at the top of the describe block so it's self-contained. Only use standard Jest globals (describe, it, expect, jest).`;
         
         try {
             const response = await llmService.sendStructuredRequest(
@@ -297,7 +300,11 @@ CODE:
 ${testFileContent}
 \`\`\`
 
-Fix the syntax error and return the complete corrected code.`;
+Fix the syntax error. IMPORTANT RULES:
+1. Tests must be SELF-CONTAINED - NO imports from the project source files
+2. Each function being tested should be DEFINED INLINE in the test file
+3. Only use Jest globals (describe, it, expect, jest) - no require/import except for jest globals
+4. Return the complete corrected code.`;
         
         try {
             const fixResponse = await llmService.sendStructuredRequest(
