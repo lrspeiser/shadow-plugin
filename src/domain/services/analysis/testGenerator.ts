@@ -133,6 +133,68 @@ export interface TestGenerationResult {
 }
 
 /**
+ * Update existing jest.config.js to include UnitTests directory
+ */
+function updateJestConfigForUnitTests(workspaceRoot: string): void {
+    const jestConfigPath = path.join(workspaceRoot, 'jest.config.js');
+    
+    if (!fs.existsSync(jestConfigPath)) {
+        return;
+    }
+    
+    try {
+        let content = fs.readFileSync(jestConfigPath, 'utf-8');
+        let modified = false;
+        
+        // Check if roots only includes src - add UnitTests
+        if (content.includes("roots: ['<rootDir>/src']") || content.includes('roots: ["<rootDir>/src"]')) {
+            content = content.replace(
+                /roots:\s*\[\s*['"]<rootDir>\/src['"]\s*\]/,
+                "roots: ['<rootDir>/src', '<rootDir>/UnitTests']"
+            );
+            modified = true;
+            SWLogger.log('[TestGen] Updated jest.config.js roots to include UnitTests');
+        } else if (!content.includes('UnitTests') && content.includes('roots:')) {
+            // Try to add UnitTests to existing roots array
+            content = content.replace(
+                /roots:\s*\[([^\]]*)\]/,
+                (match, inner) => {
+                    if (!inner.includes('UnitTests')) {
+                        return `roots: [${inner.trim()}, '<rootDir>/UnitTests']`;
+                    }
+                    return match;
+                }
+            );
+            modified = true;
+            SWLogger.log('[TestGen] Added UnitTests to jest.config.js roots');
+        }
+        
+        // Also ensure testMatch includes .test.ts and .test.js patterns for UnitTests
+        if (!content.includes('UnitTests/**') && content.includes('testMatch:')) {
+            content = content.replace(
+                /testMatch:\s*\[([^\]]*)\]/,
+                (match, inner) => {
+                    const patterns = inner.trim();
+                    // Add UnitTests patterns if not present
+                    if (!patterns.includes('UnitTests')) {
+                        return `testMatch: [${patterns}, '**/UnitTests/**/*.test.ts', '**/UnitTests/**/*.test.js']`;
+                    }
+                    return match;
+                }
+            );
+            modified = true;
+            SWLogger.log('[TestGen] Added UnitTests patterns to jest.config.js testMatch');
+        }
+        
+        if (modified) {
+            fs.writeFileSync(jestConfigPath, content);
+        }
+    } catch (err: any) {
+        SWLogger.log(`[TestGen] Failed to update jest.config.js: ${err.message}`);
+    }
+}
+
+/**
  * Build prompt for test generation
  */
 function buildTestPrompt(
@@ -318,11 +380,24 @@ Keep it minimal - only what's needed to run tests.`;
             }
         }
         
-        // Write config files
+        // Write config files (but don't overwrite existing jest.config.js - update it instead)
         for (const config of setup.configFiles) {
             const configPath = path.join(workspaceRoot, config.filename);
-            SWLogger.log(`[TestGen] Writing ${config.filename}`);
-            fs.writeFileSync(configPath, config.content);
+            
+            // Special handling for jest.config.js - update existing to include UnitTests
+            if (config.filename === 'jest.config.js' && fs.existsSync(configPath)) {
+                SWLogger.log(`[TestGen] Updating existing ${config.filename} to include UnitTests`);
+                updateJestConfigForUnitTests(workspaceRoot);
+            } else {
+                SWLogger.log(`[TestGen] Writing ${config.filename}`);
+                fs.writeFileSync(configPath, config.content);
+            }
+        }
+        
+        // Ensure Jest config includes UnitTests directory if it exists
+        const jestConfigPath = path.join(workspaceRoot, 'jest.config.js');
+        if (fs.existsSync(jestConfigPath)) {
+            updateJestConfigForUnitTests(workspaceRoot);
         }
         
         // Ensure test directory exists
@@ -712,7 +787,10 @@ ${testData.setupCode}
         testFileContent += test.testCode + '\n';
     }
 
-    const testFilePath = path.join(testDir, 'generated.test.js');
+    // Use .test.ts for TypeScript projects, .test.js otherwise
+    const isTypeScript = fs.existsSync(path.join(workspaceRoot, 'tsconfig.json'));
+    const testFileExt = isTypeScript ? '.test.ts' : '.test.js';
+    const testFilePath = path.join(testDir, `generated${testFileExt}`);
     
     // Validate syntax before writing
     let syntaxCheck = validateSyntax(testFileContent);

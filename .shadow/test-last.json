@@ -1,0 +1,9 @@
+{
+  "when": "2025-11-26T16:30:26.743Z",
+  "testFilePath": "/Users/leonardspeiser/Projects/shadow-plugin/UnitTests/generated.test.js",
+  "runResult": {
+    "passed": 0,
+    "failed": 0,
+    "output": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /Users/leonardspeiser/Projects/shadow-plugin\n  69 files checked.\n  testMatch: **/__tests__/**/*.test.ts, **/?(*.)+(spec|test).ts - 0 matches\n  testPathIgnorePatterns: /node_modules/ - 69 matches\n  testRegex:  - 0 matches\nPattern: /Users/leonardspeiser/Projects/shadow-plugin/UnitTests/generated.test.js - 0 matches\n"
+  }
+}

@@ -1249,55 +1249,48 @@ export async function clearAllData(): Promise<void> {
     // Clear all in-memory state
     stateManager.clearAll();
 
-    // Clear workspace .shadow/docs files
+    // Clear workspace .shadow directory and related files
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
         const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        const docsDir = path.join(workspaceRoot, '.shadow', 'docs');
+        const shadowDir = path.join(workspaceRoot, '.shadow');
+        const docsDir = path.join(shadowDir, 'docs');
 
+        // Clear entire .shadow/docs directory (all reports and analysis files)
         if (fs.existsSync(docsDir)) {
             try {
-                const files = fs.readdirSync(docsDir);
-                const filesToDelete = [
-                    'code-analysis.json',
-                    'enhanced-product-documentation.json',
-                    'enhanced-product-documentation.md',
-                    'architecture-insights.json',
-                    'architecture-insights.md'
-                ];
-
-                for (const file of files) {
-                    if (filesToDelete.includes(file)) {
-                        const filePath = path.join(docsDir, file);
-                        if (fs.existsSync(filePath)) {
-                            fs.unlinkSync(filePath);
-                            console.log(`Deleted ${file}`);
-                        }
-                    }
-                    
-                    // Delete architecture-insights-* directories
-                    if (file.startsWith('architecture-insights-') && fs.statSync(path.join(docsDir, file)).isDirectory()) {
-                        const dirPath = path.join(docsDir, file);
-                        try {
-                            fs.rmSync(dirPath, { recursive: true, force: true });
-                            console.log(`Deleted architecture insights directory: ${file}`);
-                        } catch (dirError) {
-                            console.error(`Error deleting architecture insights directory ${file}:`, dirError);
-                        }
-                    }
-                    
-                    // Delete product-docs-* directories
-                    if (file.startsWith('product-docs-') && fs.statSync(path.join(docsDir, file)).isDirectory()) {
-                        const dirPath = path.join(docsDir, file);
-                        try {
-                            fs.rmSync(dirPath, { recursive: true, force: true });
-                            console.log(`Deleted product docs directory: ${file}`);
-                        } catch (dirError) {
-                            console.error(`Error deleting product docs directory ${file}:`, dirError);
-                        }
-                    }
-                }
+                fs.rmSync(docsDir, { recursive: true, force: true });
+                console.log('Deleted entire .shadow/docs directory');
             } catch (error) {
-                console.error('Error deleting .shadow/docs files:', error);
+                console.error('Error deleting .shadow/docs directory:', error);
+            }
+        }
+
+        // Clear test-related files in .shadow root
+        const shadowRootFilesToDelete = [
+            'test-plan.json',
+            'test-env.json',
+            'test-last.json'
+        ];
+        for (const file of shadowRootFilesToDelete) {
+            const filePath = path.join(shadowDir, file);
+            if (fs.existsSync(filePath)) {
+                try {
+                    fs.unlinkSync(filePath);
+                    console.log(`Deleted ${file}`);
+                } catch (error) {
+                    console.error(`Error deleting ${file}:`, error);
+                }
+            }
+        }
+
+        // Clear old unit test plan locations
+        const oldUnitTestPlanPath = path.join(shadowDir, 'UnitTests', 'unit_test_plan.json');
+        if (fs.existsSync(oldUnitTestPlanPath)) {
+            try {
+                fs.unlinkSync(oldUnitTestPlanPath);
+                console.log('Deleted old unit_test_plan.json');
+            } catch (error) {
+                console.error('Error deleting old unit_test_plan.json:', error);
             }
         }
 
@@ -1309,6 +1302,17 @@ export async function clearAllData(): Promise<void> {
                 console.log('Deleted unit tests directory');
             } catch (error) {
                 console.error('Error deleting unit tests directory:', error);
+            }
+        }
+
+        // Clear .shadowwatch-cache directory
+        const cacheDir = path.join(workspaceRoot, '.shadowwatch-cache');
+        if (fs.existsSync(cacheDir)) {
+            try {
+                fs.rmSync(cacheDir, { recursive: true, force: true });
+                console.log('Deleted .shadowwatch-cache directory');
+            } catch (error) {
+                console.error('Error deleting .shadowwatch-cache directory:', error);
             }
         }
     }
