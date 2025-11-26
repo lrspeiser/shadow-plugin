@@ -750,6 +750,59 @@ function extractFunctionCode(content: string, funcName: string): string {
 }
 
 /**
+ * Detect if a function is a class method and return class info
+ */
+function detectClassMethod(content: string, funcName: string): { isClassMethod: boolean; className?: string; isStatic?: boolean } {
+    // Look for class declarations
+    const classPattern = /export\s+class\s+(\w+)/g;
+    let match: RegExpExecArray | null;
+    
+    while ((match = classPattern.exec(content)) !== null) {
+        const className = match[1];
+        const classStart = match.index;
+        
+        // Find the class body - track brace depth
+        let braceDepth = 0;
+        let classBodyStart = -1;
+        let classBodyEnd = -1;
+        
+        for (let i = classStart; i < content.length; i++) {
+            if (content[i] === '{') {
+                if (braceDepth === 0) classBodyStart = i;
+                braceDepth++;
+            } else if (content[i] === '}') {
+                braceDepth--;
+                if (braceDepth === 0) {
+                    classBodyEnd = i;
+                    break;
+                }
+            }
+        }
+        
+        if (classBodyStart === -1 || classBodyEnd === -1) continue;
+        
+        const classBody = content.substring(classBodyStart, classBodyEnd + 1);
+        
+        // Check if this method is in the class body
+        // Look for: methodName( or methodName<T>( patterns
+        const methodPatterns = [
+            new RegExp(`\\b${funcName}\\s*\\(`),           // regular method
+            new RegExp(`\\b${funcName}\\s*<[^>]+>\\s*\\(`), // generic method
+            new RegExp(`static\\s+${funcName}\\s*\\(`),     // static method
+        ];
+        
+        for (const pattern of methodPatterns) {
+            if (pattern.test(classBody)) {
+                const isStatic = new RegExp(`static\\s+${funcName}\\s*\\(`).test(classBody);
+                return { isClassMethod: true, className, isStatic };
+            }
+        }
+    }
+    
+    return { isClassMethod: false };
+}
+
+/**
  * Generate and run tests based on analysis results
  */
 function getShadowDir(root: string) {
@@ -869,6 +922,9 @@ export async function generateAndRunTests(
         const content = fileContents.get(func.file) || '';
         const funcCode = extractFunctionCode(content, func.name);
         
+        // Detect if this is a class method or standalone function
+        const classInfo = detectClassMethod(content, func.name);
+        
         // Calculate the import path from UnitTests to the source file
         const importPath = '../' + func.file.replace(/\.ts$/, '').replace(/\.js$/, '');
         
@@ -896,14 +952,45 @@ export async function generateAndRunTests(
    - If you need to store original values, type them: \`let original: typeof obj.prop\`
    - For unknown types, use \`unknown\` and type guard, not implicit any` : '';
         
-        // Build import statement based on whether we need an alias
-        const importStatement = useAlias
-            ? (envSetup.importStyle === 'esm' 
-                ? `import { ${func.name} as ${importAlias} } from '${importPath}'`
-                : `const { ${func.name}: ${importAlias} } = require('${importPath}')`)
-            : (envSetup.importStyle === 'esm'
-                ? `import { ${func.name} } from '${importPath}'`
-                : `const { ${func.name} } = require('${importPath}')`);
+        // Build import statement and usage instructions based on whether it's a class method or standalone function
+        let importStatement: string;
+        let usageInstructions: string;
+        
+        if (classInfo.isClassMethod && classInfo.className) {
+            // Class method - need to import the class and instantiate it
+            importStatement = envSetup.importStyle === 'esm'
+                ? `import { ${classInfo.className} } from '${importPath}'`
+                : `const { ${classInfo.className} } = require('${importPath}')`;
+            
+            if (classInfo.isStatic) {
+                usageInstructions = `This is a STATIC METHOD on the ${classInfo.className} class.
+Call it as: ${classInfo.className}.${func.name}(...)`;
+            } else {
+                usageInstructions = `This is a METHOD on the ${classInfo.className} class.
+You MUST:
+1. Import the class: ${importStatement}
+2. Create an instance in beforeEach: \`const instance = new ${classInfo.className}();\`
+3. Call the method on the instance: \`instance.${func.name}(...)\``;
+            }
+        } else {
+            // Standalone function
+            importStatement = useAlias
+                ? (envSetup.importStyle === 'esm' 
+                    ? `import { ${func.name} as ${importAlias} } from '${importPath}'`
+                    : `const { ${func.name}: ${importAlias} } = require('${importPath}')`)
+                : (envSetup.importStyle === 'esm'
+                    ? `import { ${func.name} } from '${importPath}'`
+                    : `const { ${func.name} } = require('${importPath}')`);
+            
+            usageInstructions = useAlias
+                ? `Uses '${importAlias}' (not '${func.name}') in all test code since we're using an alias`
+                : `Uses '${func.name}' in test code`;
+        }
+        
+        // Log what type of function we detected
+        if (classInfo.isClassMethod) {
+            SWLogger.log(`[TestGen] Detected ${func.name} as ${classInfo.isStatic ? 'static ' : ''}method on class ${classInfo.className}`);
+        }
         
         // Provide list of valid mock targets (actual source files in the project)
         const validMockTargets = [...uniqueFiles].map(f => '../' + f.replace(/\.ts$/, '').replace(/\.js$/, '')).join('\n- ');
@@ -921,6 +1008,7 @@ Project setup:
 
 Function: ${func.name}${useAlias ? ` (import as '${importAlias}' to avoid name collision)` : ''}
 Purpose: ${func.purpose || 'Unknown'}
+${classInfo.isClassMethod ? `\n**THIS IS A CLASS METHOD on ${classInfo.className}${classInfo.isStatic ? ' (static)' : ''} - NOT a standalone function!**` : ''}
 
 Source Code:
 \`\`\`
@@ -936,10 +1024,13 @@ IMPORTANT MOCKING RULES:
 - For external API calls, use jest.fn() directly rather than mocking non-existent config files
 - The function may have internal dependencies - mock them if needed using the VALID FILES list
 
+IMPORT AND USAGE INSTRUCTIONS:
+${usageInstructions}
+
 Generate a test that:
-1. Imports the function using EXACTLY: ${importStatement}
-2. ${useAlias ? `Uses '${importAlias}' (not '${func.name}') in all test code since we're using an alias` : `Uses '${func.name}' in test code`}
-3. Has 2-3 test cases in a describe block named '${importAlias}' (from ${path.basename(func.file)})
+1. Imports using EXACTLY: ${importStatement}
+2. ${classInfo.isClassMethod ? `Creates a ${classInfo.className} instance and calls ${func.name} as a method` : (useAlias ? `Uses '${importAlias}' in all test code` : `Uses '${func.name}' in test code`)}
+3. Has 2-3 test cases in a describe block named '${classInfo.isClassMethod ? classInfo.className + '.' + func.name : importAlias}' (from ${path.basename(func.file)})
 4. Mocks ONLY from valid files list or uses inline jest.fn() mocks
 5. Tests both success and edge cases${typeScriptInstructions}`;
         

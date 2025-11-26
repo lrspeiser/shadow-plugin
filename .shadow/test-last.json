@@ -1,9 +1,0 @@
-{
-  "when": "2025-11-26T18:25:42.661Z",
-  "testFilePath": "/Users/leonardspeiser/Projects/shadow-plugin/UnitTests/generated.test.ts",
-  "runResult": {
-    "passed": 0,
-    "failed": 0,
-    "output": "{\"numFailedTestSuites\":1,\"numFailedTests\":0,\"numPassedTestSuites\":0,\"numPassedTests\":0,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":1,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":0,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1764181541495,\"success\":false,\"testResults\":[{\"assertionResults\":[],\"coverage\":{},\"endTime\":1764181542641,\"message\":\"  ● Test suite failed to run\\n\\n    Cannot find module '../src/config/aiConfig' from 'UnitTests/generated.test.ts'\\n\\n      332 | });\\n      333 |\\n    > 334 | jest.mock('../src/config/aiConfig', () => ({\\n          |      ^\\n      335 |   getAIConfig: jest.fn().mockReturnValue({\\n      336 |     openai: {\\n      337 |       apiKey: 'test-api-key',\\n\\n      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)\\n      at Object.<anonymous> (UnitTests/generated.test.ts:334:6)\\n\",\"name\":\"/Users/leonardspeiser/Projects/shadow-plugin/UnitTests/generated.test.ts\",\"startTime\":1764181542641,\"status\":\"failed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n"
-  }
-}

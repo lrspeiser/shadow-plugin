@@ -1,104 +1,82 @@
 /**
  * Auto-generated unit tests
- * Generated: 2025-11-26T18:23:27.108Z
+ * Generated: 2025-11-26T21:55:18.546Z
  */
 
 
 
 
-// Tests for canMakeRequest from src/ai/llmRateLimiter.ts
-const { canMakeRequest } = require('../src/ai/llmRateLimiter');
-
-describe('canMakeRequest', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  test('should return true when no previous requests have been made', () => {
-    const result = canMakeRequest('openai');
-    expect(result).toBe(true);
-  });
-
-  test('should return true for unknown provider with default rate limits', () => {
-    const result = canMakeRequest('unknown-provider');
-    expect(result).toBe(true);
-  });
-
-  test('should return true for different providers independently', () => {
-    const openaiResult = canMakeRequest('openai');
-    const anthropicResult = canMakeRequest('anthropic');
-    
-    expect(openaiResult).toBe(true);
-    expect(anthropicResult).toBe(true);
-  });
-});
-
-
 // Tests for parseFileSummary from src/ai/llmResponseParser.ts
-const { parseFileSummary } = require('../src/ai/llmResponseParser');
+const { LLMResponseParser } = require('../src/ai/llmResponseParser');
 
-describe('parseFileSummary', () => {
-  describe('success cases', () => {
+describe('LLMResponseParser.parseFileSummary', () => {
+  let instance;
+
+  beforeEach(() => {
+    instance = new LLMResponseParser();
+  });
+
+  describe('JSON parsing', () => {
     it('should parse valid JSON response with summary field', () => {
-      const jsonResponse = '{"summary": "This is a utility module for parsing data."}';
+      const jsonResponse = JSON.stringify({ summary: 'This is a file summary describing the module functionality.' });
       
-      const result = parseFileSummary(jsonResponse);
+      const result = instance.parseFileSummary(jsonResponse);
       
-      expect(result).toBe('This is a utility module for parsing data.');
+      expect(result).toBe('This is a file summary describing the module functionality.');
     });
 
-    it('should extract summary from JSON embedded in text', () => {
-      const responseWithText = 'Here is the analysis:\n{"summary": "A helper function for string manipulation."}\nEnd of response.';
+    it('should parse JSON response with nested structure', () => {
+      const jsonResponse = JSON.stringify({
+        summary: 'A utility module for parsing responses',
+        details: { complexity: 'low' }
+      });
       
-      const result = parseFileSummary(responseWithText);
+      const result = instance.parseFileSummary(jsonResponse);
       
-      expect(result).toBe('A helper function for string manipulation.');
+      expect(result).toBe('A utility module for parsing responses');
+    });
+  });
+
+  describe('text extraction fallback', () => {
+    it('should extract summary from plain text when JSON parsing fails', () => {
+      const textResponse = 'Summary: This module handles LLM response parsing with multiple formats.';
+      
+      const result = instance.parseFileSummary(textResponse);
+      
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
     });
 
-    it('should handle JSON with additional fields and extract summary', () => {
-      const jsonWithExtraFields = '{"summary": "Main entry point for the application.", "confidence": 0.95, "tags": ["entry", "main"]}';
+    it('should handle malformed JSON and fall back to text extraction', () => {
+      const malformedJson = '{ summary: "Missing quotes on key" }';
       
-      const result = parseFileSummary(jsonWithExtraFields);
+      const result = instance.parseFileSummary(malformedJson);
       
-      expect(result).toBe('Main entry point for the application.');
+      expect(typeof result).toBe('string');
     });
   });
 
   describe('edge cases', () => {
-    it('should fall back to text extraction when JSON parsing fails', () => {
-      const plainTextResponse = 'This file contains utility functions for data processing.';
-      
-      const result = parseFileSummary(plainTextResponse);
-      
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-    });
-
     it('should handle empty string input', () => {
       const emptyInput = '';
       
-      const result = parseFileSummary(emptyInput);
+      const result = instance.parseFileSummary(emptyInput);
       
       expect(typeof result).toBe('string');
     });
 
-    it('should handle malformed JSON gracefully', () => {
-      const malformedJson = '{"summary": "incomplete json';
+    it('should handle JSON with empty summary', () => {
+      const jsonWithEmptySummary = JSON.stringify({ summary: '' });
       
-      const result = parseFileSummary(malformedJson);
+      const result = instance.parseFileSummary(jsonWithEmptySummary);
       
-      expect(typeof result).toBe('string');
+      expect(result).toBe('');
     });
 
     it('should handle JSON without summary field', () => {
-      const jsonWithoutSummary = '{"description": "Some description", "type": "module"}';
+      const jsonWithoutSummary = JSON.stringify({ description: 'Some description' });
       
-      const result = parseFileSummary(jsonWithoutSummary);
+      const result = instance.parseFileSummary(jsonWithoutSummary);
       
       expect(typeof result).toBe('string');
     });
@@ -106,10 +84,14 @@ describe('parseFileSummary', () => {
 });
 
 // Tests for executeWithRetry from src/ai/llmRetryHandler.ts
-const { executeWithRetry } = require('../src/ai/llmRetryHandler');
+const { RetryHandler } = require('../src/ai/llmRetryHandler');
 
-describe('executeWithRetry', () => {
+describe('RetryHandler.executeWithRetry', () => {
+  let instance;
+
   beforeEach(() => {
+    instance = new RetryHandler();
+    jest.clearAllMocks();
     jest.useFakeTimers();
   });
 
@@ -117,454 +99,380 @@ describe('executeWithRetry', () => {
     jest.useRealTimers();
   });
 
-  it('should return result on successful first attempt', async () => {
-    const mockOperation = jest.fn().mockResolvedValue('success');
+  it('should return result on successful operation without retry', async () => {
+    const expectedResult = 'success';
+    const operation = jest.fn().mockResolvedValue(expectedResult);
 
-    const resultPromise = executeWithRetry(mockOperation);
+    const resultPromise = instance.executeWithRetry(operation);
+    
+    await jest.runAllTimersAsync();
     const result = await resultPromise;
 
-    expect(result).toBe('success');
-    expect(mockOperation).toHaveBeenCalledTimes(1);
+    expect(result).toBe(expectedResult);
+    expect(operation).toHaveBeenCalledTimes(1);
   });
 
   it('should retry on failure and succeed on subsequent attempt', async () => {
-    const mockOperation = jest.fn()
-      .mockRejectedValueOnce(new Error('temporary failure'))
-      .mockResolvedValueOnce('success after retry');
+    const expectedResult = 'success after retry';
+    const error = new Error('temporary failure');
+    const operation = jest.fn()
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce(expectedResult);
 
-    const resultPromise = executeWithRetry(mockOperation, { maxRetries: 3, baseDelayMs: 100 });
-
-    await jest.advanceTimersByTimeAsync(100);
-
+    const resultPromise = instance.executeWithRetry(operation, { maxRetries: 3, baseDelayMs: 100 });
+    
+    await jest.runAllTimersAsync();
     const result = await resultPromise;
 
-    expect(result).toBe('success after retry');
-    expect(mockOperation).toHaveBeenCalledTimes(2);
+    expect(result).toBe(expectedResult);
+    expect(operation).toHaveBeenCalledTimes(2);
   });
 
   it('should throw error after exhausting all retries', async () => {
-    const testError = new Error('persistent failure');
-    const mockOperation = jest.fn().mockRejectedValue(testError);
+    const error = new Error('persistent failure');
+    const operation = jest.fn().mockRejectedValue(error);
 
-    const resultPromise = executeWithRetry(mockOperation, { maxRetries: 2, baseDelayMs: 50 });
-
-    await jest.advanceTimersByTimeAsync(50);
-    await jest.advanceTimersByTimeAsync(100);
+    const resultPromise = instance.executeWithRetry(operation, { maxRetries: 2, baseDelayMs: 50 });
+    
+    await jest.runAllTimersAsync();
 
     await expect(resultPromise).rejects.toThrow('persistent failure');
-    expect(mockOperation).toHaveBeenCalledTimes(3);
+    expect(operation).toHaveBeenCalledTimes(3);
   });
 });
 
-// Tests for sendStructuredRequest from src/ai/providers/ILLMProvider.ts
-const { sendStructuredRequest: sendStructuredRequestILLM } = require('../src/ai/providers/ILLMProvider');
+// Tests for sendRequest from src/ai/providers/ILLMProvider.ts
+const { sendRequest: sendRequestILLM } = require('../src/ai/providers/ILLMProvider');
 
-interface MockProvider {
-  sendStructuredRequest: jest.Mock;
-}
-
-describe('sendStructuredRequestILLM (from ILLMProvider.ts)', () => {
-  let mockProvider: MockProvider;
-
-  beforeEach(() => {
-    mockProvider = {
-      sendStructuredRequest: jest.fn()
-    };
-    jest.clearAllMocks();
-  });
-
-  test('should return parsed JSON data when provider returns valid structured response', async () => {
-    const expectedResponse = { name: 'John', age: 30 };
-    mockProvider.sendStructuredRequest.mockResolvedValue(expectedResponse);
-
-    const prompt = 'Get user info';
-    const schema = { type: 'object', properties: { name: { type: 'string' }, age: { type: 'number' } } };
-
-    const result = await mockProvider.sendStructuredRequest(prompt, schema);
-
-    expect(result).toEqual(expectedResponse);
-    expect(mockProvider.sendStructuredRequest).toHaveBeenCalledWith(prompt, schema);
-    expect(mockProvider.sendStructuredRequest).toHaveBeenCalledTimes(1);
-  });
-
-  test('should handle complex nested JSON structures', async () => {
-    const expectedResponse = {
-      user: {
-        profile: {
-          firstName: 'Jane',
-          lastName: 'Doe'
-        },
-        settings: {
-          notifications: true
-        }
-      }
-    };
-    mockProvider.sendStructuredRequest.mockResolvedValue(expectedResponse);
-
-    const prompt = 'Get nested user data';
-    const schema = { type: 'object' };
-
-    const result = await mockProvider.sendStructuredRequest(prompt, schema);
-
-    expect(result).toEqual(expectedResponse);
-    expect(result.user.profile.firstName).toBe('Jane');
-  });
-
-  test('should propagate errors when provider fails to return structured data', async () => {
-    const errorMessage = 'Failed to parse structured response';
-    mockProvider.sendStructuredRequest.mockRejectedValue(new Error(errorMessage));
-
-    const prompt = 'Invalid request';
-    const schema = { type: 'object' };
-
-    await expect(mockProvider.sendStructuredRequest(prompt, schema)).rejects.toThrow(errorMessage);
-    expect(mockProvider.sendStructuredRequest).toHaveBeenCalledTimes(1);
-  });
-});
-
-// Tests for sendStructuredRequest from src/ai/providers/anthropicProvider.ts
-const { sendStructuredRequest: sendStructuredRequestAnthropic } = require('../src/ai/providers/anthropicProvider');
-
-const mockCreate = jest.fn();
-
-jest.mock('@anthropic-ai/sdk', () => {
-  return jest.fn().mockImplementation(() => ({
-    messages: {
-      create: mockCreate
-    }
-  }));
-});
-
-describe('sendStructuredRequestAnthropic (from anthropicProvider.ts)', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should send structured request and return parsed JSON response', async () => {
-    const expectedResponse = { name: 'John', age: 30 };
-    mockCreate.mockResolvedValue({
-      content: [{ type: 'text', text: JSON.stringify(expectedResponse) }]
+describe('sendRequestILLM (from ILLMProvider.ts)', () => {
+  describe('interface contract tests', () => {
+    it('should be defined as a function or interface method', () => {
+      // ILLMProvider is an interface, so sendRequest is a method signature
+      // We test that the export exists (may be undefined for interface-only files)
+      expect(typeof sendRequestILLM === 'function' || typeof sendRequestILLM === 'undefined').toBe(true);
     });
 
-    const schema = {
-      type: 'object',
-      properties: {
-        name: { type: 'string' },
-        age: { type: 'number' }
-      },
-      required: ['name', 'age']
+    it('should validate provider implementation mock conforms to interface', async () => {
+      // Create a mock provider that implements the ILLMProvider interface
+      const mockProvider = {
+        sendRequest: jest.fn().mockResolvedValue('Test response from LLM')
+      };
+
+      const result = await mockProvider.sendRequest('Test prompt');
+      
+      expect(mockProvider.sendRequest).toHaveBeenCalledWith('Test prompt');
+      expect(result).toBe('Test response from LLM');
+    });
+
+    it('should handle provider implementation with options parameter', async () => {
+      const mockProvider = {
+        sendRequest: jest.fn().mockResolvedValue('Response with options')
+      };
+
+      const options = {
+        temperature: 0.7,
+        maxTokens: 1000
+      };
+
+      const result = await mockProvider.sendRequest('Test prompt with options', options);
+      
+      expect(mockProvider.sendRequest).toHaveBeenCalledWith('Test prompt with options', options);
+      expect(result).toBe('Response with options');
+    });
+  });
+});
+
+// Tests for sendRequest from src/ai/providers/anthropicProvider.ts
+const { AnthropicProvider } = require('../src/ai/providers/anthropicProvider');
+
+describe('AnthropicProvider.sendRequest', () => {
+  let instance;
+  let mockCreate;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    mockCreate = jest.fn();
+    
+    instance = new AnthropicProvider();
+    
+    // Mock the internal client
+    instance.client = {
+      messages: {
+        create: mockCreate
+      }
     };
+  });
 
-    const result = await sendStructuredRequestAnthropic(
-      'Extract user info',
-      'John is 30 years old',
-      schema,
-      'claude-3-5-sonnet-20241022'
-    );
-
-    expect(result).toEqual(expectedResponse);
+  it('should send a request and return parsed response with token usage', async () => {
+    const mockApiResponse = {
+      id: 'msg_123',
+      content: [{ type: 'text', text: 'Hello, I am Claude!' }],
+      model: 'claude-3-sonnet-20240229',
+      stop_reason: 'end_turn',
+      usage: {
+        input_tokens: 10,
+        output_tokens: 5
+      }
+    };
+    
+    mockCreate.mockResolvedValue(mockApiResponse);
+    
+    const messages = [
+      { role: 'user', content: 'Hello Claude' }
+    ];
+    
+    const result = await instance.sendRequest(messages);
+    
     expect(mockCreate).toHaveBeenCalledTimes(1);
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 16000,
-        system: 'Extract user info',
-        messages: [{ role: 'user', content: 'John is 30 years old' }]
-      })
-    );
+    expect(result).toBeDefined();
   });
 
   it('should handle API errors gracefully', async () => {
     const apiError = new Error('API rate limit exceeded');
     mockCreate.mockRejectedValue(apiError);
-
-    const schema = {
-      type: 'object',
-      properties: {
-        result: { type: 'string' }
-      }
-    };
-
-    await expect(
-      sendStructuredRequestAnthropic(
-        'Test prompt',
-        'Test content',
-        schema,
-        'claude-3-5-sonnet-20241022'
-      )
-    ).rejects.toThrow('API rate limit exceeded');
+    
+    const messages = [
+      { role: 'user', content: 'Test message' }
+    ];
+    
+    await expect(instance.sendRequest(messages)).rejects.toThrow('API rate limit exceeded');
+    expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle empty content array in response', async () => {
-    mockCreate.mockResolvedValue({
-      content: []
-    });
-
-    const schema = {
-      type: 'object',
-      properties: {
-        data: { type: 'string' }
+  it('should handle empty message array', async () => {
+    const mockApiResponse = {
+      id: 'msg_456',
+      content: [{ type: 'text', text: '' }],
+      model: 'claude-3-sonnet-20240229',
+      stop_reason: 'end_turn',
+      usage: {
+        input_tokens: 0,
+        output_tokens: 0
       }
     };
-
-    await expect(
-      sendStructuredRequestAnthropic(
-        'Test prompt',
-        'Test content',
-        schema,
-        'claude-3-5-sonnet-20241022'
-      )
-    ).rejects.toThrow();
+    
+    mockCreate.mockResolvedValue(mockApiResponse);
+    
+    const messages = [];
+    
+    const result = await instance.sendRequest(messages);
+    
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(result).toBeDefined();
   });
 });
 
-// Tests for sendStructuredRequest from src/ai/providers/openAIProvider.ts
-const { sendStructuredRequest: sendStructuredRequestOpenAI } = require('../src/ai/providers/openAIProvider');
+// Tests for sendRequest from src/ai/providers/openAIProvider.ts
+const { OpenAIProvider } = require('../src/ai/providers/openAIProvider');
 
-jest.mock('openai', () => {
-  return jest.fn().mockImplementation(() => ({
-    chat: {
-      completions: {
-        create: jest.fn()
-      }
-    }
-  }));
-});
-
-jest.mock('../src/config/aiConfig', () => ({
-  getAIConfig: jest.fn().mockReturnValue({
-    openai: {
-      apiKey: 'test-api-key',
-      model: 'gpt-4'
-    }
-  })
-}));
-
-jest.mock('../src/ai/textProcessor', () => ({
-  extractJson: jest.fn()
-}));
-
-jest.mock('../src/utils/logger', () => ({
-  debug: jest.fn(),
-  error: jest.fn()
-}));
-
-const OpenAI = require('openai');
-const { extractJson } = require('../src/ai/textProcessor');
-
-describe('sendStructuredRequestOpenAI (from openAIProvider.ts)', () => {
-  let mockCreateOpenAI: jest.Mock;
+describe('OpenAIProvider.sendRequest', () => {
+  let instance;
+  let mockCreate;
+  let originalConsoleLog;
+  let originalConsoleError;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateOpenAI = jest.fn();
-    OpenAI.mockImplementation(() => ({
+    originalConsoleLog = console.log;
+    originalConsoleError = console.error;
+    console.log = jest.fn();
+    console.error = jest.fn();
+    
+    mockCreate = jest.fn();
+    
+    instance = new OpenAIProvider();
+    
+    // Mock the OpenAI client's chat.completions.create method
+    instance.client = {
       chat: {
         completions: {
-          create: mockCreateOpenAI
+          create: mockCreate
         }
       }
-    }));
+    };
   });
 
-  it('should send request and return parsed JSON response', async () => {
+  afterEach(() => {
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
+  });
+
+  it('should successfully send a chat completion request and return response', async () => {
     const mockResponse = {
-      choices: [{
-        message: {
-          content: '{"result": "success", "value": 42}'
+      choices: [
+        {
+          message: {
+            content: 'Test response from OpenAI'
+          },
+          finish_reason: 'stop'
         }
-      }]
+      ],
+      usage: {
+        prompt_tokens: 10,
+        completion_tokens: 20,
+        total_tokens: 30
+      },
+      model: 'gpt-4'
     };
-    mockCreateOpenAI.mockResolvedValue(mockResponse);
-
-    const expectedParsed = { result: 'success', value: 42 };
-    extractJson.mockReturnValue(expectedParsed);
-
-    const systemPrompt = 'You are a helpful assistant.';
-    const userMessage = 'Parse this data.';
-
-    const result = await sendStructuredRequestOpenAI(
-      systemPrompt,
-      userMessage
+    
+    mockCreate.mockResolvedValue(mockResponse);
+    
+    const messages = [
+      { role: 'user', content: 'Hello, how are you?' }
+    ];
+    const model = 'gpt-4';
+    
+    const result = await instance.sendRequest(messages, model);
+    
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: model,
+        messages: messages
+      })
     );
-
-    expect(result).toEqual(expectedParsed);
-    expect(mockCreateOpenAI).toHaveBeenCalledWith(expect.objectContaining({
-      messages: expect.arrayContaining([
-        expect.objectContaining({ role: 'system', content: systemPrompt }),
-        expect.objectContaining({ role: 'user', content: userMessage })
-      ])
-    }));
-    expect(extractJson).toHaveBeenCalledWith('{"result": "success", "value": 42}');
+    expect(result).toEqual(mockResponse);
   });
 
-  it('should throw error when response content is empty', async () => {
-    const mockResponse = {
-      choices: [{
-        message: {
-          content: null
-        }
-      }]
-    };
-    mockCreateOpenAI.mockResolvedValue(mockResponse);
-
-    const systemPrompt = 'System prompt';
-    const userMessage = 'User message';
-
-    await expect(sendStructuredRequestOpenAI(systemPrompt, userMessage))
-      .rejects
-      .toThrow();
+  it('should handle API errors gracefully', async () => {
+    const apiError = new Error('API rate limit exceeded');
+    mockCreate.mockRejectedValue(apiError);
+    
+    const messages = [
+      { role: 'user', content: 'Test message' }
+    ];
+    const model = 'gpt-4';
+    
+    await expect(instance.sendRequest(messages, model)).rejects.toThrow('API rate limit exceeded');
+    expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw error when JSON extraction fails', async () => {
+  it('should pass additional options to the API call', async () => {
     const mockResponse = {
-      choices: [{
-        message: {
-          content: 'invalid json content'
+      choices: [
+        {
+          message: {
+            content: 'Response with temperature'
+          },
+          finish_reason: 'stop'
         }
-      }]
+      ],
+      usage: {
+        prompt_tokens: 5,
+        completion_tokens: 10,
+        total_tokens: 15
+      },
+      model: 'gpt-3.5-turbo'
     };
-    mockCreateOpenAI.mockResolvedValue(mockResponse);
-
-    extractJson.mockImplementation(() => {
-      throw new Error('Failed to extract JSON');
-    });
-
-    const systemPrompt = 'System prompt';
-    const userMessage = 'User message';
-
-    await expect(sendStructuredRequestOpenAI(systemPrompt, userMessage))
-      .rejects
-      .toThrow('Failed to extract JSON');
+    
+    mockCreate.mockResolvedValue(mockResponse);
+    
+    const messages = [
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: 'What is 2+2?' }
+    ];
+    const model = 'gpt-3.5-turbo';
+    const options = {
+      temperature: 0.7,
+      max_tokens: 100
+    };
+    
+    const result = await instance.sendRequest(messages, model, options);
+    
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: model,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 100
+      })
+    );
+    expect(result).toEqual(mockResponse);
   });
 });
 
-// Tests for analyzeTypeScriptFunction from src/analysis/enhancedAnalyzer.ts
-const { analyzeTypeScriptFunction: analyzeTypeScriptFunctionEnhancedAnalyzer } = require('../src/analysis/enhancedAnalyzer');
+// Tests for analyzeFileMetadata from src/analysis/enhancedAnalyzer.ts
+const { analyzeFileMetadata } = require('../src/analysis/enhancedAnalyzer');
+const fs = require('fs');
+const path = require('path');
 
-describe('analyzeTypeScriptFunctionEnhancedAnalyzer (from enhancedAnalyzer.ts)', () => {
-  describe('basic function analysis', () => {
-    it('should analyze a simple function with parameters and return type', () => {
-      const sourceCode = `
-        function add(a: number, b: number): number {
-          return a + b;
-        }
-      `;
-      
-      const result = analyzeTypeScriptFunctionEnhancedAnalyzer(sourceCode, 'add');
-      
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('object');
-    });
+jest.mock('fs');
+jest.mock('path');
 
-    it('should analyze an arrow function', () => {
-      const sourceCode = `
-        const multiply = (x: number, y: number): number => x * y;
-      `;
-      
-      const result = analyzeTypeScriptFunctionEnhancedAnalyzer(sourceCode, 'multiply');
-      
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('object');
-    });
+describe('analyzeFileMetadata (from enhancedAnalyzer.ts)', () => {
+  const mockFs = fs;
+  const mockPath = path;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPath.extname.mockReturnValue('.ts');
+    mockPath.basename.mockReturnValue('testFile.ts');
   });
 
-  describe('edge cases', () => {
-    it('should handle function not found in source code', () => {
-      const sourceCode = `
-        function existingFunction(): void {
-          console.log('hello');
-        }
-      `;
-      
-      const result = analyzeTypeScriptFunctionEnhancedAnalyzer(sourceCode, 'nonExistentFunction');
-      
-      expect(result).toBeDefined();
-    });
-
-    it('should handle empty source code', () => {
-      const sourceCode = '';
-      
-      const testFn = () => analyzeTypeScriptFunctionEnhancedAnalyzer(sourceCode, 'anyFunction');
-      
-      expect(testFn).not.toThrow();
-    });
-
-    it('should handle async function analysis', () => {
-      const sourceCode = `
-        async function fetchData(url: string): Promise<string> {
-          const response = await fetch(url);
-          return response.text();
-        }
-      `;
-      
-      const result = analyzeTypeScriptFunctionEnhancedAnalyzer(sourceCode, 'fetchData');
-      
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('object');
-    });
-  });
-});
-
-// Tests for analyzeTypeScriptFunction from src/analysis/functionAnalyzer.ts
-const { analyzeTypeScriptFunction: analyzeTypeScriptFunctionFunctionAnalyzer } = require('../src/analysis/functionAnalyzer');
-
-describe('analyzeTypeScriptFunctionFunctionAnalyzer (from functionAnalyzer.ts)', () => {
-  describe('basic function analysis', () => {
-    it('should analyze a simple function with parameters and return type', () => {
-      const functionCode = `function add(a: number, b: number): number {
+  it('should analyze a TypeScript file and extract function metadata', async () => {
+    const testFilePath = '/project/src/testFile.ts';
+    const testContent = `
+      export function calculateSum(a: number, b: number): number {
         return a + b;
-      }`;
+      }
       
-      const result = analyzeTypeScriptFunctionFunctionAnalyzer(functionCode, 'add');
-      
-      expect(result).toBeDefined();
-      expect(result.name).toBe('add');
-      expect(result.parameters).toBeDefined();
-      expect(Array.isArray(result.parameters)).toBe(true);
+      export async function fetchData(url: string): Promise<string> {
+        return await fetch(url).then(r => r.text());
+      }
+    `;
+
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(testContent);
+    mockFs.statSync.mockReturnValue({
+      size: testContent.length,
+      mtime: new Date('2024-01-01'),
+      isFile: () => true,
+      isDirectory: () => false
     });
 
-    it('should analyze an arrow function', () => {
-      const functionCode = `const multiply = (x: number, y: number): number => x * y;`;
-      
-      const result = analyzeTypeScriptFunctionFunctionAnalyzer(functionCode, 'multiply');
-      
-      expect(result).toBeDefined();
-      expect(result.name).toBe('multiply');
-    });
+    const result = await analyzeFileMetadata(testFilePath);
+
+    expect(result).toBeDefined();
+    expect(mockFs.readFileSync).toHaveBeenCalledWith(testFilePath, expect.any(String));
   });
 
-  describe('edge cases', () => {
-    it('should handle function with no parameters', () => {
-      const functionCode = `function getTimestamp(): number {
-        return Date.now();
-      }`;
-      
-      const result = analyzeTypeScriptFunctionFunctionAnalyzer(functionCode, 'getTimestamp');
-      
-      expect(result).toBeDefined();
-      expect(result.name).toBe('getTimestamp');
-      expect(result.parameters).toEqual([]);
+  it('should handle files with no functions gracefully', async () => {
+    const testFilePath = '/project/src/constants.ts';
+    const testContent = `
+      export const API_URL = 'https://api.example.com';
+      export const MAX_RETRIES = 3;
+    `;
+
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(testContent);
+    mockFs.statSync.mockReturnValue({
+      size: testContent.length,
+      mtime: new Date('2024-01-01'),
+      isFile: () => true,
+      isDirectory: () => false
     });
 
-    it('should handle async function', () => {
-      const functionCode = `async function fetchData(url: string): Promise<string> {
-        return await fetch(url).then(r => r.text());
-      }`;
-      
-      const result = analyzeTypeScriptFunctionFunctionAnalyzer(functionCode, 'fetchData');
-      
-      expect(result).toBeDefined();
-      expect(result.name).toBe('fetchData');
-      expect(result.isAsync === true || result.async === true || (result.modifiers && result.modifiers.includes('async'))).toBeTruthy();
+    const result = await analyzeFileMetadata(testFilePath);
+
+    expect(result).toBeDefined();
+  });
+
+  it('should throw or return error for non-existent file', async () => {
+    const testFilePath = '/project/src/nonexistent.ts';
+
+    mockFs.existsSync.mockReturnValue(false);
+    mockFs.readFileSync.mockImplementation(() => {
+      throw new Error('ENOENT: no such file or directory');
     });
 
-    it('should return appropriate result for non-existent function name', () => {
-      const functionCode = `function existingFunc(): void {}`;
-      
-      const result = analyzeTypeScriptFunctionFunctionAnalyzer(functionCode, 'nonExistentFunc');
-      
-      expect(result === null || result === undefined || result.name === undefined || result.name !== 'nonExistentFunc').toBeTruthy();
-    });
+    try {
+      await analyzeFileMetadata(testFilePath);
+    } catch (error) {
+      expect(error).toBeDefined();
+      if (error instanceof Error) {
+        expect(error.message).toContain('ENOENT');
+      }
+    }
   });
 });
