@@ -74,10 +74,10 @@ export class AnthropicProvider implements ILLMProvider {
         const startTime = Date.now();
 
         const response = await this.client.messages.create({
-            model: options.model || 'claude-sonnet-4-5',
+            model: options.model || 'claude-opus-4-5',
             system: options.systemPrompt,
             messages: claudeMessages as any,
-            max_tokens: options.maxTokens || 8192 // Claude Sonnet max is 8192
+            max_tokens: options.maxTokens || 16000 // Claude Opus max output is 32K
         });
 
         // Log token usage
@@ -128,11 +128,11 @@ export class AnthropicProvider implements ILLMProvider {
         const startTime = Date.now();
 
         const response = await (this.client as any).beta.messages.create({
-            model: options.model || 'claude-sonnet-4-5',
+            model: options.model || 'claude-opus-4-5',
             betas: ['structured-outputs-2025-11-13'],
             system: options.systemPrompt,
             messages: claudeMessages,
-            max_tokens: options.maxTokens || 8192, // Claude Sonnet max is 8192
+            max_tokens: options.maxTokens || 16000, // Claude Opus max output is 32K
             output_format: {
                 type: 'json_schema',
                 schema: schema

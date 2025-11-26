@@ -132,7 +132,7 @@ export class LLMService {
      */
     public getModelForProvider(providerName?: string): string {
         const provider = providerName || this.providerFactory.getCurrentProvider().getName();
-        return provider === 'claude' ? 'claude-sonnet-4-5' : 'gpt-5.1';
+        return provider === 'claude' ? 'claude-opus-4-5' : 'gpt-5.1';
     }
 
     /**
