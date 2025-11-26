@@ -280,6 +280,124 @@ function fixImplicitAnyTypes(code: string): string {
 }
 
 /**
+ * Validate and fix mock paths - remove jest.mock() calls for non-existent files
+ */
+function validateMockPaths(code: string, workspaceRoot: string, validFiles: Set<string>): { code: string; removedMocks: string[] } {
+    const removedMocks: string[] = [];
+    const lines = code.split('\n');
+    const fixedLines: string[] = [];
+    
+    // Track multi-line jest.mock blocks
+    let inMockBlock = false;
+    let mockBlockDepth = 0;
+    let currentMockPath = '';
+    let mockBlockLines: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Detect start of jest.mock
+        const mockMatch = line.match(/jest\.mock\s*\(\s*['"](.+?)['"]/);
+        
+        if (mockMatch && !inMockBlock) {
+            const mockPath = mockMatch[1];
+            currentMockPath = mockPath;
+            
+            // Check if this is a valid mock target
+            const isValidMock = isValidMockPath(mockPath, workspaceRoot, validFiles);
+            
+            if (!isValidMock) {
+                // This mock targets a non-existent file - skip it
+                removedMocks.push(mockPath);
+                
+                // Check if it's a single line mock or multi-line
+                const openBraces = (line.match(/\{/g) || []).length;
+                const closeBraces = (line.match(/\}/g) || []).length;
+                
+                if (line.includes('));') || line.match(/\)\s*;\s*$/)) {
+                    // Single line mock, skip it
+                    continue;
+                } else {
+                    // Multi-line mock, start tracking
+                    inMockBlock = true;
+                    mockBlockDepth = openBraces - closeBraces;
+                    mockBlockLines = [line];
+                    continue;
+                }
+            }
+        }
+        
+        if (inMockBlock) {
+            mockBlockLines.push(line);
+            const openBraces = (line.match(/\{/g) || []).length;
+            const closeBraces = (line.match(/\}/g) || []).length;
+            mockBlockDepth += openBraces - closeBraces;
+            
+            // Check for end of mock block - look for closing );
+            if (mockBlockDepth <= 0 && line.match(/\)\s*;\s*$/)) {
+                // End of invalid mock block, discard it
+                inMockBlock = false;
+                mockBlockLines = [];
+                currentMockPath = '';
+                continue;
+            }
+            continue;
+        }
+        
+        fixedLines.push(line);
+    }
+    
+    return { code: fixedLines.join('\n'), removedMocks };
+}
+
+/**
+ * Check if a mock path is valid (exists or is an npm package)
+ */
+function isValidMockPath(mockPath: string, workspaceRoot: string, validFiles: Set<string>): boolean {
+    // npm packages are always valid
+    if (!mockPath.startsWith('.') && !mockPath.startsWith('/')) {
+        return true;
+    }
+    
+    // Check relative paths against our valid files list
+    // The mock path is relative to UnitTests/, so we need to resolve it
+    const normalizedPath = mockPath
+        .replace(/^\.\.?\//, '')  // Remove leading ./ or ../
+        .replace(/\.(ts|js|tsx|jsx)$/, '');  // Remove extension
+    
+    // Check if any valid file matches this path
+    for (const validFile of validFiles) {
+        const validNormalized = validFile
+            .replace(/\.(ts|js|tsx|jsx)$/, '')
+            .replace(/^\.\.?\//, '');
+        
+        if (normalizedPath === validNormalized || 
+            normalizedPath.endsWith(validNormalized) ||
+            validNormalized.endsWith(normalizedPath)) {
+            return true;
+        }
+    }
+    
+    // Also check if the file exists on disk
+    const possiblePaths = [
+        path.join(workspaceRoot, normalizedPath + '.ts'),
+        path.join(workspaceRoot, normalizedPath + '.js'),
+        path.join(workspaceRoot, normalizedPath + '/index.ts'),
+        path.join(workspaceRoot, normalizedPath + '/index.js'),
+        path.join(workspaceRoot, 'UnitTests', mockPath.replace(/^\.\.?\//, '') + '.ts'),
+        path.join(workspaceRoot, 'UnitTests', mockPath.replace(/^\.\.?\//, '') + '.js'),
+    ];
+    
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Validate JavaScript syntax using Node's vm module
  */
 function validateSyntax(code: string): { valid: boolean; error?: string } {
@@ -787,6 +905,9 @@ export async function generateAndRunTests(
                 ? `import { ${func.name} } from '${importPath}'`
                 : `const { ${func.name} } = require('${importPath}')`);
         
+        // Provide list of valid mock targets (actual source files in the project)
+        const validMockTargets = [...uniqueFiles].map(f => '../' + f.replace(/\.ts$/, '').replace(/\.js$/, '')).join('\n- ');
+        
         const singlePrompt = `Generate a ${envSetup.framework} unit test for this function.
 
 Project setup:
@@ -806,11 +927,20 @@ Source Code:
 ${funcCode}
 \`\`\`
 
+VALID FILES YOU CAN MOCK (these are the ONLY source files that exist):
+- ${validMockTargets}
+
+IMPORTANT MOCKING RULES:
+- ONLY mock modules from the list above OR standard npm packages (jest, lodash, etc.)
+- Do NOT invent or guess module paths - if a dependency isn't in the list, mock it inline
+- For external API calls, use jest.fn() directly rather than mocking non-existent config files
+- The function may have internal dependencies - mock them if needed using the VALID FILES list
+
 Generate a test that:
 1. Imports the function using EXACTLY: ${importStatement}
 2. ${useAlias ? `Uses '${importAlias}' (not '${func.name}') in all test code since we're using an alias` : `Uses '${func.name}' in test code`}
 3. Has 2-3 test cases in a describe block named '${importAlias}' (from ${path.basename(func.file)})
-4. Mocks any external dependencies the function uses
+4. Mocks ONLY from valid files list or uses inline jest.fn() mocks
 5. Tests both success and edge cases${typeScriptInstructions}`;
         
         try {
@@ -890,6 +1020,13 @@ ${testData.setupCode}
     if (isTypeScript) {
         testFileContent = fixImplicitAnyTypes(testFileContent);
         SWLogger.log('[TestGen] Applied basic TypeScript type fixes');
+    }
+    
+    // Validate mock paths - remove jest.mock() calls for non-existent files
+    const mockValidation = validateMockPaths(testFileContent, workspaceRoot, uniqueFiles);
+    if (mockValidation.removedMocks.length > 0) {
+        testFileContent = mockValidation.code;
+        SWLogger.log(`[TestGen] Removed ${mockValidation.removedMocks.length} invalid mock(s): ${mockValidation.removedMocks.join(', ')}`);
     }
     
     // Validate syntax before writing

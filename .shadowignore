@@ -60,3 +60,10 @@ node_modules  # Package dependencies - not project source code
 dist  # TypeScript build output directory
 out  # Compiled/build output directory
 *.vsix  # VS Code extension package files - binary artifacts
+
+# Auto-suggested patterns (2025-11-26)
+node_modules  # NPM dependencies folder - third-party code, not project source
+dist  # Build output folder - compiled/bundled code, not source
+out  # TypeScript/VS Code extension build output folder - compiled code
+*.vsix  # VS Code extension package files - generated artifacts
+coverage  # Jest test coverage reports - generated files
