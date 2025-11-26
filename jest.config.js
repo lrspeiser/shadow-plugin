@@ -3,10 +3,10 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/UnitTests'],
   testMatch: ['**/*.test.ts', '**/*.test.js'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  collectCoverageFrom: ['**/*.{ts,js}', '!**/*.test.{ts,js}', '!**/node_modules/**', '!**/dist/**'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  collectCoverageFrom: ['**/*.{ts,js}', '!**/*.d.ts', '!**/node_modules/**', '!**/UnitTests/**'],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\.ts$': 'ts-jest'
   },
   globals: {
     'ts-jest': {

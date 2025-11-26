@@ -140,7 +140,7 @@ export const ProgressLocation = {
 
 export class TreeItem {
   label: string | any;
-  collapsibleState?: TreeItemCollapsibleState;
+  collapsibleState?: typeof TreeItemCollapsibleState[keyof typeof TreeItemCollapsibleState];
   command?: any;
   contextValue?: string;
   description?: string;
@@ -149,7 +149,7 @@ export class TreeItem {
   
   constructor(
     label: string | any,
-    collapsibleState?: TreeItemCollapsibleState
+    collapsibleState?: typeof TreeItemCollapsibleState[keyof typeof TreeItemCollapsibleState]
   ) {
     this.label = label;
     this.collapsibleState = collapsibleState;

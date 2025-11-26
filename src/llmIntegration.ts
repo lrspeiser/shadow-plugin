@@ -2127,7 +2127,7 @@ function generateSimpleReport(
         report += `\n`;
     }
     
-    if (insights?.recommended_test_targets && (insights as any).recommended_test_targets.length > 0) {
+    if ((insights as any)?.recommended_test_targets && (insights as any).recommended_test_targets.length > 0) {
         report += `## Recommended Test Targets\n`;
         for (const target of (insights as any).recommended_test_targets) {
             report += `- **${target.function_name}** (${target.file_path}) - ${target.priority} priority: ${target.reason}\n`;

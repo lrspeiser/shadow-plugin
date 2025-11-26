@@ -1068,7 +1068,7 @@ Keep responses concise - this is a small project that doesn't need enterprise-le
                 hasReorganization: !!insights.folderReorganization,
                 recommendationsCount: insights.recommendations?.length || 0,
                 prioritiesCount: insights.priorities?.length || 0,
-                testTargetsCount: insights.recommended_test_targets?.length || 0
+                testTargetsCount: (insights as any).recommended_test_targets?.length || 0
             });
             
             return insights;
