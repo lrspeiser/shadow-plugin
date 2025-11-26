@@ -108,6 +108,18 @@ export interface BuildError {
     isUserCode: boolean; // true if error is in user's code, false if in generated tests
 }
 
+export interface TestEnvManifest {
+    language: string;
+    framework: string; // jest, pytest, etc.
+    importStyle: 'esm' | 'commonjs' | 'python';
+    moduleSystem?: 'module' | 'commonjs';
+    testEnvironment?: 'node' | 'jsdom';
+    testDir: string;
+    extension: string; // .test.ts, .test.js, etc.
+    runCommand: string; // package script or framework command
+    directCommand: string; // direct invocation, e.g., npx jest
+}
+
 export interface TestGenerationResult {
     testsGenerated: number;
     testFilePath: string;
@@ -252,7 +264,7 @@ async function setupTestEnvironment(
     projectInfo: string,
     llmService: any,
     onProgress?: (message: string) => void
-): Promise<{ success: boolean; testDir: string; importStyle: string; extension: string; runCommand: string }> {
+): Promise<TestEnvManifest & { success: boolean }> {
     SWLogger.log('[TestGen] Asking LLM to configure test environment...');
     onProgress?.('Configuring test environment...');
     
@@ -319,22 +331,48 @@ Keep it minimal - only what's needed to run tests.`;
             fs.mkdirSync(testDir, { recursive: true });
         }
         
+        // Derive module system and test environment hints
+        let moduleSystem: 'module' | 'commonjs' | undefined;
+        try {
+            const pkg = JSON.parse(fs.readFileSync(path.join(workspaceRoot, 'package.json'), 'utf-8'));
+            moduleSystem = (pkg.type === 'module') ? 'module' : 'commonjs';
+        } catch {}
+        
+        const manifest: TestEnvManifest = {
+            language: setup.language,
+            framework: setup.framework,
+            importStyle: setup.importStyle as any,
+            moduleSystem,
+            testEnvironment: undefined,
+            testDir,
+            extension: setup.testFileExtension,
+            runCommand: setup.runCommand,
+            directCommand: setup.framework === 'pytest' ? 'pytest -q' : 'npx jest'
+        };
+        persistTestEnvManifest(workspaceRoot, manifest);
+        
         return {
             success: true,
-            testDir,
-            importStyle: setup.importStyle,
-            extension: setup.testFileExtension,
-            runCommand: setup.runCommand
+            ...manifest
         };
     } catch (err: any) {
         SWLogger.log(`[TestGen] Setup failed: ${err.message}`);
         // Fall back to basic Jest setup
+        const manifest: TestEnvManifest = {
+            language: 'javascript',
+            framework: 'jest',
+            importStyle: 'commonjs',
+            moduleSystem: 'commonjs',
+            testEnvironment: 'node',
+            testDir: path.join(workspaceRoot, 'UnitTests'),
+            extension: '.test.js',
+            runCommand: 'npx jest',
+            directCommand: 'npx jest'
+        };
+        persistTestEnvManifest(workspaceRoot, manifest);
         return {
             success: false,
-            testDir: path.join(workspaceRoot, 'UnitTests'),
-            importStyle: 'commonjs',
-            extension: '.test.js',
-            runCommand: 'npx jest'
+            ...manifest
         };
     }
 }
@@ -476,6 +514,40 @@ function extractFunctionCode(content: string, funcName: string): string {
 /**
  * Generate and run tests based on analysis results
  */
+function getShadowDir(root: string) {
+    return path.join(root, '.shadow');
+}
+
+function persistTestEnvManifest(root: string, manifest: TestEnvManifest) {
+    try {
+        const dir = getShadowDir(root);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'test-env.json'), JSON.stringify(manifest, null, 2));
+        SWLogger.log('[TestGen] Wrote test-env.json');
+    } catch (e) {
+        SWLogger.log('[TestGen] Failed to write test-env.json');
+    }
+}
+
+function loadTestEnvManifest(root: string): TestEnvManifest | null {
+    try {
+        const manifestPath = path.join(getShadowDir(root), 'test-env.json');
+        if (!fs.existsSync(manifestPath)) return null;
+        const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as TestEnvManifest;
+        return m;
+    } catch {
+        return null;
+    }
+}
+
+function persistLastTestResult(root: string, data: any) {
+    try {
+        const dir = getShadowDir(root);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'test-last.json'), JSON.stringify(data, null, 2));
+    } catch {}
+}
+
 export async function generateAndRunTests(
     workspaceRoot: string,
     analysisResult: {
@@ -496,9 +568,12 @@ export async function generateAndRunTests(
     // Step 1.5: Ask LLM to suggest ignore patterns (updates .shadowignore)
     await suggestIgnorePatterns(workspaceRoot, projectInfo, llmService, onProgress);
     
-    // Step 2: Ask LLM to set up test environment
-    const envSetup = await setupTestEnvironment(workspaceRoot, projectInfo, llmService, onProgress);
-    SWLogger.log(`[TestGen] Environment setup: ${envSetup.success ? 'success' : 'fallback'}, import style: ${envSetup.importStyle}`);
+// Step 2: Load or set up test environment
+    let envSetup = loadTestEnvManifest(workspaceRoot);
+    if (!envSetup) {
+        envSetup = await setupTestEnvironment(workspaceRoot, projectInfo, llmService, onProgress);
+    }
+    SWLogger.log(`[TestGen] Environment setup ready. framework=${envSetup.framework}, import style=${envSetup.importStyle}`);
     
     // Cap test targets - we'll generate tests ONE AT A TIME to avoid token limits
     const MAX_TEST_TARGETS = 5;
@@ -544,11 +619,13 @@ export async function generateAndRunTests(
         // Calculate the import path from UnitTests to the source file
         const importPath = '../' + func.file.replace(/\.ts$/, '').replace(/\.js$/, '');
         
-        // Prompt that asks for REAL imports based on detected setup
-        const singlePrompt = `Generate a Jest unit test for this function.
+// Prompt that asks for REAL imports based on detected setup
+        const singlePrompt = `Generate a ${envSetup.framework} unit test for this function.
 
 Project setup:
 - Import style: ${envSetup.importStyle}
+- Module system: ${envSetup.moduleSystem || 'commonjs'}
+- Test environment: ${envSetup.testEnvironment || 'node'}
 - Test file will be in: UnitTests/
 - Source file: ${func.file}
 - Import path from test: ${importPath}
@@ -716,13 +793,16 @@ Keep the imports to the source files - this is a real unit test.`;
         }
     }
 
-    // Run tests using the command from LLM setup
+// Run tests using the selected command
     onProgress?.('Running tests...');
-    SWLogger.log(`[TestGen] Running tests with: ${envSetup.runCommand}`);
+    const cmd = (envSetup as any).directCommand || envSetup.runCommand || 'npx jest';
+    SWLogger.log(`[TestGen] Running tests with: ${cmd}`);
     
-    const runResult = await runTests(workspaceRoot, testFilePath, envSetup.runCommand);
+    const runResult = await runTests(workspaceRoot, testFilePath, cmd);
 
     SWLogger.log(`[TestGen] Tests complete: ${runResult.passed} passed, ${runResult.failed} failed`);
+
+    persistLastTestResult(workspaceRoot, { when: new Date().toISOString(), testFilePath, runResult });
 
     return {
         testsGenerated: testData.tests.length,
@@ -939,9 +1019,9 @@ export async function runExistingTests(
         }
     }
     
-    // Always use npx jest directly to avoid pretest scripts (compile, lint, etc.)
-    // This is much faster for re-running tests after fixing issues
-    const runCommand = 'npx jest';
+// Prefer direct command from manifest if available
+    const manifest = loadTestEnvManifest(workspaceRoot);
+    const runCommand = manifest?.directCommand || manifest?.runCommand || 'npx jest';
     
     // Run the tests
     onProgress?.('Running tests...');
@@ -951,6 +1031,8 @@ export async function runExistingTests(
     
     SWLogger.log(`[TestGen] Results: ${runResult.passed} passed, ${runResult.failed} failed`);
     
+persistLastTestResult(workspaceRoot, { when: new Date().toISOString(), testFilePath, runResult, buildErrors: buildCheck.errors });
+
     return {
         testsGenerated: 0, // We didn't generate new tests
         testFilePath,
