@@ -125,11 +125,85 @@ export interface TestGenerationResult {
     testFilePath: string;
     buildErrors?: BuildError[];
     buildErrorsSkippedTests?: boolean; // true if tests were skipped due to build errors in user code
+    skippedModules?: string[]; // modules that couldn't be imported in Jest
     runResult?: {
         passed: number;
         failed: number;
         output: string;
     };
+}
+
+/**
+ * Check if a module can be imported in Jest environment
+ * Some modules (like 'typescript') crash when imported in Jest
+ */
+async function checkModuleImportable(
+    workspaceRoot: string,
+    sourceFile: string
+): Promise<{ importable: boolean; error?: string }> {
+    // Build the import path from UnitTests to the source file
+    const importPath = '../' + sourceFile.replace(/\.ts$/, '').replace(/\.js$/, '');
+    
+    // Create a minimal test file that just tries to import the module
+    const testCode = `
+// Testability check - can this module be imported?
+const mod = require('${importPath}');
+console.log('Module imported successfully:', Object.keys(mod));
+`;
+    
+    const testDir = path.join(workspaceRoot, 'UnitTests');
+    if (!fs.existsSync(testDir)) {
+        fs.mkdirSync(testDir, { recursive: true });
+    }
+    
+    const checkFile = path.join(testDir, '_importcheck.test.js');
+    
+    try {
+        fs.writeFileSync(checkFile, testCode);
+        
+        // Run Jest on this file with a short timeout
+        const { stdout, stderr } = await execAsync(
+            `npx jest "${checkFile}" --testTimeout=5000 --forceExit 2>&1`,
+            { 
+                cwd: workspaceRoot,
+                timeout: 15000 // 15 second timeout
+            }
+        );
+        
+        // Check if test ran successfully (Jest exits 0 on pass)
+        // But also check stderr/stdout for runtime errors
+        const output = stdout + stderr;
+        if (output.includes('Cannot read properties of undefined') ||
+            output.includes('TypeError:') ||
+            output.includes('ReferenceError:') ||
+            output.includes('Test suite failed to run')) {
+            // Extract the error message
+            const errorMatch = output.match(/TypeError: ([^\n]+)/) ||
+                              output.match(/ReferenceError: ([^\n]+)/) ||
+                              output.match(/Error: ([^\n]+)/);
+            return { 
+                importable: false, 
+                error: errorMatch ? errorMatch[1] : 'Module import failed' 
+            };
+        }
+        
+        return { importable: true };
+    } catch (err: any) {
+        // If Jest fails, extract the error
+        const output = err.stdout || err.stderr || err.message || '';
+        const errorMatch = output.match(/TypeError: ([^\n]+)/) ||
+                          output.match(/Cannot read properties of undefined \(reading '([^']+)'\)/) ||
+                          output.match(/Error: ([^\n]+)/);
+        return { 
+            importable: false, 
+            error: errorMatch ? errorMatch[0] : 'Module import crashed Jest' 
+        };
+    } finally {
+        // Clean up the check file
+        try {
+            fs.unlinkSync(checkFile);
+        } catch {}
+    }
 }
 
 /**
@@ -894,9 +968,54 @@ export async function generateAndRunTests(
         }
     }
 
+    // Check which modules can actually be imported in Jest
+    // Some modules (like those using 'typescript' package) crash Jest at import time
+    onProgress?.('Checking module testability...');
+    const untestableModules = new Set<string>();
+    const skippedModuleReasons: string[] = [];
+    
+    for (const file of uniqueFiles) {
+        SWLogger.log(`[TestGen] Checking if ${file} can be imported in Jest...`);
+        const importCheck = await checkModuleImportable(workspaceRoot, file);
+        if (!importCheck.importable) {
+            untestableModules.add(file);
+            const reason = `${file}: ${importCheck.error || 'Unknown import error'}`;
+            skippedModuleReasons.push(reason);
+            SWLogger.log(`[TestGen] ✗ SKIPPING ${file} - cannot be imported: ${importCheck.error}`);
+        } else {
+            SWLogger.log(`[TestGen] ✓ ${file} can be imported`);
+        }
+    }
+    
+    // Filter out functions from untestable modules
+    const testableFunctions = cappedFunctions.filter(f => !untestableModules.has(f.file));
+    const testableFiles = new Set(testableFunctions.map(f => f.file));
+    
+    if (untestableModules.size > 0) {
+        SWLogger.log(`[TestGen] Skipped ${untestableModules.size} untestable module(s):`);
+        for (const reason of skippedModuleReasons) {
+            SWLogger.log(`[TestGen]   - ${reason}`);
+        }
+        SWLogger.log(`[TestGen] Will generate tests for ${testableFunctions.length} functions (from ${testableFiles.size} testable files)`);
+    }
+    
+    if (testableFunctions.length === 0) {
+        SWLogger.log('[TestGen] No testable functions found - all modules failed import check');
+        return {
+            testsGenerated: 0,
+            testFilePath: path.join(workspaceRoot, 'UnitTests', 'generated.test.ts'),
+            skippedModules: skippedModuleReasons,
+            runResult: {
+                passed: 0,
+                failed: 0,
+                output: 'All target modules failed Jest import check:\n' + skippedModuleReasons.join('\n')
+            }
+        };
+    }
+
     // Detect duplicate function names - we need unique aliases for imports
     const functionNameCounts = new Map<string, number>();
-    for (const func of cappedFunctions) {
+    for (const func of testableFunctions) {
         functionNameCounts.set(func.name, (functionNameCounts.get(func.name) || 0) + 1);
     }
     const duplicateFunctionNames = new Set(
@@ -912,12 +1031,12 @@ export async function generateAndRunTests(
     // Generate tests ONE FUNCTION AT A TIME to avoid hitting Claude's 8192 token output limit
     const generatedTests: { functionName: string; fileName: string; testCode: string }[] = [];
     
-    for (let i = 0; i < cappedFunctions.length; i++) {
-        const func = cappedFunctions[i];
+    for (let i = 0; i < testableFunctions.length; i++) {
+        const func = testableFunctions[i];
         const target = cappedTargets.find(t => t.function === func.name);
         
-        onProgress?.(`Generating test ${i + 1}/${cappedFunctions.length}: ${func.name}...`);
-        SWLogger.log(`[TestGen] Generating test for ${func.name} (${i + 1}/${cappedFunctions.length})`);
+        onProgress?.(`Generating test ${i + 1}/${testableFunctions.length}: ${func.name}...`);
+        SWLogger.log(`[TestGen] Generating test for ${func.name} (${i + 1}/${testableFunctions.length})`);
         
         const content = fileContents.get(func.file) || '';
         const funcCode = extractFunctionCode(content, func.name);
@@ -992,8 +1111,8 @@ You MUST:
             SWLogger.log(`[TestGen] Detected ${func.name} as ${classInfo.isStatic ? 'static ' : ''}method on class ${classInfo.className}`);
         }
         
-        // Provide list of valid mock targets (actual source files in the project)
-        const validMockTargets = [...uniqueFiles].map(f => '../' + f.replace(/\.ts$/, '').replace(/\.js$/, '')).join('\n- ');
+        // Provide list of valid mock targets (only testable source files)
+        const validMockTargets = [...testableFiles].map(f => '../' + f.replace(/\.ts$/, '').replace(/\.js$/, '')).join('\n- ');
         
         // Get the test target info which includes why this function was selected
         const testTarget = cappedTargets.find(t => t.function === func.name);
@@ -1084,7 +1203,7 @@ Generate a test that:
         }
     }
     
-    SWLogger.log(`[TestGen] Generated ${generatedTests.length}/${cappedFunctions.length} tests`);
+    SWLogger.log(`[TestGen] Generated ${generatedTests.length}/${testableFunctions.length} tests`);
     
     // Build test data structure
     const testData = {
@@ -1137,7 +1256,7 @@ ${testData.setupCode}
     }
     
     // Validate mock paths - remove jest.mock() calls for non-existent files
-    const mockValidation = validateMockPaths(testFileContent, workspaceRoot, uniqueFiles);
+    const mockValidation = validateMockPaths(testFileContent, workspaceRoot, testableFiles);
     if (mockValidation.removedMocks.length > 0) {
         testFileContent = mockValidation.code;
         SWLogger.log(`[TestGen] Removed ${mockValidation.removedMocks.length} invalid mock(s): ${mockValidation.removedMocks.join(', ')}`);
@@ -1207,6 +1326,7 @@ Keep the imports to the source files - this is a real unit test.`;
                 testFilePath,
                 buildErrors: buildCheck.errors,
                 buildErrorsSkippedTests: true,
+                skippedModules: skippedModuleReasons.length > 0 ? skippedModuleReasons : undefined,
                 runResult: {
                     passed: 0,
                     failed: 0,
@@ -1285,6 +1405,7 @@ Return the complete fixed code with ALL TypeScript errors resolved.`;
         testsGenerated: testData.tests.length,
         testFilePath,
         buildErrors: buildCheck.hasErrors ? buildCheck.errors : undefined,
+        skippedModules: skippedModuleReasons.length > 0 ? skippedModuleReasons : undefined,
         runResult
     };
 }

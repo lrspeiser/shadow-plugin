@@ -83,3 +83,12 @@ out/  # TypeScript compilation output directory
 .vscode/  # VS Code editor configuration
 coverage/  # Jest test coverage reports (generated)
 .jest-cache/  # Jest cache directory
+
+# Auto-suggested patterns (2025-11-26)
+node_modules/  # Third-party dependencies installed via npm
+dist/  # Build output directory for compiled/bundled code
+out/  # TypeScript compilation output directory
+*.vsix  # VS Code extension package files (binary artifacts)
+.vscode/  # VS Code editor configuration
+coverage/  # Jest test coverage reports (generated)
+.jest-cache/  # Jest cache directory

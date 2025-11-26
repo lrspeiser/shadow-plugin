@@ -1,0 +1,9 @@
+{
+  "when": "2025-11-26T22:19:43.385Z",
+  "testFilePath": "/Users/leonardspeiser/Projects/shadow-plugin/UnitTests/generated.test.ts",
+  "runResult": {
+    "passed": 0,
+    "failed": 0,
+    "output": "{\"numFailedTestSuites\":1,\"numFailedTests\":0,\"numPassedTestSuites\":0,\"numPassedTests\":0,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":1,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":0,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1764195582000,\"success\":false,\"testResults\":[{\"assertionResults\":[],\"coverage\":{},\"endTime\":1764195583362,\"message\":\"  ● Test suite failed to run\\n\\n    TypeError: Cannot read properties of undefined (reading 'native')\\n\\n       5 | import * as fs from 'fs';\\n       6 | import * as path from 'path';\\n    >  7 | import * as ts from 'typescript';\\n         | ^\\n       8 | import {\\n       9 |     CodeAnalysis,\\n      10 |     FunctionMetadata,\\n\\n      at getNodeSystem (node_modules/typescript/lib/typescript.js:8281:43)\\n      at node_modules/typescript/lib/typescript.js:8665:12\\n      at node_modules/typescript/lib/typescript.js:8671:3\\n      at Object.<anonymous> (node_modules/typescript/lib/typescript.js:200275:3)\\n      at Object.<anonymous> (src/analysis/enhancedAnalyzer.ts:7:1)\\n      at Object.<anonymous> (UnitTests/generated.test.ts:894:30)\\n\",\"name\":\"/Users/leonardspeiser/Projects/shadow-plugin/UnitTests/generated.test.ts\",\"startTime\":1764195583362,\"status\":\"failed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n"
+  }
+}
