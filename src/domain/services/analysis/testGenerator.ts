@@ -838,10 +838,10 @@ ${testData.setupCode}
     const testFileExt = isTypeScript ? '.test.ts' : '.test.js';
     const testFilePath = path.join(testDir, `generated${testFileExt}`);
     
-    // For TypeScript projects, fix implicit any types that LLMs often generate
+    // For TypeScript projects, apply basic fixes first
     if (isTypeScript) {
         testFileContent = fixImplicitAnyTypes(testFileContent);
-        SWLogger.log('[TestGen] Applied TypeScript type fixes');
+        SWLogger.log('[TestGen] Applied basic TypeScript type fixes');
     }
     
     // Validate syntax before writing
@@ -890,7 +890,7 @@ Keep the imports to the source files - this is a real unit test.`;
 
     // Check for build errors BEFORE running tests
     onProgress?.('Checking for build errors...');
-    const buildCheck = await checkBuildErrors(workspaceRoot, testFilePath);
+    let buildCheck = await checkBuildErrors(workspaceRoot, testFilePath);
     
     if (buildCheck.hasErrors) {
         const userCodeErrors = buildCheck.errors.filter(e => e.isUserCode);
@@ -917,9 +917,57 @@ Keep the imports to the source files - this is a real unit test.`;
             };
         }
         
-        // If only test code has errors, report them but note we tried to generate tests
-        if (testCodeErrors.length > 0) {
-            SWLogger.log('[TestGen] Generated tests have errors (may be due to import issues)');
+        // If test code has TypeScript errors, ask LLM to fix them (second pass)
+        if (testCodeErrors.length > 0 && isTypeScript) {
+            SWLogger.log('[TestGen] Asking LLM to fix TypeScript errors in generated tests...');
+            onProgress?.('Fixing TypeScript errors in tests...');
+            
+            const errorList = testCodeErrors.map(e => `Line ${e.line}: ${e.message}`).join('\n');
+            const tsFixPrompt = `The following TypeScript test code has compilation errors. Fix ALL of them.
+
+TYPESCRIPT ERRORS:
+${errorList}
+
+CODE:
+\`\`\`typescript
+${testFileContent}
+\`\`\`
+
+IMPORTANT TYPESCRIPT RULES:
+1. All variables MUST have explicit types - use ': any' if the type is unknown
+2. Replace 'let x;' with 'let x: any;'
+3. For jest mocks, use: 'let mockFn: jest.SpyInstance;' or 'let mockFn: jest.Mock;'
+4. For storing original values: 'let original: typeof obj.prop;'
+5. Do NOT use implicit any types anywhere
+
+Return the complete fixed code with ALL TypeScript errors resolved.`;
+            
+            try {
+                const tsFixResponse = await llmService.sendStructuredRequest(
+                    tsFixPrompt,
+                    SYNTAX_FIX_SCHEMA,
+                    'Fix all TypeScript compilation errors. Return only valid TypeScript code.'
+                );
+                
+                const tsFixedCode = (tsFixResponse.data as { fixedCode: string }).fixedCode;
+                
+                // Write the fixed code and re-check
+                fs.writeFileSync(testFilePath, tsFixedCode);
+                testFileContent = tsFixedCode;
+                SWLogger.log('[TestGen] Applied LLM TypeScript fixes, re-checking...');
+                
+                // Re-check for build errors
+                buildCheck = await checkBuildErrors(workspaceRoot, testFilePath);
+                const remainingErrors = buildCheck.errors.filter(e => !e.isUserCode);
+                
+                if (remainingErrors.length === 0) {
+                    SWLogger.log('[TestGen] TypeScript errors fixed successfully');
+                } else {
+                    SWLogger.log(`[TestGen] ${remainingErrors.length} TypeScript errors remain after fix attempt`);
+                }
+            } catch (tsFixErr: any) {
+                SWLogger.log(`[TestGen] TypeScript fix request failed: ${tsFixErr.message || tsFixErr}`);
+            }
         }
     }
 
