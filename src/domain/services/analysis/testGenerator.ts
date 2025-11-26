@@ -695,6 +695,15 @@ export async function generateAndRunTests(
         const importPath = '../' + func.file.replace(/\.ts$/, '').replace(/\.js$/, '');
         
 // Prompt that asks for REAL imports based on detected setup
+        const isTypeScript = fs.existsSync(path.join(workspaceRoot, 'tsconfig.json'));
+        const typeScriptInstructions = isTypeScript ? `
+5. IMPORTANT: This is a TypeScript project with strict mode. All variables MUST have explicit types.
+   - Use \`let x: SomeType\` instead of \`let x\`
+   - Use \`const fn = jest.fn<ReturnType, Args>()\` for mocks
+   - Avoid implicit 'any' types - add explicit type annotations everywhere
+   - If you need to store original values, type them: \`let original: typeof obj.prop\`
+   - For unknown types, use \`unknown\` and type guard, not implicit any` : '';
+        
         const singlePrompt = `Generate a ${envSetup.framework} unit test for this function.
 
 Project setup:
@@ -704,6 +713,7 @@ Project setup:
 - Test file will be in: UnitTests/
 - Source file: ${func.file}
 - Import path from test: ${importPath}
+- Language: ${isTypeScript ? 'TypeScript (strict mode - NO implicit any)' : 'JavaScript'}
 
 Function: ${func.name}
 Purpose: ${func.purpose || 'Unknown'}
@@ -717,7 +727,7 @@ Generate a test that:
 1. Imports the REAL function from the source file using: ${envSetup.importStyle === 'esm' ? `import { ${func.name} } from '${importPath}'` : `const { ${func.name} } = require('${importPath}')`}
 2. Has 2-3 test cases in a describe block
 3. Mocks any external dependencies the function uses
-4. Tests both success and edge cases`;
+4. Tests both success and edge cases${typeScriptInstructions}`;
         
         try {
             const response = await llmService.sendStructuredRequest(
