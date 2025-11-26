@@ -939,17 +939,9 @@ export async function runExistingTests(
         }
     }
     
-    // Determine test command - check package.json for test script
-    let runCommand = 'npx jest';
-    const packageJsonPath = path.join(workspaceRoot, 'package.json');
-    if (fs.existsSync(packageJsonPath)) {
-        try {
-            const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-            if (pkg.scripts?.test && pkg.scripts.test.includes('jest')) {
-                runCommand = 'npm test --';
-            }
-        } catch {}
-    }
+    // Always use npx jest directly to avoid pretest scripts (compile, lint, etc.)
+    // This is much faster for re-running tests after fixing issues
+    const runCommand = 'npx jest';
     
     // Run the tests
     onProgress?.('Running tests...');
